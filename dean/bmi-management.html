@@ -569,20 +569,26 @@
                     </div>
                     <ul class="nav nav-pills-custom">
                         <li class="nav-item">
-                            <a class="nav-link" href="/secretary/secretary.html">
+                            <a class="nav-link" href="dean.html">
                                 <i class="fas fa-tachometer-alt"></i> Dashboard
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="import-professors.html">
-                                <i class="fas fa-chalkboard-teacher"></i> Professor Management
-                            </a>
-                        </li>
-                        <li class="nav-item">
+                         <li class="nav-item">
                             <a class="nav-link active" href="#">
                                 <i class="fas fa-weight"></i> BMI Management
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" onclick="showSectionManagement()">
+                                <i class="fas fa-users"></i> Sections
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" onclick="showAccountManagement()">
+                                <i class="fas fa-users-cog"></i> Manage Accounts
+                            </a>
+                        </li>
+                       
                     </ul>
                 </div>
             </div>
@@ -694,7 +700,7 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        let currentSecretary = null;
+let currentdean = null;
         let allBMIData = [];
         let allSections = new Set();
 
@@ -711,18 +717,18 @@
                     const usersSnapshot = await getDocs(usersQuery);
                     
                     if (usersSnapshot.empty) {
-                        throw new Error('Access denied. Secretary account required.');
+                        throw new Error('Access denied. dean account required.');
                     }
                     
                     const userData = usersSnapshot.docs[0].data();
-                    if (userData.role !== 'secretary' && userData.role !== 'college_secretary') {
-                        throw new Error('Access denied. Secretary account required.');
+                    if (userData.role !== 'dean') {
+                        throw new Error('Access denied. dean account required.');
                     }
                     
-                    currentSecretary = { 
+                    currentdean = { 
                         id: usersSnapshot.docs[0].id, 
                         ...userData,
-                        name: userData.name || userData.email || 'Secretary'
+                        name: userData.name || userData.email || 'dean'
                     };
                     
                     await loadBMIData();
@@ -785,7 +791,7 @@
             // Only include students (skip professors)
             // Check if this is a student by verifying student-specific fields
             const isStudent = studentData.role !== 'professor' && 
-                            studentData.role !== 'secretary' &&
+                            studentData.role !== 'dean' &&
                             (studentData.studentId || studentData.student_id || studentData.umakId);
             
             if (isStudent) {
@@ -1040,7 +1046,7 @@
         }
 
         function goBack() {
-            window.location.href = '/secretary/secretary.html';
+            window.location.href = '/dean/dean.html';
         }
 
         async function handleLogout() {
