@@ -1697,200 +1697,235 @@
         }
 
         // Load upcoming tests
-        async function loadUpcomingTests() {
-            try {
-                if (!studentData || !studentData.section || studentData.section === 'Not Assigned') {
-                    console.log('No student data or section available');
-                    const container = document.getElementById('upcomingTestsCard');
-                    if (container) {
-                        container.innerHTML = `
-                            <div class="text-center py-8 sm:py-12">
-                                <i class="bi bi-calendar-x text-5xl sm:text-6xl text-gray-300 mb-2 sm:mb-3"></i>
-                                <p class="text-gray-600 font-semibold mb-1 text-sm sm:text-base">No section assigned</p>
-                                <small class="text-gray-400 text-xs sm:text-sm">Contact your instructor to be assigned to a section</small>
-                            </div>
-                        `;
-                    }
-                    return;
-                }
-
-                // Get all scheduled tests for this section
-                const testsQuery = query(
-                    collection(db, 'scheduledTests'),
-                    where('section', '==', studentData.section),
-                    where('isVisible', '==', true)
-                );
-                
-                const testsSnapshot = await getDocs(testsQuery);
-                const now = new Date();
-                
-                // Get all completed tests
-                const completedTestsQuery = query(
-                    collection(db, 'testResults'),
-                    where('studentEmail', '==', studentData.email)
-                );
-                const completedTestsSnapshot = await getDocs(completedTestsQuery);
-                
-                // Map to store test completion status
-                const testStatus = new Map();
-                
-                completedTestsSnapshot.forEach(doc => {
-                    const result = doc.data();
-                    const testId = result.testId;
-                    const score = calculateTestScore(result.testName, result.result, result.testTarget);
-                    
-                    if (!testStatus.has(testId)) {
-                        testStatus.set(testId, {
-                            attempts: 0,
-                            bestScore: 0
-                        });
-                    }
-                    
-                    const status = testStatus.get(testId);
-                    status.attempts++;
-                    if (score > status.bestScore) {
-                        status.bestScore = score;
-                    }
-                });
-                
-                // Filter tests that can still be taken
-                const upcomingTests = [];
-                
-                if (!testsSnapshot.empty) {
-                    testsSnapshot.forEach((doc) => {
-                        const test = { id: doc.id, ...doc.data() };
-                        
-                        let deadlineDateTime;
-                        if (test.deadlineDateTime) {
-                            deadlineDateTime = new Date(test.deadlineDateTime);
-                        } else {
-                            deadlineDateTime = new Date(test.deadline);
-                            deadlineDateTime.setHours(23, 59, 59, 999);
-                        }
-                    
-                        // Check if deadline hasn't passed
-                        if (deadlineDateTime >= now) {
-                            const status = testStatus.get(test.id);
-                            
-                            if (!status) {
-                                upcomingTests.push(test);
-                            } else {
-                                const isUnlimited = test.attemptsAllowed === 0;
-                                const isPerfect = status.bestScore === 100;
-                                const hasAttemptsLeft = status.attempts < test.attemptsAllowed;
-                                
-                                if (!isPerfect && (isUnlimited || hasAttemptsLeft)) {
-                                    upcomingTests.push(test);
-                                }
-                            }
-                        }
-                    });
-                }
-                
-                // Sort by deadline (earliest first)
-                upcomingTests.sort((a, b) => {
-                    const dateA = new Date(a.deadlineDateTime || a.deadline);
-                    const dateB = new Date(b.deadlineDateTime || b.deadline);
-                    return dateA - dateB;
-                });
-                
-                // Render the tests
-                const container = document.getElementById('upcomingTestsCard');
-                if (!container) {
-                    console.error('Container "upcomingTestsCard" not found!');
-                    return;
-                }
-                
-                if (upcomingTests.length > 0) {
-                    let html = '<div class="space-y-3 sm:space-y-4">';
-                    
-                    upcomingTests.forEach(test => {
-                        const deadlineDateTime = test.deadlineDateTime ? new Date(test.deadlineDateTime) : new Date(test.deadline);
-                        const dateStr = deadlineDateTime.toLocaleDateString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                            year: 'numeric'
-                        });
-                        const timeStr = test.deadlineTime || deadlineDateTime.toLocaleTimeString('en-US', {
-                            hour: '2-digit',
-                            minute: '2-digit'
-                        });
-                        
-                        const status = testStatus.get(test.id);
-                        const isUnlimited = test.attemptsAllowed === 0;
-                        const hasAttempts = status && status.attempts > 0;
-                        
-                        html += `
-                            <div class="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-3 sm:p-4 border-l-4 border-blue-500 hover:bg-blue-200 transition-colors">
-                                <div class="flex justify-between items-start mb-2">
-                                    <h6 class="font-semibold text-gray-900 text-sm sm:text-base flex-1 mr-2">${test.testName}</h6>
-                                    <span class="bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-semibold whitespace-nowrap">Due: ${dateStr}</span>
-                                </div>
-                                <p class="text-gray-600 text-xs sm:text-sm mb-2">⏰ ${timeStr}</p>
-                                ${hasAttempts ? `
-                                <p class="text-orange-600 font-semibold text-xs mb-2">
-                                    🔄 ${isUnlimited ? `${status.attempts} Attempt${status.attempts > 1 ? 's' : ''} • Best: ${status.bestScore}` : `${status.attempts}/${test.attemptsAllowed} Attempts • Best: ${status.bestScore}`}
-                                </p>
-                                ` : `
-                                <p class="text-green-600 font-semibold text-xs mb-2">
-                                    ✨ ${isUnlimited ? 'Unlimited Attempts' : test.attemptsAllowed + ' Attempt' + (test.attemptsAllowed > 1 ? 's' : '') + ' Allowed'}
-                                </p>
-                                `}
-                                <div class="flex justify-between items-center">
-                                    <span class="text-xs text-gray-500">${getCategoryForTest(test.testName)}</span>
-                                    <button data-test-id="${test.id}" class="start-test-btn px-3 py-1.5 ${hasAttempts ? 'bg-orange-500 hover:bg-orange-600' : 'bg-blue-500 hover:bg-blue-600'} text-white text-xs font-semibold rounded-lg transition-colors whitespace-nowrap">
-                                        ${hasAttempts ? '🎯 Retry' : 'Start Test'}
-                                    </button>
-                                </div>
-                            </div>
-                        `;
-                    });
-                    
-                    html += '</div>';
-                    
-                    if (upcomingTests.length > 3) {
-                        html += `
-                            <div class="mt-4 text-center">
-                                <a href="./test.html" class="text-blue-600 hover:text-blue-700 font-semibold text-sm">
-                                    View all ${upcomingTests.length} tests →
-                                </a>
-                            </div>
-                        `;
-                    }
-                    
-                    container.innerHTML = html;
-                    
-                    // Add event listeners to start test buttons
-                    document.querySelectorAll('.start-test-btn').forEach(button => {
-                        button.addEventListener('click', function() {
-                            const testId = this.getAttribute('data-test-id');
-                            startTest(testId);
-                        });
-                    });
-                    
-                } else {
-                    container.innerHTML = `
-                        <div class="text-center py-8 sm:py-12">
-                            <i class="bi bi-check-circle text-5xl sm:text-6xl text-green-300 mb-2 sm:mb-3"></i>
-                            <p class="text-gray-600 font-semibold mb-1 text-sm sm:text-base">All tests completed!</p>
-                            <small class="text-gray-400 text-xs sm:text-sm">Great job! Check back later for new tests</small>
-                        </div>
-                    `;
-                }
-            } catch (error) {
-                console.error('Error loading upcoming tests:', error);
-                const container = document.getElementById('upcomingTestsCard');
-                if (container) {
-                    container.innerHTML = `
-                        <div class="text-center py-8 sm:py-12">
-                            <i class="bi bi-exclamation-circle text-red-500 text-5xl sm:text-6xl mb-2 sm:mb-3"></i>
-                            <p class="text-red-500 font-semibold mb-1 text-sm sm:text-base">Error loading tests</p>
-                            <small class="text-gray-400 text-xs sm:text-sm">${error.message}</small>
-                        </div>
-                    `;
-                }
+async function loadUpcomingTests() {
+    try {
+        if (!studentData || !studentData.section || studentData.section === 'Not Assigned') {
+            console.log('No student data or section available');
+            const container = document.getElementById('upcomingTestsCard');
+            if (container) {
+                container.innerHTML = `
+                    <div class="text-center py-8 sm:py-12">
+                        <i class="bi bi-calendar-x text-5xl sm:text-6xl text-gray-300 mb-2 sm:mb-3"></i>
+                        <p class="text-gray-600 font-semibold mb-1 text-sm sm:text-base">No section assigned</p>
+                        <small class="text-gray-400 text-xs sm:text-sm">Contact your instructor to be assigned to a section</small>
+                    </div>
+                `;
             }
+            return;
         }
+
+        // Get all scheduled tests for this section
+        const testsQuery = query(
+            collection(db, 'scheduledTests'),
+            where('section', '==', studentData.section),
+            where('isVisible', '==', true)
+        );
+        
+        const testsSnapshot = await getDocs(testsQuery);
+        const now = new Date();
+        
+        // Get all completed tests
+        const completedTestsQuery = query(
+            collection(db, 'testResults'),
+            where('studentEmail', '==', studentData.email)
+        );
+        const completedTestsSnapshot = await getDocs(completedTestsQuery);
+        
+        // Map to store test completion status
+        const testStatus = new Map();
+        
+        completedTestsSnapshot.forEach(doc => {
+            const result = doc.data();
+            const testId = result.testId;
+            const score = calculateTestScore(result.testName, result.result, result.testTarget);
+            
+            if (!testStatus.has(testId)) {
+                testStatus.set(testId, {
+                    attempts: 0,
+                    bestScore: 0
+                });
+            }
+            
+            const status = testStatus.get(testId);
+            status.attempts++;
+            if (score > status.bestScore) {
+                status.bestScore = score;
+            }
+        });
+        
+        // Filter tests that can still be taken
+        const upcomingTests = [];
+        
+        if (!testsSnapshot.empty) {
+            testsSnapshot.forEach((doc) => {
+                const test = { id: doc.id, ...doc.data() };
+                
+                // ⭐ NEW: Check if student is selected for this test
+                let isStudentSelected = false;
+                
+                if (test.selectedStudents && Array.isArray(test.selectedStudents)) {
+                    isStudentSelected = test.selectedStudents.includes(studentData.email);
+                    console.log(`📋 Dashboard Test: ${test.testName} - Student ${isStudentSelected ? 'IS' : 'NOT'} selected`);
+                } else {
+                    // If no selectedStudents array exists, test is visible to all (backward compatibility)
+                    isStudentSelected = true;
+                    console.log(`📋 Dashboard Test: ${test.testName} - No student filter (visible to all)`);
+                }
+                
+                let deadlineDateTime;
+                if (test.deadlineDateTime) {
+                    deadlineDateTime = new Date(test.deadlineDateTime);
+                } else {
+                    deadlineDateTime = new Date(test.deadline);
+                    deadlineDateTime.setHours(23, 59, 59, 999);
+                }
+            
+                // Check if deadline hasn't passed
+                if (deadlineDateTime >= now) {
+                    const status = testStatus.get(test.id);
+                    
+                    // ⭐ Mark test as view-only if student not selected
+                    test.isViewOnly = !isStudentSelected;
+                    
+                    if (!status) {
+                        upcomingTests.push(test);
+                    } else {
+                        const isUnlimited = test.attemptsAllowed === 0;
+                        const isPerfect = status.bestScore === 100;
+                        const hasAttemptsLeft = status.attempts < test.attemptsAllowed;
+                        
+                        if (!isPerfect && (isUnlimited || hasAttemptsLeft)) {
+                            upcomingTests.push(test);
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Sort by deadline (earliest first)
+        upcomingTests.sort((a, b) => {
+            const dateA = new Date(a.deadlineDateTime || a.deadline);
+            const dateB = new Date(b.deadlineDateTime || b.deadline);
+            return dateA - dateB;
+        });
+        
+        // Render the tests
+        const container = document.getElementById('upcomingTestsCard');
+        if (!container) {
+            console.error('Container "upcomingTestsCard" not found!');
+            return;
+        }
+        
+        if (upcomingTests.length > 0) {
+            let html = '<div class="space-y-3 sm:space-y-4">';
+            
+            upcomingTests.forEach(test => {
+                const deadlineDateTime = test.deadlineDateTime ? new Date(test.deadlineDateTime) : new Date(test.deadline);
+                const dateStr = deadlineDateTime.toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric'
+                });
+                const timeStr = test.deadlineTime || deadlineDateTime.toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                const status = testStatus.get(test.id);
+                const isUnlimited = test.attemptsAllowed === 0;
+                const hasAttempts = status && status.attempts > 0;
+                const isViewOnly = test.isViewOnly === true; // ⭐ NEW
+                
+                // ⭐ NEW: Different styling for view-only tests
+                const cardBgClass = isViewOnly ? 'from-gray-50 to-gray-100' : 'from-blue-50 to-blue-100';
+                const borderClass = isViewOnly ? 'border-gray-400' : 'border-blue-500';
+                const hoverClass = isViewOnly ? 'hover:bg-gray-200' : 'hover:bg-blue-200';
+                
+                html += `
+                    <div class="bg-gradient-to-r ${cardBgClass} rounded-xl p-3 sm:p-4 border-l-4 ${borderClass} ${hoverClass} transition-colors">
+                        <div class="flex justify-between items-start mb-2">
+                            <h6 class="font-semibold text-gray-900 text-sm sm:text-base flex-1 mr-2">
+                                ${test.testName}
+                                ${isViewOnly ? '<span class="ml-2 text-xs bg-gray-500 text-white px-2 py-1 rounded-full">👁️ View Only</span>' : ''}
+                            </h6>
+                            <span class="${isViewOnly ? 'bg-gray-500' : 'bg-blue-500'} text-white text-xs px-2 py-1 rounded-full font-semibold whitespace-nowrap">Due: ${dateStr}</span>
+                        </div>
+                        <p class="text-gray-600 text-xs sm:text-sm mb-2">⏰ ${timeStr}</p>
+                        ${isViewOnly ? `
+                        <p class="text-gray-600 font-semibold text-xs mb-2">
+                            ℹ️ You have not been selected for this test
+                        </p>
+                        ` : hasAttempts ? `
+                        <p class="text-orange-600 font-semibold text-xs mb-2">
+                            🔄 ${isUnlimited ? `${status.attempts} Attempt${status.attempts > 1 ? 's' : ''} • Best: ${status.bestScore}` : `${status.attempts}/${test.attemptsAllowed} Attempts • Best: ${status.bestScore}`}
+                        </p>
+                        ` : `
+                        <p class="text-green-600 font-semibold text-xs mb-2">
+                            ✨ ${isUnlimited ? 'Unlimited Attempts' : test.attemptsAllowed + ' Attempt' + (test.attemptsAllowed > 1 ? 's' : '') + ' Allowed'}
+                        </p>
+                        `}
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-gray-500">${getCategoryForTest(test.testName)}</span>
+                            ${isViewOnly ? `
+                            <div class="px-3 py-1.5 bg-gray-400 text-white text-xs font-semibold rounded-lg cursor-not-allowed flex items-center gap-1" title="You are not selected for this test">
+                                <i class="bi bi-eye"></i>
+                                <span>View Only</span>
+                            </div>
+                            ` : `
+                            <button data-test-id="${test.id}" class="start-test-btn px-3 py-1.5 ${hasAttempts ? 'bg-orange-500 hover:bg-orange-600' : 'bg-blue-500 hover:bg-blue-600'} text-white text-xs font-semibold rounded-lg transition-colors whitespace-nowrap">
+                                ${hasAttempts ? '🎯 Retry' : 'Start Test'}
+                            </button>
+                            `}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            
+            if (upcomingTests.length > 3) {
+                html += `
+                    <div class="mt-4 text-center">
+                        <a href="./test.html" class="text-blue-600 hover:text-blue-700 font-semibold text-sm">
+                            View all ${upcomingTests.length} tests →
+                        </a>
+                    </div>
+                `;
+            }
+            
+            container.innerHTML = html;
+            
+            // Add event listeners to start test buttons (only for non-view-only tests)
+            document.querySelectorAll('.start-test-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const testId = this.getAttribute('data-test-id');
+                    startTest(testId);
+                });
+            });
+            
+        } else {
+            container.innerHTML = `
+                <div class="text-center py-8 sm:py-12">
+                    <i class="bi bi-check-circle text-5xl sm:text-6xl text-green-300 mb-2 sm:mb-3"></i>
+                    <p class="text-gray-600 font-semibold mb-1 text-sm sm:text-base">All tests completed!</p>
+                    <small class="text-gray-400 text-xs sm:text-sm">Great job! Check back later for new tests</small>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Error loading upcoming tests:', error);
+        const container = document.getElementById('upcomingTestsCard');
+        if (container) {
+            container.innerHTML = `
+                <div class="text-center py-8 sm:py-12">
+                    <i class="bi bi-exclamation-circle text-red-500 text-5xl sm:text-6xl mb-2 sm:mb-3"></i>
+                    <p class="text-red-500 font-semibold mb-1 text-sm sm:text-base">Error loading tests</p>
+                    <small class="text-gray-400 text-xs sm:text-sm">${error.message}</small>
+                </div>
+            `;
+        }
+    }
+}
 
         // Calculate and update stats
         async function calculateAndUpdateStats() {

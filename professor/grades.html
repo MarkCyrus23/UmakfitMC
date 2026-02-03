@@ -1239,17 +1239,17 @@
                             }
 
                             let submittedDate = new Date();
-                            if (data.submittedAt) {
-                                if (data.submittedAt.toDate) {
-                                    submittedDate = data.submittedAt.toDate();
-                                } else if (typeof data.submittedAt === 'string') {
-                                    submittedDate = new Date(data.submittedAt);
-                                } else if (data.submittedAt.seconds) {
-                                    submittedDate = new Date(data.submittedAt.seconds * 1000);
-                                }
+                        if (data.submittedAt) {
+                            if (data.submittedAt.toDate) {
+                                submittedDate = data.submittedAt.toDate();
+                            } else if (typeof data.submittedAt === 'string') {
+                                submittedDate = new Date(data.submittedAt);
+                            } else if (data.submittedAt.seconds) {
+                                submittedDate = new Date(data.submittedAt.seconds * 1000);
                             }
-                            
-                            const dateKey = submittedDate.toISOString().split('T')[0];
+                        }
+
+                        const dateKey = submittedDate.toISOString().split('T')[0];
                             
                             const studentKey = data.studentEmail || data.studentName || '';
                             const activityKey = data.testName || '';
@@ -1258,45 +1258,52 @@
                             if (!activityInstances[uniqueKey] || score > activityInstances[uniqueKey].score) {
                                 const gradeStatus = getGradeStatus(score);
 
-                                let displayResult = '-';
-                                if (data.result) {
-                                    if (typeof data.result === 'object') {
-                                        displayResult = JSON.stringify(data.result);
-                                    } else {
-                                        displayResult = data.result.toString();
-                                    }
-                                } else if (data.resultData) {
-                                    if (typeof data.resultData === 'object') {
-                                        displayResult = JSON.stringify(data.resultData);
-                                    } else {
-                                        displayResult = data.resultData.toString();
-                                    }
-                                } else if (data.repetitions) {
-                                    displayResult = data.repetitions.toString();
+                        
+                            let displayResult = '-';
+                            if (data.result !== undefined && data.result !== null) {
+                                if (typeof data.result === 'number') {
+                                    displayResult = data.result;
+                                } else if (typeof data.result === 'string') {
+                                    const match = data.result.match(/(\d+\.?\d*)/);
+                                    displayResult = match ? parseFloat(match[1]) : data.result;
+                                } else if (typeof data.result === 'object') {
+                                    displayResult = data.result.value || data.result.repetitions || 
+                                                data.result.time || data.result.distance || 0;
                                 }
+                            } else if (data.resultData) {
+                                if (typeof data.resultData === 'object') {
+                                    displayResult = data.resultData.value || data.resultData.repetitions || 
+                                                data.resultData.time || 0;
+                                } else {
+                                    displayResult = data.resultData;
+                                }
+                            } else if (data.repetitions !== undefined) {
+                                displayResult = data.repetitions;
+                            }
 
-                                activityInstances[uniqueKey] = {
-                                    id: docSnap.id,
-                                    studentName: data.studentName || 'Unknown Student',
-                                    section: data.section || section.section,
-                                    testName: data.testName || 'Unknown Activity',
-                                    result: displayResult,
-                                    score: score,
-                                    gradeStatus: gradeStatus,
-                                    date: submittedDate.toLocaleDateString('en-US', { 
-                                        year: 'numeric', 
-                                        month: 'long', 
-                                        day: 'numeric' 
-                                    }),
-                                    dateObject: submittedDate,
-                                    formattedDate: dateKey,
-                                    remarks: data.remarks || '',
-                                    studentEmail: data.studentEmail || '',
-                                    studentId: data.studentId || '',
-                                    professorEmail: data.professorEmail || '',
-                                    submittedAt: data.submittedAt || '',
-                                    isProfessorOverride: isProfessorOverride || false
-                                };
+                            activityInstances[uniqueKey] = {
+                                id: docSnap.id,
+                                studentName: data.studentName || 'Unknown Student',
+                                section: data.section || section.section,
+                                testName: data.testName || 'Unknown Activity',
+                                result: displayResult,  // ⭐ Clean numeric result
+                                testUnit: data.testUnit || '',
+                                score: score,
+                                gradeStatus: gradeStatus,
+                                date: submittedDate.toLocaleDateString('en-US', { 
+                                    year: 'numeric', 
+                                    month: 'long', 
+                                    day: 'numeric' 
+                                }),
+                                dateObject: submittedDate,
+                                formattedDate: dateKey,
+                                remarks: data.remarks || '',
+                                studentEmail: data.studentEmail || '',
+                                studentId: data.studentId || '',
+                                professorEmail: data.professorEmail || '',
+                                submittedAt: data.submittedAt || '',
+                                isProfessorOverride: isProfessorOverride || false
+                            };
                             }
                         });
                         
@@ -1609,53 +1616,71 @@
         }
 
         function displayGrades(grades) {
-            const tableBody = document.getElementById('gradesTableBody');
-            
-            if (grades.length === 0) {
-                tableBody.innerHTML = `
-                    <tr>
-                        <td colspan="6" class="py-8">
-                            <div class="flex flex-col items-center justify-center">
-                                <div class="text-4xl mb-3 opacity-40">🔍</div>
-                                <div class="text-gray-700 font-semibold mb-1">No Grades Found</div>
-                                <div class="text-gray-500 text-sm text-center max-w-md">
-                                    No grades found for the current filters.<br>
-                                    Try adjusting your filters or check if data exists.
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-            
-            let html = '';
-            grades.forEach((grade, index) => {
-                let displayResult = grade.result || '-';
-                if (displayResult.length > 50) {
-                    displayResult = displayResult.substring(0, 50) + '...';
+    const tableBody = document.getElementById('gradesTableBody');
+    
+    if (grades.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="6" class="py-8">
+                    <div class="flex flex-col items-center justify-center">
+                        <div class="text-4xl mb-3 opacity-40">🔍</div>
+                        <div class="text-gray-700 font-semibold mb-1">No Grades Found</div>
+                        <div class="text-gray-500 text-sm text-center max-w-md">
+                            No grades found for the current filters.<br>
+                            Try adjusting your filters or check if data exists.
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    let html = '';
+    grades.forEach((grade, index) => {
+        // ⭐ Format result to show ONLY the numeric value + unit
+        let displayResult = '-';
+        if (grade.result) {
+            if (typeof grade.result === 'number') {
+                displayResult = `${grade.result} ${grade.testUnit || ''}`.trim();
+            } else if (typeof grade.result === 'string') {
+                // Extract number from string if needed
+                const match = grade.result.match(/(\d+\.?\d*)/);
+                if (match) {
+                    displayResult = `${match[1]} ${grade.testUnit || ''}`.trim();
+                } else {
+                    displayResult = grade.result;
                 }
-                
-                html += `
-                    <tr>
-                        <td>${grade.studentName || 'Unknown Student'}</td>
-                        <td>${grade.section || 'N/A'}</td>
-                        <td>${grade.testName || 'Unknown Activity'}</td>
-                        <td>
-                            <span class="grade-value ${grade.gradeStatus}">${displayResult}</span>
-                        </td>
-                        <td>
-                            <span class="grade-value ${grade.gradeStatus}">
-                                ${grade.score.toFixed(1)}%
-                            </span>
-                        </td>
-                        <td>${grade.date}</td>
-                    </tr>
-                `;
-            });
-            
-            tableBody.innerHTML = html;
+            } else if (typeof grade.result === 'object') {
+                const val = grade.result.value || grade.result.repetitions || grade.result.time || 0;
+                displayResult = `${val} ${grade.testUnit || ''}`.trim();
+            }
         }
+        
+        if (displayResult.length > 50) {
+            displayResult = displayResult.substring(0, 50) + '...';
+        }
+        
+        html += `
+            <tr>
+                <td>${grade.studentName || 'Unknown Student'}</td>
+                <td>${grade.section || 'N/A'}</td>
+                <td>${grade.testName || 'Unknown Activity'}</td>
+                <td>
+                    <span class="grade-value ${grade.gradeStatus}">${displayResult}</span>
+                </td>
+                <td>
+                    <span class="grade-value ${grade.gradeStatus}">
+                        ${grade.score.toFixed(1)}%
+                    </span>
+                </td>
+                <td>${grade.date}</td>
+            </tr>
+        `;
+    });
+    
+    tableBody.innerHTML = html;
+}
 
         function updateFilters() {
             const activitySelect = document.getElementById('filterActivity');

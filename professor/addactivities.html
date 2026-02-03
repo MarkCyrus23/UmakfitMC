@@ -1462,36 +1462,58 @@ window.currentTestStudents = [];
 window.selectedStudentEmails = new Set();
 window.currentManagingTestId = null;
 
-// Open Manage Students Modal
-window.manageStudents = async function(testId, testName, section) {
-    try {
-        console.log('📋 Opening student management for test:', testId);
-        
-        // Store current test ID
-        window.currentManagingTestId = testId;
-        document.getElementById('currentTestId').value = testId;
-        
-        // Update header
-        document.getElementById('testInfoHeader').textContent = `${testName} - ${section}`;
-        
-        // Show modal
-        document.getElementById('manageStudentsModal').style.display = 'flex';
-        
-        // Load test data to get currently selected students
-        const testDoc = await getDoc(doc(db, 'scheduledTests', testId));
-        const testData = testDoc.data();
-        
-        // Initialize selected students from saved data
-        window.selectedStudentEmails = new Set(testData.selectedStudents || []);
-        
-        // Load students from this section
-        await loadStudentsForTest(section);
-        
-    } catch (error) {
-        console.error('Error opening student management:', error);
-        alert('Error loading students: ' + error.message);
-    }
-};
+        // Open Manage Students Modal
+        window.manageStudents = async function(testId, testName, section) {
+            try {
+                console.log('📋 Opening student management for test:', testId);
+                
+                // Store current test ID
+                window.currentManagingTestId = testId;
+                document.getElementById('currentTestId').value = testId;
+                
+                // Update header
+                document.getElementById('testInfoHeader').textContent = `${testName} - ${section}`;
+                
+                // ⭐ NEW: Reset button state before showing modal
+                const saveBtn = document.querySelector('#manageStudentsModal .btn-success');
+                const cancelBtn = document.querySelector('#manageStudentsModal .btn-secondary');
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Selection';
+                }
+                if (cancelBtn) {
+                    cancelBtn.disabled = false;
+                }
+                
+                // Show modal
+                document.getElementById('manageStudentsModal').style.display = 'flex';
+                
+                // Load test data to get currently selected students
+                const testDoc = await getDoc(doc(db, 'scheduledTests', testId));
+                const testData = testDoc.data();
+                
+                // Initialize selected students from saved data
+                window.selectedStudentEmails = new Set(testData.selectedStudents || []);
+                
+                // Load students from this section
+                await loadStudentsForTest(section);
+                
+            } catch (error) {
+                console.error('Error opening student management:', error);
+                alert('Error loading students: ' + error.message);
+                
+                // ⭐ NEW: Reset button state on error too
+                const saveBtn = document.querySelector('#manageStudentsModal .btn-success');
+                const cancelBtn = document.querySelector('#manageStudentsModal .btn-secondary');
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Selection';
+                }
+                if (cancelBtn) {
+                    cancelBtn.disabled = false;
+                }
+            }
+        };
 
 // Load students for the test's section
 async function loadStudentsForTest(section) {
@@ -1640,6 +1662,7 @@ window.saveStudentSelection = async function() {
     const originalText = saveBtn.innerHTML;
     
     try {
+        // Disable buttons
         saveBtn.disabled = true;
         cancelBtn.disabled = true;
         saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
@@ -1702,7 +1725,15 @@ window.saveStudentSelection = async function() {
         await Promise.all(notificationPromises);
         console.log(`✅ Created ${notificationPromises.length} notifications`);
         
+        // ⭐ CRITICAL FIX: Reset button state BEFORE closing modal
+        saveBtn.disabled = false;
+        cancelBtn.disabled = false;
+        saveBtn.innerHTML = originalText;
+        
+        // Close modal
         closeManageStudentsModal();
+        
+        // Show success message
         alert(`✅ Successfully assigned test to ${selectedStudentsArray.length} student(s)!`);
         
         // Reload the schedule
@@ -1712,20 +1743,35 @@ window.saveStudentSelection = async function() {
         console.error('❌ Error saving student selection:', error);
         alert('Error saving: ' + error.message);
         
+        // ⭐ Reset button state on error
         saveBtn.disabled = false;
         cancelBtn.disabled = false;
         saveBtn.innerHTML = originalText;
     }
 };
 
-// Close modal
-window.closeManageStudentsModal = function() {
-    document.getElementById('manageStudentsModal').style.display = 'none';
-    document.getElementById('studentSearchBox').value = '';
-    window.selectedStudentEmails.clear();
-    window.currentTestStudents = [];
-    window.currentManagingTestId = null;
-};
+        // Close modal
+        window.closeManageStudentsModal = function() {
+            const modal = document.getElementById('manageStudentsModal');
+            modal.style.display = 'none';
+            
+            // ⭐ NEW: Reset button state when closing
+            const saveBtn = document.querySelector('#manageStudentsModal .btn-success');
+            const cancelBtn = document.querySelector('#manageStudentsModal .btn-secondary');
+            if (saveBtn) {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Selection';
+            }
+            if (cancelBtn) {
+                cancelBtn.disabled = false;
+            }
+            
+            // Clear search and selections
+            document.getElementById('studentSearchBox').value = '';
+            window.selectedStudentEmails.clear();
+            window.currentTestStudents = [];
+            window.currentManagingTestId = null;
+        };
 // Global variables - STORE IN WINDOW OBJECT
 window.currentUser = null;
 window.assignedSections = [];

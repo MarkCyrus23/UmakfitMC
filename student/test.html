@@ -77,9 +77,328 @@
         }
     }
 
-    .animate-fade-in {
-        animation: fade-in 0.3s ease-out;
+        .animate-fade-in {
+            animation: fade-in 0.3s ease-out;
+        }
+        /* Category Card Styles */
+    .category-card {
+        transition: all 0.3s ease;
     }
+
+    .category-card:hover {
+        transform: translateY(-4px);
+    }
+
+    .test-item {
+        transition: all 0.2s ease;
+    }
+
+    .test-item:hover {
+        background: #f8f9fa;
+    }
+
+    .category-icon-wrapper {
+        transition: transform 0.3s ease;
+    }
+
+    .category-card:hover .category-icon-wrapper {
+        transform: scale(1.05);
+    }
+            /* Fitness Category Card Styles */
+    .fitness-category-card {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .fitness-category-card:hover {
+        transform: translateY(-4px);
+    }
+
+    /* Test Workout Card */
+    .test-workout-card {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .test-workout-card:hover {
+        transform: translateX(4px);
+    }
+
+    /* Workout Start Button */
+    .workout-start-btn {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .workout-start-btn::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.1);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+    }
+
+    .workout-start-btn:hover::before {
+        width: 300px;
+        height: 300px;
+    }
+
+    /* Diagonal Pattern Animation */
+    @keyframes slidePattern {
+        0% {
+            background-position: 0 0;
+        }
+        100% {
+            background-position: 40px 40px;
+        }
+    }
+
+    .fitness-category-card:hover .absolute.inset-0.opacity-5 > div {
+        animation: slidePattern 20s linear infinite;
+    }
+        /* Collapsible Category Styles */
+.category-collapsed .category-tests {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+}
+
+.category-expanded .category-tests {
+    max-height: 2000px;
+    overflow-y: auto;
+    transition: max-height 0.5s ease-in;
+}
+
+.category-tests {
+    max-height: 400px; /* Changed from 600px to 400px - scroll appears earlier */
+    overflow-y: auto;
+    min-height: 0;
+}
+
+/* Scrollbar visible always when there's overflow */
+.category-tests {
+    scrollbar-gutter: stable;
+}
+
+.category-tests::-webkit-scrollbar {
+    width: 8px; /* Made it slightly wider - more visible */
+}
+
+.category-tests::-webkit-scrollbar-track {
+    background: #e2e8f0;
+    border-radius: 10px;
+    margin: 4px 0;
+}
+
+.category-tests::-webkit-scrollbar-thumb {
+    background: #64748b;
+    border-radius: 10px;
+    border: 2px solid #e2e8f0;
+}
+
+.category-tests::-webkit-scrollbar-thumb:hover {
+    background: #475569;
+}
+
+.category-header {
+    cursor: pointer;
+    user-select: none;
+}
+
+.chevron-icon {
+    transition: transform 0.3s ease;
+}
+
+.category-expanded .chevron-icon {
+    transform: rotate(180deg);
+}
+
+/* Badge to show scroll indicator */
+.scroll-indicator {
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, white, transparent);
+    height: 30px;
+    pointer-events: none;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 5px;
+}
+
+.scroll-indicator i {
+    color: #94a3b8;
+    font-size: 16px;
+    animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-5px);
+    }
+    60% {
+        transform: translateY(-3px);
+    }
+}
+    /* Overdue Section Styles */
+    #overdue-section.expanded #overdueTestsContainer {
+        max-height: 600px;
+        margin-top: 1.5rem;
+    }
+
+    #overdue-section.expanded #overdueChevron {
+        transform: rotate(180deg);
+    }
+
+    .overdue-scroll-container {
+        max-height: 400px; /* Reduced from 500px to make scroll appear earlier */
+        overflow-y: auto;
+        padding-right: 8px;
+        scrollbar-gutter: stable; /* Reserve space for scrollbar */
+    }
+
+    /* Make scrollbar always visible when content overflows */
+    .overdue-scroll-container::-webkit-scrollbar {
+        width: 10px; /* Slightly wider for better visibility */
+    }
+
+    .overdue-scroll-container::-webkit-scrollbar-track {
+        background: #fee2e2;
+        border-radius: 10px;
+        margin: 4px 0;
+    }
+
+    .overdue-scroll-container::-webkit-scrollbar-thumb {
+        background: #ef4444;
+        border-radius: 10px;
+        border: 2px solid #fee2e2;
+    }
+
+    .overdue-scroll-container::-webkit-scrollbar-thumb:hover {
+        background: #dc2626;
+    }
+
+    /* Scroll indicator for overdue section */
+    .overdue-scroll-indicator {
+        position: sticky;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(to top, #fef2f2, transparent);
+        height: 30px;
+        pointer-events: none;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        padding-bottom: 5px;
+    }
+
+    .overdue-scroll-indicator i {
+        color: #ef4444;
+        font-size: 16px;
+        animation: bounce 2s infinite;
+    }
+            /* Performance Dashboard Mobile Carousel */
+        .performance-carousel-wrapper {
+            position: relative;
+        }
+
+        .performance-carousel {
+            display: flex;
+            overflow-x: auto;
+            overflow-y: hidden;
+            scroll-snap-type: x mandatory;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+            gap: 1rem;
+            padding: 0.5rem;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .performance-carousel::-webkit-scrollbar {
+            display: none;
+        }
+
+        .performance-card {
+            flex: 0 0 calc(100% - 3rem);
+            min-width: calc(100% - 3rem);
+            scroll-snap-align: center;
+            scroll-snap-stop: always;
+        }
+
+        @media (min-width: 640px) {
+            .performance-card {
+                flex: 0 0 calc(50% - 1.5rem);
+                min-width: calc(50% - 1.5rem);
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .performance-carousel {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                overflow-x: visible;
+                scroll-snap-type: none;
+                gap: 1.5rem;
+            }
+            
+            .performance-card {
+                flex: none;
+                min-width: auto;
+            }
+        }
+
+        /* Carousel indicators/dots */
+        .carousel-indicators {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .carousel-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #d1d5db;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .carousel-dot.active {
+            background-color: #3b82f6;
+            width: 24px;
+            border-radius: 4px;
+        }
+
+        @media (min-width: 1024px) {
+            .carousel-indicators {
+                display: none;
+            }
+        }
+
+        /* Swipe hint animation */
+        @keyframes swipeHint {
+            0%, 100% {
+                transform: translateX(0);
+            }
+            50% {
+                transform: translateX(-5px);
+            }
+        }
+
+        .swipe-hint {
+            animation: swipeHint 2s ease-in-out infinite;
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -260,49 +579,70 @@
 
             <!-- Performance Dashboard -->
 <div class="bg-white rounded-2xl p-6 lg:p-8 mb-8 shadow-lg border border-gray-100">
-    <div class="flex items-center gap-3 mb-6">
-        <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
-            <i class="bi bi-bar-chart-fill text-white text-xl"></i>
+    <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+                <i class="bi bi-bar-chart-fill text-white text-xl"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-900">Your Performance</h2>
         </div>
-        <h2 class="text-2xl font-bold text-gray-900">Your Performance</h2>
+        <!-- Swipe hint - only visible on mobile -->
+        <div class="lg:hidden flex items-center gap-2 text-gray-400 text-xs">
+            <i class="bi bi-arrow-left-right swipe-hint"></i>
+        </div>
     </div>
     
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-        <div class="group relative bg-gradient-to-br from-blue-50 to-white rounded-2xl p-6 text-center border border-blue-100 hover:border-blue-300 hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
-            <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-blue-500 to-blue-600 rounded-t-2xl"></div>
-            <div class="w-14 h-14 mx-auto mb-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                <i class="bi bi-check-circle-fill text-white text-2xl"></i>
+    <!-- Carousel Container -->
+    <div class="performance-carousel-wrapper overflow-hidden -mx-2">
+        <div class="performance-carousel" id="performanceCarousel">
+            <!-- Tests Done Card -->
+            <div class="performance-card group relative bg-gradient-to-br from-blue-50 to-white rounded-2xl p-6 text-center border border-blue-100 hover:border-blue-300 hover:shadow-xl transition-all duration-300">
+                <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-blue-500 to-blue-600 rounded-t-2xl"></div>
+                <div class="w-14 h-14 mx-auto mb-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
+                    <i class="bi bi-check-circle-fill text-white text-2xl"></i>
+                </div>
+                <div id="testsDone" class="text-4xl lg:text-5xl font-extrabold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent mb-2">0</div>
+                <div class="text-xs font-bold uppercase tracking-wider text-gray-600">Tests Completed</div>
             </div>
-            <div id="testsDone" class="text-4xl lg:text-5xl font-extrabold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent mb-2">0</div>
-            <div class="text-xs font-bold uppercase tracking-wider text-gray-600">Tests Completed</div>
-        </div>
 
-        <div class="group relative bg-gradient-to-br from-purple-50 to-white rounded-2xl p-6 text-center border border-purple-100 hover:border-purple-300 hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
-            <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-purple-500 to-purple-600 rounded-t-2xl"></div>
-            <div class="w-14 h-14 mx-auto mb-3 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                <i class="bi bi-graph-up text-white text-2xl"></i>
+            <!-- Average Score Card -->
+            <div class="performance-card group relative bg-gradient-to-br from-purple-50 to-white rounded-2xl p-6 text-center border border-purple-100 hover:border-purple-300 hover:shadow-xl transition-all duration-300">
+                <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-purple-500 to-purple-600 rounded-t-2xl"></div>
+                <div class="w-14 h-14 mx-auto mb-3 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+                    <i class="bi bi-graph-up text-white text-2xl"></i>
+                </div>
+                <div id="avgScore" class="text-4xl lg:text-5xl font-extrabold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent mb-2">0</div>
+                <div class="text-xs font-bold uppercase tracking-wider text-gray-600">Average Score</div>
             </div>
-            <div id="avgScore" class="text-4xl lg:text-5xl font-extrabold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent mb-2">0</div>
-            <div class="text-xs font-bold uppercase tracking-wider text-gray-600">Average Score</div>
-        </div>
 
-        <div class="group relative bg-gradient-to-br from-green-50 to-white rounded-2xl p-6 text-center border border-green-100 hover:border-green-300 hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
-            <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-green-500 to-green-600 rounded-t-2xl"></div>
-            <div class="w-14 h-14 mx-auto mb-3 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                <i class="bi bi-trophy-fill text-white text-2xl"></i>
+            <!-- Best Score Card -->
+            <div class="performance-card group relative bg-gradient-to-br from-green-50 to-white rounded-2xl p-6 text-center border border-green-100 hover:border-green-300 hover:shadow-xl transition-all duration-300">
+                <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-green-500 to-green-600 rounded-t-2xl"></div>
+                <div class="w-14 h-14 mx-auto mb-3 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center shadow-lg">
+                    <i class="bi bi-trophy-fill text-white text-2xl"></i>
+                </div>
+                <div id="bestScore" class="text-4xl lg:text-5xl font-extrabold bg-gradient-to-r from-green-600 to-green-800 bg-clip-text text-transparent mb-2">0</div>
+                <div class="text-xs font-bold uppercase tracking-wider text-gray-600">Best Score</div>
             </div>
-            <div id="bestScore" class="text-4xl lg:text-5xl font-extrabold bg-gradient-to-r from-green-600 to-green-800 bg-clip-text text-transparent mb-2">0</div>
-            <div class="text-xs font-bold uppercase tracking-wider text-gray-600">Best Score</div>
-        </div>
 
-        <div class="group relative bg-gradient-to-br from-orange-50 to-white rounded-2xl p-6 text-center border border-orange-100 hover:border-orange-300 hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
-            <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-orange-500 to-orange-600 rounded-t-2xl"></div>
-            <div class="w-14 h-14 mx-auto mb-3 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                <i class="bi bi-fire text-white text-2xl"></i>
+            <!-- Day Streak Card -->
+            <div class="performance-card group relative bg-gradient-to-br from-orange-50 to-white rounded-2xl p-6 text-center border border-orange-100 hover:border-orange-300 hover:shadow-xl transition-all duration-300">
+                <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-orange-500 to-orange-600 rounded-t-2xl"></div>
+                <div class="w-14 h-14 mx-auto mb-3 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg">
+                    <i class="bi bi-fire text-white text-2xl"></i>
+                </div>
+                <div id="dayStreak" class="text-4xl lg:text-5xl font-extrabold bg-gradient-to-r from-orange-600 to-orange-800 bg-clip-text text-transparent mb-2">0</div>
+                <div class="text-xs font-bold uppercase tracking-wider text-gray-600">Day Streak</div>
             </div>
-            <div id="dayStreak" class="text-4xl lg:text-5xl font-extrabold bg-gradient-to-r from-orange-600 to-orange-800 bg-clip-text text-transparent mb-2">0</div>
-            <div class="text-xs font-bold uppercase tracking-wider text-gray-600">Day Streak</div>
         </div>
+    </div>
+    
+    <!-- Carousel Indicators (dots) - Only on mobile -->
+    <div class="carousel-indicators lg:hidden" id="carouselIndicators">
+        <div class="carousel-dot active" data-index="0"></div>
+        <div class="carousel-dot" data-index="1"></div>
+        <div class="carousel-dot" data-index="2"></div>
+        <div class="carousel-dot" data-index="3"></div>
     </div>
 </div>
 
@@ -310,20 +650,29 @@
             <div id="categoryCardsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8"></div>
 
             <!-- Overdue Tests Section -->
-<div class="bg-white rounded-2xl p-6 lg:p-8 mb-8 shadow-lg border border-red-200">
-    <div class="flex items-center gap-3 mb-6">
+<div class="bg-white rounded-2xl p-6 lg:p-8 mb-8 shadow-lg border border-red-200" id="overdue-section">
+    <!-- Clickable Header -->
+    <div class="flex items-center gap-3 mb-6 cursor-pointer hover:bg-red-50 -m-6 p-6 rounded-t-2xl transition-colors" onclick="toggleOverdueSection()">
         <div class="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center">
             <i class="bi bi-exclamation-triangle-fill text-white text-xl"></i>
         </div>
-        <h2 class="text-2xl font-bold text-gray-900">Overdue Test</h2>
+        <h2 class="text-2xl font-bold text-gray-900 flex-1">Overdue Test</h2>
+        <span id="overdueCount" class="bg-red-500 text-white text-sm font-bold px-3 py-1 rounded-full">0</span>
+        <i id="overdueChevron" class="bi bi-chevron-down text-2xl text-gray-400 transition-transform duration-300"></i>
     </div>
-    <div id="overdueTestsContainer">
-        <div class="text-center py-12">
-            <div class="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center">
-                <i class="bi bi-check-circle text-4xl text-gray-400"></i>
+    
+    <!-- Collapsible Container with Scroll -->
+    <div id="overdueTestsContainer" class="max-h-0 overflow-hidden transition-all duration-300">
+        <div class="overdue-scroll-container">
+            <div id="overdueTestsContent">
+                <div class="text-center py-12">
+                    <div class="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center">
+                        <i class="bi bi-check-circle text-4xl text-gray-400"></i>
+                    </div>
+                    <p class="text-lg font-semibold text-gray-600 mb-2">No Overdue Test</p>
+                    <small class="text-sm text-gray-400">All test are up to date</small>
+                </div>
             </div>
-            <p class="text-lg font-semibold text-gray-600 mb-2">No Overdue Test</p>
-            <small class="text-sm text-gray-400">All test are up to date</small>
         </div>
     </div>
 </div>
@@ -781,14 +1130,16 @@ async function loadNotificationDropdown() {
                 }
                 seenTestIds.add(test.id);
                 
-                // NEW: Check if this student is in the selected students list
+                // ⭐ NEW: Check if this student is in the selected students list
+                let isStudentSelected = false;
+                
                 if (test.selectedStudents && Array.isArray(test.selectedStudents)) {
-                    if (!test.selectedStudents.includes(studentData.email)) {
-                        console.log(`❌ Student ${studentData.email} not selected for test: ${test.testName}`);
-                        continue;
-                    } else {
-                        console.log(`✅ Student ${studentData.email} IS selected for test: ${test.testName}`);
-                    }
+                    isStudentSelected = test.selectedStudents.includes(studentData.email);
+                    console.log(`📋 Test: ${test.testName} - Student ${isStudentSelected ? 'IS' : 'NOT'} selected`);
+                } else {
+                    // If no selectedStudents array exists, test is visible to all (backward compatibility)
+                    isStudentSelected = true;
+                    console.log(`📋 Test: ${test.testName} - No student filter (visible to all)`);
                 }
                 
                 if (test.isVisible !== true || test.isActive !== true) {
@@ -800,7 +1151,7 @@ async function loadNotificationDropdown() {
                     isVisible: test.isVisible,
                     isActive: test.isActive,
                     section: test.section,
-                    selectedForStudent: test.selectedStudents ? test.selectedStudents.includes(studentData.email) : 'No filter'
+                    isStudentSelected: isStudentSelected
                 });
                 
                 let deadlineDateTime;
@@ -823,25 +1174,30 @@ async function loadNotificationDropdown() {
                 const isPerfect = status ? status.bestScore === 100 : false;
                 const hasAttemptsLeft = status ? status.attempts < test.attemptsAllowed : true;
                 
+                // ⭐ Mark if test is view-only (not selected by professor)
+                test.isViewOnly = !isStudentSelected;
+                
                 if (deadlineDateTime < now) {
-                    if (enabledTests.has(test.id)) {
+                    // Overdue handling
+                    if (enabledTests.has(test.id) && isStudentSelected) {
                         console.log(`⚠️✅ Test ${test.testName}: Overdue but ENABLED by professor`);
                         test.professorEnabled = true;
                         overdueTests.push(test);
                     } else if (!status || status.attempts === 0) {
-                        console.log(`⚠️ Test ${test.testName}: Overdue and not attempted`);
+                        console.log(`⚠️ Test ${test.testName}: Overdue${!isStudentSelected ? ' (VIEW ONLY - Not Selected)' : ''}`);
                         overdueTests.push(test);
                     } else {
                         console.log(`✅ Test ${test.testName}: Overdue but already completed`);
                     }
                     
                 } else {
+                    // Active tests
                     if (!status) {
-                        console.log(`✅ Adding test ${test.testName}: Never attempted`);
+                        console.log(`✅ Adding test ${test.testName}: Never attempted${!isStudentSelected ? ' (VIEW ONLY)' : ''}`);
                         availableTests.push(test);
                     } else {
                         if (!isPerfect && (isUnlimited || hasAttemptsLeft)) {
-                            console.log(`✅ Adding test ${test.testName}: Can retry (Best: ${status.bestScore}, Attempts: ${status.attempts}/${test.attemptsAllowed})`);
+                            console.log(`✅ Adding test ${test.testName}: Can retry${!isStudentSelected ? ' (VIEW ONLY)' : ''}`);
                             availableTests.push(test);
                         } else {
                             console.log(`❌ Skipping test ${test.testName}: ${isPerfect ? 'Perfect score achieved' : 'No attempts left'}`);
@@ -961,20 +1317,18 @@ async function loadNotificationDropdown() {
     console.log(`🔍 After deduplication: ${uniqueTests.length} unique tests`);
     
     // Categorize unique tests
-    // Categorize unique tests
-        const categorizedTests = {
-            'Cardiorespiratory Endurance': [],
-            'Muscular Strength and Endurance': [],
-            'Flexibility': [],
-            'Body Composition': []
-        };
+    const categorizedTests = {
+        'Cardiorespiratory Endurance': [],
+        'Muscular Strength and Endurance': [],
+        'Flexibility': [],
+        'Body Composition': []
+    };
     
     uniqueTests.forEach(test => {
         const category = getCategoryForTest(test.testName);
         if (categorizedTests[category]) {
             categorizedTests[category].push(test);
         } else {
-            // Default to first category if no match
             categorizedTests['Cardiorespiratory Endurance'].push(test);
         }
     });
@@ -1022,31 +1376,65 @@ async function loadNotificationDropdown() {
         attemptsMap.set(data.testId, data);
     });
     
-    // Now render categories
+    // Now render categories with collapsible design
     for (const [category, tests] of Object.entries(categorizedTests)) {
         const categoryData = testCategories[category];
         
         if (!categoryData) continue;
         
+        const categoryId = category.replace(/\s+/g, '-').toLowerCase();
+        
         html += `
-            <div class="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-md border border-gray-200 hover:shadow-lg hover:-translate-y-1 transition-all">
-                <div class="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
-                    <img class="w-12 h-12 sm:w-14 sm:h-14 object-contain" src="${categoryData.icon}" alt="${category}" />
-                    <div class="flex-1 min-w-0">
-                        <h3 class="text-base sm:text-lg lg:text-xl font-bold text-gray-900 mb-1">${category}</h3>
-                        <p class="text-xs sm:text-sm text-gray-600">${categoryData.subtitle}</p>
+            <div class="fitness-category-card group category-expanded" id="category-${categoryId}">
+                <!-- Category Header - CLICKABLE -->
+                <div class="category-header relative overflow-hidden bg-white rounded-t-2xl p-5 sm:p-6 border-2 border-gray-200 hover:bg-gray-50 transition-colors" onclick="toggleCategory('${categoryId}')">
+                    <!-- Diagonal stripe pattern -->
+                    <div class="absolute inset-0 opacity-5 pointer-events-none">
+                        <div class="absolute inset-0" style="background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.05) 10px, rgba(0,0,0,0.05) 20px);"></div>
+                    </div>
+                    
+                    <div class="relative flex items-center gap-4">
+                        <!-- Icon -->
+                        <div class="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 rounded-2xl flex items-center justify-center shadow-md transform group-hover:scale-105 transition-transform duration-300 border-2 border-gray-200">
+                            <img class="w-10 h-10 sm:w-12 sm:h-12 object-contain" src="${categoryData.icon}" alt="${category}" />
+                        </div>
+                        
+                        <div class="flex-1 min-w-0">
+                            <h3 class="text-lg sm:text-xl font-black text-gray-900 mb-1 uppercase tracking-tight leading-tight">${category}</h3>
+                            <p class="text-xs sm:text-sm text-gray-600 font-medium">${categoryData.subtitle}</p>
+                            <div class="mt-2 flex items-center gap-2 text-xs text-gray-500">
+                                <i class="bi bi-lightning-charge-fill"></i>
+                                <span>${tests.length} Test${tests.length !== 1 ? 's' : ''} Available</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Chevron Icon -->
+                        <div class="flex-shrink-0">
+                            <i class="bi bi-chevron-down text-2xl text-gray-400 chevron-icon"></i>
+                        </div>
                     </div>
                 </div>
-                <div class="space-y-2 sm:space-y-3">
+                
+                <!-- Tests Grid - COLLAPSIBLE -->
+                <div class="category-tests bg-white rounded-b-2xl border-x-2 border-b-2 border-gray-200">
+                    <div class="p-4 sm:p-5">
         `;
         
         if (tests.length === 0) {
             html += `
-                <div class="text-center py-4 sm:py-6">
-                    <p class="text-sm text-gray-500">No tests in this category</p>
+                <div class="text-center py-12">
+                    <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gray-100 flex items-center justify-center">
+                        <i class="bi bi-inbox text-3xl text-gray-300"></i>
+                    </div>
+                    <p class="text-sm font-semibold text-gray-400">No tests in this category</p>
                 </div>
             `;
         } else {
+        html += `
+            <div class="relative">
+                <div class="grid grid-cols-1 gap-3 sm:gap-4">
+        `;
+                    
             // Render each test in this category
             tests.forEach(test => {
                 const attemptData = attemptsMap.get(test.id) || { attempts: 0, bestScore: 0 };
@@ -1057,62 +1445,128 @@ async function loadNotificationDropdown() {
                 const isPerfect = bestScore === 100;
                 const canRetry = isUnlimited ? (bestScore < 100) : (currentAttempts < test.attemptsAllowed && bestScore < 100);
                 const attemptsLeft = test.attemptsAllowed - currentAttempts;
-                
-                let buttonText = 'Start';
-                let buttonClass = 'from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700';
-                
-                if (hasAttempts && canRetry) {
-                    buttonText = isUnlimited ? 'Retry' : `Retry (${attemptsLeft} left)`;
-                    buttonClass = 'from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700';
+
+                // ⭐ NEW: Check if test is view-only
+                const isViewOnly = test.isViewOnly === true;
+
+                let statusIcon = 'circle';
+                let statusText = 'Not Started';
+
+                if (isViewOnly) {
+                    statusIcon = 'eye';
+                    statusText = 'View Only';
+                } else if (isPerfect) {
+                    statusIcon = 'check-circle-fill';
+                    statusText = 'Perfect Score';
+                } else if (hasAttempts) {
+                    statusIcon = 'arrow-clockwise';
+                    statusText = `Best: ${bestScore}/100`;
+                } else {
+                    statusIcon = 'play-circle';
+                    statusText = 'Ready to Start';
                 }
                 
                 html += `
-                    <div class="bg-gray-50 rounded-lg sm:rounded-xl p-3 sm:p-4 hover:bg-gray-100 transition-colors">
-                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                            <div class="flex-1 min-w-0 w-full sm:w-auto">
-                                <h4 class="font-semibold text-gray-900 text-sm sm:text-base mb-1">${test.testName}</h4>
-                               <div class="flex flex-wrap gap-2 text-xs sm:text-sm">
-                                    <p class="${isUnlimited ? 'text-green-600' : 'text-gray-600'}">
-                                        📅 ${test.date || 'No date'}
-                                    </p>
-                                    <p class="text-gray-600">
-                                        ⏰ Due: ${formatDeadline(test.deadline, test.deadlineTime)}
-                                    </p>
-                                    ${hasAttempts ? `
-                                    <p class="${isPerfect ? 'text-green-600 font-bold' : canRetry ? 'text-orange-600 font-semibold' : 'text-gray-600'}">
-                                        ${isPerfect ? '✅ Perfect Score!' : isUnlimited ? `🔄 ${currentAttempts} Attempt${currentAttempts > 1 ? 's' : ''} • Best: ${bestScore}` : `🔄 ${currentAttempts}/${test.attemptsAllowed} Attempts • Best: ${bestScore}`}
-                                    </p>
+                    <div class="test-workout-card group/test relative bg-gray-50 rounded-xl border-2 border-gray-200 overflow-hidden hover:border-gray-400 hover:shadow-md transition-all duration-300">
+                        <!-- Status indicator strip -->
+                        <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-gray-900"></div>
+                        
+                        <div class="pl-4 pr-3 sm:pr-4 py-4">
+                            <div class="flex flex-col sm:flex-row gap-4">
+                                <!-- Test Info Section -->
+                                <div class="flex-1 min-w-0">
+                                    <!-- Test Name & Status Badge -->
+                                    <div class="flex items-start gap-2 mb-3">
+                                        <div class="flex-1 min-w-0">
+                                            <h4 class="text-base sm:text-lg font-bold text-gray-900 leading-tight mb-1">${test.testName}</h4>
+                                            <div class="flex items-center gap-2">
+                                                <i class="bi bi-${statusIcon} text-gray-700 text-sm"></i>
+                                                <span class="text-xs sm:text-sm font-semibold text-gray-700">${statusText}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Test Details Grid -->
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs sm:text-sm">
+                                        <div class="flex items-center gap-2 text-gray-600">
+                                            <i class="bi bi-calendar-check text-gray-400"></i>
+                                            <span class="font-medium">${test.date || 'No date set'}</span>
+                                        </div>
+                                        
+                                        <div class="flex items-center gap-2 text-gray-600">
+                                            <i class="bi bi-alarm text-gray-400"></i>
+                                            <span class="font-medium">${formatDeadline(test.deadline, test.deadlineTime)}</span>
+                                        </div>
+                                        
+                                        ${hasAttempts ? `
+                                            <div class="flex items-center gap-2 text-gray-700">
+                                                <i class="bi bi-trophy-fill text-gray-400"></i>
+                                                <span class="font-bold">${isPerfect ? '100/100' : `${bestScore}/100`}</span>
+                                            </div>
+                                            
+                                            <div class="flex items-center gap-2 text-gray-600">
+                                                <i class="bi bi-repeat text-gray-400"></i>
+                                                <span class="font-medium">
+                                                    ${isUnlimited ? `${currentAttempts} attempt${currentAttempts !== 1 ? 's' : ''}` : `${currentAttempts}/${test.attemptsAllowed} attempts`}
+                                                </span>
+                                            </div>
+                                        ` : `
+                                            <div class="flex items-center gap-2 text-gray-700">
+                                                <i class="bi bi-infinity text-gray-400"></i>
+                                                <span class="font-bold">${isUnlimited ? 'Unlimited tries' : `${test.attemptsAllowed} attempt${test.attemptsAllowed !== 1 ? 's' : ''}`}</span>
+                                            </div>
+                                        `}
+                                    </div>
+                                </div>
+                                
+                                <!-- Action Button Section -->
+                                <div class="flex sm:flex-col justify-end items-end sm:items-stretch gap-2 sm:min-w-[140px]">
+                                    ${isViewOnly ? `
+                                        <div class="flex-1 sm:flex-initial px-5 py-3 bg-gray-100 text-gray-600 rounded-xl font-bold text-sm uppercase tracking-wide flex items-center justify-center gap-2 border-2 border-gray-300 cursor-not-allowed" title="You have not been selected for this test">
+                                            <i class="bi bi-eye"></i>
+                                            <span>View Only</span>
+                                        </div>
+                                    ` : canRetry ? `
+                                        <button onclick="startTest('${test.id}')" class="workout-start-btn flex-1 sm:flex-initial px-5 py-3 bg-gray-900 text-white rounded-xl font-bold text-sm uppercase tracking-wide hover:bg-black hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2">
+                                            <i class="bi bi-${hasAttempts ? 'arrow-clockwise' : 'play-fill'}"></i>
+                                            <span>${hasAttempts ? 'Retry' : 'Start'}</span>
+                                        </button>
+                                    ` : isPerfect ? `
+                                        <div class="flex-1 sm:flex-initial px-5 py-3 bg-gray-200 text-gray-800 rounded-xl font-bold text-sm uppercase tracking-wide flex items-center justify-center gap-2 border-2 border-gray-300">
+                                            <i class="bi bi-trophy-fill"></i>
+                                            <span>Complete</span>
+                                        </div>
+                                    ` : !hasAttempts ? `
+                                        <button onclick="startTest('${test.id}')" class="workout-start-btn flex-1 sm:flex-initial px-5 py-3 bg-gray-900 text-white rounded-xl font-bold text-sm uppercase tracking-wide hover:bg-black hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2">
+                                            <i class="bi bi-play-fill"></i>
+                                            <span>Start</span>
+                                        </button>
                                     ` : `
-                                    <p class="${isUnlimited ? 'text-green-600 font-semibold' : 'text-blue-600 font-semibold'}">
-                                        🔄 ${isUnlimited ? 'Unlimited Attempts' : test.attemptsAllowed + ' Attempt' + (test.attemptsAllowed > 1 ? 's' : '') + ' Allowed'}
-                                    </p>
+                                        <div class="flex-1 sm:flex-initial px-5 py-3 bg-gray-200 text-gray-500 rounded-xl font-bold text-sm uppercase tracking-wide flex items-center justify-center gap-2 border-2 border-gray-300">
+                                            <i class="bi bi-x-circle"></i>
+                                            <span>Locked</span>
+                                        </div>
                                     `}
                                 </div>
                             </div>
-                            ${canRetry ? `
-                            <button onclick="startTest('${test.id}')" class="w-full sm:w-auto px-4 sm:px-5 py-2 sm:py-2.5 bg-gradient-to-r ${buttonClass} text-white rounded-lg font-semibold text-sm hover:-translate-y-0.5 hover:shadow-lg transition-all whitespace-nowrap">
-                                ${buttonText}
-                            </button>
-                            ` : isPerfect ? `
-                            <div class="w-full sm:w-auto px-4 sm:px-5 py-2 sm:py-2.5 bg-green-100 text-green-700 rounded-lg font-semibold text-sm text-center border-2 border-green-300">
-                                🏆 Completed
-                            </div>
-                            ` : !hasAttempts ? `
-                            <button onclick="startTest('${test.id}')" class="w-full sm:w-auto px-4 sm:px-5 py-2 sm:py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-semibold text-sm hover:from-blue-600 hover:to-blue-700 hover:-translate-y-0.5 hover:shadow-lg transition-all whitespace-nowrap">
-                                Start
-                            </button>
-                            ` : `
-                            <div class="w-full sm:w-auto px-4 sm:px-5 py-2 sm:py-2.5 bg-gray-200 text-gray-600 rounded-lg font-semibold text-sm text-center">
-                                No Attempts Left
-                            </div>
-                            `}
                         </div>
                     </div>
                 `;
             });
+            
+            html += `</div>`;
+             if (tests.length > 2) {
+        html += `
+            <div class="scroll-indicator">
+                <i class="bi bi-chevron-down"></i>
+            </div>
+        `;
+    }
+           html += `</div>`;
         }
         
         html += `
+                    </div>
                 </div>
             </div>
         `;
@@ -1120,8 +1574,21 @@ async function loadNotificationDropdown() {
     
     container.innerHTML = html;
 }
+    // Toggle category collapse/expand
+window.toggleCategory = function(categoryId) {
+    const categoryElement = document.getElementById(`category-${categoryId}`);
+    
+    if (categoryElement.classList.contains('category-expanded')) {
+        categoryElement.classList.remove('category-expanded');
+        categoryElement.classList.add('category-collapsed');
+    } else {
+        categoryElement.classList.remove('category-collapsed');
+        categoryElement.classList.add('category-expanded');
+    }
+};
         async function renderOverdueTests(overdueTestsArray) {
-    const container = document.getElementById('overdueTestsContainer');
+    const container = document.getElementById('overdueTestsContent');
+    const countBadge = document.getElementById('overdueCount');
     
     // Remove duplicates before rendering
     const uniqueOverdueTests = [];
@@ -1138,7 +1605,11 @@ async function loadNotificationDropdown() {
     
     console.log(`🔍 Rendering ${uniqueOverdueTests.length} unique overdue tests (removed ${overdueTestsArray.length - uniqueOverdueTests.length} duplicates)`);
     
+    // Update count badge
+    countBadge.textContent = uniqueOverdueTests.length;
+    
     if (uniqueOverdueTests.length === 0) {
+        countBadge.classList.add('hidden');
         container.innerHTML = `
             <div class="text-center py-12">
                 <div class="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-green-100 to-green-200 rounded-2xl flex items-center justify-center">
@@ -1150,6 +1621,8 @@ async function loadNotificationDropdown() {
         `;
         return;
     }
+    
+    countBadge.classList.remove('hidden');
     
     // Check completion status for each test
     const completionPromises = uniqueOverdueTests.map(async (test) => {
@@ -1194,47 +1667,67 @@ async function loadNotificationDropdown() {
         completionMap.set(data.testId, data);
     });
     
+    // Build HTML with scroll container
     let html = '<div class="space-y-3">';
     
     uniqueOverdueTests.forEach(test => {
-        const isProfessorEnabled = test.professorEnabled === true;
-        const completion = completionMap.get(test.id) || { completed: false, bestScore: 0, attempts: 0 };
-        const isCompleted = completion.completed;
-        
-        html += `
-            <div class="bg-${isCompleted ? 'green' : isProfessorEnabled ? 'blue' : 'red'}-50 border-2 border-${isCompleted ? 'green' : isProfessorEnabled ? 'blue' : 'red'}-200 rounded-xl p-4 hover:bg-${isCompleted ? 'green' : isProfessorEnabled ? 'blue' : 'red'}-100 transition-colors">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                    <div class="flex-1">
-                        <h4 class="font-semibold text-gray-900 text-base mb-1">
-                            ${test.testName}
-                            ${isProfessorEnabled && !isCompleted ? '<span class="ml-2 text-xs bg-blue-500 text-white px-2 py-1 rounded-full">✓ Enabled by Professor</span>' : ''}
-                            ${isCompleted ? '<span class="ml-2 text-xs bg-green-500 text-white px-2 py-1 rounded-full">Completed</span>' : ''}
-                        </h4>
-                        <div class="flex flex-wrap gap-2 text-sm">
-                            <p class="${isCompleted ? 'text-green-600' : isProfessorEnabled ? 'text-blue-600' : 'text-red-600'} font-semibold">
-                                ${isCompleted ? `Score: ${completion.bestScore}/100 • ${completion.attempts} Attempt${completion.attempts > 1 ? 's' : ''}` : `⚠️ Overdue: ${formatDeadline(test.deadline, test.deadlineTime)}`}
-                            </p>
-                        </div>
+    const isProfessorEnabled = test.professorEnabled === true;
+    const completion = completionMap.get(test.id) || { completed: false, bestScore: 0, attempts: 0 };
+    const isCompleted = completion.completed;
+    const isViewOnly = test.isViewOnly === true; 
+    
+    html += `
+        <div class="bg-${isCompleted ? 'green' : isProfessorEnabled ? 'blue' : isViewOnly ? 'gray' : 'red'}-50 border-2 border-${isCompleted ? 'green' : isProfessorEnabled ? 'blue' : isViewOnly ? 'gray' : 'red'}-200 rounded-xl p-4 hover:bg-${isCompleted ? 'green' : isProfessorEnabled ? 'blue' : isViewOnly ? 'gray' : 'red'}-100 transition-colors">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div class="flex-1">
+                    <h4 class="font-semibold text-gray-900 text-base mb-1">
+                        ${test.testName}
+                        ${isViewOnly ? '<span class="ml-2 text-xs bg-gray-500 text-white px-2 py-1 rounded-full">👁️ View Only - Not Selected</span>' : ''}
+                        ${isProfessorEnabled && !isCompleted && !isViewOnly ? '<span class="ml-2 text-xs bg-blue-500 text-white px-2 py-1 rounded-full">✓ Enabled by Professor</span>' : ''}
+                        ${isCompleted ? '<span class="ml-2 text-xs bg-green-500 text-white px-2 py-1 rounded-full">Completed</span>' : ''}
+                    </h4>
+                    <div class="flex flex-wrap gap-2 text-sm">
+                        <p class="${isCompleted ? 'text-green-600' : isProfessorEnabled ? 'text-blue-600' : isViewOnly ? 'text-gray-600' : 'text-red-600'} font-semibold">
+                            ${isCompleted ? `Score: ${completion.bestScore}/100 • ${completion.attempts} Attempt${completion.attempts > 1 ? 's' : ''}` : 
+                              isViewOnly ? '⚠️ You are not selected for this test' :
+                              `⚠️ Overdue: ${formatDeadline(test.deadline, test.deadlineTime)}`}
+                        </p>
                     </div>
-                    ${isCompleted ? `
-                        <div class="w-full sm:w-auto px-5 py-2.5 bg-green-100 text-green-700 rounded-lg font-semibold text-sm text-center border-2 border-green-300">
-                            Done
-                        </div>
-                    ` : isProfessorEnabled ? `
-                        <button onclick="startOverdueTest('${test.id}', '${encodeURIComponent(test.testName)}')" class="w-full sm:w-auto px-4 sm:px-5 py-2 sm:py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-semibold text-sm hover:from-blue-600 hover:to-blue-700 hover:-translate-y-0.5 hover:shadow-lg transition-all whitespace-nowrap">
-                            Take Test Now
-                        </button>
-                    ` : `
-                        <div class="w-full sm:w-auto px-5 py-2.5 bg-red-200 text-red-800 rounded-lg font-semibold text-sm text-center border-2 border-red-300">
-                            🔒 Test Locked
-                        </div>
-                    `}
                 </div>
+                ${isCompleted ? `
+                    <div class="w-full sm:w-auto px-5 py-2.5 bg-green-100 text-green-700 rounded-lg font-semibold text-sm text-center border-2 border-green-300">
+                        Done
+                    </div>
+                ` : isViewOnly ? `
+                    <div class="w-full sm:w-auto px-5 py-2.5 bg-gray-200 text-gray-600 rounded-lg font-semibold text-sm text-center border-2 border-gray-300 cursor-not-allowed" title="Not selected for this test">
+                        <i class="bi bi-eye"></i> View Only
+                    </div>
+                ` : isProfessorEnabled ? `
+                    <button onclick="startOverdueTest('${test.id}', '${encodeURIComponent(test.testName)}')" class="w-full sm:w-auto px-4 sm:px-5 py-2 sm:py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-semibold text-sm hover:from-blue-600 hover:to-blue-700 hover:-translate-y-0.5 hover:shadow-lg transition-all whitespace-nowrap">
+                        Take Test Now
+                    </button>
+                ` : `
+                    <div class="w-full sm:w-auto px-5 py-2.5 bg-red-200 text-red-800 rounded-lg font-semibold text-sm text-center border-2 border-red-300">
+                        🔒 Test Locked
+                    </div>
+                `}
             </div>
-        `;
-    });
+        </div>
+    `;
+});
     
     html += '</div>';
+    
+    // Add scroll indicator if more than 3 tests
+    if (uniqueOverdueTests.length > 3) {
+        html += `
+            <div class="overdue-scroll-indicator">
+                <i class="bi bi-chevron-down"></i>
+            </div>
+        `;
+    }
+    
+    // Add help section
     html += `
         <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <div class="flex items-start gap-3">
@@ -1249,29 +1742,61 @@ async function loadNotificationDropdown() {
     
     container.innerHTML = html;
 }
+        window.toggleOverdueSection = function() {
+    const section = document.getElementById('overdue-section');
+    const container = document.getElementById('overdueTestsContainer');
+    
+    if (section.classList.contains('expanded')) {
+        section.classList.remove('expanded');
+        container.style.maxHeight = '0';
+    } else {
+        section.classList.add('expanded');
+        // Set max-height dynamically based on content
+        const scrollContainer = container.querySelector('.overdue-scroll-container');
+        const contentHeight = scrollContainer ? scrollContainer.scrollHeight : 500;
+        container.style.maxHeight = Math.min(contentHeight + 24, 600) + 'px'; // 24px for padding
+    }
+};
         function renderEmptyState() {
-            const container = document.getElementById('categoryCardsContainer');
-            
-            let html = '';
-            for (const [category, categoryData] of Object.entries(testCategories)) {
-                html += `
-                    <div class="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-md border border-gray-200">
-                        <div class="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
-                            <img class="w-12 h-12 sm:w-14 sm:h-14 object-contain" src="${categoryData.icon}" alt="${category}" />
-                            <div class="flex-1 min-w-0">
-                                <h3 class="text-base sm:text-lg lg:text-xl font-bold text-gray-900 mb-1">${category}</h3>
-                                <p class="text-xs sm:text-sm text-gray-600">${categoryData.subtitle}</p>
+    const container = document.getElementById('categoryCardsContainer');
+    
+    let html = '';
+    for (const [category, categoryData] of Object.entries(testCategories)) {
+        html += `
+            <div class="fitness-category-card group">
+                <div class="relative overflow-hidden bg-white rounded-t-2xl p-5 sm:p-6 border-2 border-gray-200">
+                    <div class="absolute inset-0 opacity-5">
+                        <div class="absolute inset-0" style="background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.05) 10px, rgba(0,0,0,0.05) 20px);"></div>
+                    </div>
+                    
+                    <div class="relative flex items-center gap-4">
+                        <div class="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 rounded-2xl flex items-center justify-center shadow-md border-2 border-gray-200">
+                            <img class="w-10 h-10 sm:w-12 sm:h-12 object-contain" src="${categoryData.icon}" alt="${category}" />
+                        </div>
+                        
+                        <div class="flex-1 min-w-0">
+                            <h3 class="text-lg sm:text-xl font-black text-gray-900 mb-1 uppercase tracking-tight leading-tight">${category}</h3>
+                            <p class="text-xs sm:text-sm text-gray-600 font-medium">${categoryData.subtitle}</p>
+                            <div class="mt-2 flex items-center gap-2 text-xs text-gray-500">
+                                <i class="bi bi-lightning-charge-fill"></i>
+                                <span>0 Tests Available</span>
                             </div>
                         </div>
-                        <div class="text-center py-4 sm:py-6">
-                            <p class="text-sm text-gray-500">No tests in this category</p>
-                        </div>
                     </div>
-                `;
-            }
-            
-            container.innerHTML = html;
-        }
+                </div>
+                
+                <div class="bg-white rounded-b-2xl p-8 border-x-2 border-b-2 border-gray-200 text-center">
+                    <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gray-100 flex items-center justify-center">
+                        <i class="bi bi-inbox text-3xl text-gray-300"></i>
+                    </div>
+                    <p class="text-sm font-semibold text-gray-400">No tests available in this category</p>
+                </div>
+            </div>
+        `;
+    }
+    
+    container.innerHTML = html;
+}
 
         async function loadRecentTestHistory() {
     try {
@@ -1487,30 +2012,40 @@ async function loadNotificationDropdown() {
         window.goToEditProfile = function() {
             window.location.href = './studentProfile.html?editProfile=true';
         };
-    window.startTest = function(testId) {
-    // Check if profile is complete
-    if (!isProfileComplete(studentData)) {
-        showProfileRequiredModal();
-        return;
-    }
-    
-    // Check available tests first
-    const test = availableTests.find(t => t.id === testId);
-    if (test) {
-        window.location.href = `./testdetails.html?testId=${testId}&testName=${encodeURIComponent(test.testName)}`;
-        return;
-    }
-    
-    // If not found, check overdue tests
-    const overdueTest = overdueTests.find(t => t.id === testId);
-    if (overdueTest) {
-        window.location.href = `./testdetails.html?testId=${testId}&testName=${encodeURIComponent(overdueTest.testName)}&isOverdue=true`;
-        return;
-    }
-    
-    console.error(`Test not found: ${testId}`);
-    alert('Test not found. Please refresh the page and try again.');
-};
+        window.startTest = function(testId) {
+        // Check if profile is complete
+        if (!isProfileComplete(studentData)) {
+            showProfileRequiredModal();
+            return;
+        }
+        
+        // ⭐ NEW: Check if test is view-only
+        const test = availableTests.find(t => t.id === testId);
+        if (test && test.isViewOnly === true) {
+            alert('❌ You cannot start this test.\n\nYou have not been selected by your professor to take this test.\n\nPlease contact your professor if you believe this is an error.');
+            return;
+        }
+        
+        // Check available tests first
+        if (test) {
+            window.location.href = `./testdetails.html?testId=${testId}&testName=${encodeURIComponent(test.testName)}`;
+            return;
+        }
+        
+        // If not found, check overdue tests
+        const overdueTest = overdueTests.find(t => t.id === testId);
+        if (overdueTest) {
+            if (overdueTest.isViewOnly === true) {
+                alert('❌ You cannot start this test.\n\nYou have not been selected by your professor to take this test.\n\nPlease contact your professor if you believe this is an error.');
+                return;
+            }
+            window.location.href = `./testdetails.html?testId=${testId}&testName=${encodeURIComponent(overdueTest.testName)}&isOverdue=true`;
+            return;
+        }
+        
+        console.error(`Test not found: ${testId}`);
+        alert('Test not found. Please refresh the page and try again.');
+    };
 
 function calculateTestScore(testName, result, testTarget = null) {
     const normalized = testName.toLowerCase().trim();
@@ -1769,6 +2304,217 @@ function calculateTestScore(testName, result, testTarget = null) {
     } else {
         window.location.href = '../login/index.html';
     }
+});
+    function initPerformanceCarousel() {
+    const carousel = document.getElementById('performanceCarousel');
+    const indicators = document.querySelectorAll('.carousel-dot');
+    
+    if (!carousel || window.innerWidth >= 1024) return;
+    
+    let currentIndex = 0;
+    let isScrolling = false;
+    let autoSwipeInterval;
+    let isUserInteracting = false;
+    
+    const CARDS_COUNT = 4;
+    const AUTO_SWIPE_DELAY = 3000; // 3 seconds
+    
+    // Auto swipe to next card
+    function autoSwipe() {
+        if (isUserInteracting) return;
+        
+        currentIndex = (currentIndex + 1) % CARDS_COUNT;
+        scrollToIndex(currentIndex);
+    }
+    
+    // Scroll to specific index
+    function scrollToIndex(index) {
+        isScrolling = true;
+        const cardWidth = carousel.querySelector('.performance-card').offsetWidth;
+        const gap = 16;
+        
+        carousel.scrollTo({
+            left: index * (cardWidth + gap),
+            behavior: 'smooth'
+        });
+        
+        // Update indicators
+        indicators.forEach((dot, i) => {
+            dot.classList.toggle('active', i === index);
+        });
+        
+        setTimeout(() => {
+            isScrolling = false;
+        }, 500);
+    }
+    
+    // Start auto-swipe
+    function startAutoSwipe() {
+        stopAutoSwipe();
+        autoSwipeInterval = setInterval(autoSwipe, AUTO_SWIPE_DELAY);
+    }
+    
+    // Stop auto-swipe
+    function stopAutoSwipe() {
+        if (autoSwipeInterval) {
+            clearInterval(autoSwipeInterval);
+            autoSwipeInterval = null;
+        }
+    }
+    
+    // Update active indicator based on scroll position
+    function updateIndicators() {
+        if (isScrolling) return;
+        
+        const scrollLeft = carousel.scrollLeft;
+        const cardWidth = carousel.querySelector('.performance-card').offsetWidth;
+        const gap = 16;
+        const newIndex = Math.round(scrollLeft / (cardWidth + gap));
+        
+        if (newIndex !== currentIndex && newIndex >= 0 && newIndex < indicators.length) {
+            currentIndex = newIndex;
+            indicators.forEach((dot, index) => {
+                dot.classList.toggle('active', index === currentIndex);
+            });
+        }
+    }
+    
+    // Debounced scroll event
+    let scrollTimeout;
+    carousel.addEventListener('scroll', () => {
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(updateIndicators, 100);
+    });
+    
+    // Dot click handlers
+    indicators.forEach((dot, index) => {
+        dot.addEventListener('click', () => {
+            stopAutoSwipe();
+            isUserInteracting = true;
+            currentIndex = index;
+            scrollToIndex(index);
+            
+            // Resume auto-swipe after 5 seconds of no interaction
+            setTimeout(() => {
+                isUserInteracting = false;
+                startAutoSwipe();
+            }, 5000);
+        });
+    });
+    
+    // Touch swipe support
+    let startX = 0;
+    let scrollStart = 0;
+    let isDragging = false;
+    
+    carousel.addEventListener('touchstart', (e) => {
+        stopAutoSwipe();
+        isUserInteracting = true;
+        isDragging = true;
+        startX = e.touches[0].pageX;
+        scrollStart = carousel.scrollLeft;
+        carousel.style.scrollSnapType = 'none';
+    }, { passive: true });
+    
+    carousel.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        const x = e.touches[0].pageX;
+        const walk = (startX - x) * 1.2;
+        carousel.scrollLeft = scrollStart + walk;
+    }, { passive: true });
+    
+    carousel.addEventListener('touchend', () => {
+        isDragging = false;
+        carousel.style.scrollSnapType = 'x mandatory';
+        
+        // Snap to nearest card
+        const cardWidth = carousel.querySelector('.performance-card').offsetWidth;
+        const gap = 16;
+        currentIndex = Math.round(carousel.scrollLeft / (cardWidth + gap));
+        scrollToIndex(currentIndex);
+        
+        // Resume auto-swipe after 5 seconds
+        setTimeout(() => {
+            isUserInteracting = false;
+            startAutoSwipe();
+        }, 5000);
+    });
+    
+    // Mouse drag support
+    let mouseStartX = 0;
+    let mouseScrollStart = 0;
+    let isMouseDragging = false;
+    
+    carousel.addEventListener('mousedown', (e) => {
+        stopAutoSwipe();
+        isUserInteracting = true;
+        isMouseDragging = true;
+        mouseStartX = e.pageX;
+        mouseScrollStart = carousel.scrollLeft;
+        carousel.style.cursor = 'grabbing';
+        carousel.style.scrollSnapType = 'none';
+    });
+    
+    carousel.addEventListener('mousemove', (e) => {
+        if (!isMouseDragging) return;
+        e.preventDefault();
+        const x = e.pageX;
+        const walk = (mouseStartX - x) * 1.2;
+        carousel.scrollLeft = mouseScrollStart + walk;
+    });
+    
+    carousel.addEventListener('mouseup', () => {
+        isMouseDragging = false;
+        carousel.style.cursor = 'grab';
+        carousel.style.scrollSnapType = 'x mandatory';
+        
+        // Resume auto-swipe after 5 seconds
+        setTimeout(() => {
+            isUserInteracting = false;
+            startAutoSwipe();
+        }, 5000);
+    });
+    
+    carousel.addEventListener('mouseleave', () => {
+        if (isMouseDragging) {
+            isMouseDragging = false;
+            carousel.style.cursor = 'grab';
+            carousel.style.scrollSnapType = 'x mandatory';
+        }
+    });
+    
+    // Pause auto-swipe when mouse is over carousel
+    carousel.addEventListener('mouseenter', () => {
+        stopAutoSwipe();
+        isUserInteracting = true;
+    });
+    
+    carousel.addEventListener('mouseleave', () => {
+        isUserInteracting = false;
+        startAutoSwipe();
+    });
+    
+    // Start auto-swipe on page load
+    startAutoSwipe();
+    
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', stopAutoSwipe);
+}
+
+// Initialize carousel when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(initPerformanceCarousel, 100);
+});
+
+// Re-initialize on window resize
+let resizeTimeout;
+window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+        if (window.innerWidth < 1024) {
+            initPerformanceCarousel();
+        }
+    }, 250);
 });
     </script>
 </body>

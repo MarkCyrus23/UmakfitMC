@@ -742,38 +742,52 @@
             const testGroups = {};
 
             resultsSnapshot.forEach((doc) => {
-    const result = doc.data();
-    
-    // ⭐ Check if professor override exists first
-    const isProfessorOverride = result.isProfessorOverride === true;
-    
-    let score = 0;
-    
-    if (isProfessorOverride && typeof result.score === 'number' && !isNaN(result.score)) {
-        // Use professor's score directly
-        score = result.score;
-        console.log(`✅ Professor override: ${score} for ${result.testName}`);
-    } else {
-        // Calculate normally
-        score = calculateScore(
-            result.testName, 
-            result.result || result.resultData, 
-            result.testTarget
-        );
-        
-        // ⭐ Apply penalty ONLY if overdue AND not professor override
-        const isOverdue = (result.status === 'overdue' || result.status === 'late');
-        if (isOverdue && !isProfessorOverride) {
-            const originalScore = score;
-            const penalty = score * OVERDUE_PENALTY;
-            score = Math.max(0, score - penalty);
-            hasOverdueWithPenalty = true;
-            console.log(`⚠️ Penalty: ${originalScore.toFixed(1)} → ${score.toFixed(1)}`);
-        }
-    }
-    
-    // Validate score
-    score = Math.max(0, Math.min(100, score));
+                const result = doc.data();
+                
+                // ⭐ CRITICAL: Always use submittedAt for the test date
+                let testDate = new Date();
+                if (result.submittedAt) {
+                    if (typeof result.submittedAt.toDate === 'function') {
+                        testDate = result.submittedAt.toDate();
+                    } else if (result.submittedAt instanceof Date) {
+                        testDate = result.submittedAt;
+                    } else if (typeof result.submittedAt === 'string' || typeof result.submittedAt === 'number') {
+                        testDate = new Date(result.submittedAt);
+                    } else if (result.submittedAt.seconds) {
+                        testDate = new Date(result.submittedAt.seconds * 1000);
+                    }
+                }
+                
+                // ⭐ Check if professor override exists first
+                const isProfessorOverride = result.isProfessorOverride === true;
+                
+                let score = 0;
+                
+                if (isProfessorOverride && typeof result.score === 'number' && !isNaN(result.score)) {
+                    // Use professor's score directly
+                    score = result.score;
+                    console.log(`✅ Professor override: ${score} for ${result.testName}`);
+                } else {
+                    // Calculate normally
+                    score = calculateScore(
+                        result.testName, 
+                        result.result || result.resultData, 
+                        result.testTarget
+                    );
+                    
+                    // ⭐ Apply penalty ONLY if overdue AND not professor override
+                    const isOverdue = (result.status === 'overdue' || result.status === 'late');
+                    if (isOverdue && !isProfessorOverride) {
+                        const originalScore = score;
+                        const penalty = score * OVERDUE_PENALTY;
+                        score = Math.max(0, score - penalty);
+                        hasOverdueWithPenalty = true;
+                        console.log(`⚠️ Penalty: ${originalScore.toFixed(1)} → ${score.toFixed(1)}`);
+                    }
+                }
+                
+                // Validate score
+                score = Math.max(0, Math.min(100, score));
                 
                 const category = getCategoryForTest(result.testName);
                 const testId = result.testId || doc.id;
@@ -786,7 +800,8 @@
                         category,
                         id: doc.id,
                         isProfessorOverride: isProfessorOverride,
-                        isOverdue: result.status === 'overdue' || result.status === 'late'
+                        isOverdue: result.status === 'overdue' || result.status === 'late',
+                        submittedAt: testDate  // ⭐ Use the properly parsed date
                     };
                 }
             });
@@ -954,10 +969,37 @@
     
     // Sort by date - most recent first
     testResults.sort((a, b) => {
-        const dateA = a.submittedAt?.toDate?.() || new Date(0);
-        const dateB = b.submittedAt?.toDate?.() || new Date(0);
-        return dateB - dateA;
-    });
+    let dateA = new Date(0);
+    let dateB = new Date(0);
+    
+    // Parse dateA
+    if (a.submittedAt) {
+        if (typeof a.submittedAt.toDate === 'function') {
+            dateA = a.submittedAt.toDate();
+        } else if (a.submittedAt instanceof Date) {
+            dateA = a.submittedAt;
+        } else if (a.submittedAt.seconds) {
+            dateA = new Date(a.submittedAt.seconds * 1000);
+        } else {
+            dateA = new Date(a.submittedAt);
+        }
+    }
+    
+    // Parse dateB
+    if (b.submittedAt) {
+        if (typeof b.submittedAt.toDate === 'function') {
+            dateB = b.submittedAt.toDate();
+        } else if (b.submittedAt instanceof Date) {
+            dateB = b.submittedAt;
+        } else if (b.submittedAt.seconds) {
+            dateB = new Date(b.submittedAt.seconds * 1000);
+        } else {
+            dateB = new Date(b.submittedAt);
+        }
+    }
+    
+    return dateB - dateA; // Most recent first
+});
     
     console.log('Rendering', testResults.length, 'test results');
     

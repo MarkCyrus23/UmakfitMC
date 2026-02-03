@@ -3733,7 +3733,7 @@ window.filterOverdueStudents = function() {
             alert('Error: ' + error.message);
         }
     };
-            window.setOverdueScore = function(studentEmail, testId, testName, testTarget, testUnit, studentName, currentScore = 0, currentResult = '', resultId = '') {
+           window.setOverdueScore = function(studentEmail, testId, testName, testTarget, testUnit, studentName, currentScore = 0, currentResult = '', resultId = '') {
     // Open the modal with existing data
     window.openEditScoreModal(studentEmail, testId, testName, testTarget, testUnit, studentName, currentScore, currentResult, resultId);
 };
@@ -3747,7 +3747,7 @@ window.openEditScoreModal = function(studentEmail, testId, testName, testTarget,
         testTarget: testTarget || 0,
         testUnit: testUnit || '',
         studentName: studentName,
-        resultId: resultId || '',
+        resultId: resultId || '', 
         currentScore: currentScore,
         currentResult: currentResult
     };
@@ -4358,9 +4358,6 @@ function calculateScore(testName, result, testTarget = null) {
                 return;
             }
         }
-        
-        // For running tests (lower is better - no upper limit needed)
-        // For step test (lower heart rate is better - no upper limit needed)
     }
     
     try {
@@ -4380,11 +4377,25 @@ function calculateScore(testName, result, testTarget = null) {
         const finalScore = Math.max(0, Math.min(100, Math.round(calculatedScore)));
         const now = new Date();
         
+        // ⭐ CRITICAL: Get original submittedAt date from existing record
+        let originalSubmittedAt = now;
+        if (editScoreData.resultId) {
+            try {
+                const existingDoc = await getDoc(doc(window.db, 'testResults', editScoreData.resultId));
+                if (existingDoc.exists()) {
+                    originalSubmittedAt = existingDoc.data().submittedAt || now;
+                }
+            } catch (error) {
+                console.warn('Could not retrieve original date:', error);
+            }
+        }
+        
+        // ⭐ CRITICAL: Preserve original date, add edit timestamp separately
         const resultData = {
             studentEmail: editScoreData.studentEmail,
             testId: editScoreData.testId,
             testName: editScoreData.testName,
-            result: `${newResult} ${editScoreData.testUnit}`,
+            result: newResult,
             rawResult: newResult,
             resultData: {
                 value: newResult,
@@ -4394,15 +4405,18 @@ function calculateScore(testName, result, testTarget = null) {
             testTarget: editScoreData.testTarget,
             testUnit: editScoreData.testUnit,
             status: 'completed',
-            submittedAt: now,
+            submittedAt: originalSubmittedAt,  // ⭐ KEEP ORIGINAL DATE
             isProfessorOverride: true,
             setByProfessor: true,
             overriddenBy: window.currentUser?.email || '',
             overriddenByName: window.currentUser?.displayName || window.currentUser?.email || 'Professor',
-            overriddenAt: now
+            overriddenAt: now,  // ⭐ NEW: Track when professor edited
+            lastEditedAt: now   // ⭐ NEW: Track last edit time
         };
         
         console.log('💾 Saving score:', finalScore, 'for', editScoreData.testName);
+        console.log('📅 Original date preserved:', originalSubmittedAt);
+        console.log('📊 Result stored:', newResult, editScoreData.testUnit);
         
         // Save to Firestore
         if (editScoreData.resultId) {
@@ -4411,7 +4425,7 @@ function calculateScore(testName, result, testTarget = null) {
             await addDoc(collection(window.db, 'testResults'), resultData);
         }
         
-        alert(`✅ Score saved: ${finalScore}/100`);
+        alert(`✅ Score saved: ${finalScore}/100\n📅 Original submission date preserved`);
         closeEditScoreModal();
         
         // Refresh data
