@@ -5,27 +5,80 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UmakFit - Professor Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css?family=Manrope:600,800|Inter:300,500,400,700" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * { -webkit-font-smoothing: antialiased; box-sizing: border-box; }
-        body { font-family: 'Inter', Helvetica, sans-serif; }
+        * { font-family: 'Inter', sans-serif; }
+        .font-manrope { font-family: 'Manrope', sans-serif; }
         
-        /* Custom animations */
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .slide-down {
+            animation: slideDown 0.3s ease;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .spinner {
+            border: 4px solid #e5e7eb;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #2563eb;
+        }
+        
+        /* Custom animations for professor dashboard */
         @keyframes pulse { 
             0%, 100% { opacity: 1; } 
             50% { opacity: 0.5; } 
-        }
-        @keyframes spin { 
-            0% { transform: rotate(0deg); } 
-            100% { transform: rotate(360deg); } 
         }
         @keyframes dropdownSlide {
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
         }
         
-        /* Custom styles not covered by Tailwind */
         .gradient-text {
             background: linear-gradient(90deg, rgba(245, 158, 11, 1) 0%, rgba(255, 229, 0, 1) 100%);
             -webkit-background-clip: text;
@@ -33,6 +86,11 @@
             -webkit-text-fill-color: transparent;
         }
         
+        .live-dot {
+            animation: pulse 2s infinite;
+        }
+        
+        /* Custom styles not covered by Tailwind */
         .custom-shadow {
             box-shadow: 0 2px 10px rgba(0,0,0,0.08);
         }
@@ -53,15 +111,6 @@
             box-shadow: 0 4px 8px rgba(245, 158, 11, 0.4);
         }
         
-        .live-dot {
-            animation: pulse 2s infinite;
-        }
-        
-        .spinner {
-            animation: spin 1s linear infinite;
-        }
-        
-        /* Profile Dropdown Styles */
         .profile-container {
             position: relative;
         }
@@ -182,91 +231,148 @@
     </style>
 </head>
 <body class="bg-gray-50">
+    <!-- Loading Screen -->
     <div id="loadingScreen" class="fixed inset-0 bg-white bg-opacity-95 flex flex-col justify-center items-center z-50">
         <div class="w-12 h-12 border-4 border-gray-100 border-t-blue-500 rounded-full spinner"></div>
         <div class="mt-5 text-gray-600 font-medium">Loading Dashboard...</div>
     </div>
     
     <div id="dashboardContent" class="hidden">
-        <!-- Header -->
-        <div class="bg-white custom-shadow border-b border-gray-200 fixed top-0 w-full z-50">
+        <!-- Navigation Banner - SAME AS ADD LESSON PAGE -->
+        <nav class="bg-gradient-to-r from-blue-900 to-blue-500 shadow-lg">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between items-center h-16">
-                    <div class="flex items-center space-x-2">
-                        <img class="h-10 w-auto" src="umaklogo.png" alt="University of Makati">
-                        <span class="text-blue-900 font-bold text-xl">University of Makati</span>
-                    </div>
-                    <div class="flex items-center space-x-4">
+                <div class="flex flex-wrap items-center justify-between gap-3 sm:gap-4 py-3 sm:py-4">
+                    <!-- Logo -->
+                    <a href="#" class="flex items-center gap-2 sm:gap-3">
+                        <span class="text-xl sm:text-2xl md:text-3xl font-extrabold font-manrope bg-gradient-to-r from-yellow-400 to-yellow-200 bg-clip-text text-transparent">
+                            UMakFit
+                        </span>
+                    </a>
+                    
+                    <!-- Desktop Navigation -->
+                    <div class="hidden lg:flex items-center gap-2 flex-wrap">
+                        <!-- Dashboard -->
+                        <a href="professor-dashboard.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white text-gray-900 rounded-lg font-semibold text-sm flex items-center gap-2 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
+                            <i class="fas fa-tachometer-alt"></i> 
+                            <span>Dashboard</span>
+                        </a>
+                        
+                        <!-- Student Management -->
+                        <a href="studentmanagement.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
+                            <i class="fas fa-users"></i> 
+                            <span>Student Management</span>
+                        </a>
+                        
+                        <!-- Add Activities -->
+                        <a href="addactivities.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
+                            <i class="fas fa-dumbbell"></i> 
+                            <span>Add Activities</span>
+                        </a>
+                        
+                        <!-- Add Lesson -->
+                        <a href="addlesson.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
+                            <i class="fas fa-book-open"></i> 
+                            <span>Add Lesson</span>
+                        </a>
+                        
+                        <!-- Monitoring Activities -->
+                        <a href="monitoringactivities.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
+                            <i class="fas fa-chart-bar"></i> 
+                            <span>Monitoring Activities</span>
+                        </a>
+                        
+                        <!-- Grades -->
+                        <a href="grades.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
+                            <i class="fas fa-graduation-cap"></i> 
+                            <span>Grades</span>
+                        </a>
+                        
                         <!-- Profile Dropdown -->
-                        <div class="profile-container">
-                            <div class="profile-circle" id="profileCircle" onclick="toggleProfileDropdown()">
-                                <!-- Profile picture will be loaded here -->
-                            </div>
-                            <div class="profile-dropdown" id="profileDropdown">
-                                <div class="profile-dropdown-header">
-                                    <div class="profile-dropdown-avatar" id="profileDropdownAvatar">
-                                        <!-- Profile picture will be loaded here -->
-                                    </div>
-                                    <div class="profile-dropdown-name" id="dropdownName">Professor</div>
-                                    <div class="profile-dropdown-email" id="dropdownEmail">professor@umak.edu.ph</div>
+                        <div class="relative">
+                            <img src="" alt="Profile" id="profilePictureBtn"
+                                 class="w-9 h-9 xl:w-10 xl:h-10 rounded-full border-2 border-white/30 cursor-pointer hover:border-white/60 hover:scale-105 transition-all object-cover">
+                            
+                            <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-64 sm:w-72 bg-white rounded-xl shadow-2xl z-[9999] slide-down">
+                                <div class="p-4 sm:p-6 border-b-2 border-gray-200 text-center">
+                                    <img src="" alt="Profile" id="profileDropdownPicture" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full mx-auto mb-2 sm:mb-3 border-3 border-blue-500 object-cover">
+                                    <h6 id="profileDropdownName" class="font-bold text-gray-900 text-base sm:text-lg">Loading...</h6>
+                                    <p id="profileDropdownEmail" class="text-xs sm:text-sm text-gray-500 mt-1 truncate px-2">Loading...</p>
                                 </div>
-                                <div class="profile-dropdown-menu">
-                                    <a href="#" class="profile-dropdown-item" onclick="showViewProfile(event)">
-                                        <i class="fas fa-user"></i>
-                                        <span>View Profile</span>
+                                <div class="p-2">
+                                    <a href="#" onclick="showViewProfile(event)" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-gray-100 transition-colors">
+                                        <i class="bi bi-person-circle text-blue-500 text-lg sm:text-xl"></i>
+                                        <span class="font-medium text-gray-700 text-sm sm:text-base">View Profile</span>
                                     </a>
-                                    <div class="profile-dropdown-divider"></div>
-                                    <a href="#" class="profile-dropdown-item logout" onclick="handleLogout(event)">
-                                        <i class="fas fa-sign-out-alt"></i>
-                                        <span>Logout</span>
-                                    </a>
+                                    <div class="h-px bg-gray-200 my-1 sm:my-2"></div>
+                                    <div onclick="handleLogout(event)" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-red-500">
+                                        <i class="fas fa-sign-out-alt text-lg sm:text-xl"></i>
+                                        <span class="font-medium text-sm sm:text-base">Logout</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Navigation -->
-        <div class="bg-gradient-to-b from-blue-900 to-blue-500 nav-shadow mt-16">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
-                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
-                    <div class="flex items-center space-x-3">
-                        <img class="h-14 w-auto" src="logo.png" alt="UMakFit">
-                        <h1 class="font-manrope font-extrabold text-3xl gradient-text">UMakFit</h1>
-                    </div>
-                    <div class="flex flex-wrap gap-2 overflow-x-auto pb-1">
-                        <a href="#" class="bg-white text-black font-manrope font-semibold text-sm py-3 px-5 rounded-lg flex items-center space-x-2 shadow-sm hover:-translate-y-0.5 transition-all duration-300 hover:shadow-md bg-gradient-to-r from-yellow-400 to-yellow-500 shadow-yellow-500/30">
-                            <i class="fas fa-tachometer-alt"></i>
-                            <span>Dashboard</span>
-                        </a>
-                        <a href="studentmanagement.html" class="bg-white text-black font-manrope font-semibold text-sm py-3 px-5 rounded-lg flex items-center space-x-2 shadow-sm hover:-translate-y-0.5 transition-all duration-300 hover:shadow-md">
-                            <i class="fas fa-users"></i>
-                            <span>Student Management</span>
-                        </a>
-                        <a href="addactivities.html" class="bg-white text-black font-manrope font-semibold text-sm py-3 px-5 rounded-lg flex items-center space-x-2 shadow-sm hover:-translate-y-0.5 transition-all duration-300 hover:shadow-md">
-                            <i class="fas fa-dumbbell"></i>
-                            <span>Add Activities</span>
-                        </a>
-                        <a href="addlesson.html" class="bg-white text-black font-manrope font-semibold text-sm py-3 px-5 rounded-lg flex items-center space-x-2 shadow-sm hover:-translate-y-0.5 transition-all duration-300 hover:shadow-md">
-                            <i class="fas fa-book-open"></i>
-                            <span>Add Lesson</span>
-                        </a>
-                        <a href="monitoringactivities.html" class="bg-white text-black font-manrope font-semibold text-sm py-3 px-5 rounded-lg flex items-center space-x-2 shadow-sm hover:-translate-y-0.5 transition-all duration-300 hover:shadow-md">
-                            <i class="fas fa-chart-bar"></i>
-                            <span>Monitoring Activities</span>
-                        </a>
-                        <a href="grades.html" class="bg-white text-black font-manrope font-semibold text-sm py-3 px-5 rounded-lg flex items-center space-x-2 shadow-sm hover:-translate-y-0.5 transition-all duration-300 hover:shadow-md">
-                            <i class="fas fa-graduation-cap"></i>
-                            <span>Grades</span>
-                        </a>
+                    
+                    <!-- Mobile Right Icons -->
+                    <div class="flex lg:hidden items-center gap-2 sm:gap-3">
+                        <!-- Mobile Profile -->
+                        <div class="relative">
+                            <img src="" alt="Profile" id="profilePictureBtnMobile"
+                                 class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-white/30 cursor-pointer hover:border-white/60 object-cover">
+                            
+                            <!-- Mobile Profile Dropdown -->
+                            <div id="profileDropdownMobile" class="hidden fixed right-2 top-20 w-64 sm:w-72 bg-white rounded-xl shadow-2xl z-[9999] slide-down">
+                                <div class="p-4 sm:p-6 border-b-2 border-gray-200 text-center">
+                                    <img src="" alt="Profile" id="profileDropdownPictureMobile" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full mx-auto mb-2 sm:mb-3 border-3 border-blue-500 object-cover">
+                                    <h6 id="profileDropdownNameMobile" class="font-bold text-gray-900 text-base sm:text-lg">Loading...</h6>
+                                    <p id="profileDropdownEmailMobile" class="text-xs sm:text-sm text-gray-500 mt-1 truncate px-2">Loading...</p>
+                                </div>
+                                <div class="p-2">
+                                    <a href="#" onclick="showViewProfile(event)" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-gray-100 transition-colors">
+                                        <i class="bi bi-person-circle text-blue-500 text-lg sm:text-xl"></i>
+                                        <span class="font-medium text-gray-700 text-sm sm:text-base">View Profile</span>
+                                    </a>
+                                    <div class="h-px bg-gray-200 my-1 sm:my-2"></div>
+                                    <div onclick="handleLogout(event)" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-red-500">
+                                        <i class="fas fa-sign-out-alt text-lg sm:text-xl"></i>
+                                        <span class="font-medium text-sm sm:text-base">Logout</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Mobile Menu Button -->
+                        <button id="mobileMenuButton" class="text-white p-1 sm:p-2">
+                            <i class="bi bi-list text-2xl sm:text-3xl"></i>
+                        </button>
                     </div>
                 </div>
+                
+                <!-- Mobile Navigation Menu -->
+                <div id="mobileMenu" class="hidden lg:hidden mt-3 sm:mt-4 space-y-2 pb-3">
+                    <a href="professor-dashboard.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white text-gray-900 rounded-lg font-semibold text-sm">
+                        <i class="fas fa-tachometer-alt mr-2"></i> Dashboard
+                    </a>
+                    <a href="studentmanagement.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
+                        <i class="fas fa-users mr-2"></i> Student Management
+                    </a>
+                    <a href="addactivities.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
+                        <i class="fas fa-dumbbell mr-2"></i> Add Activities
+                    </a>
+                    <a href="addlesson.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
+                        <i class="fas fa-book-open mr-2"></i> Add Lesson
+                    </a>
+                    <a href="monitoringactivities.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
+                        <i class="fas fa-chart-bar mr-2"></i> Monitoring Activities
+                    </a>
+                    <a href="grades.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
+                        <i class="fas fa-graduation-cap mr-2"></i> Grades
+                    </a>
+                </div>
             </div>
-        </div>
-        
-        <!-- Main Content -->
+        </nav>
+
+        <!-- Main Content - Original professor design -->
         <div class="bg-gradient-to-b from-gray-50 to-gray-100 min-h-screen pt-10 pb-20">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <!-- Profile Section -->
@@ -320,7 +426,7 @@
                         <div class="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full translate-x-10 -translate-y-10"></div>
                         <div class="flex items-center gap-2 mb-3">
                             <i class="fas fa-clock text-sm md:text-base"></i>
-                            <span class="font-semibold text-xs md:text-sm">Pending Activities</span>
+                            <span class="font-semibold text-xs md-text-sm">Pending Activities</span>
                         </div>
                         <div class="font-extrabold text-2xl md:text-3xl" id="statPending">0</div>
                     </div>
@@ -429,23 +535,83 @@
         let professorSections = [];
         let professorStudents = [];
 
-        // Profile dropdown toggle
-        window.toggleProfileDropdown = function(event) {
-            if (event) event.preventDefault();
-            document.getElementById('profileDropdown').classList.toggle('show');
-        };
+        // DOM Elements for new navigation
+        const mobileMenuButton = document.getElementById('mobileMenuButton');
+        const mobileMenu = document.getElementById('mobileMenu');
+        const profilePictureBtn = document.getElementById('profilePictureBtn');
+        const profilePictureBtnMobile = document.getElementById('profilePictureBtnMobile');
+        const profileDropdown = document.getElementById('profileDropdown');
+        const profileDropdownMobile = document.getElementById('profileDropdownMobile');
+
+        // Event Listeners for new navigation
+        document.addEventListener('DOMContentLoaded', () => {
+            // Mobile menu toggle
+            if (mobileMenuButton) {
+                mobileMenuButton.addEventListener('click', toggleMobileMenu);
+            }
+            
+            // Profile dropdowns
+            if (profilePictureBtn) {
+                profilePictureBtn.addEventListener('click', toggleProfileDropdown);
+            }
+            
+            if (profilePictureBtnMobile) {
+                profilePictureBtnMobile.addEventListener('click', toggleProfileDropdown);
+            }
+            
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', closeAllDropdowns);
+        });
+
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            mobileMenu.classList.toggle('hidden');
+        }
+
+        // Profile dropdown
+        function toggleProfileDropdown(event) {
+            event?.stopPropagation();
+            const isMobile = window.innerWidth < 1024;
+            const dropdown = isMobile ? profileDropdownMobile : profileDropdown;
+            
+            const isHidden = dropdown.classList.contains('hidden');
+            
+            if (isHidden) {
+                dropdown.classList.remove('hidden');
+                document.body.classList.add('dropdown-open');
+            } else {
+                dropdown.classList.add('hidden');
+                document.body.classList.remove('dropdown-open');
+            }
+        }
+
+        function closeProfileDropdown() {
+            profileDropdown.classList.add('hidden');
+            profileDropdownMobile.classList.add('hidden');
+            document.body.classList.remove('dropdown-open');
+        }
+
+        // Close all dropdowns when clicking outside
+        function closeAllDropdowns(event) {
+            if (!event.target.closest('#profilePictureBtn') && 
+                !event.target.closest('#profilePictureBtnMobile') && 
+                !event.target.closest('#profileDropdown') && 
+                !event.target.closest('#profileDropdownMobile')) {
+                closeProfileDropdown();
+            }
+        }
 
         // View profile function
         window.showViewProfile = function(event) { 
             if (event) event.preventDefault();
             alert('Profile view would open here');
-            document.getElementById('profileDropdown').classList.remove('show');
+            closeProfileDropdown();
         };
 
         // Logout function
         window.handleLogout = async function(event) {
             if (event) event.preventDefault();
-            document.getElementById('profileDropdown').classList.remove('show');
+            closeProfileDropdown();
             
             if (confirm('Are you sure you want to logout?')) {
                 try {
@@ -458,72 +624,47 @@
             }
         };
 
-        // Close dropdown when clicking outside
-        document.addEventListener('click', function(event) {
-            const profileContainer = document.querySelector('.profile-container');
-            const profileDropdown = document.getElementById('profileDropdown');
-            if (profileContainer && !profileContainer.contains(event.target)) {
-                profileDropdown.classList.remove('show');
-            }
-        });
-
         // Function to update profile picture
         function updateProfilePicture(photoURL, userName) {
-            const profileCircle = document.getElementById('profileCircle');
-            const profileDropdownAvatar = document.getElementById('profileDropdownAvatar');
-            const userPhoto = document.getElementById('userPhoto');
-            const initial = userName ? userName.charAt(0).toUpperCase() : 'P';
+            // For new navigation
+            const profileBtn = document.getElementById('profilePictureBtn');
+            const profileBtnMobile = document.getElementById('profilePictureBtnMobile');
+            const dropdownPic = document.getElementById('profileDropdownPicture');
+            const dropdownPicMobile = document.getElementById('profileDropdownPictureMobile');
             
-            if (photoURL) {
-                // Create image element for profile circle
-                const circleImg = document.createElement('img');
-                circleImg.src = photoURL;
-                circleImg.alt = userName || 'Profile';
-                circleImg.onerror = function() {
-                    // If image fails to load, show initial
-                    profileCircle.innerHTML = initial;
-                    profileCircle.style.background = 'linear-gradient(135deg, #3b82f6 0%, #1e3a8a 100%)';
-                    profileCircle.style.color = 'white';
-                };
-                
-                // Update profile circle
-                profileCircle.innerHTML = '';
-                profileCircle.appendChild(circleImg);
-                
-                // Create image element for dropdown avatar
-                const dropdownImg = document.createElement('img');
-                dropdownImg.src = photoURL;
-                dropdownImg.alt = userName || 'Profile';
-                dropdownImg.onerror = function() {
-                    // If image fails to load, show initial
-                    profileDropdownAvatar.innerHTML = initial;
-                    profileDropdownAvatar.style.background = 'rgba(255,255,255,0.2)';
-                    profileDropdownAvatar.style.color = 'white';
-                };
-                
-                // Update dropdown avatar
-                profileDropdownAvatar.innerHTML = '';
-                profileDropdownAvatar.appendChild(dropdownImg);
-                
-                // Update profile photo in main content
-                userPhoto.src = photoURL;
-                userPhoto.onerror = function() {
-                    // If image fails to load, use default
-                    userPhoto.src = 'https://c.animaapp.com/tzMzyNnw/img/image-13@2x.png';
-                };
-            } else {
-                // No photo URL, use initial
-                profileCircle.innerHTML = initial;
-                profileCircle.style.background = 'linear-gradient(135deg, #3b82f6 0%, #1e3a8a 100%)';
-                profileCircle.style.color = 'white';
-                
-                profileDropdownAvatar.innerHTML = initial;
-                profileDropdownAvatar.style.background = 'rgba(255,255,255,0.2)';
-                profileDropdownAvatar.style.color = 'white';
-                
-                // Keep default image for main photo
-                userPhoto.src = 'https://c.animaapp.com/tzMzyNnw/img/image-13@2x.png';
+            const displayName = currentProfessor?.fullName || currentProfessor?.name || userName || 'Professor';
+            const email = currentProfessor?.email || 'professor@umak.edu.ph';
+            
+            // Use provided photo URL or create initial avatar
+            const photoUrlToUse = photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=3b82f6&color=fff&size=128`;
+            
+            // Update all profile pictures for new navigation
+            if (profileBtn) profileBtn.src = photoUrlToUse;
+            if (profileBtnMobile) profileBtnMobile.src = photoUrlToUse;
+            if (dropdownPic) dropdownPic.src = photoUrlToUse;
+            if (dropdownPicMobile) dropdownPicMobile.src = photoUrlToUse;
+            
+            // Update names
+            const dropdownName = document.getElementById('profileDropdownName');
+            const dropdownNameMobile = document.getElementById('profileDropdownNameMobile');
+            if (dropdownName) dropdownName.textContent = displayName;
+            if (dropdownNameMobile) dropdownNameMobile.textContent = displayName;
+            
+            // Update emails
+            const dropdownEmail = document.getElementById('profileDropdownEmail');
+            const dropdownEmailMobile = document.getElementById('profileDropdownEmailMobile');
+            if (dropdownEmail) dropdownEmail.textContent = email;
+            if (dropdownEmailMobile) dropdownEmailMobile.textContent = email;
+            
+            // For old profile section (keep original functionality)
+            const userPhoto = document.getElementById('userPhoto');
+            if (userPhoto) {
+                userPhoto.src = photoUrlToUse;
             }
+            
+            // Update main content
+            document.getElementById('userName').textContent = displayName;
+            document.getElementById('userEmail').textContent = email;
         }
 
         onAuthStateChanged(auth, async (user) => {
@@ -534,9 +675,6 @@
                 try {
                     console.log('=== PROFESSOR AUTHENTICATION ===');
                     console.log('User authenticated:', user.email);
-                    
-                    // Update profile picture with Google photo
-                    updateProfilePicture(user.photoURL, user.displayName);
                     
                     const userEmail = user.email.toLowerCase();
                     
@@ -569,15 +707,8 @@
                         }
                     }
                     
-                    // Update UI with professor information
-                    const professorName = currentProfessor.fullName || currentProfessor.name || user.displayName || 'Professor';
-                    
-                    document.getElementById('userName').textContent = professorName;
-                    document.getElementById('userEmail').textContent = userEmail;
-                    
-                    // Update profile dropdown
-                    document.getElementById('dropdownName').textContent = professorName;
-                    document.getElementById('dropdownEmail').textContent = userEmail;
+                    // Update profile picture
+                    updateProfilePicture(user.photoURL, user.displayName);
                     
                     // Load professor's sections and students
                     await loadProfessorSections();

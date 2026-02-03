@@ -4,384 +4,81 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UMakFit - Professor Monitoring</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css?family=Manrope:600,800|Inter:300,500,400,700" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
         * { -webkit-font-smoothing: antialiased; box-sizing: border-box; }
-        body { font-family: 'Inter', Helvetica, sans-serif; margin: 0; padding: 0; background-color: #f8fafc; }
+        body { font-family: 'Inter', Helvetica, sans-serif; }
         
-        /* Header Styles */
-        .header-top { 
-            background-color: #ffffff; 
-            padding: 15px 0; 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08); 
-            position: fixed; 
-            top: 0; 
-            width: 100%; 
-            z-index: 1000; 
-            border-bottom: 1px solid #e2e8f0;
+        /* Custom animations */
+        @keyframes pulse { 
+            0%, 100% { opacity: 1; } 
+            50% { opacity: 0.5; } 
         }
-        .header-top .container { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-        }
-        .logo-text { 
-            font-family: "Inter", Helvetica; 
-            font-weight: 700; 
-            color: #1e3a8a; 
-            font-size: 24px; 
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .logo-text i {
-            color: #f59e0b;
-            font-size: 26px;
-        }
-        .umak-logo {
-            height: 40px;
-            margin-right: 12px;
-            vertical-align: middle;
-        }
-        
-        /* Profile Dropdown Styles */
-        .header-actions { 
-            display: flex; 
-            align-items: center; 
-            gap: 15px; 
-            position: relative;
-        }
-        .profile-container {
-            position: relative;
-        }
-        .profile-circle {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #3b82f6 0%, #1e3a8a 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 700;
-            font-size: 16px;
-            cursor: pointer;
-            border: 2px solid #e2e8f0;
-            transition: all 0.3s;
-            position: relative;
-            overflow: hidden;
-        }
-        .profile-circle img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 50%;
-        }
-        .profile-circle:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-        }
-        .profile-dropdown {
-            position: absolute;
-            top: 55px;
-            right: 0;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-            min-width: 280px;
-            display: none;
-            z-index: 1001;
-            border: 1px solid #e2e8f0;
-            overflow: hidden;
-        }
-        .profile-dropdown.show {
-            display: block;
-            animation: dropdownSlide 0.3s ease-out;
+        @keyframes spin { 
+            0% { transform: rotate(0deg); } 
+            100% { transform: rotate(360deg); } 
         }
         @keyframes dropdownSlide {
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .profile-dropdown-header {
-            padding: 20px;
-            background: linear-gradient(135deg, #3b82f6 0%, #1e3a8a 100%);
-            color: white;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        .profile-dropdown-avatar {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 12px;
-            border: 3px solid rgba(255,255,255,0.3);
-            overflow: hidden;
-        }
-        .profile-dropdown-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 50%;
-        }
-        .profile-dropdown-name {
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
-        .profile-dropdown-email {
-            font-size: 13px;
-            opacity: 0.9;
-        }
-        .profile-dropdown-menu {
-            padding: 8px 0;
-        }
-        .profile-dropdown-item {
-            padding: 12px 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-            color: #374151;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 500;
-        }
-        .profile-dropdown-item:hover {
-            background: #f8fafc;
-            color: #3b82f6;
-        }
-        .profile-dropdown-item i {
-            width: 20px;
-            font-size: 16px;
-        }
-        .profile-dropdown-divider {
-            height: 1px;
-            background: #e2e8f0;
-            margin: 8px 0;
-        }
-        .profile-dropdown-item.logout {
-            color: #dc2626;
-        }
-        .profile-dropdown-item.logout:hover {
-            background: #fee2e2;
-            color: #991b1b;
+        
+        /* Navigation styles */
+        .font-manrope { font-family: 'Manrope', sans-serif; }
+        
+        .slide-down {
+            animation: slideDown 0.3s ease;
         }
         
-        /* Navigation Styles */
-        .nav-section { 
-            background: linear-gradient(180deg, rgba(30, 58, 138, 1) 0%, rgba(59, 130, 246, 1) 100%); 
-            padding: 20px 0; 
-            margin-top: 74px; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-        .nav-container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-        .nav-brand { 
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            font-family: "Manrope", Helvetica; 
-            font-weight: 800; 
-            font-size: 28px; 
-            background: linear-gradient(90deg, rgba(245, 158, 11, 1) 0%, rgba(255, 229, 0, 1) 100%); 
-            -webkit-background-clip: text; 
-            background-clip: text; 
+        
+        /* Custom styles not covered by Tailwind */
+        .gradient-text {
+            background: linear-gradient(90deg, rgba(245, 158, 11, 1) 0%, rgba(255, 229, 0, 1) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin: 0;
-        }
-        .nav-brand-logo {
-            height: 60px;
-            width: auto;
-        }
-        .nav-pills-custom { 
-            display: flex; 
-            flex-wrap: wrap; 
-            gap: 8px; 
-            padding: 0; 
-            margin: 0;
-        }
-        .nav-pills-custom .nav-link { 
-            font-family: "Manrope", Helvetica; 
-            font-weight: 600; 
-            color: #000000; 
-            font-size: 14px; 
-            padding: 12px 18px;
-            border-radius: 8px; 
-            background-color: #ffffff; 
-            transition: all 0.3s; 
-            border: none; 
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-        .nav-pills-custom .nav-link.active { 
-            background: linear-gradient(90deg, rgba(251, 191, 36, 1) 0%, rgba(245, 158, 11, 1) 100%); 
-            box-shadow: 0 4px 8px rgba(245, 158, 11, 0.3);
-        }
-        .nav-pills-custom .nav-link:hover { 
-            transform: translateY(-2px); 
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15); 
         }
         
-        /* Main Content */
-        .main-content { 
-            padding: 40px 0 80px 0; 
-            min-height: calc(100vh - 200px); 
+        .custom-shadow {
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
         }
         
-        /* Page Header */
-        .page-header { 
-            background: white; 
-            border-radius: 16px; 
-            padding: 30px; 
-            margin-bottom: 40px; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
-            border: 1px solid #e2e8f0;
-        }
-        .page-header-content {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-        .page-icon {
-            width: 55px;
-            height: 55px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 24px;
-        }
-        .page-icon.monitoring { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
-        
-        .page-title {
-            font-family: "Inter", Helvetica; 
-            font-weight: 700; 
-            color: #1e3a8a; 
-            font-size: 32px; 
-            margin: 0;
-        }
-        .page-description {
-            font-family: "Inter", Helvetica; 
-            font-weight: 500; 
-            color: #64748b; 
-            font-size: 16px; 
-            margin-top: 10px;
+        .card-shadow {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
         
-        /* Enhanced Monitoring Dashboard Styles */
-        .monitoring-container { 
-            background: white; 
-            border-radius: 16px; 
-            padding: 25px; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
-            border: 1px solid #e2e8f0;
-            margin-bottom: 30px;
-        }
-        .monitoring-header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            margin-bottom: 20px; 
-            flex-wrap: wrap; 
-        }
-        .monitoring-title { 
-            font-family: "Inter", Helvetica; 
-            font-weight: 700; 
-            color: #1f2937; 
-            font-size: 22px; 
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .live-indicator { 
-            display: flex; 
-            align-items: center; 
-            gap: 8px; 
-            font-family: "Inter", Helvetica; 
-            font-weight: 600; 
-            color: #10b981; 
-            font-size: 14px; 
-            background: #ecfdf5;
-            padding: 6px 12px;
-            border-radius: 20px;
-            border: 1px solid #d1fae5;
-        }
-        .live-dot { 
-            width: 8px; 
-            height: 8px; 
-            background: #10b981; 
-            border-radius: 50%; 
-            animation: pulse 2s infinite; 
-        }
-        @keyframes pulse { 
-            0%, 100% { opacity: 1; } 
-            50% { opacity: 0.5; } 
+        .btn-shadow {
+            box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
         }
         
-        /* Stats Cards */
-        .stats-row { 
-            margin-bottom: 40px; 
+        .btn-shadow:hover {
+            box-shadow: 0 4px 8px rgba(245, 158, 11, 0.4);
         }
-        .stat-card { 
-            border-radius: 16px; 
-            padding: 25px; 
-            color: white; 
-            transition: all 0.3s; 
-            border: none;
-            height: 100%; 
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        
+        .live-dot {
+            animation: pulse 2s infinite;
         }
-        .stat-card:hover { 
-            transform: translateY(-5px); 
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15); 
-        }
-        .stat-card.purple { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-        .stat-card.blue { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
-        .stat-card.green { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
-        .stat-card.orange { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
-        .stat-label { 
-            font-family: "Inter", Helvetica; 
-            font-weight: 600; 
-            font-size: 14px; 
-            margin-bottom: 10px; 
-            opacity: 0.95; 
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .stat-value { 
-            font-family: "Inter", Helvetica; 
-            font-weight: 800; 
-            font-size: 32px; 
-        }
-        .stat-change {
-            font-size: 12px;
-            margin-top: 5px;
-            font-weight: 500;
-        }
-        .online-indicator {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 12px;
-            margin-top: 5px;
-            color: #d1fae5;
+        
+        .spinner {
+            animation: spin 1s linear infinite;
+            border: 4px solid #f1f5f9;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
         }
         
         /* Activity Timeline */
@@ -445,82 +142,6 @@
             font-weight: 500;
         }
         
-        /* Filter Group */
-        .filter-group {
-            display: flex;
-            gap: 10px;
-        }
-        .filter-group select {
-            padding: 8px 15px;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-            font-size: 14px;
-            cursor: pointer;
-        }
-        
-        /* Refresh Button */
-        .refresh-btn {
-            background: #3b82f6;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 10px;
-        }
-        .refresh-btn:hover {
-            background: #2563eb;
-            transform: translateY(-2px);
-        }
-        .activity-count-badge {
-            display: inline-block;
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-            padding: 3px 10px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 700;
-            margin-left: 8px;
-        }
-        /* Loading */
-        .loading {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255,255,255,0.95);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            flex-direction: column;
-            gap: 20px;
-        }
-        .spinner {
-            border: 4px solid #f1f5f9;
-            border-top: 4px solid #3b82f6;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .loading-text {
-            font-family: "Inter", Helvetica;
-            font-weight: 500;
-            color: #475569;
-            font-size: 16px;
-        }
-
         /* Empty State */
         .empty-state { 
             padding: 60px 40px; 
@@ -547,7 +168,7 @@
             max-width: 600px; 
             margin: 0 auto; 
         }
-            .activity-count-badge {
+        .activity-count-badge {
             display: inline-block;
             background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             color: white;
@@ -557,195 +178,248 @@
             font-weight: 700;
             margin-left: 8px;
         }
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .header-top .container { padding: 0 15px; }
-            .logo-text { font-size: 20px; }
-            .nav-pills-custom {
-                flex-wrap: nowrap;
-                overflow-x: auto;
-                padding-bottom: 5px;
-            }
-            .monitoring-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 15px;
-            }
-        }
     </style>
 </head>
-<body>
-    <div id="loadingScreen" class="loading">
+<body class="bg-gray-50">
+    <div id="loadingScreen" class="fixed inset-0 bg-white bg-opacity-95 flex flex-col justify-center items-center z-50">
         <div class="spinner"></div>
-        <div class="loading-text">Loading System Monitoring...</div>
+        <div class="mt-5 text-gray-600 font-medium">Loading System Monitoring...</div>
     </div>
     
-    <div id="mainContent" style="display: none;">
-        <div class="header-top">
-            <div class="container">
-                <div class="logo-text">
-                    <img src="umaklogo.png" alt="University of Makati Logo" class="umak-logo">
-                    <span>University of Makati</span>
-                </div>
-                <div class="header-actions">
-                    <div class="profile-container">
-                        <div class="profile-circle" id="profileCircle" onclick="toggleProfileDropdown()">
-                            <!-- Profile picture will be loaded here -->
-                        </div>
-                        <div class="profile-dropdown" id="profileDropdown">
-                            <div class="profile-dropdown-header">
-                                <div class="profile-dropdown-avatar" id="profileDropdownAvatar">
-                                    <!-- Profile picture will be loaded here -->
+    <div id="mainContent" class="hidden">
+        <!-- Navigation Banner - SAME AS OTHER PAGES -->
+        <nav class="bg-gradient-to-r from-blue-900 to-blue-500 shadow-lg">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex flex-wrap items-center justify-between gap-3 sm:gap-4 py-3 sm:py-4">
+                    <!-- Logo -->
+                    <a href="#" class="flex items-center gap-2 sm:gap-3">
+                        <span class="text-xl sm:text-2xl md:text-3xl font-extrabold font-manrope bg-gradient-to-r from-yellow-400 to-yellow-200 bg-clip-text text-transparent">
+                            UMakFit
+                        </span>
+                    </a>
+                    
+                    <!-- Desktop Navigation -->
+                    <div class="hidden lg:flex items-center gap-2 flex-wrap">
+                        <!-- Dashboard -->
+                        <a href="professor-dashboard.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
+                            <i class="fas fa-tachometer-alt"></i> 
+                            <span>Dashboard</span>
+                        </a>
+                        
+                        <!-- Student Management -->
+                        <a href="studentmanagement.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
+                            <i class="fas fa-users"></i> 
+                            <span>Student Management</span>
+                        </a>
+                        
+                        <!-- Add Activities -->
+                        <a href="addactivities.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
+                            <i class="fas fa-dumbbell"></i> 
+                            <span>Add Activities</span>
+                        </a>
+                        
+                        <!-- Add Lesson -->
+                        <a href="addlesson.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
+                            <i class="fas fa-book-open"></i> 
+                            <span>Add Lesson</span>
+                        </a>
+                        
+                        <!-- Monitoring Activities -->
+                        <a href="monitoringactivities.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white text-gray-900 rounded-lg font-semibold text-sm flex items-center gap-2 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
+                            <i class="fas fa-chart-bar"></i> 
+                            <span>Monitoring Activities</span>
+                        </a>
+                        
+                        <!-- Grades -->
+                        <a href="grades.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
+                            <i class="fas fa-graduation-cap"></i> 
+                            <span>Grades</span>
+                        </a>
+                        
+                        <!-- Profile Dropdown -->
+                        <div class="relative">
+                            <img src="" alt="Profile" id="profilePictureBtn"
+                                 class="w-9 h-9 xl:w-10 xl:h-10 rounded-full border-2 border-white/30 cursor-pointer hover:border-white/60 hover:scale-105 transition-all object-cover">
+                            
+                            <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-64 sm:w-72 bg-white rounded-xl shadow-2xl z-[9999] slide-down">
+                                <div class="p-4 sm:p-6 border-b-2 border-gray-200 text-center">
+                                    <img src="" alt="Profile" id="profileDropdownPicture" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full mx-auto mb-2 sm:mb-3 border-3 border-blue-500 object-cover">
+                                    <h6 id="profileDropdownName" class="font-bold text-gray-900 text-base sm:text-lg">Loading...</h6>
+                                    <p id="profileDropdownEmail" class="text-xs sm:text-sm text-gray-500 mt-1 truncate px-2">Loading...</p>
                                 </div>
-                                <div class="profile-dropdown-name" id="dropdownName">Professor</div>
-                                <div class="profile-dropdown-email" id="dropdownEmail">professor@umak.edu.ph</div>
-                            </div>
-                            <div class="profile-dropdown-menu">
-                                <a href="#" class="profile-dropdown-item" onclick="showViewProfile(event)">
-                                    <i class="fas fa-user"></i>
-                                    <span>View Profile</span>
-                                </a>
-                                <div class="profile-dropdown-divider"></div>
-                                <a href="#" class="profile-dropdown-item logout" onclick="handleLogout(event)">
-                                    <i class="fas fa-sign-out-alt"></i>
-                                    <span>Logout</span>
-                                </a>
+                                <div class="p-2">
+                                    <a href="#" onclick="showViewProfile(event)" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-gray-100 transition-colors">
+                                        <i class="bi bi-person-circle text-blue-500 text-lg sm:text-xl"></i>
+                                        <span class="font-medium text-gray-700 text-sm sm:text-base">View Profile</span>
+                                    </a>
+                                    <div class="h-px bg-gray-200 my-1 sm:my-2"></div>
+                                    <div onclick="handleLogout(event)" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-red-500">
+                                        <i class="fas fa-sign-out-alt text-lg sm:text-xl"></i>
+                                        <span class="font-medium text-sm sm:text-base">Logout</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="nav-section">
-            <div class="container">
-                <div class="nav-container">
-                    <div class="nav-brand">
-                        <img class="nav-brand-logo" src="logo.png" alt="UMakFit">
-                        UMakFit
-                    </div>
-                    <ul class="nav nav-pills-custom">
-                        <li class="nav-item">
-                            <a class="nav-link" href="professor.html">
-                                <i class="fas fa-tachometer-alt"></i> Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="studentmanagement.html">
-                                <i class="fas fa-users"></i> Student Management
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="addactivities.html">
-                                <i class="fas fa-dumbbell"></i> Add Activities
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="addlesson.html">
-                                <i class="fas fa-book-open"></i> Add Lesson
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link active" href="#">
-                                <i class="fas fa-chart-bar"></i> Monitoring Activities
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="grades.html">
-                                <i class="fas fa-graduation-cap"></i> Grades
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-        
-        <div class="main-content">
-            <div class="container">
-                <div id="monitoringPage" class="management-page active">
-                    <div class="page-header">
-                        <div class="page-header-content">
-                            <div class="page-icon monitoring">
-                                <i class="fas fa-desktop"></i>
-                            </div>
-                            <div>
-                                <h1 class="page-title">System Monitoring Dashboard</h1>
-                                <p class="page-description">Real-time monitoring of student activity and system performance</p>
-                                <button class="refresh-btn" onclick="refreshAllData()">
-                                    <i class="fas fa-sync-alt"></i> Refresh Data
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Quick Stats Overview -->
-                    <div class="monitoring-container">
-                        <div class="monitoring-header">
-                            <div class="monitoring-title">
-                                <i class="fas fa-chart-bar"></i> Student Statistics
-                            </div>
-                            <div class="live-indicator">
-                                <div class="live-dot"></div>
-                                <span>Live Updates</span>
+                    
+                    <!-- Mobile Right Icons -->
+                    <div class="flex lg:hidden items-center gap-2 sm:gap-3">
+                        <!-- Mobile Profile -->
+                        <div class="relative">
+                            <img src="" alt="Profile" id="profilePictureBtnMobile"
+                                 class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-white/30 cursor-pointer hover:border-white/60 object-cover">
+                            
+                            <!-- Mobile Profile Dropdown -->
+                            <div id="profileDropdownMobile" class="hidden fixed right-2 top-20 w-64 sm:w-72 bg-white rounded-xl shadow-2xl z-[9999] slide-down">
+                                <div class="p-4 sm:p-6 border-b-2 border-gray-200 text-center">
+                                    <img src="" alt="Profile" id="profileDropdownPictureMobile" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full mx-auto mb-2 sm:mb-3 border-3 border-blue-500 object-cover">
+                                    <h6 id="profileDropdownNameMobile" class="font-bold text-gray-900 text-base sm:text-lg">Loading...</h6>
+                                    <p id="profileDropdownEmailMobile" class="text-xs sm:text-sm text-gray-500 mt-1 truncate px-2">Loading...</p>
+                                </div>
+                                <div class="p-2">
+                                    <a href="#" onclick="showViewProfile(event)" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-gray-100 transition-colors">
+                                        <i class="bi bi-person-circle text-blue-500 text-lg sm:text-xl"></i>
+                                        <span class="font-medium text-gray-700 text-sm sm:text-base">View Profile</span>
+                                    </a>
+                                    <div class="h-px bg-gray-200 my-1 sm:my-2"></div>
+                                    <div onclick="handleLogout(event)" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-red-500">
+                                        <i class="fas fa-sign-out-alt text-lg sm:text-xl"></i>
+                                        <span class="font-medium text-sm sm:text-base">Logout</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         
-                        <div class="row stats-row g-3">
-                            <div class="col-12 col-sm-6 col-lg-3">
-                                <div class="stat-card blue">
-                                    <div class="stat-label">
-                                        <i class="fas fa-user-graduate"></i> Total Students
-                                    </div>
-                                    <div class="stat-value" id="totalStudentsCount">0</div>
-                                    <div class="stat-change positive">
-                                        <i class="fas fa-user-check"></i> In your sections
-                                    </div>
-                                </div>
+                        <!-- Mobile Menu Button -->
+                        <button id="mobileMenuButton" class="text-white p-1 sm:p-2">
+                            <i class="bi bi-list text-2xl sm:text-3xl"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Mobile Navigation Menu -->
+                <div id="mobileMenu" class="hidden lg:hidden mt-3 sm:mt-4 space-y-2 pb-3">
+                    <a href="professor-dashboard.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
+                        <i class="fas fa-tachometer-alt mr-2"></i> Dashboard
+                    </a>
+                    <a href="studentmanagement.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
+                        <i class="fas fa-users mr-2"></i> Student Management
+                    </a>
+                    <a href="addactivities.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
+                        <i class="fas fa-dumbbell mr-2"></i> Add Activities
+                    </a>
+                    <a href="addlesson.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
+                        <i class="fas fa-book-open mr-2"></i> Add Lesson
+                    </a>
+                    <a href="monitoringactivities.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white text-gray-900 rounded-lg font-semibold text-sm">
+                        <i class="fas fa-chart-bar mr-2"></i> Monitoring Activities
+                    </a>
+                    <a href="grades.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
+                        <i class="fas fa-graduation-cap mr-2"></i> Grades
+                    </a>
+                </div>
+            </div>
+        </nav>
+        
+        <!-- Main Content -->
+        <div class="bg-gradient-to-b from-gray-50 to-gray-100 min-h-screen pt-10 pb-20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <!-- Page Header -->
+                <div class="bg-white rounded-2xl card-shadow border border-gray-200 p-8 mb-10">
+                    <div class="flex items-center mb-5">
+                        <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center mr-4">
+                            <i class="fas fa-desktop text-white text-2xl"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-blue-900 font-bold text-3xl">System Monitoring Dashboard</h1>
+                            <p class="text-gray-600 font-medium text-base mt-2">Real-time monitoring of student activity and system performance</p>
+                            <button class="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center gap-2 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg" onclick="refreshAllData()">
+                                <i class="fas fa-sync-alt"></i>
+                                <span>Refresh Data</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Stats Overview -->
+                <div class="bg-white rounded-2xl card-shadow border border-gray-200 p-6 mb-8">
+                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6">
+                        <h3 class="text-gray-900 font-bold text-xl flex items-center gap-2">
+                            <i class="fas fa-chart-bar"></i>
+                            Student Statistics
+                        </h3>
+                        <div class="flex items-center space-x-2 bg-green-50 text-green-700 font-semibold text-sm py-1.5 px-4 rounded-full border border-green-200">
+                            <div class="w-2 h-2 bg-green-500 rounded-full live-dot"></div>
+                            <span>Live Updates</span>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
+                        <!-- Total Students -->
+                        <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl text-white p-6 transition-all hover:-translate-y-1 hover:shadow-xl relative overflow-hidden">
+                            <div class="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full translate-x-10 -translate-y-10"></div>
+                            <div class="flex items-center gap-2 mb-3">
+                                <i class="fas fa-user-graduate text-sm md:text-base"></i>
+                                <span class="font-semibold text-xs md:text-sm">Total Students</span>
                             </div>
-                            <div class="col-12 col-sm-6 col-lg-3">
-                                <div class="stat-card green">
-                                    <div class="stat-label">
-                                        <i class="fas fa-user-graduate"></i> Online Students
-                                    </div>
-                                    <div class="stat-value" id="onlineStudentsCount">0</div>
-                                    <div class="online-indicator">
-                                        <span class="status-dot online"></span>
-                                        <span>Active Now</span>
-                                    </div>
-                                </div>
+                            <div class="font-extrabold text-2xl md:text-3xl" id="totalStudentsCount">0</div>
+                            <div class="flex items-center text-sm opacity-90 mt-2">
+                                <i class="fas fa-user-check mr-1"></i>
+                                <span>In your sections</span>
                             </div>
-                            <div class="col-12 col-sm-6 col-lg-3">
-                                <div class="stat-card purple">
-                                    <div class="stat-label">
-                                        <i class="fas fa-clipboard-check"></i> Tests Completed
-                                    </div>
-                                    <div class="stat-value" id="totalTestsCount">0</div>
-                                    <div class="stat-change">This Semester</div>
-                                </div>
+                        </div>
+                        
+                        <!-- Online Students -->
+                        <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl text-white p-6 transition-all hover:-translate-y-1 hover:shadow-xl relative overflow-hidden">
+                            <div class="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full translate-x-10 -translate-y-10"></div>
+                            <div class="flex items-center gap-2 mb-3">
+                                <i class="fas fa-wifi text-sm md:text-base"></i>
+                                <span class="font-semibold text-xs md:text-sm">Online Students</span>
                             </div>
-                            <div class="col-12 col-sm-6 col-lg-3">
-                                <div class="stat-card orange">
-                                    <div class="stat-label">
-                                        <i class="fas fa-running"></i> Active Tests
-                                    </div>
-                                    <div class="stat-value" id="activeTestsCount">0</div>
-                                    <div class="online-indicator">
-                                        <span class="status-dot online"></span>
-                                        <span>In Progress</span>
-                                    </div>
-                                </div>
+                            <div class="font-extrabold text-2xl md:text-3xl" id="onlineStudentsCount">0</div>
+                            <div class="flex items-center text-sm opacity-90 mt-2">
+                                <span class="w-2 h-2 bg-green-300 rounded-full mr-2"></span>
+                                <span>Active Now</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Tests Completed -->
+                        <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl text-white p-6 transition-all hover:-translate-y-1 hover:shadow-xl relative overflow-hidden">
+                            <div class="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full translate-x-10 -translate-y-10"></div>
+                            <div class="flex items-center gap-2 mb-3">
+                                <i class="fas fa-clipboard-check text-sm md:text-base"></i>
+                                <span class="font-semibold text-xs md:text-sm">Tests Completed</span>
+                            </div>
+                            <div class="font-extrabold text-2xl md:text-3xl" id="totalTestsCount">0</div>
+                            <div class="text-sm opacity-90 mt-2">This Semester</div>
+                        </div>
+                        
+                        <!-- Active Tests -->
+                        <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-2xl text-white p-6 transition-all hover:-translate-y-1 hover:shadow-xl relative overflow-hidden">
+                            <div class="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full translate-x-10 -translate-y-10"></div>
+                            <div class="flex items-center gap-2 mb-3">
+                                <i class="fas fa-running text-sm md:text-base"></i>
+                                <span class="font-semibold text-xs md:text-sm">Active Tests</span>
+                            </div>
+                            <div class="font-extrabold text-2xl md:text-3xl" id="activeTestsCount">0</div>
+                            <div class="flex items-center text-sm opacity-90 mt-2">
+                                <span class="w-2 h-2 bg-yellow-300 rounded-full mr-2"></span>
+                                <span>In Progress</span>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Recent Activity Feed -->
-                    <div class="monitoring-container">
-                        <div class="monitoring-header">
-                            <div class="monitoring-title">
-                                <i class="fas fa-history"></i> Recent Student Activity
-                            </div>
-                            <div class="filter-group">
-                                <select class="form-control" id="activityTypeFilter" onchange="filterActivities()">
+                <!-- Recent Activity Feed -->
+                <div class="bg-white rounded-2xl card-shadow border border-gray-200 p-6">
+                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6">
+                        <h3 class="text-gray-900 font-bold text-xl flex items-center gap-2">
+                            <i class="fas fa-history"></i>
+                            Recent Student Activity
+                        </h3>
+                        <div class="flex items-center space-x-4 mt-2 sm:mt-0">
+                            <div class="flex items-center space-x-2">
+                                <select class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm" id="activityTypeFilter" onchange="filterActivities()">
                                     <option value="all">All Activities</option>
                                     <option value="test">Test Activities</option>
                                     <option value="student">Student Activities</option>
@@ -753,28 +427,49 @@
                                 </select>
                             </div>
                         </div>
-                        
-                        <div class="activity-timeline" id="activityTimeline">
-                            <div class="empty-state">
-                                <div class="empty-icon">
-                                    <i class="fas fa-spinner fa-spin"></i>
-                                </div>
-                                <div class="empty-title">Loading Recent Activity</div>
-                                <div class="empty-text">Fetching activity data from the system...</div>
+                    </div>
+                    
+                    <div class="activity-timeline" id="activityTimeline">
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <i class="fas fa-spinner fa-spin"></i>
                             </div>
+                            <div class="empty-title">Loading Recent Activity</div>
+                            <div class="empty-text">Fetching activity data from the system...</div>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="bg-gradient-to-b from-gray-900 to-gray-950 mt-10 py-10">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h4 class="text-yellow-500 font-bold text-lg text-center mb-5">About CTBL</h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="text-gray-300 text-sm leading-relaxed">
+                        The Center for Technology Based Learning serves as the learning management system operating hub, 
+                        reporting to the university MANCOM officials, with a director on duty who manages and handles the 
+                        center's daily operations.
+                    </div>
+                    <div class="text-gray-300 text-sm leading-relaxed">
+                        Working closely with the Office of the President, the Center for Information Technology, and the 
+                        Deans and Directors to support the LMS end-users' day-to-day activity.
+                    </div>
+                    <div class="text-gray-300 text-sm leading-relaxed">
+                        The center focuses on implementing new forms of training and determining the validity of data to 
+                        support the university's educational objectives.
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
     <script type="module">
         // Import Firebase modules
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-        import { getFirestore, collection, getDocs, doc, getDoc, query, where, orderBy, limit,  onSnapshot } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getFirestore, collection, getDocs, doc, getDoc, query, where, orderBy, limit, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
         import { getDatabase, ref, onValue } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
 
         // Firebase configuration
@@ -799,52 +494,125 @@
         let assignedSections = [];
         let allStudents = [];
 
-        // Function to update profile picture with Google photo
-        function updateProfilePicture(photoURL, userName) {
-            const profileCircle = document.getElementById('profileCircle');
-            const profileDropdownAvatar = document.getElementById('profileDropdownAvatar');
-            const initial = userName ? userName.charAt(0).toUpperCase() : 'P';
-            
-            if (photoURL) {
-                // Create image element for profile circle
-                const circleImg = document.createElement('img');
-                circleImg.src = photoURL;
-                circleImg.alt = userName || 'Profile';
-                circleImg.onerror = function() {
-                    // If image fails to load, show initial
-                    profileCircle.innerHTML = initial;
-                    profileCircle.style.background = 'linear-gradient(135deg, #3b82f6 0%, #1e3a8a 100%)';
-                    profileCircle.style.color = 'white';
-                };
-                
-                // Update profile circle
-                profileCircle.innerHTML = '';
-                profileCircle.appendChild(circleImg);
-                
-                // Create image element for dropdown avatar
-                const dropdownImg = document.createElement('img');
-                dropdownImg.src = photoURL;
-                dropdownImg.alt = userName || 'Profile';
-                dropdownImg.onerror = function() {
-                    // If image fails to load, show initial
-                    profileDropdownAvatar.innerHTML = initial;
-                    profileDropdownAvatar.style.background = 'rgba(255,255,255,0.2)';
-                    profileDropdownAvatar.style.color = 'white';
-                };
-                
-                // Update dropdown avatar
-                profileDropdownAvatar.innerHTML = '';
-                profileDropdownAvatar.appendChild(dropdownImg);
-            } else {
-                // No photo URL, use initial
-                profileCircle.innerHTML = initial;
-                profileCircle.style.background = 'linear-gradient(135deg, #3b82f6 0%, #1e3a8a 100%)';
-                profileCircle.style.color = 'white';
-                
-                profileDropdownAvatar.innerHTML = initial;
-                profileDropdownAvatar.style.background = 'rgba(255,255,255,0.2)';
-                profileDropdownAvatar.style.color = 'white';
+        // DOM Elements for navigation
+        const mobileMenuButton = document.getElementById('mobileMenuButton');
+        const mobileMenu = document.getElementById('mobileMenu');
+        const profilePictureBtn = document.getElementById('profilePictureBtn');
+        const profilePictureBtnMobile = document.getElementById('profilePictureBtnMobile');
+        const profileDropdown = document.getElementById('profileDropdown');
+        const profileDropdownMobile = document.getElementById('profileDropdownMobile');
+
+        // Event Listeners for navigation
+        document.addEventListener('DOMContentLoaded', () => {
+            // Mobile menu toggle
+            if (mobileMenuButton) {
+                mobileMenuButton.addEventListener('click', toggleMobileMenu);
             }
+            
+            // Profile dropdowns
+            if (profilePictureBtn) {
+                profilePictureBtn.addEventListener('click', toggleProfileDropdown);
+            }
+            
+            if (profilePictureBtnMobile) {
+                profilePictureBtnMobile.addEventListener('click', toggleProfileDropdown);
+            }
+            
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', closeAllDropdowns);
+        });
+
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            mobileMenu.classList.toggle('hidden');
+        }
+
+        // Profile dropdown
+        function toggleProfileDropdown(event) {
+            event?.stopPropagation();
+            const isMobile = window.innerWidth < 1024;
+            const dropdown = isMobile ? profileDropdownMobile : profileDropdown;
+            
+            const isHidden = dropdown.classList.contains('hidden');
+            
+            if (isHidden) {
+                dropdown.classList.remove('hidden');
+                document.body.classList.add('dropdown-open');
+            } else {
+                dropdown.classList.add('hidden');
+                document.body.classList.remove('dropdown-open');
+            }
+        }
+
+        function closeProfileDropdown() {
+            profileDropdown.classList.add('hidden');
+            profileDropdownMobile.classList.add('hidden');
+            document.body.classList.remove('dropdown-open');
+        }
+
+        // Close all dropdowns when clicking outside
+        function closeAllDropdowns(event) {
+            if (!event.target.closest('#profilePictureBtn') && 
+                !event.target.closest('#profilePictureBtnMobile') && 
+                !event.target.closest('#profileDropdown') && 
+                !event.target.closest('#profileDropdownMobile')) {
+                closeProfileDropdown();
+            }
+        }
+
+        // View profile function
+        window.showViewProfile = function(event) { 
+            if (event) event.preventDefault();
+            alert('Profile view would open here');
+            closeProfileDropdown();
+        };
+
+        // Logout function
+        window.handleLogout = async function(event) {
+            if (event) event.preventDefault();
+            closeProfileDropdown();
+            
+            if (confirm('Are you sure you want to logout?')) {
+                try {
+                    await signOut(auth);
+                    window.location.href = '/login/index.html';
+                } catch (error) {
+                    console.error('Error logging out:', error);
+                    window.location.href = '/login/index.html';
+                }
+            }
+        };
+
+        // Function to update profile picture
+        function updateProfilePicture(photoURL, userName) {
+            const profileBtn = document.getElementById('profilePictureBtn');
+            const profileBtnMobile = document.getElementById('profilePictureBtnMobile');
+            const dropdownPic = document.getElementById('profileDropdownPicture');
+            const dropdownPicMobile = document.getElementById('profileDropdownPictureMobile');
+            
+            const displayName = currentUser?.name || currentUser?.displayName || userName || 'Professor';
+            const email = currentUser?.email || 'professor@umak.edu.ph';
+            
+            // Use provided photo URL or create initial avatar
+            const photoUrlToUse = photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=3b82f6&color=fff&size=128`;
+            
+            // Update all profile pictures
+            if (profileBtn) profileBtn.src = photoUrlToUse;
+            if (profileBtnMobile) profileBtnMobile.src = photoUrlToUse;
+            if (dropdownPic) dropdownPic.src = photoUrlToUse;
+            if (dropdownPicMobile) dropdownPicMobile.src = photoUrlToUse;
+            
+            // Update names
+            const dropdownName = document.getElementById('profileDropdownName');
+            const dropdownNameMobile = document.getElementById('profileDropdownNameMobile');
+            if (dropdownName) dropdownName.textContent = displayName;
+            if (dropdownNameMobile) dropdownNameMobile.textContent = displayName;
+            
+            // Update emails
+            const dropdownEmail = document.getElementById('profileDropdownEmail');
+            const dropdownEmailMobile = document.getElementById('profileDropdownEmailMobile');
+            if (dropdownEmail) dropdownEmail.textContent = email;
+            if (dropdownEmailMobile) dropdownEmailMobile.textContent = email;
         }
 
         // Format time relative to now
@@ -861,68 +629,6 @@
             if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
             
             return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-        }
-
-        // Calculate test score based on result and target
-        function calculateTestScore(testName, result, testTarget = null) {
-            const normalized = testName.toLowerCase().trim();
-            
-            // Extract numeric value from result
-            let numericValue = 0;
-            
-            if (typeof result === 'object' && result !== null) {
-                numericValue = result.repetitions || result.time || result.distance || result.value || result.score || 0;
-            } else if (typeof result === 'string') {
-                const match = result.match(/(\d+\.?\d*)/);
-                if (match) {
-                    numericValue = parseFloat(match[1]);
-                } else {
-                    numericValue = parseFloat(result) || 0;
-                }
-            } else {
-                numericValue = parseFloat(result) || 0;
-            }
-            
-            // Use test target if available
-            if (testTarget && testTarget > 0) {
-                const percentage = (numericValue / testTarget) * 100;
-                let score = Math.min(100, Math.max(50, percentage));
-                
-                if (percentage >= 100) score = 100;
-                else if (percentage >= 90) score = 95;
-                else if (percentage >= 80) score = 90;
-                else if (percentage >= 70) score = 85;
-                else if (percentage >= 60) score = 80;
-                else if (percentage >= 50) score = 75;
-                
-                return Math.round(score);
-            }
-            
-            // Default scoring based on test type
-            if (normalized.includes('push-up') || normalized.includes('pushup')) {
-                const reps = numericValue;
-                if (reps >= 40) return 100;
-                if (reps >= 30) return 90;
-                if (reps >= 20) return 80;
-                if (reps >= 10) return 70;
-                return 60;
-            } else if (normalized.includes('sit-up') || normalized.includes('situp')) {
-                const reps = numericValue;
-                if (reps >= 50) return 100;
-                if (reps >= 40) return 90;
-                if (reps >= 30) return 80;
-                if (reps >= 20) return 70;
-                return 60;
-            } else if (normalized.includes('plank')) {
-                const seconds = numericValue;
-                if (seconds >= 180) return 100;
-                if (seconds >= 120) return 90;
-                if (seconds >= 80) return 80;
-                if (seconds >= 60) return 75;
-                return 60;
-            }
-            
-            return 75; // Default score
         }
 
         // Load professor's assigned sections
@@ -1435,21 +1141,6 @@
             }
         };
 
-        // Load user activity stats
-        async function loadUserActivityStats() {
-            try {
-                // Get total students from loaded data
-                const totalStudents = allStudents.length;
-                
-                document.getElementById('totalStudentsCount').textContent = totalStudents;
-                
-                console.log(`📊 Stats - Students: ${totalStudents}`);
-                
-            } catch (error) {
-                console.error('❌ Error loading user stats:', error);
-            }
-        }
-
         // Setup realtime presence monitoring
         function setupRealtimePresence() {
             try {
@@ -1519,7 +1210,6 @@
         }
     
         async function loadEnhancedMonitoringData(professorEmail) {
-            await loadUserActivityStats();
             await loadRecentActivity(professorEmail);
             setupRealtimePresence();
             setupActiveTestsListener(professorEmail); 
@@ -1541,43 +1231,6 @@
             });
         };
 
-        // Profile dropdown toggle
-        window.toggleProfileDropdown = function(event) {
-            if (event) event.preventDefault();
-            document.getElementById('profileDropdown').classList.toggle('show');
-        };
-
-        // Navigation functions - UPDATED FOR PROFESSOR
-        window.showViewProfile = function(event) { 
-            if (event) event.preventDefault();
-            alert('Profile view would open here');
-            document.getElementById('profileDropdown').classList.remove('show');
-        };
-
-        window.handleLogout = async function(event) {
-            if (event) event.preventDefault();
-            document.getElementById('profileDropdown').classList.remove('show');
-            
-            if (confirm('Are you sure you want to logout?')) {
-                try {
-                    await signOut(auth);
-                    window.location.href = '/login/index.html';
-                } catch (error) {
-                    console.error('Error logging out:', error);
-                    window.location.href = '/login/index.html';
-                }
-            }
-        };
-
-        // Close dropdown when clicking outside
-        document.addEventListener('click', function(event) {
-            const profileContainer = document.querySelector('.profile-container');
-            const profileDropdown = document.getElementById('profileDropdown');
-            if (profileContainer && !profileContainer.contains(event.target)) {
-                profileDropdown.classList.remove('show');
-            }
-        });
-
         // Initialize when page loads
         onAuthStateChanged(auth, async (user) => {
             const loadingScreen = document.getElementById('loadingScreen');
@@ -1589,10 +1242,6 @@
                     console.log('User authenticated:', user.email);
                     console.log('User UID:', user.uid);
                     
-                    // UPDATE: Add profile picture update with Google photo
-                    updateProfilePicture(user.photoURL, user.displayName);
-                    
-                    // Normalize email
                     const userEmail = user.email.toLowerCase();
                     
                     let professorData = null;
@@ -1659,14 +1308,6 @@
                                 userRole = 'professor';
                                 console.log('✓ Found in professorProfiles, auto-setting role to professor');
                                 
-                                // Create user record with professor role
-                                await setDoc(doc(db, 'users', user.uid), {
-                                    ...professorData,
-                                    role: 'professor',
-                                    uid: user.uid,
-                                    updatedAt: new Date()
-                                }, { merge: true });
-                                
                             } else {
                                 throw new Error('Professor profile not found. Please contact the administrator.');
                             }
@@ -1685,10 +1326,8 @@
                     };
                     console.log('✓ Current professor set:', currentUser);
                     
-                    // Update profile display names (profile picture already updated above)
-                    const professorName = professorData.name || professorData.displayName || user.displayName || 'Professor';
-                    document.getElementById('dropdownName').textContent = professorName;
-                    document.getElementById('dropdownEmail').textContent = userEmail;
+                    // Update profile picture with Google photo
+                    updateProfilePicture(user.photoURL, user.displayName);
                     
                     // Load professor's assigned sections
                     await loadAssignedSections(user.uid, userEmail);
@@ -1700,7 +1339,7 @@
                     await loadEnhancedMonitoringData(userEmail);
                     
                     loadingScreen.style.display = 'none';
-                    mainContent.style.display = 'block';
+                    mainContent.classList.remove('hidden');
                     
                 } catch (error) {
                     console.error('=== ERROR IN AUTHENTICATION ===');

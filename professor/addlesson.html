@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css?family=Manrope:600,800|Inter:300,500,400,700" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
         * { -webkit-font-smoothing: antialiased; box-sizing: border-box; }
         body { font-family: 'Inter', Helvetica, sans-serif; }
@@ -25,6 +26,24 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
+        /* Navigation styles */
+        .font-manrope { font-family: 'Manrope', sans-serif; }
+        
+        .slide-down {
+            animation: slideDown 0.3s ease;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
         /* Custom styles not covered by Tailwind */
         .gradient-text {
             background: linear-gradient(90deg, rgba(245, 158, 11, 1) 0%, rgba(255, 229, 0, 1) 100%);
@@ -35,10 +54,6 @@
         
         .custom-shadow {
             box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-        }
-        
-        .nav-shadow {
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
         
         .card-shadow {
@@ -59,125 +74,11 @@
         
         .spinner {
             animation: spin 1s linear infinite;
-        }
-        
-        /* Profile Dropdown Styles */
-        .profile-container {
-            position: relative;
-        }
-        .profile-circle {
-            width: 44px;
-            height: 44px;
+            border: 4px solid #f1f5f9;
+            border-top: 4px solid #3b82f6;
             border-radius: 50%;
-            background: linear-gradient(135deg, #3b82f6 0%, #1e3a8a 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 700;
-            font-size: 16px;
-            cursor: pointer;
-            border: 2px solid #e2e8f0;
-            transition: all 0.3s;
-            position: relative;
-            overflow: hidden;
-        }
-        .profile-circle img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 50%;
-        }
-        .profile-circle:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-        }
-        .profile-dropdown {
-            position: absolute;
-            top: 55px;
-            right: 0;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-            min-width: 280px;
-            display: none;
-            z-index: 1001;
-            border: 1px solid #e2e8f0;
-            overflow: hidden;
-        }
-        .profile-dropdown.show {
-            display: block;
-            animation: dropdownSlide 0.3s ease-out;
-        }
-        .profile-dropdown-header {
-            padding: 20px;
-            background: linear-gradient(135deg, #3b82f6 0%, #1e3a8a 100%);
-            color: white;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        .profile-dropdown-avatar {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 12px;
-            border: 3px solid rgba(255,255,255,0.3);
-            overflow: hidden;
-        }
-        .profile-dropdown-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 50%;
-        }
-        .profile-dropdown-name {
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
-        .profile-dropdown-email {
-            font-size: 13px;
-            opacity: 0.9;
-        }
-        .profile-dropdown-menu {
-            padding: 8px 0;
-        }
-        .profile-dropdown-item {
-            padding: 12px 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-            color: #374151;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 500;
-        }
-        .profile-dropdown-item:hover {
-            background: #f8fafc;
-            color: #3b82f6;
-        }
-        .profile-dropdown-item i {
-            width: 20px;
-            font-size: 16px;
-        }
-        .profile-dropdown-divider {
-            height: 1px;
-            background: #e2e8f0;
-            margin: 8px 0;
-        }
-        .profile-dropdown-item.logout {
-            color: #dc2626;
-        }
-        .profile-dropdown-item.logout:hover {
-            background: #fee2e2;
-            color: #991b1b;
+            width: 50px;
+            height: 50px;
         }
         
         /* Modal styles */
@@ -304,88 +205,145 @@
 </head>
 <body class="bg-gray-50">
     <div id="loadingScreen" class="fixed inset-0 bg-white bg-opacity-95 flex flex-col justify-center items-center z-50">
-        <div class="w-12 h-12 border-4 border-gray-100 border-t-blue-500 rounded-full spinner"></div>
+        <div class="spinner"></div>
         <div class="mt-5 text-gray-600 font-medium">Loading Lesson Management...</div>
     </div>
     
     <div id="mainContent" class="hidden">
-        <!-- Header -->
-        <div class="bg-white custom-shadow border-b border-gray-200 fixed top-0 w-full z-50">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between items-center h-16">
-                    <div class="flex items-center space-x-2">
-                        <img class="h-10 w-auto" src="umaklogo.png" alt="University of Makati">
-                        <span class="text-blue-900 font-bold text-xl">University of Makati</span>
-                    </div>
-                    <div class="flex items-center space-x-4">
-                        <!-- Profile Dropdown -->
-                        <div class="profile-container">
-                            <div class="profile-circle" id="profileCircle" onclick="toggleProfileDropdown()">
-                                <!-- Profile picture will be loaded here -->
-                            </div>
-                            <div class="profile-dropdown" id="profileDropdown">
-                                <div class="profile-dropdown-header">
-                                    <div class="profile-dropdown-avatar" id="profileDropdownAvatar">
-                                        <!-- Profile picture will be loaded here -->
-                                    </div>
-                                    <div class="profile-dropdown-name" id="dropdownName">Professor</div>
-                                    <div class="profile-dropdown-email" id="dropdownEmail">professor@umak.edu.ph</div>
-                                </div>
-                                <div class="profile-dropdown-menu">
-                                    <a href="#" class="profile-dropdown-item" onclick="showViewProfile(event)">
-                                        <i class="fas fa-user"></i>
-                                        <span>View Profile</span>
-                                    </a>
-                                    <div class="profile-dropdown-divider"></div>
-                                    <a href="#" class="profile-dropdown-item logout" onclick="handleLogout(event)">
-                                        <i class="fas fa-sign-out-alt"></i>
-                                        <span>Logout</span>
-                                    </a>
-                                </div>
+        <!-- Navigation Banner - MATCHING GRADES PAGE -->
+      <nav class="bg-gradient-to-r from-blue-900 to-blue-500 shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-wrap items-center justify-between gap-3 sm:gap-4 py-3 sm:py-4">
+            <!-- Logo -->
+            <a href="#" class="flex items-center gap-2 sm:gap-3">
+                <span class="text-xl sm:text-2xl md:text-3xl font-extrabold font-manrope bg-gradient-to-r from-yellow-400 to-yellow-200 bg-clip-text text-transparent">
+                    UMakFit
+                </span>
+            </a>
+            
+            <!-- Desktop Navigation -->
+            <div class="hidden lg:flex items-center gap-2 flex-wrap">
+                <!-- Dashboard -->
+                <a href="professor.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
+                    <i class="fas fa-tachometer-alt"></i> 
+                    <span>Dashboard</span>
+                </a>
+                
+                <!-- Student Management -->
+                <a href="studentmanagement.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
+                    <i class="fas fa-users"></i> 
+                    <span>Student Management</span>
+                </a>
+                
+                <!-- Add Activities -->
+                <a href="addactivities.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
+                    <i class="fas fa-dumbbell"></i> 
+                    <span>Add Activities</span>
+                </a>
+                
+                <!-- Add Lesson -->
+                <a href="addlesson.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
+                    <i class="fas fa-book-open"></i> 
+                    <span>Add Lesson</span>
+                </a>
+                
+                <!-- Monitoring Activities -->
+                <a href="monitoringactivities.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
+                    <i class="fas fa-chart-bar"></i> 
+                    <span>Monitoring Activities</span>
+                </a>
+                
+                <!-- Grades -->
+                <a href="grades.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
+                    <i class="fas fa-graduation-cap"></i> 
+                    <span>Grades</span>
+                </a>
+                
+                <!-- Profile Dropdown -->
+                <div class="relative">
+                    <img src="" alt="Profile" id="profilePictureBtn"
+                         class="w-9 h-9 xl:w-10 xl:h-10 rounded-full border-2 border-white/30 cursor-pointer hover:border-white/60 hover:scale-105 transition-all object-cover">
+                    
+                    <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-64 sm:w-72 bg-white rounded-xl shadow-2xl z-[9999] slide-down">
+                        <div class="p-4 sm:p-6 border-b-2 border-gray-200 text-center">
+                            <img src="" alt="Profile" id="profileDropdownPicture" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full mx-auto mb-2 sm:mb-3 border-3 border-blue-500 object-cover">
+                            <h6 id="profileDropdownName" class="font-bold text-gray-900 text-base sm:text-lg">Loading...</h6>
+                            <p id="profileDropdownEmail" class="text-xs sm:text-sm text-gray-500 mt-1 truncate px-2">Loading...</p>
+                        </div>
+                        <div class="p-2">
+                            <a href="#" onclick="showViewProfile(event)" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-gray-100 transition-colors">
+                                <i class="bi bi-person-circle text-blue-500 text-lg sm:text-xl"></i>
+                                <span class="font-medium text-gray-700 text-sm sm:text-base">View Profile</span>
+                            </a>
+                            <div class="h-px bg-gray-200 my-1 sm:my-2"></div>
+                            <div onclick="handleLogout(event)" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-red-500">
+                                <i class="fas fa-sign-out-alt text-lg sm:text-xl"></i>
+                                <span class="font-medium text-sm sm:text-base">Logout</span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-        
-        <!-- Navigation -->
-        <div class="bg-gradient-to-b from-blue-900 to-blue-500 nav-shadow mt-16">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
-                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
-                    <div class="flex items-center space-x-3">
-                        <img class="h-14 w-auto" src="logo.png" alt="UMakFit">
-                        <h1 class="font-manrope font-extrabold text-3xl gradient-text">UMakFit</h1>
-                    </div>
-                    <div class="flex flex-wrap gap-2 overflow-x-auto pb-1">
-                        <a href="professor.html" class="bg-white text-black font-manrope font-semibold text-sm py-3 px-5 rounded-lg flex items-center space-x-2 shadow-sm hover:-translate-y-0.5 transition-all duration-300 hover:shadow-md">
-                            <i class="fas fa-tachometer-alt"></i>
-                            <span>Dashboard</span>
-                        </a>
-                        <a href="studentmanagement.html" class="bg-white text-black font-manrope font-semibold text-sm py-3 px-5 rounded-lg flex items-center space-x-2 shadow-sm hover:-translate-y-0.5 transition-all duration-300 hover:shadow-md">
-                            <i class="fas fa-users"></i>
-                            <span>Student Management</span>
-                        </a>
-                        <a href="addactivities.html" class="bg-white text-black font-manrope font-semibold text-sm py-3 px-5 rounded-lg flex items-center space-x-2 shadow-sm hover:-translate-y-0.5 transition-all duration-300 hover:shadow-md">
-                            <i class="fas fa-dumbbell"></i>
-                            <span>Add Activities</span>
-                        </a>
-                        <a href="addlesson.html" class="bg-white text-black font-manrope font-semibold text-sm py-3 px-5 rounded-lg flex items-center space-x-2 shadow-sm hover:-translate-y-0.5 transition-all duration-300 hover:shadow-md bg-gradient-to-r from-yellow-400 to-yellow-500 shadow-yellow-500/30">
-                            <i class="fas fa-book-open"></i>
-                            <span>Add Lesson</span>
-                        </a>
-                        <a href="monitoringactivities.html" class="bg-white text-black font-manrope font-semibold text-sm py-3 px-5 rounded-lg flex items-center space-x-2 shadow-sm hover:-translate-y-0.5 transition-all duration-300 hover:shadow-md">
-                            <i class="fas fa-chart-bar"></i>
-                            <span>Monitoring Activities</span>
-                        </a>
-                        <a href="grades.html" class="bg-white text-black font-manrope font-semibold text-sm py-3 px-5 rounded-lg flex items-center space-x-2 shadow-sm hover:-translate-y-0.5 transition-all duration-300 hover:shadow-md">
-                            <i class="fas fa-graduation-cap"></i>
-                            <span>Grades</span>
-                        </a>
+            
+            <!-- Mobile Right Icons -->
+            <div class="flex lg:hidden items-center gap-2 sm:gap-3">
+                <!-- Mobile Profile -->
+                <div class="relative">
+                    <img src="" alt="Profile" id="profilePictureBtnMobile"
+                         class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-white/30 cursor-pointer hover:border-white/60 object-cover">
+                    
+                    <!-- Mobile Profile Dropdown -->
+                    <div id="profileDropdownMobile" class="hidden fixed right-2 top-20 w-64 sm:w-72 bg-white rounded-xl shadow-2xl z-[9999] slide-down">
+                        <div class="p-4 sm:p-6 border-b-2 border-gray-200 text-center">
+                            <img src="" alt="Profile" id="profileDropdownPictureMobile" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full mx-auto mb-2 sm:mb-3 border-3 border-blue-500 object-cover">
+                            <h6 id="profileDropdownNameMobile" class="font-bold text-gray-900 text-base sm:text-lg">Loading...</h6>
+                            <p id="profileDropdownEmailMobile" class="text-xs sm:text-sm text-gray-500 mt-1 truncate px-2">Loading...</p>
+                        </div>
+                        <div class="p-2">
+                            <a href="#" onclick="showViewProfile(event)" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-gray-100 transition-colors">
+                                <i class="bi bi-person-circle text-blue-500 text-lg sm:text-xl"></i>
+                                <span class="font-medium text-gray-700 text-sm sm:text-base">View Profile</span>
+                            </a>
+                            <div class="h-px bg-gray-200 my-1 sm:my-2"></div>
+                            <div onclick="handleLogout(event)" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-red-500">
+                                <i class="fas fa-sign-out-alt text-lg sm:text-xl"></i>
+                                <span class="font-medium text-sm sm:text-base">Logout</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
+                
+                <!-- Mobile Menu Button -->
+                <button id="mobileMenuButton" class="text-white p-1 sm:p-2">
+                    <i class="bi bi-list text-2xl sm:text-3xl"></i>
+                </button>
             </div>
         </div>
+        
+        <!-- Mobile Navigation Menu -->
+        <div id="mobileMenu" class="hidden lg:hidden mt-3 sm:mt-4 space-y-2 pb-3">
+            <a href="professor.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
+                <i class="fas fa-tachometer-alt mr-2"></i> Dashboard
+            </a>
+            <a href="studentmanagement.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
+                <i class="fas fa-users mr-2"></i> Student Management
+            </a>
+            <a href="addactivities.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
+                <i class="fas fa-dumbbell mr-2"></i> Add Activities
+            </a>
+            <a href="addlesson.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
+                <i class="fas fa-book-open mr-2"></i> Add Lesson
+            </a>
+            <a href="monitoringactivities.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
+                <i class="fas fa-chart-bar mr-2"></i> Monitoring Activities
+            </a>
+            <a href="grades.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
+                <i class="fas fa-graduation-cap mr-2"></i> Grades
+            </a>
+        </div>
+    </div>
+</nav>
+
         
         <!-- Main Content -->
         <div class="bg-gradient-to-b from-gray-50 to-gray-100 min-h-screen pt-10 pb-20">
@@ -560,52 +518,125 @@
         let editingLessonId = null;
         let selectedFiles = [];
 
+        // DOM Elements for navigation
+        const mobileMenuButton = document.getElementById('mobileMenuButton');
+        const mobileMenu = document.getElementById('mobileMenu');
+        const profilePictureBtn = document.getElementById('profilePictureBtn');
+        const profilePictureBtnMobile = document.getElementById('profilePictureBtnMobile');
+        const profileDropdown = document.getElementById('profileDropdown');
+        const profileDropdownMobile = document.getElementById('profileDropdownMobile');
+
+        // Event Listeners for navigation
+        document.addEventListener('DOMContentLoaded', () => {
+            // Mobile menu toggle
+            if (mobileMenuButton) {
+                mobileMenuButton.addEventListener('click', toggleMobileMenu);
+            }
+            
+            // Profile dropdowns
+            if (profilePictureBtn) {
+                profilePictureBtn.addEventListener('click', toggleProfileDropdown);
+            }
+            
+            if (profilePictureBtnMobile) {
+                profilePictureBtnMobile.addEventListener('click', toggleProfileDropdown);
+            }
+            
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', closeAllDropdowns);
+        });
+
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            mobileMenu.classList.toggle('hidden');
+        }
+
+        // Profile dropdown
+        function toggleProfileDropdown(event) {
+            event?.stopPropagation();
+            const isMobile = window.innerWidth < 1024;
+            const dropdown = isMobile ? profileDropdownMobile : profileDropdown;
+            
+            const isHidden = dropdown.classList.contains('hidden');
+            
+            if (isHidden) {
+                dropdown.classList.remove('hidden');
+                document.body.classList.add('dropdown-open');
+            } else {
+                dropdown.classList.add('hidden');
+                document.body.classList.remove('dropdown-open');
+            }
+        }
+
+        function closeProfileDropdown() {
+            profileDropdown.classList.add('hidden');
+            profileDropdownMobile.classList.add('hidden');
+            document.body.classList.remove('dropdown-open');
+        }
+
+        // Close all dropdowns when clicking outside
+        function closeAllDropdowns(event) {
+            if (!event.target.closest('#profilePictureBtn') && 
+                !event.target.closest('#profilePictureBtnMobile') && 
+                !event.target.closest('#profileDropdown') && 
+                !event.target.closest('#profileDropdownMobile')) {
+                closeProfileDropdown();
+            }
+        }
+
+        // View profile function
+        window.showViewProfile = function(event) { 
+            if (event) event.preventDefault();
+            alert('Profile view would open here');
+            closeProfileDropdown();
+        };
+
+        // Logout function
+        window.handleLogout = async function(event) {
+            if (event) event.preventDefault();
+            closeProfileDropdown();
+            
+            if (confirm('Are you sure you want to logout?')) {
+                try {
+                    await signOut(auth);
+                    window.location.href = '/login/index.html';
+                } catch (error) {
+                    console.error('Error logging out:', error);
+                    window.location.href = '/login/index.html';
+                }
+            }
+        };
+
         // Function to update profile picture with Google photo
         function updateProfilePicture(photoURL, userName) {
-            const profileCircle = document.getElementById('profileCircle');
-            const profileDropdownAvatar = document.getElementById('profileDropdownAvatar');
-            const initial = userName ? userName.charAt(0).toUpperCase() : 'P';
+            const profileBtn = document.getElementById('profilePictureBtn');
+            const profileBtnMobile = document.getElementById('profilePictureBtnMobile');
+            const dropdownPic = document.getElementById('profileDropdownPicture');
+            const dropdownPicMobile = document.getElementById('profileDropdownPictureMobile');
             
-            if (photoURL) {
-                // Create image element for profile circle
-                const circleImg = document.createElement('img');
-                circleImg.src = photoURL;
-                circleImg.alt = userName || 'Profile';
-                circleImg.onerror = function() {
-                    // If image fails to load, show initial
-                    profileCircle.innerHTML = initial;
-                    profileCircle.style.background = 'linear-gradient(135deg, #3b82f6 0%, #1e3a8a 100%)';
-                    profileCircle.style.color = 'white';
-                };
-                
-                // Update profile circle
-                profileCircle.innerHTML = '';
-                profileCircle.appendChild(circleImg);
-                
-                // Create image element for dropdown avatar
-                const dropdownImg = document.createElement('img');
-                dropdownImg.src = photoURL;
-                dropdownImg.alt = userName || 'Profile';
-                dropdownImg.onerror = function() {
-                    // If image fails to load, show initial
-                    profileDropdownAvatar.innerHTML = initial;
-                    profileDropdownAvatar.style.background = 'rgba(255,255,255,0.2)';
-                    profileDropdownAvatar.style.color = 'white';
-                };
-                
-                // Update dropdown avatar
-                profileDropdownAvatar.innerHTML = '';
-                profileDropdownAvatar.appendChild(dropdownImg);
-            } else {
-                // No photo URL, use initial
-                profileCircle.innerHTML = initial;
-                profileCircle.style.background = 'linear-gradient(135deg, #3b82f6 0%, #1e3a8a 100%)';
-                profileCircle.style.color = 'white';
-                
-                profileDropdownAvatar.innerHTML = initial;
-                profileDropdownAvatar.style.background = 'rgba(255,255,255,0.2)';
-                profileDropdownAvatar.style.color = 'white';
-            }
+            const displayName = currentProfessor?.fullName || currentProfessor?.name || userName || 'Professor';
+            const email = currentProfessor?.email || 'professor@umak.edu.ph';
+            
+            // Use provided photo URL or create initial avatar
+            const photoUrlToUse = photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=3b82f6&color=fff&size=128`;
+            
+            // Update all profile pictures
+            if (profileBtn) profileBtn.src = photoUrlToUse;
+            if (profileBtnMobile) profileBtnMobile.src = photoUrlToUse;
+            if (dropdownPic) dropdownPic.src = photoUrlToUse;
+            if (dropdownPicMobile) dropdownPicMobile.src = photoUrlToUse;
+            
+            // Update names
+            const dropdownName = document.getElementById('profileDropdownName');
+            const dropdownNameMobile = document.getElementById('profileDropdownNameMobile');
+            if (dropdownName) dropdownName.textContent = displayName;
+            if (dropdownNameMobile) dropdownNameMobile.textContent = displayName;
+            
+            // Update emails
+            const dropdownEmail = document.getElementById('profileDropdownEmail');
+            const dropdownEmailMobile = document.getElementById('profileDropdownEmailMobile');
+            if (dropdownEmail) dropdownEmail.textContent = email;
+            if (dropdownEmailMobile) dropdownEmailMobile.textContent = email;
         }
 
         onAuthStateChanged(auth, async (user) => {
@@ -621,16 +652,12 @@
                     
                     currentProfessor = { id: user.uid, email: user.email };
                     
-                    // Update profile dropdown information
-                    document.getElementById('dropdownName').textContent = user.displayName || 'Professor';
-                    document.getElementById('dropdownEmail').textContent = user.email;
-                    
                     await loadProfessorData();
                     await loadAssignedSections();
                     await loadLessons();
                     
                     loadingScreen.style.display = 'none';
-                    mainContent.style.display = 'block';
+                    mainContent.classList.remove('hidden');
                     
                     // Initialize file input
                     const fileInput = document.getElementById('lessonFiles');
@@ -649,49 +676,11 @@
                 } catch (error) {
                     console.error('Error loading lesson management:', error);
                     loadingScreen.style.display = 'none';
-                    mainContent.style.display = 'block';
+                    mainContent.classList.remove('hidden');
                     alert('Error loading lesson data: ' + error.message);
                 }
             } else {
                 window.location.href = '/login/index.html';
-            }
-        });
-
-        // Profile dropdown toggle
-        window.toggleProfileDropdown = function(event) {
-            if (event) event.preventDefault();
-            document.getElementById('profileDropdown').classList.toggle('show');
-        };
-
-        // View profile function
-        window.showViewProfile = function(event) { 
-            if (event) event.preventDefault();
-            alert('Profile view would open here');
-            document.getElementById('profileDropdown').classList.remove('show');
-        };
-
-        // Logout function
-        window.handleLogout = async function(event) {
-            if (event) event.preventDefault();
-            document.getElementById('profileDropdown').classList.remove('show');
-            
-            if (confirm('Are you sure you want to logout?')) {
-                try {
-                    await signOut(auth);
-                    window.location.href = '/login/index.html';
-                } catch (error) {
-                    console.error('Error logging out:', error);
-                    window.location.href = '/login/index.html';
-                }
-            }
-        };
-
-        // Close dropdown when clicking outside
-        document.addEventListener('click', function(event) {
-            const profileContainer = document.querySelector('.profile-container');
-            const profileDropdown = document.getElementById('profileDropdown');
-            if (profileContainer && !profileContainer.contains(event.target)) {
-                profileDropdown.classList.remove('show');
             }
         });
 
