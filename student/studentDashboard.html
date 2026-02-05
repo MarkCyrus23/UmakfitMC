@@ -123,6 +123,20 @@
         .overflow-y-auto::-webkit-scrollbar-thumb:hover {
             background: #2563eb;
         }
+        @keyframes fade-in {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+    }
+
+    .animate-fade-in {
+        animation: fade-in 0.3s ease-out;
+    }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -155,7 +169,7 @@
                         </a>
                         <a href="./test.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
                             <i class="bi bi-clipboard-check"></i> 
-                            <span class="hidden xl:inline">Tests</span>
+                            <span class="hidden xl:inline">Test</span>
                         </a>
                         <a href="./studentlesson.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
                             <i class="bi bi-book"></i> 
@@ -305,7 +319,7 @@
                         <i class="bi bi-speedometer2 mr-2"></i> Dashboard
                     </a>
                     <a href="./test.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
-                        <i class="bi bi-clipboard-check mr-2"></i> Tests
+                        <i class="bi bi-clipboard-check mr-2"></i> Test
                     </a>
                     <a href="./progress.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
                         <i class="bi bi-graph-up mr-2"></i> Progress
@@ -346,10 +360,12 @@
             </span>
         </h1>
         <p class="text-base sm:text-lg md:text-xl text-gray-600 font-medium">
-            <span id="studentCourse" class="text-gray-900">Subject</span> 
-            <span class="mx-2 text-gray-400">•</span> 
-            <span class="text-gray-500">ID:</span> <span id="studentId" class="text-gray-900 font-semibold">000000</span>
-        </p>
+    <span id="studentCourse" class="text-gray-900">Subject</span> 
+    <span class="mx-2 text-gray-400">•</span> 
+    <span id="studentSection" class="text-gray-900">Section</span>  <!-- ADD THIS -->
+    <span class="mx-2 text-gray-400">•</span> 
+    <span class="text-gray-500">ID:</span> <span id="studentId" class="text-gray-900 font-semibold">000000</span>
+    </p>
     </div>
     
     <!-- Stats - Clean No Boxes -->
@@ -362,7 +378,7 @@
                 </div>
                 <div id="testsDone" class="text-5xl sm:text-6xl font-black text-gray-900">0</div>
             </div>
-            <p class="text-xs sm:text-sm font-bold text-gray-500 uppercase tracking-wider">Tests Completed</p>
+            <p class="text-xs sm:text-sm font-bold text-gray-500 uppercase tracking-wider">Test Completed</p>
         </div>
         
         <!-- Average Score -->
@@ -405,7 +421,7 @@
                     <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
                         <i class="bi bi-calendar-check text-white text-lg"></i>
                     </div>
-                    Upcoming Tests
+                    Upcoming Test
                 </h2>
                 <a href="./test.html" class="px-4 py-2 bg-blue-500 text-white rounded-lg font-semibold text-sm hover:bg-blue-600 transition-all">
                     View All
@@ -415,7 +431,7 @@
             <div id="upcomingTestsCard" class="space-y-4 max-h-96 overflow-y-auto pr-2" style="scrollbar-width: thin; scrollbar-color: #3b82f6 #f1f5f9;">
                 <div class="text-center py-16 bg-gray-50 rounded-xl">
                     <i class="bi bi-calendar-x text-6xl text-gray-300 mb-3"></i>
-                    <p class="text-gray-600 font-semibold">No upcoming tests</p>
+                    <p class="text-gray-600 font-semibold">No upcoming test</p>
                     <small class="text-gray-400">Check back later</small>
                 </div>
             </div>
@@ -504,13 +520,13 @@
                     <div id="completionRate" class="text-3xl font-bold text-gray-900">0%</div>
                 </div>
 
-                <!-- Progress Level -->
+                <!-- Tests Completed Count -->
                 <div class="p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-xl">
                     <div class="flex items-center justify-between mb-2">
-                        <span class="text-sm font-semibold text-gray-700">Level</span>
-                        <i class="bi bi-graph-up text-green-600 text-xl"></i>
+                        <span class="text-sm font-semibold text-gray-700">Test Completed</span>
+                        <i class="bi bi-clipboard-check text-green-600 text-xl"></i>
                     </div>
-                    <div id="overallProgress" class="text-3xl font-bold text-gray-900">Beginner</div>
+                    <div id="testsCompletedCount" class="text-3xl font-bold text-gray-900">0 / 0</div>
                 </div>
 
                 <!-- Streak -->
@@ -1574,128 +1590,178 @@
             return Math.round(average);
         }
 
-        // Load student data - UPDATED VERSION
         async function loadStudentData(user) {
-            try {
-                console.log('Loading data for student:', user.email);
-                
-                // Try to get student data from students collection using email
-                const studentsQuery = query(
-                    collection(db, 'students'),
-                    where('email', '==', user.email)
-                );
-                
-                const studentsSnapshot = await getDocs(studentsQuery);
-                
-                if (!studentsSnapshot.empty) {
-                    // Get the first matching student document
-                    const studentDoc = studentsSnapshot.docs[0];
-                    const data = studentDoc.data();
-                    
-                    let displayName = '';
-                    if (user.displayName) {
-                        displayName = user.displayName;
-                    } else if (data.firstName || data.lastName) {
-                        displayName = `${data.firstName || ''} ${data.lastName || ''}`.trim();
-                    } else {
-                        displayName = user.email.split('@')[0];
-                    }
-
-                    studentData = {
-                        uid: user.uid,
-                        displayName: displayName,
-                        email: data.email || user.email,
-                        studentId: data.umakId || data.studentId || '000000',
-                        course: data.department || data.course || 'Not Assigned',
-                        section: data.section || 'Not Assigned',
-                        overallScore: data.overallScore || 0,
-                        testsDone: data.testsDone || 0,
-                        weekStreak: data.weekStreak || 0,
-                        profileComplete: true
-                    };
-                    
-                    console.log('✓ Student data loaded:', studentData);
-                    
-                    // Update UI with student data
-                    document.getElementById('studentName').textContent = studentData.displayName;
-                    document.getElementById('studentCourse').textContent = studentData.course;
-                    document.getElementById('studentId').textContent = studentData.studentId;
-                    
-                    // Update profile UI
-                    updateProfileUI();
-                    
-                    // Load all other data
-                    await calculateAndUpdateStats();
-                    await loadTestHistory();
-                    await updatePerformanceSummary();
-                    await updateChartsWithRealData();
-                    await createOverallProgressChart(); 
-                    await loadUpcomingTests();
-                    
-                    return studentData;
-                    
-                } else {
-                    console.log('✗ No student profile found in students collection');
-                    
-                    // Create a minimal student data object from Firebase auth
-                    studentData = {
-                        uid: user.uid,
-                        displayName: user.displayName || user.email.split('@')[0],
-                        email: user.email,
-                        studentId: 'Not Assigned',
-                        course: 'Not Assigned',
-                        section: 'Not Assigned',
-                        overallScore: 0,
-                        testsDone: 0,
-                        weekStreak: 0,
-                        profileComplete: false
-                    };
-                    
-                    console.log('⚠️ Using minimal student data from Firebase auth');
-                    
-                    // Update UI with minimal data
-                    document.getElementById('studentName').textContent = studentData.displayName;
-                    document.getElementById('studentCourse').textContent = studentData.course;
-                    document.getElementById('studentId').textContent = studentData.studentId;
-                    
-                    // Update profile UI
-                    updateProfileUI();
-                    
-                    // Load what data we can
-                    await calculateAndUpdateStats();
-                    await loadTestHistory();
-                    await updatePerformanceSummary();
-                    
-                    return studentData;
-                }
-                
-            } catch (error) {
-                console.error('Error loading student data:', error);
-                
-                // Fallback to minimal data
-                studentData = {
-                    uid: user.uid,
-                    displayName: user.displayName || user.email.split('@')[0],
-                    email: user.email,
-                    studentId: 'Error Loading',
-                    course: 'Error Loading',
-                    section: 'Error Loading',
-                    overallScore: 0,
-                    testsDone: 0,
-                    weekStreak: 0,
-                    profileComplete: false
-                };
-                
-                document.getElementById('studentName').textContent = studentData.displayName;
-                document.getElementById('studentCourse').textContent = 'Error loading data';
-                document.getElementById('studentId').textContent = 'Error';
-                
-                updateProfileUI();
-                
-                return studentData;
+    try {
+        console.log('Loading data for student:', user.email);
+        
+        // Try to get student data from students collection using email
+        const studentsQuery = query(
+            collection(db, 'students'),
+            where('email', '==', user.email)
+        );
+        
+        const studentsSnapshot = await getDocs(studentsQuery);
+        
+        if (!studentsSnapshot.empty) {
+            // Get the first matching student document
+            const studentDoc = studentsSnapshot.docs[0];
+            const data = studentDoc.data();
+            console.log('📋 All fields in student document:');
+            console.log('- email:', data.email);
+            console.log('- section:', data.section);
+            console.log('- courseCode:', data.courseCode);
+            console.log('- student_id:', data.student_id);
+            console.log('- professor:', data.professor);
+            console.log('- Full document:', data);
+            console.log('✅ Student data loaded from Firestore:', data);
+            
+            let displayName = '';
+            if (user.displayName) {
+                displayName = user.displayName;
+            } else if (data.firstName || data.lastName) {
+                displayName = `${data.firstName || ''} ${data.lastName || ''}`.trim();
+            } else {
+                displayName = user.email.split('@')[0];
             }
-        }
 
+            // ⭐ CRITICAL: Store complete student data including section
+            studentData = {
+            uid: user.uid,
+            displayName: displayName,
+            email: data.email || user.email,
+            studentId: data.umakId || data.studentId || data.student_id || '000000',
+            course: data.department || data.course || data.courseCode || 'Not Assigned',
+            section: data.section || 'Not Assigned',
+                yearLevel: data.yearLevel || 'Not Assigned',
+                firstName: data.firstName || '',
+                lastName: data.lastName || '',
+                age: data.age || 0,
+                gender: data.gender || 'Not Specified',
+                height: data.height || 0,
+                weight: data.weight || 0,
+                contactNumber: data.contactNumber || 'Not Provided',
+                medicalCondition: data.medicalCondition || 'None',
+                overallScore: data.overallScore || 0,
+                testsDone: data.testsDone || 0,
+                weekStreak: data.weekStreak || 0,
+                profileComplete: true
+            };
+            
+            console.log('✅ Section loaded:', studentData.section);
+            console.log('✅ Course Code loaded:', studentData.courseCode);
+            console.log('✅ Raw data from Firestore:', data);
+            
+            // Update UI with student data
+           document.getElementById('studentName').textContent = studentData.displayName;
+            document.getElementById('studentCourse').textContent = studentData.courseCode || studentData.course; 
+            document.getElementById('studentSection').textContent = studentData.section || 'Not Assigned';
+            document.getElementById('studentId').textContent = studentData.studentId;
+            
+            // Update profile UI
+            updateProfileUI();
+            
+            // Load all other data
+            await calculateAndUpdateStats();
+            await loadTestHistory();
+            await updatePerformanceSummary();
+            await updateChartsWithRealData();
+            await createOverallProgressChart(); 
+            await loadUpcomingTests();
+            
+            return studentData;
+            
+        } else {
+            console.log('⚠️ No student profile found in students collection');
+            
+            // Create a minimal student data object from Firebase auth
+            studentData = {
+                uid: user.uid,
+                displayName: user.displayName || user.email.split('@')[0],
+                email: user.email,
+                studentId: 'Not Assigned',
+                course: 'Not Assigned',
+                section: 'Not Assigned', // ⭐ Set as Not Assigned if no profile exists
+                overallScore: 0,
+                testsDone: 0,
+                weekStreak: 0,
+                profileComplete: false
+            };
+            
+            console.log('⚠️ Using minimal student data - section will show as Not Assigned');
+            console.log('⚠️ Student should complete their profile in studentProfile.html');
+            
+            // Update UI with minimal data
+            document.getElementById('studentName').textContent = studentData.displayName;
+            document.getElementById('studentCourse').textContent = studentData.course;
+            document.getElementById('studentId').textContent = studentData.studentId;
+            
+            // Update profile UI
+            updateProfileUI();
+            
+            // Load what data we can
+            await calculateAndUpdateStats();
+            await loadTestHistory();
+            await updatePerformanceSummary();
+            
+            // Show a notification to complete profile
+            showProfileIncompleteNotification();
+            
+            return studentData;
+        }
+        
+    } catch (error) {
+        console.error('❌ Error loading student data:', error);
+        
+        // Fallback to minimal data
+        studentData = {
+            uid: user.uid,
+            displayName: user.displayName || user.email.split('@')[0],
+            email: user.email,
+            studentId: 'Error Loading',
+            course: 'Error Loading',
+            section: 'Error Loading',
+            overallScore: 0,
+            testsDone: 0,
+            weekStreak: 0,
+            profileComplete: false
+        };
+        
+        document.getElementById('studentName').textContent = studentData.displayName;
+        document.getElementById('studentCourse').textContent = 'Error loading data';
+        document.getElementById('studentId').textContent = 'Error';
+        
+        updateProfileUI();
+        
+        return studentData;
+    }
+}
+    function showProfileIncompleteNotification() {
+    const notification = document.createElement('div');
+    notification.className = 'fixed bottom-4 right-4 bg-yellow-500 text-white px-6 py-4 rounded-lg shadow-2xl z-[10000] max-w-sm';
+    notification.innerHTML = `
+        <div class="flex items-start gap-3">
+            <i class="bi bi-exclamation-triangle text-2xl"></i>
+            <div class="flex-1">
+                <h6 class="font-bold mb-1">Profile Incomplete</h6>
+                <p class="text-sm mb-2">Your section is not assigned. Please complete your profile.</p>
+                <a href="./studentProfile.html" class="inline-block bg-white text-yellow-600 px-4 py-2 rounded font-semibold text-sm hover:bg-yellow-50 transition-colors">
+                    Complete Profile
+                </a>
+            </div>
+            <button onclick="this.parentElement.parentElement.remove()" class="text-white hover:text-yellow-100">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+    `;
+    document.body.appendChild(notification);
+    
+    // Auto-remove after 10 seconds
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.remove();
+        }
+    }, 10000);
+}
         // Load upcoming tests
 async function loadUpcomingTests() {
     try {
@@ -1895,13 +1961,19 @@ async function loadUpcomingTests() {
             
             container.innerHTML = html;
             
-            // Add event listeners to start test buttons (only for non-view-only tests)
             document.querySelectorAll('.start-test-btn').forEach(button => {
-                button.addEventListener('click', function() {
-                    const testId = this.getAttribute('data-test-id');
-                    startTest(testId);
-                });
+            button.addEventListener('click', function() {
+                const testId = this.getAttribute('data-test-id');
+                
+                // Check if profile is complete before starting test
+                if (!isProfileComplete(studentData)) {
+                    showProfileRequiredModal();
+                    return;
+                }
+                
+                startTest(testId);
             });
+        });
             
         } else {
             container.innerHTML = `
@@ -1927,149 +1999,250 @@ async function loadUpcomingTests() {
     }
 }
 
-        // Calculate and update stats
         async function calculateAndUpdateStats() {
-            try {
-                if (!studentData || !studentData.email) {
-                    console.log('No student data available');
-                    return;
-                }
-
-                const resultsQuery = query(
-                    collection(db, 'testResults'),
-                    where('studentEmail', '==', studentData.email),
-                    where('status', '==', 'completed')
-                );
-                
-                const resultsSnapshot = await getDocs(resultsQuery);
-                
-                let totalTests = 0;
-                let totalScore = 0;
-                let bestScore = 0;
-                let bestTestName = '';
-                
-                resultsSnapshot.forEach((doc) => {
-                    const result = doc.data();
-                    const score = result.score || calculateTestScore(result.testName, result.resultData || result.result, result.testTarget);
-                    
-                    totalTests++;
-                    totalScore += score;
-                    
-                    if (score > bestScore) {
-                        bestScore = score;
-                        bestTestName = result.testName;
-                    }
-                });
-                
-                const avgScore = totalTests > 0 ? Math.round(totalScore / totalTests) : 0;
-                
-                // Update the DOM elements
-                document.getElementById('testsDone').textContent = totalTests;
-                document.getElementById('avgScore').textContent = avgScore;
-                
-                // Update best score with tooltip showing test name
-                const bestScoreElement = document.getElementById('bestScore');
-                bestScoreElement.textContent = bestScore;
-                const bestScoreTestElement = document.getElementById('bestScoreTest');
-                if (bestScoreTestElement && bestTestName) {
-                    bestScoreTestElement.textContent = bestTestName;
-                    bestScoreTestElement.classList.remove('hidden');
-                }
-                
-                // Add tooltip/title to show which test achieved the best score
-                if (bestTestName) {
-                    bestScoreElement.title = `Best score from: ${bestTestName}`;
-                    bestScoreElement.style.cursor = 'help';
-                }
-                
-                console.log('Stats updated:', { 
-                    totalTests, 
-                    avgScore, 
-                    bestScore,
-                    bestTestName 
-                });
-                
-            } catch (error) {
-                console.error('Error calculating stats:', error);
-                document.getElementById('testsDone').textContent = '0';
-                document.getElementById('avgScore').textContent = '0';
-                document.getElementById('bestScore').textContent = '0';
-            }
+    try {
+        if (!studentData || !studentData.email) {
+            console.log('No student data available');
+            return;
         }
 
-        // Update performance summary
+        const resultsQuery = query(
+            collection(db, 'testResults'),
+            where('studentEmail', '==', studentData.email)
+        );
+        
+        const resultsSnapshot = await getDocs(resultsQuery);
+        
+        // ⭐ NEW: Use Map to track best scores per test (avoid counting duplicates)
+        const testBestScores = new Map();
+        let overallBestScore = 0;
+        let overallBestTestName = '';
+        
+        resultsSnapshot.forEach((doc) => {
+            const result = doc.data();
+            const score = result.score || calculateTestScore(
+                result.testName, 
+                result.resultData || result.result, 
+                result.testTarget
+            );
+            const testId = result.testId;
+            
+            // Keep only the BEST score for each test
+            if (!testBestScores.has(testId) || score > testBestScores.get(testId)) {
+                testBestScores.set(testId, score);
+            }
+            
+            // Track overall best score
+            if (score > overallBestScore) {
+                overallBestScore = score;
+                overallBestTestName = result.testName;
+            }
+        });
+        
+        // Calculate average from BEST scores only
+        let totalScore = 0;
+        testBestScores.forEach(score => {
+            totalScore += score;
+        });
+        
+        const totalUniqueTests = testBestScores.size;
+        const avgScore = totalUniqueTests > 0 ? Math.round(totalScore / totalUniqueTests) : 0;
+        
+        // Update the DOM elements
+        document.getElementById('testsDone').textContent = totalUniqueTests;
+        document.getElementById('avgScore').textContent = avgScore;
+        
+        // Update best score with tooltip showing test name
+        const bestScoreElement = document.getElementById('bestScore');
+        bestScoreElement.textContent = overallBestScore;
+        const bestScoreTestElement = document.getElementById('bestScoreTest');
+        if (bestScoreTestElement && overallBestTestName) {
+            bestScoreTestElement.textContent = overallBestTestName;
+            bestScoreTestElement.classList.remove('hidden');
+        }
+        
+        // Add tooltip/title to show which test achieved the best score
+        if (overallBestTestName) {
+            bestScoreElement.title = `Best score from: ${overallBestTestName}`;
+            bestScoreElement.style.cursor = 'help';
+        }
+        
+        console.log('Stats updated:', { 
+            totalUniqueTests, 
+            avgScore, 
+            overallBestScore,
+            overallBestTestName 
+        });
+        
+    } catch (error) {
+        console.error('Error calculating stats:', error);
+        document.getElementById('testsDone').textContent = '0';
+        document.getElementById('avgScore').textContent = '0';
+        document.getElementById('bestScore').textContent = '0';
+    }
+}
+
         async function updatePerformanceSummary() {
-            try {
-                if (!studentData || !studentData.email) return;
-
-                const assignedTestsQuery = query(
-                    collection(db, 'scheduledTests'),
-                    where('section', '==', studentData.section),
-                    where('isVisible', '==', true)
-                );
-                const assignedTestsSnapshot = await getDocs(assignedTestsQuery);
-                const totalAssigned = assignedTestsSnapshot.size;
-
-                const completedTestsQuery = query(
-                    collection(db, 'testResults'),
-                    where('studentEmail', '==', studentData.email),
-                    where('status', '==', 'completed')
-                );
-                const completedTestsSnapshot = await getDocs(completedTestsQuery);
-                const totalCompleted = completedTestsSnapshot.size;
-
-                const completionRate = totalAssigned > 0 ? Math.round((totalCompleted / totalAssigned) * 100) : 0;
-                document.getElementById('completionRate').textContent = completionRate + '%';
-
-                let progressLevel = 'Beginner';
-                if (completionRate >= 80) progressLevel = 'Expert';
-                else if (completionRate >= 60) progressLevel = 'Advanced';
-                else if (completionRate >= 40) progressLevel = 'Intermediate';
-                document.getElementById('overallProgress').textContent = progressLevel;
-
-                // Calculate week streak
-                let weekStreak = 0;
-                if (!completedTestsSnapshot.empty) {
-                    const tests = [];
-                    completedTestsSnapshot.forEach(doc => {
-                        tests.push(doc.data());
-                    });
-                    tests.sort((a, b) => {
-                        const dateA = a.submittedAt?.toDate?.() || new Date(0);
-                        const dateB = b.submittedAt?.toDate?.() || new Date(0);
-                        return dateB - dateA;
-                    });
-                    
-                    weekStreak = calculateWeekStreak(tests);
-                }
-                
-                document.getElementById('currentStreak').textContent = weekStreak > 0 ? `${weekStreak} ${weekStreak === 1 ? 'week' : 'weeks'}` : '0 weeks';
-                
-                // Calculate rank/level based on completion rate and average score
-                const avgScore = parseInt(document.getElementById('avgScore').textContent) || 0;
-                const rankLevel = calculateRankLevel(completionRate, avgScore);
-                document.getElementById('rankLevel').textContent = rankLevel;
-                
-                // Calculate Class Ranking
-                await calculateClassRanking();
-                
-                // Calculate Strongest Category
-                await calculateStrongestCategory();
-
-                const tips = {
-                    'Elite': 'Outstanding! You\'re at the top of your game. Maintain this excellence!',
-                    'Expert': 'Excellent work! Keep maintaining your fitness routine.',
-                    'Advanced': 'Great progress! Challenge yourself with harder variations.',
-                    'Intermediate': 'Good job! Stay consistent to reach the next level.',
-                    'Beginner': 'Keep pushing! Complete more tests to improve your ranking.',
-                    'Novice': 'Complete your pending tests to track your fitness progress!'
-                };
-                document.getElementById('dailyTip').textContent = tips[rankLevel];
-
-            } catch (error) {
-                console.error('Error updating performance summary:', error);
-            }
+    try {
+        if (!studentData || !studentData.email || !studentData.section || studentData.section === 'Not Assigned') {
+            console.log('No student data or section available for performance summary');
+            document.getElementById('completionRate').textContent = '0%';
+            document.getElementById('testsCompletedCount').textContent = '0 / 0';
+            document.getElementById('currentStreak').textContent = '0 weeks';
+            document.getElementById('rankLevel').textContent = 'Novice';
+            return;
         }
+
+        // Get all assigned tests for this student's section
+        const assignedTestsQuery = query(
+            collection(db, 'scheduledTests'),
+            where('section', '==', studentData.section),
+            where('isVisible', '==', true),
+            where('isActive', '==', true)
+        );
+        const assignedTestsSnapshot = await getDocs(assignedTestsQuery);
+        
+        const now = new Date();
+        const seenTestIds = new Set();
+        let totalAssignedTests = 0;
+        
+        // Count unique tests that are either available now or overdue
+        assignedTestsSnapshot.forEach((doc) => {
+            const test = doc.data();
+            const testId = doc.id;
+            
+            // Skip duplicate test IDs
+            if (seenTestIds.has(testId)) {
+                return;
+            }
+            seenTestIds.add(testId);
+            
+            // ⭐ Check if student is selected for this test
+            let isStudentSelected = true; // Default to true for backward compatibility
+            if (test.selectedStudents && Array.isArray(test.selectedStudents)) {
+                isStudentSelected = test.selectedStudents.includes(studentData.email);
+            }
+            
+            // Only count tests that the student is selected for
+            if (!isStudentSelected) {
+                return;
+            }
+            
+            // Parse test date and deadline
+            let testDateTime;
+            if (test.date && test.time) {
+                testDateTime = new Date(`${test.date}T${test.time}`);
+            } else if (test.date) {
+                testDateTime = new Date(test.date);
+                testDateTime.setHours(0, 0, 0, 0);
+            } else {
+                testDateTime = new Date(0); // Very old date
+            }
+            
+            let deadlineDateTime;
+            if (test.deadlineDateTime) {
+                deadlineDateTime = new Date(test.deadlineDateTime);
+            } else if (test.deadline) {
+                deadlineDateTime = new Date(test.deadline);
+                if (test.deadlineTime) {
+                    const [hours, minutes] = test.deadlineTime.split(':').map(Number);
+                    deadlineDateTime.setHours(hours, minutes, 0, 0);
+                } else {
+                    deadlineDateTime.setHours(23, 59, 59, 999);
+                }
+            } else {
+                deadlineDateTime = new Date(8640000000000000); // Very far future
+            }
+            
+            // Check if test is available (test date has passed)
+            const isTestAvailable = testDateTime <= now;
+            
+            // Check if test is overdue
+            const isOverdue = deadlineDateTime < now;
+            
+            // Only count tests that are either:
+            // 1. Available now (test date passed, deadline not passed)
+            // 2. Overdue (deadline passed)
+            if (isTestAvailable || isOverdue) {
+                totalAssignedTests++;
+            }
+        });
+
+        // Get completed tests (unique tests only)
+        const completedTestsQuery = query(
+            collection(db, 'testResults'),
+            where('studentEmail', '==', studentData.email)
+        );
+        const completedTestsSnapshot = await getDocs(completedTestsQuery);
+        
+        // Count unique completed tests
+        const completedTestIds = new Set();
+        const tests = [];
+        
+        completedTestsSnapshot.forEach(doc => {
+            const result = doc.data();
+            completedTestIds.add(result.testId);
+            tests.push(result);
+        });
+        
+        const totalCompleted = completedTestIds.size;
+
+        // Calculate completion rate
+        const completionRate = totalAssignedTests > 0 ? Math.round((totalCompleted / totalAssignedTests) * 100) : 0;
+        document.getElementById('completionRate').textContent = completionRate + '%';
+        
+        // ⭐ NEW: Update Tests Completed Count (replace "Level")
+        document.getElementById('testsCompletedCount').textContent = `${totalCompleted} / ${totalAssignedTests}`;
+
+        // Calculate week streak
+        let weekStreak = 0;
+        if (tests.length > 0) {
+            tests.sort((a, b) => {
+                const dateA = a.submittedAt?.toDate?.() || new Date(0);
+                const dateB = b.submittedAt?.toDate?.() || new Date(0);
+                return dateB - dateA;
+            });
+            
+            weekStreak = calculateWeekStreak(tests);
+        }
+        
+        document.getElementById('currentStreak').textContent = weekStreak > 0 ? `${weekStreak} ${weekStreak === 1 ? 'week' : 'weeks'}` : '0 weeks';
+        
+        // Calculate rank/level based on completion rate and average score
+        const avgScore = parseInt(document.getElementById('avgScore').textContent) || 0;
+        const rankLevel = calculateRankLevel(completionRate, avgScore);
+        document.getElementById('rankLevel').textContent = rankLevel;
+        
+        // Calculate Class Ranking
+        await calculateClassRanking();
+        
+        // Calculate Strongest Category
+        await calculateStrongestCategory();
+
+        const tips = {
+            'Elite': 'Outstanding! You\'re at the top of your game. Maintain this excellence!',
+            'Expert': 'Excellent work! Keep maintaining your fitness routine.',
+            'Advanced': 'Great progress! Challenge yourself with harder variations.',
+            'Intermediate': 'Good job! Stay consistent to reach the next level.',
+            'Beginner': 'Keep pushing! Complete more tests to improve your ranking.',
+            'Novice': 'Complete your pending tests to track your fitness progress!'
+        };
+        document.getElementById('dailyTip').textContent = tips[rankLevel];
+
+        console.log('📊 Performance Summary:', {
+            totalAssignedTests,
+            totalCompleted,
+            completionRate: completionRate + '%',
+            weekStreak,
+            rankLevel
+        });
+
+    } catch (error) {
+        console.error('Error updating performance summary:', error);
+        document.getElementById('completionRate').textContent = '0%';
+        document.getElementById('testsCompletedCount').textContent = '0 / 0';
+    }
+}
 
         // Calculate class ranking
         async function calculateClassRanking() {
@@ -2820,7 +2993,62 @@ async function loadUpcomingTests() {
         function startTest(testId) {
             window.location.href = `./testdetails.html?testId=${testId}`;
         }
+                // Check if profile is complete
+        function isProfileComplete(studentData) {
+            return studentData && 
+                studentData.age > 0 && 
+                studentData.gender && 
+                studentData.gender !== 'Not Specified' &&
+                studentData.height > 0 && 
+                studentData.weight > 0 &&
+                studentData.contactNumber && 
+                studentData.contactNumber !== 'Not Provided';
+        }
 
+        // Show profile completion modal
+        function showProfileRequiredModal() {
+            // Create modal if it doesn't exist
+            let modal = document.getElementById('profileRequiredModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'profileRequiredModal';
+                modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[10000] px-4';
+                modal.innerHTML = `
+                    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 sm:p-8 animate-fade-in">
+                        <div class="text-center mb-6">
+                            <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="bi bi-exclamation-triangle text-3xl text-yellow-600"></i>
+                            </div>
+                            <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Profile Incomplete</h3>
+                            <p class="text-sm sm:text-base text-gray-600">
+                                You need to complete your profile before taking any tests. Please provide your age, gender, height, weight, and contact number.
+                            </p>
+                        </div>
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <button onclick="closeProfileRequiredModal()" class="flex-1 px-4 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-all">
+                                Cancel
+                            </button>
+                            <button onclick="goToEditProfile()" class="flex-1 px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 transition-all">
+                                Edit Profile
+                            </button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            }
+            modal.classList.remove('hidden');
+        }
+
+        window.closeProfileRequiredModal = function() {
+            const modal = document.getElementById('profileRequiredModal');
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+        };
+
+        window.goToEditProfile = function() {
+            window.location.href = './studentProfile.html?editProfile=true';
+        };
         // Auth state change listener - UPDATED VERSION
         onAuthStateChanged(auth, async (user) => {
             if (user) {

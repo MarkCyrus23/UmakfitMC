@@ -1075,96 +1075,116 @@
             }
         });
 
-async function loadSections() {
-    try {
-        console.log('📊 Loading sections...');
-        
-        window.sections = [];
-        let professorEmail = window.currentUser.email;
-        
-        // Get professor name
-        let professorFullName = null;
-        const profQuery = query(collection(db, 'professors'), where('email', '==', professorEmail));
-        const profSnap = await getDocs(profQuery);
-        if (!profSnap.empty) {
-            professorFullName = profSnap.docs[0].data().fullName || profSnap.docs[0].data().name;
-        }
-        
-        if (!professorFullName) {
-            professorFullName = window.currentUser.displayName || professorEmail.split('@')[0].toUpperCase();
-        }
-        
-        console.log('👤 Looking for sections of:', professorFullName);
-        
-        // Get all sections
-        const sectionsSnapshot = await getDocs(collection(db, 'sections'));
-        
-        sectionsSnapshot.forEach(sectionDoc => {
-            const data = sectionDoc.data();
-            const dbProfessor = (data.professor || '').toString().trim();
-            
-            const matches = 
-                dbProfessor === professorFullName ||
-                dbProfessor.toUpperCase().includes(professorFullName.toUpperCase()) ||
-                professorFullName.toUpperCase().includes(dbProfessor.toUpperCase());
-            
-            if (matches) {
-                console.log(`✅ MATCHED! Section: ${data.name}`);
+        async function loadSections() {
+            try {
+                console.log('📊 Loading sections...');
                 
-                const studentCount = Array.isArray(data.students) ? data.students.length : 0;
+                window.sections = [];
+                let professorEmail = window.currentUser.email;
                 
-                // ⭐⭐⭐ USE NEW STANDARDIZED FIELDS
-                window.sections.push({
-                    id: sectionDoc.id,
-                    name: data.name,
-                    yearLevel: data.yearLevel || extractYearLevel(data.name),
-                    studentCount: studentCount,
+                // Get professor name
+                let professorFullName = null;
+                const profQuery = query(collection(db, 'professors'), where('email', '==', professorEmail));
+                const profSnap = await getDocs(profQuery);
+                if (!profSnap.empty) {
+                    professorFullName = profSnap.docs[0].data().fullName || profSnap.docs[0].data().name;
+                }
+                
+                if (!professorFullName) {
+                    professorFullName = window.currentUser.displayName || professorEmail.split('@')[0].toUpperCase();
+                }
+                
+                console.log('👤 Looking for sections of:', professorFullName);
+                
+                // Get all sections
+                const sectionsSnapshot = await getDocs(collection(db, 'sections'));
+                
+                sectionsSnapshot.forEach(sectionDoc => {
+                    const data = sectionDoc.data();
+                    const dbProfessor = (data.professor || '').toString().trim();
                     
-                    // Use new fields (with fallback to old field names)
-                    courseCode: data.courseCode || 'PE 3',
-                    schedule: data.schedule || 'Not Set',              // ⭐ Direct field
-                    createdYear: data.academicYear || '2025-2026',     // ⭐ Direct field
+                    const matches = 
+                        dbProfessor === professorFullName ||
+                        dbProfessor.toUpperCase().includes(professorFullName.toUpperCase()) ||
+                        professorFullName.toUpperCase().includes(dbProfessor.toUpperCase());
                     
-                    // Additional details
-                    timeSlot: data.timeSlot || '',
-                    days: data.days || '',
-                    room: data.room || '',
-                    semester: data.semester || '',
-                    fullSemester: data.fullSemester || '',
-                    
-                    status: 'active',
-                    professorName: dbProfessor,
-                    description: data.description || '',
-                    students: data.students || []
+                    if (matches) {
+                        console.log(`✅ MATCHED! Section: ${data.name}`);
+                        
+                        const studentCount = Array.isArray(data.students) ? data.students.length : 0;
+                        
+                       
+                        let schedule = '';
+                        if (data.time && data.day && data.room) {
+                            schedule = `${data.time} / ${data.day} / ${data.room}`;
+                        } else if (data.schedule) {
+                            schedule = data.schedule; // Use existing schedule if available
+                        } else {
+                            schedule = 'Not Set';
+                        }
+                        
+                        // Extract academic year from various possible fields
+                        let academicYear = '';
+                        if (data.academicYear) {
+                            academicYear = data.academicYear;
+                        } else if (data.createdYear) {
+                            academicYear = data.createdYear;
+                        } else {
+                            academicYear = '2025-2026'; // Default
+                        }
+                        
+                        window.sections.push({
+                            id: sectionDoc.id,
+                            name: data.name,
+                            yearLevel: data.yearLevel || extractYearLevel(data.name),
+                            studentCount: studentCount,
+                            
+                            // Use the combined schedule
+                            courseCode: data.courseCode || 'PE 3',
+                            schedule: schedule, 
+                            createdYear: academicYear,
+                            
+                            // Store individual components for reference
+                            timeSlot: data.time || '',
+                            days: data.day || data.days || '',
+                            room: data.room || '',
+                            semester: data.semester || '',
+                            fullSemester: data.fullSemester || '',
+                            
+                            // Additional details
+                            status: 'active',
+                            professorName: dbProfessor,
+                            description: data.description || '',
+                            students: data.students || []
+                        });
+                    }
                 });
+                
+                console.log(`📊 Total sections loaded: ${window.sections.length}`);
+                window.filteredSections = [...window.sections];
+                
+                if (window.sections.length === 0) {
+                    document.getElementById('sectionsTableBody').innerHTML = `
+                        <tr>
+                            <td colspan="7">
+                                <div class="empty-state">
+                                    <div class="empty-icon">⚠️</div>
+                                    <div class="empty-title">No Sections Assigned</div>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    populateSectionsTable();
+                    populateSectionFilters();
+                }
+                
+            } catch (error) {
+                console.error('❌ Error loading sections:', error);
+                alert('Error loading sections: ' + error.message);
             }
-        });
-        
-        console.log(`📊 Total sections loaded: ${window.sections.length}`);
-        window.filteredSections = [...window.sections];
-        
-        if (window.sections.length === 0) {
-            document.getElementById('sectionsTableBody').innerHTML = `
-                <tr>
-                    <td colspan="7">
-                        <div class="empty-state">
-                            <div class="empty-icon">⚠️</div>
-                            <div class="empty-title">No Sections Assigned</div>
-                        </div>
-                    </td>
-                </tr>
-            `;
-        } else {
-            populateSectionsTable();
-            populateSectionFilters();
         }
-        
-    } catch (error) {
-        console.error('❌ Error loading sections:', error);
-        alert('Error loading sections: ' + error.message);
-    }
-}
-// ⭐ ADD THIS FUNCTION - CSV Upload Handler
+
 async function uploadSectionFromCSV(csvData) {
     try {
         // Parse CSV data
@@ -1576,72 +1596,77 @@ function calculateTestScore(testName, result, testTarget = null) {
 }
 
 function populateSectionsTable() {
-                const tableBody = document.getElementById('sectionsTableBody');
-                const sectionCount = document.getElementById('sectionCount');
-                
-                sectionCount.textContent = window.filteredSections.length;
-                
-                if (window.filteredSections.length === 0) {
-                    if (window.sections.length === 0) {
-                        tableBody.innerHTML = `
-                            <tr>
-                                <td colspan="7">
-                                    <div class="empty-state">
-                                        <div class="empty-icon">🏫</div>
-                                        <div class="empty-title">No Sections Assigned</div>
-                                        <div class="empty-text">You haven't been assigned to any sections yet. Please contact the Dean or Head Admin.</div>
-                                    </div>
-                                </td>
-                            </tr>
-                        `;
-                    } else {
-                        tableBody.innerHTML = `
-                            <tr>
-                                <td colspan="7">
-                                    <div class="empty-state">
-                                        <div class="empty-icon">🔍</div>
-                                        <div class="empty-title">No Sections Found</div>
-                                        <div class="empty-text">No sections match your search criteria.</div>
-                                    </div>
-                                </td>
-                            </tr>
-                        `;
-                    }
-                    return;
-                }
-                
-                let html = '';
-                window.filteredSections.forEach(section => {
-                    const statusClass = section.status === 'active' ? 'status-active' : 'status-inactive';
-                    const statusText = section.status === 'active' ? 'Active' : 'Inactive';
-                    
-html += `
-    <tr>
-        <td>
-            <strong style="color: #1e3a8a;">${section.name}</strong>
-            ${section.description ? `<br><small style="color: #64748b;">${section.description}</small>` : ''}
-        </td>
-        <td><span style="font-weight: 600;">${section.yearLevel || 'N/A'}</span></td>
-        <td>
-            <span style="font-weight: 700; color: #3b82f6;">${section.studentCount || 0}</span>
-            <small style="color: #64748b;"> students</small>
-        </td>
-        <td><span style="font-family: monospace; background: #f1f5f9; padding: 4px 8px; border-radius: 4px;">${section.courseCode || 'N/A'}</span></td>
-        <td><strong style="color: ${section.schedule === 'Not Set' ? '#ef4444' : '#475569'};">${section.schedule}</strong></td>
-        <td><strong style="color: #1e3a8a;">${section.createdYear}</strong></td>
-        <td>
-            <div class="action-buttons">
-                <button class="btn-action btn-view" onclick="viewSectionDetails('${section.id}')">
-                    <i class="fas fa-eye"></i> View
-                </button>
-            </div>
-        </td>
-    </tr>
-`;
-                });
-                
-                tableBody.innerHTML = html;
-            }
+    const tableBody = document.getElementById('sectionsTableBody');
+    const sectionCount = document.getElementById('sectionCount');
+    
+    sectionCount.textContent = window.filteredSections.length;
+    
+    if (window.filteredSections.length === 0) {
+        if (window.sections.length === 0) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="7">
+                        <div class="empty-state">
+                            <div class="empty-icon">🏫</div>
+                            <div class="empty-title">No Sections Assigned</div>
+                            <div class="empty-text">You haven't been assigned to any sections yet. Please contact the Dean or Head Admin.</div>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        } else {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="7">
+                        <div class="empty-state">
+                            <div class="empty-icon">🔍</div>
+                            <div class="empty-title">No Sections Found</div>
+                            <div class="empty-text">No sections match your search criteria.</div>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+        return;
+    }
+    
+    let html = '';
+    window.filteredSections.forEach(section => {
+        const statusClass = section.status === 'active' ? 'status-active' : 'status-inactive';
+        const statusText = section.status === 'active' ? 'Active' : 'Inactive';
+        
+        // Format the schedule display - show "Not Set" in red if empty
+        const scheduleDisplay = section.schedule === 'Not Set' ? 
+            '<span style="color: #ef4444; font-weight: 600;">Not Set</span>' : 
+            `<span style="font-weight: 600; color: #1e3a8a;">${section.schedule}</span>`;
+        
+        html += `
+            <tr>
+                <td>
+                    <strong style="color: #1e3a8a;">${section.name}</strong>
+                    ${section.description ? `<br><small style="color: #64748b;">${section.description}</small>` : ''}
+                </td>
+                <td><span style="font-weight: 600;">${section.yearLevel || 'N/A'}</span></td>
+                <td>
+                    <span style="font-weight: 700; color: #3b82f6;">${section.studentCount || 0}</span>
+                    <small style="color: #64748b;"> students</small>
+                </td>
+                <td><span style="font-family: monospace; background: #f1f5f9; padding: 4px 8px; border-radius: 4px;">${section.courseCode || 'N/A'}</span></td>
+                <td>${scheduleDisplay}</td>
+                <td><strong style="color: #1e3a8a;">${section.createdYear}</strong></td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn-action btn-view" onclick="viewSectionDetails('${section.id}')">
+                            <i class="fas fa-eye"></i> View
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    });
+    
+    tableBody.innerHTML = html;
+}
             function isMobileView() {
     return window.innerWidth <= 768;
 }
@@ -1769,6 +1794,19 @@ async function viewSectionDetails(sectionId) {
         const averageScore = studentsWithAttempts > 0 ? Math.round(totalScore / studentsWithAttempts) : 0;
         const completionRate = sectionStudents.length > 0 ? Math.round((studentsWithAttempts / sectionStudents.length) * 100) : 0;
         
+        // ⭐⭐⭐ FIXED: Properly format the schedule
+        let schedule = '';
+        if (sectionData.time && sectionData.day && sectionData.room) {
+            schedule = `${sectionData.time} / ${sectionData.day} / ${sectionData.room}`;
+        } else if (sectionData.schedule) {
+            schedule = sectionData.schedule;
+        } else {
+            schedule = 'Not Set';
+        }
+        
+        // Get academic year properly
+        const academicYear = sectionData.academicYear || sectionData.createdYear || sectionData.year || 'N/A';
+        
         let html = `
             <div class="student-info-header">
                 <div class="student-avatar">
@@ -1776,24 +1814,24 @@ async function viewSectionDetails(sectionId) {
                 </div>
                 <div class="student-basic-info">
                     <div class="student-name">${sectionData.name}</div>
-<div class="student-id">
-    ${sectionData.courseCode || 'PE 3'} • 
-    ${sectionData.createdYear || sectionData.created_year || sectionData.year || 'N/A'} • 
-    ${sectionData.schedule || sectionData.time_day_room || sectionData.timeDayRoom || 'Not Set'}
-</div>
+                    <div class="student-id">
+                        ${sectionData.courseCode || 'PE 3'} • 
+                        ${academicYear} • 
+                        ${schedule}
+                    </div>
                 </div>
             </div>
             <div class="student-info-grid">
-    <div class="info-item">
-        <div class="info-label">Total Students</div>
-        <div class="info-value">
-            <strong style="color: #3b82f6; font-size: 18px;">${sectionStudents.length}</strong>
-        </div>
-    </div>
-    <div class="info-item">
-        <div class="info-label">Schedule</div>
-        <div class="info-value">${sectionData.schedule || sectionData.time_day_room || sectionData.timeDayRoom || 'Not Set'}</div>
-    </div>
+                <div class="info-item">
+                    <div class="info-label">Total Students</div>
+                    <div class="info-value">
+                        <strong style="color: #3b82f6; font-size: 18px;">${sectionStudents.length}</strong>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Schedule</div>
+                    <div class="info-value">${schedule}</div>
+                </div>
 
                 <div class="info-item">
                     <div class="info-label">Total Attempts</div>
@@ -1960,6 +1998,17 @@ async function viewSectionDetails(sectionId) {
         const averageScore = totalAttempts > 0 ? Math.round(totalScore / totalAttempts) : 0;
         const initials = (student.firstName.charAt(0) + student.lastName.charAt(0)).toUpperCase() || '??';
 
+     
+        let sectionSchedule = 'Not Set';
+        const studentSection = window.sections.find(s => s.name === student.section);
+        if (studentSection) {
+            if (studentSection.timeSlot && studentSection.days && studentSection.room) {
+                sectionSchedule = `${studentSection.timeSlot} / ${studentSection.days} / ${studentSection.room}`;
+            } else if (studentSection.schedule) {
+                sectionSchedule = studentSection.schedule;
+            }
+        }
+
         let html = `
             <div class="student-info-header">
                 <div class="student-avatar">${initials}</div>
@@ -1974,6 +2023,10 @@ async function viewSectionDetails(sectionId) {
                     <div class="info-value info-value-email">${student.email || 'N/A'}</div>
                 </div>
                 <div class="info-item"><div class="info-label">Year Level</div><div class="info-value">${student.yearLevel || 'N/A'}</div></div>
+                <div class="info-item">
+                    <div class="info-label">Section Schedule</div>
+                    <div class="info-value">${sectionSchedule}</div>
+                </div>
                 <div class="info-item"><div class="info-label">Total Tests Taken</div><div class="info-value"><strong>${Object.keys(testGroups).length}</strong></div></div>
                 <div class="info-item"><div class="info-label">Best Score</div><div class="info-value">${totalAttempts > 0 ? `<span class="score-badge ${bestScore >= 90 ? 'score-excellent' : bestScore >= 70 ? 'score-good' : 'score-poor'}">${bestScore}%</span>` : 'No attempts'}</div></div>
                 <div class="info-item"><div class="info-label">Average Score</div><div class="info-value">${totalAttempts > 0 ? `<strong>${averageScore}%</strong>` : 'No attempts'}</div></div>

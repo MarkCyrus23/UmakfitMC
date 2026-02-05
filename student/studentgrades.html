@@ -670,34 +670,102 @@
         
         // Set up listener for assigned tests
         onSnapshot(assignedTestsQuery, async (assignedSnapshot) => {
-            totalAssignedTests = assignedSnapshot.size;
+            const now = new Date();
+            const seenTestIds = new Set();
+            totalAssignedTests = 0;
             overdueTests = 0;
             
-            // Check for overdue tests
-            const now = new Date();
+            // Count unique tests that are either available now or overdue
             assignedSnapshot.forEach((doc) => {
                 const test = doc.data();
-                if (test.dueDate) {
-                    const dueDate = test.dueDate.toDate();
-                    if (dueDate < now) {
+                const testId = doc.id;
+                
+                // Skip duplicate test IDs
+                if (seenTestIds.has(testId)) {
+                    return;
+                }
+                seenTestIds.add(testId);
+                
+                // ⭐ NEW: Check if student is selected for this test
+                let isStudentSelected = true; // Default to true for backward compatibility
+                if (test.selectedStudents && Array.isArray(test.selectedStudents)) {
+                    isStudentSelected = test.selectedStudents.includes(studentData.email);
+                }
+                
+                // Only count tests that the student is selected for
+                if (!isStudentSelected) {
+                    return;
+                }
+                
+                // Parse test date and deadline
+                let testDateTime;
+                if (test.date && test.time) {
+                    testDateTime = new Date(`${test.date}T${test.time}`);
+                } else if (test.date) {
+                    testDateTime = new Date(test.date);
+                    testDateTime.setHours(0, 0, 0, 0);
+                } else {
+                    testDateTime = new Date(0); // Very old date
+                }
+                
+                let deadlineDateTime;
+                if (test.deadlineDateTime) {
+                    deadlineDateTime = new Date(test.deadlineDateTime);
+                } else if (test.deadline) {
+                    deadlineDateTime = new Date(test.deadline);
+                    if (test.deadlineTime) {
+                        const [hours, minutes] = test.deadlineTime.split(':').map(Number);
+                        deadlineDateTime.setHours(hours, minutes, 0, 0);
+                    } else {
+                        deadlineDateTime.setHours(23, 59, 59, 999);
+                    }
+                } else {
+                    deadlineDateTime = new Date(8640000000000000); // Very far future
+                }
+                
+                // Check if test is available (test date has passed)
+                const isTestAvailable = testDateTime <= now;
+                
+                // Check if test is overdue
+                const isOverdue = deadlineDateTime < now;
+                
+                // Only count tests that are either:
+                // 1. Available now (test date passed, deadline not passed)
+                // 2. Overdue (deadline passed)
+                if (isTestAvailable || isOverdue) {
+                    totalAssignedTests++;
+                    
+                    if (isOverdue) {
                         overdueTests++;
                     }
                 }
             });
+            
+            console.log(`📊 Total assigned tests for student: ${totalAssignedTests}`);
+            console.log(`⚠️ Overdue tests: ${overdueTests}`);
             
             document.getElementById('totalTests').textContent = `/${totalAssignedTests}`;
             
             // Now load the completed tests to calculate completion rate
             const resultsQuery = query(
                 collection(db, 'testResults'),
-                where('studentEmail', '==', studentData.email),
-                where('status', 'in', ['completed', 'overdue']) // Include overdue status
+                where('studentEmail', '==', studentData.email)
             );
             
             const resultsSnapshot = await getDocs(resultsQuery);
-            completedTests = resultsSnapshot.size;
             
-            // Calculate actual completion rate (completed / total)
+            // Count unique tests completed (best score per test)
+            const completedTestIds = new Set();
+            resultsSnapshot.forEach((doc) => {
+                const result = doc.data();
+                completedTestIds.add(result.testId);
+            });
+            
+            completedTests = completedTestIds.size;
+            
+            console.log(`✅ Unique tests completed: ${completedTests}`);
+            
+            // Calculate actual completion rate (completed / total assigned)
             const completionRate = totalAssignedTests > 0 ? 
                 Math.round((completedTests / totalAssignedTests) * 100) : 0;
             
