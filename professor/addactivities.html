@@ -1022,12 +1022,9 @@
                 </div>
                 
                 <div class="form-group">
-                    <label class="form-label" for="attemptsAllowed">Attempts Allowed</label>
-                    <select class="form-select" id="attemptsAllowed">
-                        <option value="1">1 Attempt</option>
-                        <option value="2">2 Attempts</option>
-                        <option value="3">3 Attempts</option>
-                    </select>
+                    <label class="form-label">Attempts Allowed</label>
+                    <input type="text" class="form-control" value="2 Attempts" readonly style="background-color: #f3f4f6; cursor: not-allowed;">
+                    <input type="hidden" id="attemptsAllowed" value="2">
                 </div>
                 
                 <div class="form-group" id="testTargetGroup" style="display: none;">
@@ -1095,10 +1092,7 @@
                     <small class="text-muted" id="editTestTargetHint"></small>
                 </div>
                 
-                <div class="form-group">
-                    <label class="form-label">Attempts Allowed</label>
-                    <input type="text" class="form-control" id="editAttemptsAllowed" readonly style="background-color: #f3f4f6;">
-                </div>
+               <input type="hidden" id="editAttemptsAllowed" value="2">
                 
                 <input type="hidden" id="editTestId">
             </div>
@@ -2418,65 +2412,79 @@
 
         // Show schedule test modal
         window.showScheduleTestModal = function() {
-            console.log('Opening schedule modal...');
+        console.log('Opening schedule modal...');
+        
+        const modal = document.getElementById('scheduleTestModal');
+        const sectionSelect = document.getElementById('testSection');
+        
+        // **RESET BUTTON STATE FIRST**
+        const submitBtn = document.querySelector('#scheduleTestModal .modal-footer button:last-child');
+        const cancelBtn = document.querySelector('#scheduleTestModal .modal-footer button:first-child');
+        
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Schedule Test';
+        }
+        if (cancelBtn) {
+            cancelBtn.disabled = false;
+        }
+        
+        // Clear all form fields
+        document.getElementById('testType').value = '';
+        document.getElementById('videoURL').value = '';
+        document.getElementById('testInstructions').value = '';
+        document.getElementById('testTarget').value = '';
+        document.getElementById('attemptsAllowed').value = '1';
+        document.getElementById('testTargetGroup').style.display = 'none';
+        
+        // Clear previous options
+        sectionSelect.innerHTML = '<option value="">Select Section</option>';
+        
+        if (window.assignedSections && window.assignedSections.length > 0) {
+            const uniqueSections = [];
+            const seenSections = new Set();
             
-            const modal = document.getElementById('scheduleTestModal');
-            const sectionSelect = document.getElementById('testSection');
+            window.assignedSections.forEach(section => {
+                if (!seenSections.has(section.section)) {
+                    seenSections.add(section.section);
+                    uniqueSections.push(section);
+                }
+            });
             
-            // Clear previous options
-            sectionSelect.innerHTML = '<option value="">Select Section</option>';
-            
-            if (window.assignedSections && window.assignedSections.length > 0) {
-                const uniqueSections = [];
-                const seenSections = new Set();
-                
-                window.assignedSections.forEach(section => {
-                    if (!seenSections.has(section.section)) {
-                        seenSections.add(section.section);
-                        uniqueSections.push(section);
-                    }
-                });
-                
-                uniqueSections.forEach(section => {
-                    const option = document.createElement('option');
-                    option.value = section.section;
-                    option.textContent = `${section.section} (${section.students} students) - ${section.time || 'TBA'} / ${section.day || 'TBA'} / ${section.room || 'TBA'}`;
-                    sectionSelect.appendChild(option);
-                });
-                
-                console.log('✓ Added', uniqueSections.length, 'unique sections to dropdown');
-            } else {
+            uniqueSections.forEach(section => {
                 const option = document.createElement('option');
-                option.value = "no-sections";
-                option.textContent = "No sections assigned - Contact Head Admin";
-                option.disabled = true;
+                option.value = section.section;
+                option.textContent = `${section.section} (${section.students} students) - ${section.time || 'TBA'} / ${section.day || 'TBA'} / ${section.room || 'TBA'}`;
                 sectionSelect.appendChild(option);
-            }
+            });
             
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('testDate').value = today;
-            
-            const nextWeek = new Date();
-            nextWeek.setDate(nextWeek.getDate() + 7);
-            document.getElementById('testDeadline').value = nextWeek.toISOString().split('T')[0];
-            document.getElementById('testDeadlineTime').value = '23:59';
-            document.getElementById('testTime').value = '00:00';
-            const testTypeSelect = document.getElementById('testType');
-            testTypeSelect.removeEventListener('change', handleTestTypeChange);
-            testTypeSelect.addEventListener('change', handleTestTypeChange);
-            
-            const submitBtn = document.querySelector('#scheduleTestModal .btn-success');
-            const cancelBtn = document.querySelector('#scheduleTestModal .btn-secondary');
-            
-            if (submitBtn) {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Schedule Test';
-            }
-            if (cancelBtn) {
-                cancelBtn.disabled = false;
-            }
-            modal.style.display = 'flex';
-        };
+            console.log('✓ Added', uniqueSections.length, 'unique sections to dropdown');
+        } else {
+            const option = document.createElement('option');
+            option.value = "no-sections";
+            option.textContent = "No sections assigned - Contact Head Admin";
+            option.disabled = true;
+            sectionSelect.appendChild(option);
+        }
+        
+        // Set default dates
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('testDate').value = today;
+        
+        const nextWeek = new Date();
+        nextWeek.setDate(nextWeek.getDate() + 7);
+        document.getElementById('testDeadline').value = nextWeek.toISOString().split('T')[0];
+        document.getElementById('testDeadlineTime').value = '23:59';
+        document.getElementById('testTime').value = '00:00';
+        
+        // Setup test type change handler
+        const testTypeSelect = document.getElementById('testType');
+        testTypeSelect.removeEventListener('change', handleTestTypeChange);
+        testTypeSelect.addEventListener('change', handleTestTypeChange);
+        
+        // Show modal
+        modal.style.display = 'flex';
+    };
 
         function handleTestTypeChange(event) {
             const testType = event.target.value;
@@ -2543,6 +2551,7 @@
         }
 
         // Schedule test function
+        // Schedule test function
         window.scheduleTest = async function() {
             const testType = document.getElementById('testType').value;
             const testSection = document.getElementById('testSection').value;
@@ -2550,10 +2559,14 @@
             const testTime = document.getElementById('testTime').value;
             const testDeadline = document.getElementById('testDeadline').value;
             const testDeadlineTime = document.getElementById('testDeadlineTime').value;
-            const attemptsAllowed = document.getElementById('attemptsAllowed').value;
+            const attemptsAllowed = 2;
             const testInstructions = document.getElementById('testInstructions').value;
             const testTarget = document.getElementById('testTarget').value;
             const videoURL = document.getElementById('videoURL').value;
+
+            console.log('🔍 Schedule Test Values:', {
+                testType, testSection, testDate, testTime, testDeadline, testDeadlineTime
+            });
 
             if (!testType || !testSection || !testDate || !testTime || !testDeadline || !testDeadlineTime) {
                 alert('Please fill in all required fields.');
@@ -2561,15 +2574,16 @@
             }
 
             const testDateTime = new Date(`${testDate}T${testTime}`);
+            const deadlineDateTime = new Date(`${testDeadline}T${testDeadlineTime}`);
             const now = new Date();
-            
-            if (testDateTime < now) {
-                alert('❌ Error: Test date and time cannot be in the past.\n\nPlease select a future date and time.');
+            const today = now.toISOString().split('T')[0];
+
+            // Only check if the date is in the past (ignore time for today's date)
+            if (testDate < today) {
+                alert('❌ Error: Test date cannot be in the past.\n\nPlease select today or a future date.');
                 return;
             }
 
-            const deadlineDateTime = new Date(`${testDeadline}T${testDeadlineTime}`);
-            
             if (deadlineDateTime <= testDateTime) {
                 alert('❌ Error: Deadline must be after the test date and time.');
                 return;
@@ -2585,14 +2599,20 @@
                 return;
             }
 
-            const submitBtn = document.querySelector('#scheduleTestModal .btn-success');
-            const cancelBtn = document.querySelector('#scheduleTestModal .btn-secondary');
-            const originalText = submitBtn.textContent;
+            const submitBtn = document.querySelector('#scheduleTestModal .modal-footer button:last-child');
+            const cancelBtn = document.querySelector('#scheduleTestModal .modal-footer button:first-child');
+            const originalText = submitBtn ? submitBtn.textContent : 'Schedule Test';
 
             try {
-                submitBtn.disabled = true;
-                cancelBtn.disabled = true;
-                submitBtn.textContent = 'Scheduling...';
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Scheduling...';
+                }
+                if (cancelBtn) {
+                    cancelBtn.disabled = true;
+                }
+
+                console.log('🚀 Starting test scheduling...');
 
                 // Get section information including schedule
                 const sectionInfo = window.assignedSections.find(s => s.section === testSection);
@@ -2613,9 +2633,8 @@
                 });
                 
                 console.log(`✅ Found ${allStudentEmails.length} students in section ${testSection}`);
-                console.log(`📅 Section schedule: ${sectionInfo?.time || 'N/A'} / ${sectionInfo?.day || 'N/A'} / ${sectionInfo?.room || 'N/A'}`);
 
-                // Calculate status BEFORE creating testData object
+                // Calculate status
                 let status = 'scheduled';
                 if (testDateTime <= now && deadlineDateTime >= now) {
                     status = 'active';
@@ -2623,7 +2642,7 @@
                     status = 'completed';
                 }
 
-                // Create testData object with ALL students auto-selected and SECTION SCHEDULE INFO
+                // Create testData object
                 const testData = {
                     testName: testType,
                     section: testSection,
@@ -2633,7 +2652,7 @@
                     deadline: testDeadline,
                     deadlineTime: testDeadlineTime,
                     deadlineDateTime: deadlineDateTime.toISOString(),
-                    attemptsAllowed: parseInt(attemptsAllowed),
+                    attemptsAllowed: 2,
                     instructions: testInstructions,
                     testTarget: testTarget ? parseInt(testTarget) : null,
                     videoURL: videoURL || null,
@@ -2643,8 +2662,7 @@
                     status: status,
                     totalStudents: allStudentEmails.length,
                     completedStudents: 0,
-                    selectedStudents: allStudentEmails, // AUTO-SELECT ALL STUDENTS
-                    // ADD SECTION SCHEDULE INFORMATION
+                    selectedStudents: allStudentEmails,
                     sectionTime: sectionInfo?.time || 'Not Set',
                     sectionDay: sectionInfo?.day || 'Not Set',
                     sectionRoom: sectionInfo?.room || 'Not Set',
@@ -2665,7 +2683,6 @@
                 for (const studentEmail of allStudentEmails) {
                     const student = studentsSnapshot.docs.find(doc => doc.data().email === studentEmail);
                     if (student) {
-                        const studentData = student.data();
                         const notificationData = {
                             type: 'new_test',
                             title: 'Fitness Test Available',
@@ -2689,10 +2706,10 @@
                 }
                 
                 await Promise.all(notificationPromises);
-                console.log(`✅ Created ${notificationPromises.length} notifications for students`);
+                console.log(`✅ Created ${notificationPromises.length} notifications`);
                 
                 closeScheduleTestModal();
-                alert(`✅ Test scheduled successfully!\n\nAutomatically assigned to ${allStudentEmails.length} student(s) in ${testSection}.\n\nSchedule: ${sectionInfo?.time || 'TBA'} / ${sectionInfo?.day || 'TBA'} / ${sectionInfo?.room || 'TBA'}`);
+                alert(`✅ Test scheduled successfully!\n\nAutomatically assigned to ${allStudentEmails.length} student(s) in ${testSection}.`);
                 
                 await loadScheduledTests(window.currentUser.email, window.currentUser.uid);
                 
@@ -2700,9 +2717,13 @@
                 console.error('❌ Error scheduling test:', error);
                 alert('Error scheduling test: ' + error.message);
                 
-                submitBtn.disabled = false;
-                cancelBtn.disabled = false;
-                submitBtn.textContent = originalText;
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                }
+                if (cancelBtn) {
+                    cancelBtn.disabled = false;
+                }
             }
         };
 
@@ -3036,21 +3057,35 @@
         
         // Close schedule test modal
         window.closeScheduleTestModal = function() {
-            document.getElementById('scheduleTestModal').style.display = 'none';
-            
-            // Clear form
-            document.getElementById('testType').value = '';
-            document.getElementById('testSection').value = '';
-            document.getElementById('testDate').value = '';
-            document.getElementById('testDeadline').value = '';
-            document.getElementById('testDeadlineTime').value = '23:59';
-            document.getElementById('attemptsAllowed').value = '1';
-            document.getElementById('testInstructions').value = '';
-            document.getElementById('testTarget').value = '';
-            document.getElementById('videoURL').value = '';
-            document.getElementById('testTime').value = '00:00';
-            
-            document.getElementById('testTargetGroup').style.display = 'none';
+    const modal = document.getElementById('scheduleTestModal');
+    modal.style.display = 'none';
+    
+    // **RESET BUTTON STATE**
+    const submitBtn = document.querySelector('#scheduleTestModal .modal-footer button:last-child');
+    const cancelBtn = document.querySelector('#scheduleTestModal .modal-footer button:first-child');
+    
+    if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Schedule Test';
+    }
+    if (cancelBtn) {
+        cancelBtn.disabled = false;
+    }
+    
+    // Clear form
+    document.getElementById('testType').value = '';
+    document.getElementById('testSection').value = '';
+    document.getElementById('testDate').value = '';
+    document.getElementById('testDeadline').value = '';
+    document.getElementById('testDeadlineTime').value = '23:59';
+    document.getElementById('testTime').value = '00:00';
+    document.getElementById('attemptsAllowed').value = '1';
+    document.getElementById('testInstructions').value = '';
+    document.getElementById('testTarget').value = '';
+    document.getElementById('videoURL').value = '';
+    
+    document.getElementById('testTargetGroup').style.display = 'none';
+
             
             if (window.currentUser) {
                 loadScheduledTests(window.currentUser.email, window.currentUser.uid);

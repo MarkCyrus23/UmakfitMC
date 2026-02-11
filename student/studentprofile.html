@@ -769,14 +769,14 @@
 
     <div id="mainContent" style="display: none;">
         <!-- Navigation -->
-<nav class="bg-gradient-to-r from-blue-900 to-blue-500 shadow-lg">
+<nav class="shadow-lg" style="background: linear-gradient(135deg, #0D1B2A 0%, #1A2B3C 50%, #2C4A5E 100%);">
     <div class="container mx-auto px-3 sm:px-4 py-4 sm:py-5">
         <div class="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
             <!-- Logo -->
             <a href="#" class="flex items-center gap-2 sm:gap-3">
                 <img src="https://c.animaapp.com/vkhEa8zW/img/screenshot-2025-09-19-2-53-51-pm-removebg-preview-3@2x.png" 
                      alt="UMak Logo" class="h-12 sm:h-14 md:h-16 w-auto object-contain">
-                <span class="text-xl sm:text-2xl md:text-3xl font-extrabold font-manrope bg-gradient-to-r from-yellow-400 to-yellow-200 bg-clip-text text-transparent">
+               <span class="text-xl sm:text-2xl md:text-3xl font-extrabold font-manrope" style="background: linear-gradient(135deg, #EAD38A 0%, #C5A046 50%, #8B6D2D 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">
                     UMakFit
                 </span>
             </a>
@@ -803,7 +803,7 @@
                     <i class="bi bi-graph-up"></i> 
                     <span class="hidden xl:inline">Progress</span>
                 </a>
-                <a href="#" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
+                <a href="./achievements.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
                     <i class="bi bi-trophy"></i> 
                     <span class="hidden xl:inline">Achievements</span>
                 </a>
@@ -913,7 +913,7 @@
             <a href="./studentgrades.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
                 <i class="bi bi-award mr-2"></i> Grade
             </a>
-            <a href="#" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
+            <a href="./achievements.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
                 <i class="bi bi-trophy mr-2"></i> Achievements
             </a>
         </div>
@@ -1012,21 +1012,6 @@
                             <label class="form-label fw-bold">Medical Condition</label>
                             <textarea class="form-control" id="editMedical" rows="3" placeholder="Enter any medical conditions or allergies"></textarea>
                         </div>
-                        <div class="col-12">
-                            <h6 class="fw-bold mt-3 mb-3" style="color: #1e3a8a;"><i class="bi bi-phone me-2"></i>Emergency Contact</h6>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold">Contact Name</label>
-                            <input type="text" class="form-control" id="editEmergencyName" placeholder="Full Name">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold">Contact Number</label>
-                            <input type="tel" class="form-control" id="editEmergencyContact" placeholder="+63 9XXXXXXXXX">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold">Relationship</label>
-                            <input type="text" class="form-control" id="editEmergencyRelation" placeholder="e.g., Mother, Father">
-                        </div>
                     </div>
                 </form>
             </div>
@@ -1101,30 +1086,7 @@
 
 
 
-<!-- Emergency Contact -->
-<div class="test-history-card">
-    <h5 class="card-title-custom">Emergency Contact</h5>
-    <div class="row">
-        <div class="col-md-6">
-            <div class="profile-info-item">
-                <div class="profile-info-label">CONTACT NAME</div>
-                <div class="profile-info-value" style="font-size: 16px;" id="emergencyName">Not provided</div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="profile-info-item">
-                <div class="profile-info-label">CONTACT NUMBER</div>
-                <div class="profile-info-value" style="font-size: 16px;" id="emergencyContact">Not provided</div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="profile-info-item">
-                <div class="profile-info-label">RELATIONSHIP</div>
-                <div class="profile-info-value" style="font-size: 16px;" id="emergencyRelation">Not provided</div>
-            </div>
-        </div>
-    </div>
-</div>
+
             </div>
         </div>
 
@@ -1408,26 +1370,84 @@
                 
                 // Account Activity
                 if (studentData.lastLogin) {
-                    const lastLoginDate = new Date(studentData.lastLogin);
-                    document.getElementById('lastLogin').textContent = lastLoginDate.toLocaleString();
-                } else {
-                    document.getElementById('lastLogin').textContent = 'Never';
+                try {
+                    // Handle both ISO string and Firestore Timestamp
+                    let lastLoginDate;
+                    if (studentData.lastLogin.toDate) {
+                        lastLoginDate = studentData.lastLogin.toDate();
+                    } else {
+                        lastLoginDate = new Date(studentData.lastLogin);
+                    }
+                    
+                    document.getElementById('lastLogin').textContent = lastLoginDate.toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                } catch (error) {
+                    console.error('Error parsing lastLogin:', error);
+                    document.getElementById('lastLogin').textContent = 'Recently';
                 }
+            } else {
+                document.getElementById('lastLogin').textContent = 'Never';
+            }
+
+            if (studentData.createdAt) {
+                try {
+                    // Handle both ISO string and Firestore Timestamp
+                    let createdDate;
+                    if (studentData.createdAt.toDate) {
+                        // Firestore Timestamp
+                        createdDate = studentData.createdAt.toDate();
+                    } else if (typeof studentData.createdAt === 'string') {
+                        // ISO string
+                        createdDate = new Date(studentData.createdAt);
+                    } else if (studentData.createdAt.seconds) {
+                        // Firestore Timestamp object with seconds
+                        createdDate = new Date(studentData.createdAt.seconds * 1000);
+                    } else {
+                        // Direct Date object
+                        createdDate = new Date(studentData.createdAt);
+                    }
+                    
+                    // Check if date is valid
+                    if (!isNaN(createdDate.getTime())) {
+                        document.getElementById('accountCreated').textContent = createdDate.toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                        });
+                    } else {
+                        document.getElementById('accountCreated').textContent = 'Not Available';
+                    }
+                } catch (error) {
+                    console.error('Error parsing createdAt:', error, studentData.createdAt);
+                    document.getElementById('accountCreated').textContent = 'Not Available';
+                }
+            } else {
+                document.getElementById('accountCreated').textContent = 'Not Available';
+            }
                 
                 if (studentData.createdAt) {
-                    const createdDate = new Date(studentData.createdAt);
-                    document.getElementById('accountCreated').textContent = createdDate.toLocaleDateString();
-                } else {
-                    document.getElementById('accountCreated').textContent = 'N/A';
-                }
+                const createdDate = new Date(studentData.createdAt);
+                document.getElementById('accountCreated').textContent = createdDate.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+            } else {
+                // If no createdAt exists, use the current date as fallback
+                const fallbackDate = new Date();
+                document.getElementById('accountCreated').textContent = fallbackDate.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+            }
                 
-                // Emergency Contact
-                document.getElementById('emergencyName').textContent = 
-                    studentData.emergencyContactName || 'Not provided';
-                document.getElementById('emergencyContact').textContent = 
-                    studentData.emergencyContactNumber || 'Not provided';
-                document.getElementById('emergencyRelation').textContent = 
-                    studentData.emergencyContactRelation || 'Not provided';
+                
                     updateProfileUI();
                     updateProfileAvatar(); // Add this line
                     // Update last login time
@@ -1512,9 +1532,6 @@
         document.getElementById('editHeight').value = data.height || '';
         document.getElementById('editWeight').value = data.weight || '';
         document.getElementById('editMedical').value = data.medicalCondition || '';
-        document.getElementById('editEmergencyName').value = data.emergencyContactName || '';
-        document.getElementById('editEmergencyContact').value = data.emergencyContactNumber || '';
-        document.getElementById('editEmergencyRelation').value = data.emergencyContactRelation || '';
         
         modal.show();
     };
@@ -1563,9 +1580,6 @@
             height: height,
             weight: weight,
             medicalCondition: document.getElementById('editMedical').value,
-            emergencyContactName: document.getElementById('editEmergencyName').value,
-            emergencyContactNumber: document.getElementById('editEmergencyContact').value,
-            emergencyContactRelation: document.getElementById('editEmergencyRelation').value,
             umakId: extractedId,
             updatedAt: new Date().toISOString()
         };

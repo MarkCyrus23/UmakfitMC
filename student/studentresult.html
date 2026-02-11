@@ -31,9 +31,9 @@
     }
 
     body {
-        background:#ffffff;
-        min-height: 100vh;
-    }
+    background: #f8fafc;
+    min-height: 100vh;
+}
 
     .font-manrope { 
     font-family: 'Manrope', sans-serif; 
@@ -62,33 +62,27 @@
 
     /* Result Container */
     .result-container {
-        background: white;
-        border-radius: 24px;
-        padding: 0;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        margin-bottom: 2rem;
-        overflow: hidden;
-    }
+    background: white;
+    border-radius: 24px;
+    padding: 0;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    margin-bottom: 2rem;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+}
 
     /* Hero Section with Score */
     .hero-section {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 3rem 2rem;
-        text-align: center;
-        position: relative;
-        overflow: hidden;
-    }
+    background: white;
+    padding: 3rem 2rem;
+    text-align: center;
+    position: relative;
+    border-bottom: 1px solid #e2e8f0;
+}
 
-    .hero-section::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-        animation: pulse 4s ease-in-out infinite;
-    }
+.hero-section::before {
+    display: none;
+}
 
     @keyframes pulse {
         0%, 100% { transform: scale(1); opacity: 1; }
@@ -101,30 +95,24 @@
     }
 
     .completion-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        background: rgba(255, 255, 255, 0.2);
-        backdrop-filter: blur(10px);
-        padding: 10px 24px;
-        border-radius: 50px;
-        margin-bottom: 1.5rem;
-        border: 1px solid rgba(255, 255, 255, 0.3);
-    }
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #f0fdf4;
+    padding: 10px 24px;
+    border-radius: 50px;
+    margin-bottom: 1.5rem;
+    border: 1px solid #86efac;
+}
 
-    .completion-badge i {
-        font-size: 20px;
-        color: #10b981;
-    }
-
-    .completion-badge span {
-        font-family: "Inter", Helvetica;
-        font-weight: 600;
-        color: white;
-        font-size: 14px;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
+.completion-badge span {
+    font-family: "Inter", Helvetica;
+    font-weight: 600;
+    color: #059669;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
 
     .score-wrapper {
         display: flex;
@@ -135,39 +123,33 @@
     }
 
     .score-circle {
-        position: relative;
-        width: 180px;
-        height: 180px;
-    }
-
-    .score-ring {
-        width: 100%;
-        height: 100%;
-        transform: rotate(-90deg);
+    position: relative;
+    width: 200px;
+    height: 200px;
     }
 
     .score-ring-bg {
         fill: none;
-        stroke: rgba(255, 255, 255, 0.2);
-        stroke-width: 12;
+        stroke: #f1f5f9;
+        stroke-width: 16;
     }
 
     .score-ring-progress {
         fill: none;
         stroke: url(#scoreGradient);
-        stroke-width: 12;
+        stroke-width: 16;
         stroke-linecap: round;
-        stroke-dasharray: 502;
-        stroke-dashoffset: 502;
+        stroke-dasharray: 565;
+        stroke-dashoffset: 565;
         animation: fillScore 2s ease-out forwards;
-        filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.5));
     }
 
     @keyframes fillScore {
         to {
-            stroke-dashoffset: calc(502 - (502 * var(--score)) / 100);
+            stroke-dashoffset: calc(565 - (565 * var(--score)) / 100);
         }
     }
+
 
     .score-content {
         position: absolute;
@@ -177,23 +159,22 @@
         text-align: center;
     }
 
-    .score-number {
-        font-family: "Inter", Helvetica;
-        font-weight: 800;
-        font-size: 3.5rem;
-        color: white;
-        line-height: 1;
-        text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+   .score-number {
+    font-family: "Inter", Helvetica;
+    font-weight: 800;
+    font-size: 4rem;
+    color: #1e293b;
+    line-height: 1;
     }
 
     .score-label {
         font-family: "Inter", Helvetica;
         font-weight: 600;
-        color: rgba(255, 255, 255, 0.9);
+        color: #64748b;
         font-size: 14px;
         text-transform: uppercase;
         letter-spacing: 1px;
-        margin-top: 5px;
+        margin-top: 8px;
     }
 
     .score-details {
@@ -201,13 +182,12 @@
     }
 
     .test-title {
-        font-family: "Inter", Helvetica;
-        font-weight: 800;
-        color: white;
-        font-size: 2rem;
-        margin-bottom: 1rem;
-        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    }
+    font-family: "Inter", Helvetica;
+    font-weight: 800;
+    color: #1e293b;
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
 
     .score-rating {
         display: inline-flex;
@@ -226,57 +206,42 @@
     }
 
     .rating-excellent {
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        color: white;
+    background: #f0fdf4;
+    color: #059669;
+    border: 2px solid #86efac;
     }
 
     .rating-good {
-        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-        color: white;
+        background: #eff6ff;
+        color: #2563eb;
+        border: 2px solid #93c5fd;
     }
 
     .rating-fair {
-        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-        color: white;
+        background: #fffbeb;
+        color: #d97706;
+        border: 2px solid #fcd34d;
     }
 
     .rating-needs-improvement {
-        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-        color: white;
-    }
-
-    .stat-badges {
-        display: flex;
-        gap: 1rem;
-        margin-top: 1.5rem;
-        flex-wrap: wrap;
-        justify-content: center;
+        background: #fef2f2;
+        color: #dc2626;
+        border: 2px solid #fca5a5;
     }
 
     .stat-badge {
-        background: rgba(255, 255, 255, 0.15);
-        backdrop-filter: blur(10px);
-        padding: 12px 20px;
-        border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-    }
+    background: #f8fafc;
+    padding: 16px 24px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+}
 
-    .stat-badge-label {
-        font-family: "Inter", Helvetica;
-        font-weight: 600;
-        color: rgba(255, 255, 255, 0.8);
-        font-size: 12px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 4px;
-    }
-
-    .stat-badge-value {
-        font-family: "Inter", Helvetica;
-        font-weight: 700;
-        color: white;
-        font-size: 16px;
-    }
+.stat-badge-value {
+    font-family: "Inter", Helvetica;
+    font-weight: 700;
+    color: #1e293b;
+    font-size: 18px;
+}
 
     /* Content Section */
     .content-section {
@@ -330,57 +295,46 @@
 
     /* Recommendation Section */
     .recommendation-section {
-        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-        border-radius: 16px;
-        padding: 2rem;
-        margin-bottom: 2rem;
-        border-left: 5px solid #f59e0b;
-        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
-    }
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border: 2px solid #bae6fd;
+    box-shadow: 0 2px 8px rgba(14, 165, 233, 0.1);
+}
 
-    .recommendation-header {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 1rem;
-    }
+.recommendation-title {
+    font-family: "Inter", Helvetica;
+    font-weight: 700;
+    color: #0c4a6e;
+    font-size: 20px;
+    margin: 0;
+}
 
-    .recommendation-icon {
-        font-size: 28px;
-    }
+.recommendation-text {
+    font-family: "Inter", Helvetica;
+    font-weight: 500;
+    color: #075985;
+    font-size: 15px;
+    line-height: 1.8;
+    margin: 0;
+}
 
-    .recommendation-title {
-        font-family: "Inter", Helvetica;
-        font-weight: 700;
-        color: #92400e;
-        font-size: 20px;
-        margin: 0;
-    }
+.loading-recommendation {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #0c4a6e;
+}
 
-    .recommendation-text {
-        font-family: "Inter", Helvetica;
-        font-weight: 500;
-        color: #78350f;
-        font-size: 15px;
-        line-height: 1.8;
-        margin: 0;
-    }
-
-    .loading-recommendation {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        color: #92400e;
-    }
-
-    .loading-spinner {
-        width: 20px;
-        height: 20px;
-        border: 3px solid #fde68a;
-        border-top: 3px solid #f59e0b;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-    }
+.loading-spinner {
+    width: 20px;
+    height: 20px;
+    border: 3px solid #e0f2fe;
+    border-top: 3px solid #0ea5e9;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
 
     @keyframes spin {
         0% { transform: rotate(0deg); }
@@ -414,46 +368,51 @@
     }
 
     .btn-primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
+    background: #1e293b;
+    color: white;
+    box-shadow: 0 4px 12px rgba(30, 41, 59, 0.25);
     }
 
     .btn-primary:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        background: #334155;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(30, 41, 59, 0.35);
         color: white;
     }
 
     .btn-secondary {
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        color: white;
+        background: white;
+        color: #1e293b;
+        border: 2px solid #e2e8f0;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
 
     .btn-secondary:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
-        color: white;
+        background: #f8fafc;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        color: #1e293b;
     }
 
     /* Loading Screen */
     .loading {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 9999;
-        flex-direction: column;
-        gap: 24px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    flex-direction: column;
+    gap: 24px;
     }
 
     .spinner {
-        border: 5px solid rgba(255, 255, 255, 0.3);
-        border-top: 5px solid white;
+        border: 5px solid #f1f5f9;
+        border-top: 5px solid #3b82f6;
         border-radius: 50%;
         width: 60px;
         height: 60px;
@@ -463,7 +422,7 @@
     .loading-text {
         font-family: "Inter", sans-serif;
         font-weight: 600;
-        color: white;
+        color: #1e293b;
         font-size: 18px;
     }
 
@@ -526,14 +485,14 @@
 
     <div id="mainContent" style="display: none;">
         <!-- Navigation -->
-<nav class="bg-gradient-to-r from-blue-900 to-blue-500 shadow-lg">
+<nav class="shadow-lg" style="background: linear-gradient(135deg, #0D1B2A 0%, #1A2B3C 50%, #2C4A5E 100%);">
     <div class="container mx-auto px-3 sm:px-4 py-4 sm:py-5">
         <div class="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
             <!-- Logo -->
             <a href="#" class="flex items-center gap-2 sm:gap-3">
                 <img src="https://c.animaapp.com/vkhEa8zW/img/screenshot-2025-09-19-2-53-51-pm-removebg-preview-3@2x.png" 
                      alt="UMak Logo" class="h-12 sm:h-14 md:h-16 w-auto object-contain">
-                <span class="text-xl sm:text-2xl md:text-3xl font-extrabold font-manrope bg-gradient-to-r from-yellow-400 to-yellow-200 bg-clip-text text-transparent">
+                <span class="text-xl sm:text-2xl md:text-3xl font-extrabold font-manrope" style="background: linear-gradient(135deg, #EAD38A 0%, #C5A046 50%, #8B6D2D 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">
                     UMakFit
                 </span>
             </a>
@@ -560,7 +519,7 @@
                     <i class="bi bi-graph-up"></i> 
                     <span class="hidden xl:inline">Progress</span>
                 </a>
-                <a href="#" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
+                <a href="./achievements.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
                     <i class="bi bi-trophy"></i> 
                     <span class="hidden xl:inline">Achievements</span>
                 </a>
@@ -643,7 +602,7 @@
             <a href="./studentgrades.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
                 <i class="bi bi-award mr-2"></i> Grade
             </a>
-            <a href="#" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
+            <a href="./achievements.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
                 <i class="bi bi-trophy mr-2"></i> Achievements
             </a>
         </div>
@@ -684,20 +643,17 @@
                             </div>
                         </div>
                         
-                        <div class="stat-badges">
-                            <div class="stat-badge">
-                                <div class="stat-badge-label">Result</div>
-                                <div class="stat-badge-value" id="testResult">--</div>
-                            </div>
-                            <div class="stat-badge">
-                                <div class="stat-badge-label">Completed</div>
-                                <div class="stat-badge-value" id="completedDate">--</div>
-                            </div>
-                            <div class="stat-badge">
-                                <div class="stat-badge-label">Duration</div>
-                                <div class="stat-badge-value" id="timerValue">--</div>
-                            </div>
+                        <div class="stat-badges" id="statBadges">
+                        <div class="stat-badge">
+                            <div class="stat-badge-label">Result</div>
+                            <div class="stat-badge-value" id="testResult">--</div>
                         </div>
+                        <div class="stat-badge">
+                            <div class="stat-badge-label">Completed</div>
+                            <div class="stat-badge-value" id="completedDate">--</div>
+                        </div>
+                        <!-- Duration badge will be added dynamically if timerValue exists -->
+                    </div>
                     </div>
                 </div>
 
@@ -1005,7 +961,18 @@ Make each recommendation unique and tailored to their exact score and test type.
                         day: 'numeric',
                         year: 'numeric'
                     });
-                    document.getElementById('timerValue').textContent = data.timerValue || '--';
+
+                    // Only show duration if timerValue exists
+                    if (data.timerValue) {
+                        const statBadges = document.getElementById('statBadges');
+                        const durationBadge = document.createElement('div');
+                        durationBadge.className = 'stat-badge';
+                        durationBadge.innerHTML = `
+                            <div class="stat-badge-label">Duration</div>
+                            <div class="stat-badge-value">${data.timerValue}</div>
+                        `;
+                        statBadges.appendChild(durationBadge);
+                    }
                     
                     document.getElementById('loadingScreen').style.display = 'none';
                     document.getElementById('mainContent').style.display = 'block';

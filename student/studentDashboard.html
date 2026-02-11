@@ -137,6 +137,7 @@
     .animate-fade-in {
         animation: fade-in 0.3s ease-out;
     }
+        
     </style>
 </head>
 <body class="bg-gray-50">
@@ -148,19 +149,18 @@
 </div>
     
     <div id="mainContent" class="hidden">
-        <!-- Navigation -->
-        <nav class="bg-gradient-to-r from-blue-900 to-blue-500 shadow-lg">
+         <!-- Navigation -->
+     <nav class="shadow-lg" style="background: linear-gradient(135deg, #0D1B2A 0%, #1A2B3C 50%, #2C4A5E 100%);">
             <div class="container mx-auto px-3 sm:px-4 py-4 sm:py-5">
                 <div class="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
                     <!-- Logo -->
                     <a href="#" class="flex items-center gap-2 sm:gap-3">
                         <img src="https://c.animaapp.com/vkhEa8zW/img/screenshot-2025-09-19-2-53-51-pm-removebg-preview-3@2x.png" 
                              alt="UMak Logo" class="h-12 sm:h-14 md:h-16 w-auto object-contain">
-                        <span class="text-xl sm:text-2xl md:text-3xl font-extrabold font-manrope bg-gradient-to-r from-yellow-400 to-yellow-200 bg-clip-text text-transparent">
-                            UMakFit
-                        </span>
+                    <span class="text-xl sm:text-2xl md:text-3xl font-extrabold font-manrope" style="background: linear-gradient(135deg, #EAD38A 0%, #C5A046 50%, #8B6D2D 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">
+                        UMakFit
+                    </span>
                     </a>
-                    
                     <!-- Desktop Navigation -->
                     <div class="hidden lg:flex items-center gap-2 flex-wrap">
                         <a href="#" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white text-gray-900 rounded-lg font-semibold text-sm flex items-center gap-2 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
@@ -184,7 +184,7 @@
                             <span class="hidden xl:inline">Progress</span>
                         </a>
                         <a href="./achievements.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
-                            <i class="bi bi-book"></i> 
+                            <i class="bi bi-trophy"></i> 
                             <span class="hidden xl:inline">Achievements</span>
                         </a>
                         
@@ -330,8 +330,8 @@
                     <a href="./studentgrades.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
                         <i class="bi bi-award mr-2"></i> Grades
                     </a>
-                    <a href="#" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
-                        <i class="bi bi-book mr-2"></i> Achievements
+                    <a href="./achievements.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
+                        <i class="bi bi-trophy mr-2"></i> Achievements
                     </a>
                 </div>
             </div>
@@ -339,7 +339,7 @@
 
         <!-- Main Content -->
         <div class="container mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8 max-w-7xl">
-        <!-- Hero Section -->
+       <!-- Hero Section -->
 <div class="mb-12">
     <!-- Logo and College Info -->
     <div class="flex items-center gap-4 mb-8">
@@ -355,9 +355,9 @@
     <div class="mb-8">
         <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-gray-900 mb-2">
             Welcome Back, 
-            <span id="studentName" class="block sm:inline bg-gradient-to-r from-blue-600 to-yellow-500 bg-clip-text text-transparent">
-                Student
-            </span>
+            <span id="studentName" class="block sm:inline" style="background: linear-gradient(135deg, #EAD38A 0%, #C5A046 50%, #8B6D2D 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.3));">
+            Student
+        </span>
         </h1>
         <p class="text-base sm:text-lg md:text-xl text-gray-600 font-medium">
     <span id="studentCourse" class="text-gray-900">Subject</span> 
@@ -826,7 +826,7 @@
             // Close dropdowns when clicking outside
             document.addEventListener('click', closeAllDropdowns);
         });
-
+                
         // Mobile menu toggle
         function toggleMobileMenu() {
             mobileMenu.classList.toggle('hidden');
