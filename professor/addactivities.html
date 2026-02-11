@@ -253,45 +253,85 @@
             font-weight: 700;
         }
         
-        /* Action buttons */
-        .action-buttons {
-            display: flex;
-            gap: 5px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        .btn-action {
-            padding: 4px 10px;
-            border: none;
-            border-radius: 4px;
-            font-family: "Inter", Helvetica;
-            font-weight: 600;
-            font-size: 11px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .btn-edit {
-            background-color: #111b66;
-            color: white;
-        }
-        .btn-edit:hover {
-            background-color: #0d1450;
-        }
-        .btn-cancel {
-            background: linear-gradient(180deg, rgba(245, 158, 11, 1) 0%, rgba(251, 191, 36, 1) 100%);
-            color: white;
-        }
-        .btn-cancel:hover {
-            opacity: 0.9;
-        }
-        .btn-view {
-            background-color: #111b66;
-            color: white;
-        }
-        .btn-view:hover {
-            background-color: #0d1450;
-        }
-        
+ /* Action buttons - UPDATED DESIGN */
+.action-buttons {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: nowrap; /* Important: Prevent wrapping */
+    white-space: nowrap;
+}
+
+.btn-action {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 20px;
+    font-family: "Inter", Helvetica;
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    letter-spacing: 0.3px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.btn-edit {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.btn-edit:hover {
+    background: linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.btn-edit i {
+    font-size: 12px;
+}
+
+.btn-delete {
+    background: white;
+    color: #dc2626;
+    border: 1.5px solid #dc2626;
+}
+
+.btn-delete:hover {
+    background: #dc2626;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
+}
+
+.btn-delete i {
+    font-size: 12px;
+}
+
+.btn-view {
+    background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.btn-view:hover {
+    background: linear-gradient(135deg, #475569 0%, #334155 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(71, 85, 105, 0.2);
+}
+
+/* Fix table cell for actions */
+.custom-table td:last-child {
+    white-space: nowrap;
+    width: 1%; /* Shrink to fit content */
+}
         /* Modal styles */
         .modal-overlay {
             position: fixed;
@@ -600,6 +640,30 @@
                 margin: 10px;
                 max-height: calc(100vh - 20px);
             }
+            /* Mobile action buttons */
+@media (max-width: 768px) {
+    .action-buttons {
+        justify-content: flex-start;
+        gap: 10px;
+        margin-top: 5px;
+    }
+    
+    .btn-action {
+        padding: 8px 16px;
+        font-size: 13px;
+    }
+    
+    .btn-edit, .btn-delete, .btn-view {
+        width: auto;
+        flex: 0 1 auto;
+    }
+    
+    .custom-table td:has(.action-buttons) {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
         }
     </style>
 </head>
@@ -1556,13 +1620,19 @@
                                     <span class="status-badge ${statusClass}">${status.charAt(0).toUpperCase() + status.slice(1)}</span>
                                     ${isOverdue ? '<br><small style="color: #ef4444;">⚠️ Overdue</small>' : ''}
                                 </td>
-                                <td data-label="Actions">
-                                    <div class="action-buttons">
-                                        <button class="btn-action btn-edit" onclick="editTest('${docSnap.id}')">Edit</button>
-                                        <button class="btn-action btn-view" onclick="manageStudents('${docSnap.id}', '${test.testName}', '${test.section}')">Students</button>
-                                        <button class="btn-action btn-cancel" onclick="deleteTest('${docSnap.id}')">Delete</button>
-                                    </div>
-                                </td>
+<td data-label="Action">  <!-- Change from "Actions" to "Action" -->
+    <div class="action-buttons">
+        <button class="btn-action btn-edit" onclick="editTest('${docSnap.id}')">
+            <i class="fas fa-pencil-alt"></i> Edit
+        </button>
+        <button class="btn-action btn-view" onclick="manageStudents('${docSnap.id}', '${test.testName}', '${test.section}')">
+            <i class="fas fa-users"></i> Manage
+        </button>
+        <button class="btn-action btn-delete" onclick="deleteTest('${docSnap.id}')">
+            <i class="fas fa-trash-alt"></i> Delete
+        </button>
+    </div>
+</td>
                             </tr>
                         `;
                          }
@@ -1804,7 +1874,6 @@
                 <tr onclick="showStudentTestResults('${studentEmail}')" style="cursor: pointer;">
                     <td data-label="Student Name">
                         <strong>${studentData.studentName}</strong>
-                        <span class="test-count-badge">${studentData.totalTests}</span>
                     </td>
                     <td data-label="Section">${studentData.section}</td>
                     <td data-label="Total Tests"><strong>${studentData.totalTests}</strong></td>
@@ -1815,11 +1884,11 @@
                         <strong>${studentData.averageScore}%</strong>
                     </td>
                     <td data-label="Last Activity">${lastActivityFormatted}</td>
-                    <td data-label="Actions">
-                        <button class="btn-action btn-view" onclick="event.stopPropagation(); showStudentTestResults('${studentEmail}')">
-                            <i class="fas fa-eye"></i> View Tests
-                        </button>
-                    </td>
+<td data-label="Actions">
+    <button class="btn-action btn-view" onclick="event.stopPropagation(); showStudentTestResults('${studentEmail}')">
+        <i class="fas fa-chart-line"></i> View Results
+    </button>
+</td>
                 </tr>
                 `;
             });
