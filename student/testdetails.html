@@ -35,346 +35,399 @@
         min-height: 100vh;
     }
 
-    /* Navbar Styles - Exact copy from test.html */
-.font-manrope { 
-    font-family: 'Manrope', sans-serif; 
-}
-
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
+        /* Navbar Styles - Exact copy from test.html */
+    .font-manrope { 
+        font-family: 'Manrope', sans-serif; 
     }
-    to {
-        opacity: 1;
-        transform: translateY(0);
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
-}
 
-.slide-down {
-    animation: slideDown 0.3s ease;
-}
-    /* Main Content */
-    .main-content {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 1.5rem; /* CHANGED from 2rem */
-}
+    .slide-down {
+        animation: slideDown 0.3s ease;
+    }
+        /* Main Content */
+        .main-content {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 1.5rem; /* CHANGED from 2rem */
+    }
 
-/* Back Button */
-.back-button {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px; /* CHANGED from 8px */
-    padding: 8px 16px; /* CHANGED from 10px 20px */
-    border-radius: 8px; /* CHANGED from 13px */
-    border: 1px solid #111b66;
-    background-color: white;
-    color: #1e3a8a;
-    font-family: "Inter", Helvetica;
-    font-weight: 500;
-    font-size: 14px; /* CHANGED from 16px */
-    cursor: pointer;
-    transition: all 0.3s;
-    box-shadow: 0px 2px 4px rgba(0,0,0,0.15); /* CHANGED */
-    margin-bottom: 1.5rem; /* CHANGED from 2rem */
-}
+        /* Back Button */
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 16px 56px;
+            min-width: 280px;
+            height: 56px;
+            border-radius: 50px;
+            border: none;
+            background: linear-gradient(to top, #4b5563, #6b7280, #9ca3af);
+            color: white;
+            font-family: "Inter", Helvetica;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 15px 30px rgba(107, 114, 128, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            justify-content: center;
+        }
 
-.back-button:hover {
-    transform: translateY(-1px); /* CHANGED from -2px */
-    box-shadow: 0px 4px 8px rgba(0,0,0,0.2); /* CHANGED */
-}
+        .back-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 18px 35px rgba(107, 114, 128, 0.5);
+        }
     /* Test Header */
     .test-header {
     text-align: center;
     margin-bottom: 2rem; /* CHANGED from 3rem */
-}
+    }
 
-.test-badge {
-    display: inline-block;
-    background: linear-gradient(90deg, rgba(254, 243, 199, 1) 0%, rgba(253, 230, 138, 1) 100%);
-    padding: 10px 32px; /* CHANGED from 12px 40px */
-    border-radius: 8px; /* CHANGED from 11px */
-    margin-bottom: 0.75rem; /* CHANGED from 1rem */
-}
+    .test-badge {
+        display: inline-block;
+        background: linear-gradient(90deg, rgba(254, 243, 199, 1) 0%, rgba(253, 230, 138, 1) 100%);
+        padding: 10px 32px; /* CHANGED from 12px 40px */
+        border-radius: 8px; /* CHANGED from 11px */
+        margin-bottom: 0.75rem; /* CHANGED from 1rem */
+    }
 
-.test-badge-icon {
-    width: 56px; /* CHANGED from 79px */
-    height: 56px; /* CHANGED from 79px */
-    margin: 0 auto;
-}
+    .test-badge-icon {
+        width: 56px; /* CHANGED from 79px */
+        height: 56px; /* CHANGED from 79px */
+        margin: 0 auto;
+    }
 
-.test-category {
-    font-family: "Inter", Helvetica;
-    font-weight: 600;
-    color: #785600;
-    font-size: 15px; /* CHANGED from 20px */
-    text-transform: uppercase;
-    letter-spacing: 0.3px; /* CHANGED from 0.5px */
-}
+    .test-category {
+        font-family: "Inter", Helvetica;
+        font-weight: 600;
+        color: #785600;
+        font-size: 15px; /* CHANGED from 20px */
+        text-transform: uppercase;
+        letter-spacing: 0.3px; /* CHANGED from 0.5px */
+    }
 
-.test-title {
-    font-family: "Inter", Helvetica;
-    font-weight: 700; /* CHANGED from 600 */
-    color: #1e3a8a;
-    font-size: 2rem; /* CHANGED from 36px */
-    margin: 0.75rem 0; /* CHANGED from 1rem 0 */
-    line-height: 1.3; /* ADDED */
-}
+    .test-title {
+        font-family: "Inter", Helvetica;
+        font-weight: 700; /* CHANGED from 600 */
+        color: #1e3a8a;
+        font-size: 2rem; /* CHANGED from 36px */
+        margin: 0.75rem 0; /* CHANGED from 1rem 0 */
+        line-height: 1.3; /* ADDED */
+    }
 
-.test-meta {
-    font-family: "Inter", Helvetica;
-    font-weight: 600;
-    color: #1e3a8a;
-    font-size: 15px; /* CHANGED from 20px */
-}
+    .test-meta {
+        font-family: "Inter", Helvetica;
+        font-weight: 600;
+        color: #1e3a8a;
+        font-size: 15px; /* CHANGED from 20px */
+    }
 
-    /* Test Info Cards - New Design */
-.test-info-section {
-    max-width: 900px;
-    margin: 0 auto 2rem;
-}
+        /* Test Info Cards - New Design */
+    .test-info-section {
+        max-width: 900px;
+        margin: 0 auto 2rem;
+    }
 
-.info-cards-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
-}
+    .info-cards-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+    }
 
-.info-card-new {
-    background: white;
-    border-radius: 12px;
-    padding: 1.25rem;
-    box-shadow: 0px 2px 8px rgba(0,0,0,0.08);
-    transition: transform 0.2s, box-shadow 0.2s;
-}
+    .info-card-new {
+        background: white;
+        border-radius: 12px;
+        padding: 1.25rem;
+        box-shadow: 0px 2px 8px rgba(0,0,0,0.08);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
 
-.info-card-new:hover {
-    transform: translateY(-3px);
-    box-shadow: 0px 4px 12px rgba(59, 130, 246, 0.15);
-}
+    .info-card-new:hover {
+        transform: translateY(-3px);
+        box-shadow: 0px 4px 12px rgba(59, 130, 246, 0.15);
+    }
 
-.info-card-icon-wrapper {
-    width: 48px;
-    height: 48px;
-    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 0.875rem;
-}
+    .info-card-icon-wrapper {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 0.875rem;
+    }
 
-.info-card-icon-new {
-    width: 28px;
-    height: 28px;
-}
+    .info-card-icon-new {
+        width: 28px;
+        height: 28px;
+    }
 
-.info-card-label {
-    font-family: "Inter", Helvetica;
-    font-weight: 700;
-    color: #3b82f6;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 0.5rem;
-}
+    .info-card-label {
+        font-family: "Inter", Helvetica;
+        font-weight: 700;
+        color: #3b82f6;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.5rem;
+    }
 
-.info-card-value {
-    font-family: "Inter", Helvetica;
-    font-weight: 600;
-    color: #1e3a8a;
-    font-size: 14px;
-    line-height: 1.5;
-}
+    .info-card-value {
+        font-family: "Inter", Helvetica;
+        font-weight: 600;
+        color: #1e3a8a;
+        font-size: 14px;
+        line-height: 1.5;
+    }
 
-    /* Content Sections */
-.content-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-    max-width: 1200px;
-    margin-left: auto;
-    margin-right: auto;
-}
+        /* Content Sections */
+    .content-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+        max-width: 1200px;
+        margin-left: auto;
+        margin-right: auto;
+    }
 
-.content-card {
-    background: white;
-    border-radius: 16px;
-    padding: 2rem;
-    box-shadow: 0px 4px 12px rgba(0,0,0,0.08);
-    display: flex;
-    flex-direction: column;
-}
+    .content-card {
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0px 4px 12px rgba(0,0,0,0.08);
+        display: flex;
+        flex-direction: column;
+    }
 
-.content-card-header {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 1.25rem;
-}
+    .content-card-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1.25rem;
+    }
 
-.content-card-icon {
-    width: 28px;
-    height: 28px;
-}
+    .content-card-icon {
+        width: 28px;
+        height: 28px;
+    }
 
-.content-card-title {
-    font-family: "Inter", Helvetica;
-    font-weight: 700;
-    color: #1e3a8a;
-    font-size: 18px;
-}
+    .content-card-title {
+        font-family: "Inter", Helvetica;
+        font-weight: 700;
+        color: #1e3a8a;
+        font-size: 18px;
+    }
 
-.video-placeholder {
-    width: 100%;
-    height: 300px;
-    background: #f3f4f6;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 1rem;
-    flex-shrink: 0;
-}
+    .video-placeholder {
+        width: 100%;
+        height: 300px;
+        background: #f3f4f6;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+        flex-shrink: 0;
+    }
 
-.video-placeholder img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 12px;
-}
+    .video-placeholder img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 12px;
+    }
 
-.video-description {
-    font-family: "Inter", Helvetica;
-    font-weight: 500;
-    color: #6b7280;
-    font-size: 13px;
-    text-align: center;
-    line-height: 1.4;
-}
-    /* Protocol Steps */
-    .protocol-steps {
-    display: flex;
-    flex-direction: column;
-    gap: 0.875rem; /* CHANGED from 1rem */
-}
+    .video-description {
+        font-family: "Inter", Helvetica;
+        font-weight: 500;
+        color: #6b7280;
+        font-size: 13px;
+        text-align: center;
+        line-height: 1.4;
+    }
+        /* Protocol Steps */
+        .protocol-steps {
+        display: flex;
+        flex-direction: column;
+        gap: 0.875rem; /* CHANGED from 1rem */
+    }
 
-.protocol-step {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.875rem; /* CHANGED from 1rem */
-}
+    .protocol-step {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.875rem; /* CHANGED from 1rem */
+    }
 
-.step-number {
-    width: 24px; /* CHANGED from 27px */
-    height: 24px; /* CHANGED from 26px */
-    background-color: #3b82f6;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    font-family: "Inter", Helvetica;
-    font-weight: 600;
-    color: white;
-    font-size: 13px; /* CHANGED from 16px */
-}
+    .step-number {
+        width: 24px; /* CHANGED from 27px */
+        height: 24px; /* CHANGED from 26px */
+        background-color: #3b82f6;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-family: "Inter", Helvetica;
+        font-weight: 600;
+        color: white;
+        font-size: 13px; /* CHANGED from 16px */
+    }
 
-.step-text {
-    font-family: "Inter", Helvetica;
-    font-weight: 500; /* CHANGED from 600 */
-    color: #1e3a8a;
-    font-size: 13px; /* CHANGED from 14px */
-    padding-top: 2px; /* CHANGED from 3px */
-    line-height: 1.5; /* ADDED */
-}
-    /* Safety Tips */
-.safety-section {
-    background: linear-gradient(90deg, rgba(254, 243, 199, 1) 0%, rgba(253, 230, 138, 1) 100%);
-    border-radius: 16px;
-    padding: 2rem;
-    margin-bottom: 2rem;
-    max-width: 1200px;
-    margin-left: auto;
-    margin-right: auto;
-}
+    .step-text {
+        font-family: "Inter", Helvetica;
+        font-weight: 500; /* CHANGED from 600 */
+        color: #1e3a8a;
+        font-size: 13px; /* CHANGED from 14px */
+        padding-top: 2px; /* CHANGED from 3px */
+        line-height: 1.5; /* ADDED */
+    }
+        /* Safety Tips */
+    .safety-section {
+        background: linear-gradient(90deg, rgba(254, 243, 199, 1) 0%, rgba(253, 230, 138, 1) 100%);
+        border-radius: 16px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        max-width: 1200px;
+        margin-left: auto;
+        margin-right: auto;
+    }
 
-.safety-header {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 1.5rem;
-}
+    .safety-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
 
-.safety-icon {
-    width: 24px;
-    height: 24px;
-}
+    .safety-icon {
+        width: 24px;
+        height: 24px;
+    }
 
-.safety-title {
-    font-family: "Inter", Helvetica;
-    font-weight: 700;
-    color: #785600;
-    font-size: 18px;
-}
+    .safety-title {
+        font-family: "Inter", Helvetica;
+        font-weight: 700;
+        color: #785600;
+        font-size: 18px;
+    }
 
-.safety-tips-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1rem;
-}
+    .safety-tips-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+    }
 
-.safety-tip {
-    background: white;
-    border-radius: 12px;
-    padding: 1.25rem 1rem;
-    box-shadow: 0px 2px 8px rgba(0,0,0,0.1);
-    text-align: center;
-    transition: transform 0.2s, box-shadow 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
+    .safety-tip {
+        background: white;
+        border-radius: 12px;
+        padding: 1.25rem 1rem;
+        box-shadow: 0px 2px 8px rgba(0,0,0,0.1);
+        text-align: center;
+        transition: transform 0.2s, box-shadow 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 
-.safety-tip:hover {
-    transform: translateY(-2px);
-    box-shadow: 0px 4px 12px rgba(0,0,0,0.15);
-}
+    .safety-tip:hover {
+        transform: translateY(-2px);
+        box-shadow: 0px 4px 12px rgba(0,0,0,0.15);
+    }
 
-.safety-tip-text {
-    font-family: "Inter", Helvetica;
-    font-weight: 600;
-    color: #785600;
-    font-size: 13px;
-    line-height: 1.5;
-}
-    /* Start Test Button */
-   .start-test-container {
-    text-align: center;
-    margin-top: 2rem; /* CHANGED from 3rem */
-    margin-bottom: 2rem; /* ADDED */
-}
+    .safety-tip-text {
+        font-family: "Inter", Helvetica;
+        font-weight: 600;
+        color: #785600;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+        /* Start Test Button */
+    .start-test-container {
+        text-align: center;
+        margin-top: 2rem;
+        margin-bottom: 2rem;
+    }
 
-.btn-start-test {
-    background: linear-gradient(90deg, rgba(18, 27, 103, 1) 0%, rgba(59, 130, 246, 1) 100%);
-    border: none;
-    color: white;
-    padding: 12px 40px; /* CHANGED from 15px 50px */
-    border-radius: 8px; /* CHANGED from 5px */
-    font-family: "Inter", Helvetica;
-    font-weight: 600; /* CHANGED from 500 */
-    font-size: 15px; /* CHANGED from 16px */
-    cursor: pointer;
-    transition: all 0.3s;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); /* CHANGED */
-}
+    .btn-start-test {
+        min-width: 280px;
+        height: 56px;
+        background: linear-gradient(to top, #00154c, #12376e, #23487f);
+        color: #fff;
+        border-radius: 50px;
+        border: none;
+        outline: none;
+        cursor: pointer;
+        position: relative;
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+        overflow: hidden;
+        font-family: "Inter", Helvetica;
+        padding: 0 40px;
+        transition: all 0.3s ease;
+    }
 
-.btn-start-test:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4); /* CHANGED */
-}
+    .btn-start-test span {
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: top 0.5s;
+        font-weight: 600;
+    }
+
+    .btn-text-one-start {
+        position: absolute;
+        width: 100%;
+        top: 50%;
+        left: 0;
+        transform: translateY(-50%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .btn-text-two-start {
+        position: absolute;
+        width: 100%;
+        top: 150%;
+        left: 0;
+        transform: translateY(-50%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .btn-start-test:hover:not(:disabled) .btn-text-one-start {
+        top: -100%;
+    }
+
+    .btn-start-test:hover:not(:disabled) .btn-text-two-start {
+        top: 50%;
+    }
+
+    .btn-start-test:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .btn-start-test:disabled .btn-text-one-start,
+    .btn-start-test:disabled .btn-text-two-start {
+        transition: none;
+    }
 
     /* Loading Screen */
     .loading {
@@ -516,6 +569,38 @@
     .info-card-value {
         font-size: 13px;
     }
+      .start-test-container {
+        flex-direction: column-reverse !important;
+    }
+    
+    .back-button {
+        width: 100%;
+        justify-content: center;
+        padding: 10px 32px;
+        font-size: 14px;
+    }
+    
+    .btn-start-test {
+        width: 100%;
+    }
+    .btn-start-test {
+        width: 100%;
+        min-width: auto;
+        height: 52px;
+    }
+    
+    .start-test-container {
+        flex-direction: column-reverse !important;
+    }
+    
+    .back-button {
+        width: 100%;
+        justify-content: center;
+        padding: 14px 40px;
+        min-width: auto;
+        height: 52px;
+        font-size: 13px;
+    }
 }
 
 @media (max-width: 576px) {
@@ -546,14 +631,14 @@
 
     <div id="mainContent" style="display: none;">
         <!-- Navigation -->
-<nav class="bg-gradient-to-r from-blue-900 to-blue-500 shadow-lg">
+<nav class="shadow-lg" style="background: linear-gradient(135deg, #0D1B2A 0%, #1A2B3C 50%, #2C4A5E 100%);">
     <div class="container mx-auto px-3 sm:px-4 py-4 sm:py-5">
         <div class="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
             <!-- Logo -->
             <a href="#" class="flex items-center gap-2 sm:gap-3">
                 <img src="https://c.animaapp.com/vkhEa8zW/img/screenshot-2025-09-19-2-53-51-pm-removebg-preview-3@2x.png" 
                      alt="UMak Logo" class="h-12 sm:h-14 md:h-16 w-auto object-contain">
-                <span class="text-xl sm:text-2xl md:text-3xl font-extrabold font-manrope bg-gradient-to-r from-yellow-400 to-yellow-200 bg-clip-text text-transparent">
+                <span class="text-xl sm:text-2xl md:text-3xl font-extrabold font-manrope" style="background: linear-gradient(135deg, #EAD38A 0%, #C5A046 50%, #8B6D2D 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">
                     UMakFit
                 </span>
             </a>
@@ -580,7 +665,7 @@
                     <i class="bi bi-graph-up"></i> 
                     <span class="hidden xl:inline">Progress</span>
                 </a>
-                <a href="#" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
+                <a href="./achievements.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
                     <i class="bi bi-trophy"></i> 
                     <span class="hidden xl:inline">Achievements</span>
                 </a>
@@ -663,7 +748,7 @@
             <a href="./studentgrades.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
                 <i class="bi bi-award mr-2"></i> Grade
             </a>
-            <a href="#" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
+            <a href="./achievements.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
                 <i class="bi bi-trophy mr-2"></i> Achievements
             </a>
         </div>
@@ -671,16 +756,11 @@
 </nav>
 
         <div class="main-content">
-            <!-- Back Button -->
-            <button class="back-button" onclick="window.history.back()">
-                <i class="bi bi-arrow-left"></i> Back to test
-            </button>
+            
 
             <!-- Test Header -->
             <div class="test-header">
-                <div class="test-badge">
-                    <img class="test-badge-icon" id="testBadgeIcon" src="https://c.animaapp.com/pVU46Rgb/img/image-152@2x.png" alt="Test Icon">
-                </div>
+               
                 <div class="test-category" id="testCategory">LOADING...</div>
                 <h1 class="test-title" id="testTitle">Loading Test...</h1>
                 <div class="test-meta" id="testMeta">⏱️ Duration: Loading... | 🎯 Difficulty: Loading...</div>
@@ -752,9 +832,19 @@
                 </div>
             </div>
 
-            <!-- Start Test Button -->
-            <div class="start-test-container">
-                <button class="btn-start-test" id="startTestBtn" onclick="startTest()">Start Test Now</button>
+        <!-- Start Test Button -->
+            <div class="start-test-container" style="display: flex; gap: 1rem; justify-content: center; align-items: center; flex-wrap: wrap;">
+                <button class="back-button" onclick="window.history.back()">
+                    <i class="bi bi-arrow-left"></i> Back to test
+                </button>
+                <button class="btn-start-test" id="startTestBtn" onclick="startTest()">
+                    <span class="btn-text-one-start">
+                        <i class="bi bi-play-circle-fill"></i> Start Test Now
+                    </span>
+                    <span class="btn-text-two-start">
+                        <i class="bi bi-lightning-charge-fill"></i> Let's Go!
+                    </span>
+                </button>
             </div>
         </div>
     </div>
@@ -953,7 +1043,7 @@
     const testInfo = getTestData(test.testName);
     
     // Update header
-    document.getElementById('testBadgeIcon').src = testInfo.badgeIcon;
+  
     document.getElementById('testCategory').textContent = testInfo.category;
     document.getElementById('testTitle').textContent = test.testName;
     
@@ -1205,9 +1295,15 @@ function calculateTestScore(testName, result, testTarget = null) {
 }
         async function loadTestDetails(testId) {
     try {
+        console.log('Loading test details for ID:', testId);
+        
         const testDoc = await getDoc(doc(db, 'scheduledTests', testId));
+        
+        console.log('Test doc exists:', testDoc.exists()); 
+        
         if (testDoc.exists()) {
             currentTest = { id: testDoc.id, ...testDoc.data() };
+            console.log('Current test loaded:', currentTest); 
             
             // CHECK STUDENT ATTEMPTS
             const attemptInfo = await checkStudentAttempts(testId, currentUser.uid);
@@ -1215,35 +1311,51 @@ function calculateTestScore(testName, result, testTarget = null) {
             
             populateTestDetails(currentTest);
             
-            // UPDATE START BUTTON based on attempts
+            
             updateStartButton(currentTest, attemptInfo);
         } else {
-            console.error('Test not found');
+            console.error('Test document does not exist for ID:', testId);
             alert('Test not found. Please try again.');
             window.history.back();
         }
     } catch (error) {
-        console.error('Error loading test details:', error);
-        alert('Error loading test details. Please try again.');
-        window.history.back();
+        console.error('Detailed error loading test:', error);
+        console.error('Error code:', error.code);
+        console.error('Error message:', error.message);
+        alert('Error loading test details: ' + error.message);
+       
     }
 }
 
-// ADD THIS NEW FUNCTION to update the start button:
+
 function updateStartButton(test, attemptInfo) {
     const startBtn = document.getElementById('startTestBtn');
     const attemptsAllowed = test.attemptsAllowed || 1;
     
     if (attemptInfo.perfectScore) {
         // Already got perfect score
-        startBtn.textContent = '✅ Perfect Score Achieved!';
+        startBtn.innerHTML = `
+            <span class="btn-text-one-start">
+                <i class="bi bi-check-circle-fill"></i> Perfect Score Achieved!
+            </span>
+            <span class="btn-text-two-start">
+                <i class="bi bi-check-circle-fill"></i> Perfect Score Achieved!
+            </span>
+        `;
         startBtn.disabled = true;
         startBtn.style.background = 'linear-gradient(90deg, #10b981 0%, #059669 100%)';
         startBtn.style.cursor = 'not-allowed';
         startBtn.style.opacity = '0.7';
     } else if (attemptInfo.attemptCount >= attemptsAllowed) {
         // Used all attempts
-        startBtn.textContent = `🔒 All ${attemptsAllowed} Attempts Used`;
+        startBtn.innerHTML = `
+            <span class="btn-text-one-start">
+                <i class="bi bi-lock-fill"></i> All ${attemptsAllowed} Attempts Used
+            </span>
+            <span class="btn-text-two-start">
+                <i class="bi bi-lock-fill"></i> All ${attemptsAllowed} Attempts Used
+            </span>
+        `;
         startBtn.disabled = true;
         startBtn.style.background = 'linear-gradient(90deg, #6b7280 0%, #4b5563 100%)';
         startBtn.style.cursor = 'not-allowed';
@@ -1252,9 +1364,23 @@ function updateStartButton(test, attemptInfo) {
         // Can still attempt
         const attemptNumber = attemptInfo.attemptCount + 1;
         if (attemptNumber > 1) {
-            startBtn.innerHTML = `🔄 Start Attempt ${attemptNumber}/${attemptsAllowed}`;
+            startBtn.innerHTML = `
+                <span class="btn-text-one-start">
+                    <i class="bi bi-arrow-clockwise"></i> Start Attempt ${attemptNumber}/${attemptsAllowed}
+                </span>
+                <span class="btn-text-two-start">
+                    <i class="bi bi-lightning-charge-fill"></i> Try Again!
+                </span>
+            `;
         } else {
-            startBtn.innerHTML = `Start Test Now (${attemptNumber}/${attemptsAllowed})`;
+            startBtn.innerHTML = `
+                <span class="btn-text-one-start">
+                    <i class="bi bi-play-circle-fill"></i> Start Test Now (${attemptNumber}/${attemptsAllowed})
+                </span>
+                <span class="btn-text-two-start">
+                    <i class="bi bi-lightning-charge-fill"></i> Let's Go!
+                </span>
+            `;
         }
     }
 }

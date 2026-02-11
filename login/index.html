@@ -595,9 +595,7 @@
         }
     }
 
-    // Check student status by email (like new code)
-    // Check student status by email (like new code)
-async function checkStudentStatus(user) {
+    async function checkStudentStatus(user) {
     try {
         console.log('🔍 Checking student collection for:', user.email);
         
@@ -612,6 +610,14 @@ async function checkStudentStatus(user) {
             const studentData = studentDoc.data();
             console.log('✅ STUDENT FOUND in students collection');
             console.log('Student data:', studentData);
+            
+            if (!studentData.createdAt) {
+                const studentRef = window.doc(window.db, 'students', studentDoc.id);
+                await window.setDoc(studentRef, {
+                    createdAt: new Date().toISOString()
+                }, { merge: true });
+                studentData.createdAt = new Date().toISOString();
+            }
             
             // Return student data with document ID
             return { 
@@ -797,16 +803,25 @@ async function checkStudentStatus(user) {
                     
                     // Update last login in students collection using the correct document ID
                     try {
-                        const studentRef = window.doc(window.db, 'students', studentData.id);
-                        await window.setDoc(studentRef, {
-                            lastLogin: currentTime,
-                            isActive: true,
-                            uid: user.uid
-                        }, { merge: true });
-                        console.log('✓ Updated student last login');
-                    } catch (error) {
-                        console.error('Error updating student:', error);
+                    const studentRef = window.doc(window.db, 'students', studentData.id);
+                    
+                    // ADD THIS: Prepare update data
+                    const updateData = {
+                        lastLogin: currentTime,
+                        isActive: true,
+                        uid: user.uid
+                    };
+                    
+                    // ADD THIS: Set createdAt only if it doesn't exist (first time login)
+                    if (!studentData.createdAt) {
+                        updateData.createdAt = currentTime;
                     }
+                    
+                    await window.setDoc(studentRef, updateData, { merge: true });
+                    console.log('✓ Updated student last login');
+                } catch (error) {
+                    console.error('Error updating student:', error);
+                }
                     
                     // Also update users collection for login tracking
                     try {
