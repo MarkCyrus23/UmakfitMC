@@ -1412,20 +1412,18 @@
         });
 
         // Function to get rating based on score
-        function getRating(score) {
-            if (score >= 90) return { text: 'Excellent', class: 'rating-excellent' };
-            if (score >= 80) return { text: 'Good', class: 'rating-good' };
-            if (score >= 70) return { text: 'Fair', class: 'rating-fair' };
-            return { text: 'Needs Improvement', class: 'rating-fair' };
-        }
-
+function getRating(score) {
+    if (score >= 90) return { text: 'Excellent', class: 'rating-excellent' };
+    if (score >= 80) return { text: 'Good', class: 'rating-good' };
+    if (score >= 70) return { text: 'Fair', class: 'rating-fair' };
+    return { text: 'Needs Improvement', class: 'rating-fair' };
+}
         // Function to get rating class for score badge
-        function getScoreClass(score) {
-            if (score >= 90) return 'score-excellent';
-            if (score >= 70) return 'score-good';
-            return 'score-poor';
-        }
-
+function getScoreClass(score) {
+    if (score >= 90) return 'score-excellent';
+    if (score >= 70) return 'score-good';
+    return 'score-poor';
+}
         async function loadScheduledTests(userEmail, userId) {
             try {
                 console.log('=== LOADING SCHEDULED TESTS ===');
@@ -1717,138 +1715,181 @@
             }
         }
 
-        // Load Test Results - GROUP BY STUDENT
-        async function loadTestResults(userEmail, userId) {
-            try {
-                console.log('📊 Loading test results grouped by student...');
-                
-                // Populate section filter
-                const filterSection = document.getElementById('filterSection');
-                filterSection.innerHTML = '<option value="">All Sections</option>';
+  // Load Test Results - FIXED TO MATCH STUDENT GRADES PAGE
+async function loadTestResults(userEmail, userId) {
+    try {
+        console.log('📊 Loading test results grouped by student...');
+        
+        // Populate section filter
+        const filterSection = document.getElementById('filterSection');
+        filterSection.innerHTML = '<option value="">All Sections</option>';
 
-                if (window.assignedSections && window.assignedSections.length > 0) {
-                    const uniqueSections = new Set();
-                    window.assignedSections.forEach(section => {
-                        if (!uniqueSections.has(section.section)) {
-                            uniqueSections.add(section.section);
-                            const option = document.createElement('option');
-                            option.value = section.section;
-                            option.textContent = `${section.section} (${section.students} students)`;
-                            filterSection.appendChild(option);
-                        }
-                    });
+        if (window.assignedSections && window.assignedSections.length > 0) {
+            const uniqueSections = new Set();
+            window.assignedSections.forEach(section => {
+                if (!uniqueSections.has(section.section)) {
+                    uniqueSections.add(section.section);
+                    const option = document.createElement('option');
+                    option.value = section.section;
+                    option.textContent = `${section.section} (${section.students} students)`;
+                    filterSection.appendChild(option);
                 }
+            });
+        }
+        
+        // Query test results
+        const resultsRef = collection(db, 'testResults');
+        let resultsSnapshot;
+        
+        if (window.assignedSections.length > 0) {
+            const sectionNames = window.assignedSections.map(s => s.section);
+            const batches = [];
+            
+            for (let i = 0; i < sectionNames.length; i += 10) {
+                const batch = sectionNames.slice(i, i + 10);
+                const q = query(
+                    resultsRef,
+                    where('section', 'in', batch)
+                );
+                batches.push(getDocs(q));
+            }
+            
+            const batchResults = await Promise.all(batches);
+            resultsSnapshot = {
+                empty: batchResults.every(batch => batch.empty),
+                forEach: (callback) => {
+                    batchResults.forEach(batch => {
+                        batch.forEach(callback);
+                    });
+                },
+                size: batchResults.reduce((acc, batch) => acc + batch.size, 0)
+            };
+        } else {
+            resultsSnapshot = await getDocs(resultsRef);
+        }
+        
+        const tableBody = document.getElementById('resultsTableBody');
+
+        if (!resultsSnapshot.empty) {
+            // ⭐ CRITICAL: Group by BEST SCORE per test, not all attempts
+            window.studentResultsMap = new Map();
+            const testGroups = new Map(); // Track best score per test per student
+            
+            resultsSnapshot.forEach((docSnap) => {
+                const result = docSnap.data();
                 
-                // Query all test results
-                const resultsQuery = query(
-                    collection(db, 'testResults'),
-                    orderBy('submittedAt', 'desc')
+                // Only include completed tests
+                if (result.status !== 'completed') return;
+                
+                const studentEmail = result.studentEmail;
+                if (!studentEmail) return;
+                
+                // Calculate score using the EXACT same function as grades page
+                const score = calculateTestScore(
+                    result.testName, 
+                    result.resultData || result.result || result.repetitions || result, 
+                    result.testTarget
                 );
                 
-                const resultsSnapshot = await getDocs(resultsQuery);
-                const tableBody = document.getElementById('resultsTableBody');
-
-                if (!resultsSnapshot.empty) {
-                    // GROUP RESULTS BY STUDENT
-                    window.studentResultsMap = new Map();
-                    let totalResults = 0;
-                    let totalScore = 0;
-                    
-                    resultsSnapshot.forEach((docSnap) => {
-                        const result = docSnap.data();
-                        
-                        // Filter by assigned sections
-                        if (window.assignedSections.length > 0) {
-                            const sectionNames = window.assignedSections.map(s => s.section);
-                            if (!sectionNames.includes(result.section)) return;
-                        }
-                        
-                        const studentEmail = result.studentEmail;
-                        const score = calculateTestScore(result.testName, result.resultData || result.result, result.testTarget);
-                        
-                        totalResults++;
-                        totalScore += score;
-                        
-                        // Group by student
-                        if (!window.studentResultsMap.has(studentEmail)) {
-                            window.studentResultsMap.set(studentEmail, {
-                                studentName: result.studentName || 'Unknown',
-                                section: result.section || 'N/A',
-                                tests: [],
-                                totalTests: 0,
-                                bestScore: 0,
-                                averageScore: 0,
-                                lastActivity: null,
-                                lastTestName: ''
-                            });
-                        }
-                        
-                        const studentData = window.studentResultsMap.get(studentEmail);
-                        
-                        // Add test result
-                        const date = result.submittedAt ? 
-                            (typeof result.submittedAt.toDate === 'function' ? result.submittedAt.toDate() : new Date(result.submittedAt)) : 
-                            new Date();
-                        
-                        studentData.tests.push({
-                            id: docSnap.id,
-                            testName: result.testName,
-                            score: score,
-                            result: result.result || result.resultData,
-                            date: date,
-                            attempt: result.attemptNumber || 1,
-                            rating: getRating(score)
-                        });
-                        
-                        // Update stats
-                        studentData.totalTests++;
-                        if (score > studentData.bestScore) {
-                            studentData.bestScore = score;
-                        }
-                        
-                        if (!studentData.lastActivity || date > studentData.lastActivity) {
-                            studentData.lastActivity = date;
-                            studentData.lastTestName = result.testName;
-                        }
-                    });
-                    
-                    // CALCULATE AVERAGES PER STUDENT
-                    window.studentResultsMap.forEach((studentData) => {
-                        // Calculate average from all test scores
-                        const totalStudentScore = studentData.tests.reduce((sum, test) => sum + test.score, 0);
-                        studentData.averageScore = Math.round(totalStudentScore / studentData.tests.length);
-                    });
-                    
-                    // UPDATE SUMMARY CARD
-                    const summaryCard = document.getElementById('resultsSummary');
-                    if (window.studentResultsMap.size > 0) {
-                        summaryCard.style.display = 'block';
-                        document.getElementById('totalResults').textContent = totalResults;
-                        document.getElementById('uniqueStudents').textContent = window.studentResultsMap.size;
-                        document.getElementById('averageScore').textContent = Math.round(totalScore / totalResults) + '%';
+                // Validate score
+                const validScore = Math.max(0, Math.min(100, score));
+                
+                // Parse date properly
+                let submittedDate = new Date();
+                if (result.submittedAt) {
+                    if (typeof result.submittedAt.toDate === 'function') {
+                        submittedDate = result.submittedAt.toDate();
+                    } else if (typeof result.submittedAt === 'string') {
+                        submittedDate = new Date(result.submittedAt);
+                    } else if (result.submittedAt.seconds) {
+                        submittedDate = new Date(result.submittedAt.seconds * 1000);
                     }
-                    
-                    // RENDER GROUPED TABLE
-                    renderStudentResultsTable();
-                    
-                } else {
-                    tableBody.innerHTML = `
-                        <tr>
-                            <td colspan="7">
-                                <div class="empty-state">
-                                    <div class="empty-icon">📊</div>
-                                    <div class="empty-title">No Test Results Yet</div>
-                                    <div class="empty-text">No students have completed tests yet.</div>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
                 }
-            } catch (error) {
-                console.error('Error loading test results:', error);
-            }
+                
+                // ⭐ CRITICAL: Group by testId and keep HIGHEST score
+                const testId = result.testId || docSnap.id;
+                const groupKey = `${studentEmail}_${testId}`;
+                
+                if (!testGroups.has(groupKey) || validScore > testGroups.get(groupKey).score) {
+                    testGroups.set(groupKey, {
+                        ...result,
+                        id: docSnap.id,
+                        score: validScore,
+                        submittedAt: submittedDate
+                    });
+                }
+            });
+            
+            // Now group by student using ONLY the best scores
+            testGroups.forEach((result, key) => {
+                const studentEmail = result.studentEmail;
+                
+                if (!window.studentResultsMap.has(studentEmail)) {
+                    window.studentResultsMap.set(studentEmail, {
+                        studentName: result.studentName || 'Unknown',
+                        section: result.section || 'N/A',
+                        tests: [],
+                        totalTests: 0,
+                        bestScore: 0,
+                        averageScore: 0,
+                        lastActivity: null,
+                        lastTestName: ''
+                    });
+                }
+                
+                const studentData = window.studentResultsMap.get(studentEmail);
+                
+                studentData.tests.push({
+                    id: result.id,
+                    testName: result.testName,
+                    score: result.score,
+                    result: result.result || result.resultData || result.repetitions || 'N/A',
+                    date: result.submittedAt,
+                    attempt: result.attemptNumber || 1,
+                    rating: getRating(result.score)
+                });
+                
+                // Update stats
+                studentData.totalTests++;
+                
+                if (result.score > studentData.bestScore) {
+                    studentData.bestScore = result.score;
+                }
+                
+                if (!studentData.lastActivity || result.submittedAt > studentData.lastActivity) {
+                    studentData.lastActivity = result.submittedAt;
+                    studentData.lastTestName = result.testName;
+                }
+            });
+            
+            // Calculate averages
+            window.studentResultsMap.forEach((studentData) => {
+                if (studentData.tests.length > 0) {
+                    const totalScore = studentData.tests.reduce((sum, test) => sum + test.score, 0);
+                    studentData.averageScore = Math.round(totalScore / studentData.tests.length);
+                }
+            });
+            
+            // Render table
+            renderStudentResultsTable();
+            
+        } else {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="7">
+                        <div class="empty-state">
+                            <div class="empty-icon">📊</div>
+                            <div class="empty-title">No Test Results Yet</div>
+                            <div class="empty-text">No students have completed tests yet.</div>
+                        </div>
+                    </td>
+                </tr>
+            `;
         }
-
+    } catch (error) {
+        console.error('Error loading test results:', error);
+    }
+}
         // Render Student Results Table (One Row Per Student)
         function renderStudentResultsTable() {
             const tableBody = document.getElementById('resultsTableBody');
@@ -1967,189 +2008,290 @@
         window.closeStudentTestResultsModal = function() {
             document.getElementById('studentTestResultsModal').style.display = 'none';
         };
-
-        function calculateTestScore(testName, result, testTarget = null) {
-            const normalized = testName.toLowerCase();
-            
-            let numericValue = 0;
-            
-            // Extract numeric value from result
-            if (typeof result === 'string') {
-                const match = result.match(/(\d+\.?\d*)/);
-                if (match) {
-                    numericValue = parseFloat(match[1]);
-                } else {
-                    numericValue = parseFloat(result) || 0;
-                }
-            } else {
-                numericValue = parseFloat(result) || 0;
+// ============ REPLACE calculateTestScore() with this EXACT version ============
+// Function to calculate test score - EXACT SAME AS STUDENT GRADES PAGE
+function calculateTestScore(testName, result, testTarget = null) {
+    const normalized = testName.toLowerCase().trim();
+    
+    // ⭐ CRITICAL: Check if this is a professor override with pre-calculated score
+    if (result && typeof result === 'object' && result !== null) {
+        // If professor already set a final score, use it directly
+        if (result.score !== undefined && result.score !== null) {
+            const score = parseFloat(result.score);
+            if (!isNaN(score) && score >= 0 && score <= 100) {
+                console.log(`✅ Using stored professor score: ${score} for ${testName}`);
+                return score;
             }
-            
-            console.log(`🎯 Scoring: ${testName} | Value: ${numericValue} | Target: ${testTarget}`);
-            
-            // If professor set a target, use target-based scoring
-            if (testTarget && testTarget > 0) {
-                
-                // REPETITION TESTS (push-ups, sit-ups, curl-ups)
-                if (normalized.includes('push-up') || normalized.includes('pushup') || 
-                    normalized.includes('sit-up') || normalized.includes('situp') ||
-                    normalized.includes('curl-up') || normalized.includes('curl up')) {
-                    
-                    // Perfect score if meets or exceeds target
-                    if (numericValue >= testTarget) return 100;
-                    
-                    const percentage = (numericValue / testTarget) * 100;
-                    if (percentage >= 90) return 95;
-                    if (percentage >= 80) return 90;
-                    if (percentage >= 70) return 85;
-                    if (percentage >= 60) return 80;
-                    if (percentage >= 50) return 75;
-                    if (percentage >= 40) return 70;
-                    return Math.max(50, Math.round(percentage));
-                }
-                
-                // PLANK (seconds)
-                if (normalized.includes('plank')) {
-                    // Convert MM:SS to seconds if needed
-                    if (typeof result === 'string' && result.includes(':')) {
-                        const [mins, secs] = result.split(':').map(Number);
-                        numericValue = (mins * 60) + secs;
-                    }
-                    
-                    if (numericValue >= testTarget) return 100;
-                    
-                    const percentage = (numericValue / testTarget) * 100;
-                    if (percentage >= 90) return 95;
-                    if (percentage >= 80) return 90;
-                    if (percentage >= 70) return 85;
-                    if (percentage >= 60) return 80;
-                    if (percentage >= 50) return 75;
-                    return Math.max(50, Math.round(percentage));
-                }
-                
-                // GRIP STRENGTH (kg)
-                if (normalized.includes('grip')) {
-                    if (numericValue >= testTarget) return 100;
-                    
-                    const percentage = (numericValue / testTarget) * 100;
-                    if (percentage >= 90) return 95;
-                    if (percentage >= 80) return 90;
-                    if (percentage >= 70) return 85;
-                    if (percentage >= 60) return 80;
-                    if (percentage >= 50) return 75;
-                    return Math.max(50, Math.round(percentage));
-                }
-                
-                // SIT-AND-REACH (cm)
-                if (normalized.includes('sit-and-reach')) {
-                    if (numericValue >= testTarget) return 100;
-                    
-                    const percentage = (numericValue / testTarget) * 100;
-                    if (percentage >= 90) return 95;
-                    if (percentage >= 80) return 90;
-                    if (percentage >= 70) return 85;
-                    if (percentage >= 60) return 80;
-                    if (percentage >= 50) return 75;
-                    return Math.max(50, Math.round(percentage));
-                }
-                
-                // 1-MILE RUN (seconds - LOWER IS BETTER)
-                if (normalized.includes('mile') || normalized.includes('run')) {
-            // Convert MM:SS to total seconds if needed
-                    if (typeof result === 'string' && result.includes(':')) {
-                        const [mins, secs] = result.split(':').map(Number);
-                        numericValue = (mins * 60) + secs;
-                    }
-                    
-                    // Convert testTarget from MINUTES to SECONDS
-                    const targetInSeconds = testTarget * 60;
-                    
-                    // If student time is <= target, perfect score
-                    if (numericValue <= targetInSeconds) return 100;
-                    
-                    const percentage = (targetInSeconds / numericValue) * 100;
-                    if (percentage >= 90) return 95;
-                    if (percentage >= 80) return 90;
-                    if (percentage >= 70) return 85;
-                    if (percentage >= 60) return 80;
-                    if (percentage >= 50) return 75;
-                    return Math.max(50, Math.round(percentage));
-                }
-                
-                // STEP TEST (heart rate - LOWER IS BETTER)
-                if (normalized.includes('step test') || normalized.includes('3-minute')) {
-                    if (numericValue <= testTarget) return 100;
-                    
-                    const percentage = (testTarget / numericValue) * 100;
-                    if (percentage >= 90) return 95;
-                    if (percentage >= 80) return 90;
-                    if (percentage >= 70) return 85;
-                    if (percentage >= 60) return 80;
-                    if (percentage >= 50) return 75;
-                    return Math.max(50, Math.round(percentage));
-                }
-            }
-            
-            // Fallback to default scoring if no target set
-            if (normalized.includes('push-up') || normalized.includes('pushup')) {
-                if (numericValue >= 40) return 100;
-                if (numericValue >= 30) return 90;
-                if (numericValue >= 20) return 80;
-                if (numericValue >= 15) return 70;
-                if (numericValue >= 10) return 60;
-                return 50;
-            } else if (normalized.includes('sit-up') || normalized.includes('situp')) {
-                if (numericValue >= 50) return 100;
-                if (numericValue >= 40) return 90;
-                if (numericValue >= 30) return 80;
-                if (numericValue >= 20) return 70;
-                if (numericValue >= 15) return 60;
-                return 50;
-            } else if (normalized.includes('plank')) {
-                if (numericValue >= 120) return 100;
-                if (numericValue >= 90) return 90;
-                if (numericValue >= 60) return 80;
-                if (numericValue >= 45) return 70;
-                if (numericValue >= 30) return 60;
-                return 50;
-            } else if (normalized.includes('step test') || normalized.includes('3-minute')) {
-                if (numericValue <= 80) return 100;
-                if (numericValue <= 100) return 90;
-                if (numericValue <= 120) return 80;
-                if (numericValue <= 140) return 70;
-                if (numericValue <= 160) return 60;
-                return 50;
-            } else if (normalized.includes('mile') || normalized.includes('run')) {
-                if (numericValue <= 420) return 100;
-                if (numericValue <= 480) return 90;
-                if (numericValue <= 540) return 80;
-                if (numericValue <= 600) return 70;
-                if (numericValue <= 660) return 60;
-                return 50;
-            } else if (normalized.includes('sit-and-reach')) {
-                if (numericValue >= 20) return 100;
-                if (numericValue >= 15) return 90;
-                if (numericValue >= 10) return 80;
-                if (numericValue >= 5) return 70;
-                if (numericValue >= 0) return 60;
-                return 50;
-            } else if (normalized.includes('grip')) {
-                if (numericValue >= 60) return 100;
-                if (numericValue >= 50) return 90;
-                if (numericValue >= 40) return 80;
-                if (numericValue >= 30) return 70;
-                return 60;
-            } else if (normalized.includes('curl-up')) {
-                if (numericValue >= 75) return 100;
-                if (numericValue >= 50) return 90;
-                if (numericValue >= 30) return 80;
-                if (numericValue >= 20) return 70;
-                return 60;
-            }
-            
-            return 75; // Default fallback
         }
-
+    }
+    
+    // Extract numeric value from result
+    let numericValue = 0;
+    
+    if (typeof result === 'object' && result !== null) {
+        numericValue = result.repetitions || result.time || result.distance || 
+                      result.value || result.result || result.count || 
+                      result.score || 0;
+    } else if (typeof result === 'string') {
+        const match = result.match(/(\d+\.?\d*)/);
+        if (match) {
+            numericValue = parseFloat(match[1]);
+        } else {
+            numericValue = parseFloat(result) || 0;
+        }
+    } else {
+        numericValue = parseFloat(result) || 0;
+    }
+    
+    console.log(`🎯 Calculating: ${testName} | Value: ${numericValue} | Target: ${testTarget}`);
+    
+    // Use test target if available - THIS IS THE KEY SECTION
+    if (testTarget && testTarget > 0) {
+        // REPETITION TESTS (push-ups, sit-ups, curl-ups)
+        if (normalized.includes('push-up') || normalized.includes('pushup') || 
+            normalized.includes('sit-up') || normalized.includes('situp') ||
+            normalized.includes('curl-up')) {
+            
+            const reps = numericValue;
+            if (reps >= testTarget) return 100;
+            
+            const percentage = (reps / testTarget) * 100;
+            let score = Math.min(100, Math.max(50, percentage));
+            
+            // Apply grading scale
+            if (percentage >= 100) score = 100;
+            else if (percentage >= 90) score = 95;
+            else if (percentage >= 80) score = 90;
+            else if (percentage >= 70) score = 85;
+            else if (percentage >= 60) score = 80;
+            else if (percentage >= 50) score = 75;
+            
+            return Math.round(score);
+        }
+        
+        // PLANK (time-based in seconds)
+        if (normalized.includes('plank')) {
+            let seconds = numericValue;
+            if (seconds >= testTarget) return 100;
+            
+            const percentage = (seconds / testTarget) * 100;
+            let score = Math.min(100, Math.max(50, percentage));
+            
+            if (percentage >= 100) score = 100;
+            else if (percentage >= 90) score = 95;
+            else if (percentage >= 80) score = 90;
+            else if (percentage >= 70) score = 85;
+            else if (percentage >= 60) score = 80;
+            else if (percentage >= 50) score = 75;
+            
+            return Math.round(score);
+        }
+        
+        // SIT-AND-REACH (flexibility in cm)
+        if (normalized.includes('sit-and-reach')) {
+            const distance = numericValue;
+            if (distance >= testTarget) return 100;
+            
+            const percentage = (distance / testTarget) * 100;
+            let score = Math.min(100, Math.max(50, percentage));
+            
+            if (percentage >= 100) score = 100;
+            else if (percentage >= 90) score = 95;
+            else if (percentage >= 80) score = 90;
+            else if (percentage >= 70) score = 85;
+            else if (percentage >= 60) score = 80;
+            else if (percentage >= 50) score = 75;
+            
+            return Math.round(score);
+        }
+        
+        // GRIP STRENGTH (kg)
+        if (normalized.includes('grip')) {
+            if (numericValue >= testTarget) return 100;
+            
+            const percentage = (numericValue / testTarget) * 100;
+            let score = Math.min(100, Math.max(50, percentage));
+            
+            if (percentage >= 90) score = 95;
+            else if (percentage >= 80) score = 90;
+            else if (percentage >= 70) score = 85;
+            else if (percentage >= 60) score = 80;
+            else if (percentage >= 50) score = 75;
+            
+            return Math.round(score);
+        }
+        
+        // 1-MILE RUN (seconds - LOWER IS BETTER)
+        if (normalized.includes('mile') || normalized.includes('run')) {
+            if (numericValue <= testTarget) return 100;
+            
+            const percentage = (testTarget / numericValue) * 100;
+            let score = Math.min(100, Math.max(50, percentage));
+            
+            if (percentage >= 90) score = 95;
+            else if (percentage >= 80) score = 90;
+            else if (percentage >= 70) score = 85;
+            else if (percentage >= 60) score = 80;
+            else if (percentage >= 50) score = 75;
+            
+            return Math.round(score);
+        }
+        
+        // STEP TEST (heart rate - LOWER IS BETTER)
+        if (normalized.includes('step test') || normalized.includes('3-minute')) {
+            if (numericValue <= testTarget) return 100;
+            
+            const percentage = (testTarget / numericValue) * 100;
+            let score = Math.min(100, Math.max(50, percentage));
+            
+            if (percentage >= 90) score = 95;
+            else if (percentage >= 80) score = 90;
+            else if (percentage >= 70) score = 85;
+            else if (percentage >= 60) score = 80;
+            else if (percentage >= 50) score = 75;
+            
+            return Math.round(score);
+        }
+    }
+    
+    // ============ FALLBACK DEFAULT SCORING ============
+    
+    // PUSH-UP TEST (DEFAULT)
+    if (normalized.includes('push-up') || normalized.includes('pushup')) {
+        const reps = numericValue;
+        if (reps >= 40) return 100;
+        if (reps >= 35) return 95;
+        if (reps >= 30) return 90;
+        if (reps >= 25) return 85;
+        if (reps >= 20) return 80;
+        if (reps >= 15) return 75;
+        if (reps >= 10) return 70;
+        if (reps >= 5) return 65;
+        return 60;
+    }
+    
+    // SIT-UP TEST (DEFAULT)
+    if (normalized.includes('sit-up') || normalized.includes('situp')) {
+        const reps = numericValue;
+        if (reps >= 50) return 100;
+        if (reps >= 45) return 95;
+        if (reps >= 40) return 90;
+        if (reps >= 35) return 85;
+        if (reps >= 30) return 80;
+        if (reps >= 25) return 75;
+        if (reps >= 20) return 70;
+        if (reps >= 15) return 65;
+        return 60;
+    }
+    
+    // CURL-UP TEST (DEFAULT)
+    if (normalized.includes('curl-up')) {
+        const reps = numericValue;
+        if (reps >= 75) return 100;
+        if (reps >= 60) return 95;
+        if (reps >= 50) return 90;
+        if (reps >= 40) return 85;
+        if (reps >= 30) return 80;
+        if (reps >= 25) return 75;
+        if (reps >= 20) return 70;
+        return 65;
+    }
+    
+    // PLANK (DEFAULT - seconds)
+    if (normalized.includes('plank')) {
+        let seconds = 0;
+        if (typeof numericValue === 'string' && numericValue.includes(':')) {
+            const [mins, secs] = numericValue.split(':').map(Number);
+            seconds = (mins * 60) + (secs || 0);
+        } else {
+            seconds = numericValue;
+        }
+        
+        if (seconds >= 180) return 100;
+        if (seconds >= 150) return 95;
+        if (seconds >= 120) return 90;
+        if (seconds >= 100) return 85;
+        if (seconds >= 80) return 80;
+        if (seconds >= 60) return 75;
+        if (seconds >= 45) return 70;
+        if (seconds >= 30) return 65;
+        return 60;
+    }
+    
+    // STEP TEST (DEFAULT - heart rate)
+    if (normalized.includes('step test') || normalized.includes('3-minute')) {
+        const heartRate = numericValue;
+        if (heartRate <= 70) return 100;
+        if (heartRate <= 80) return 95;
+        if (heartRate <= 90) return 90;
+        if (heartRate <= 100) return 85;
+        if (heartRate <= 110) return 80;
+        if (heartRate <= 120) return 75;
+        if (heartRate <= 130) return 70;
+        return 65;
+    }
+    
+    // MILE RUN (DEFAULT - seconds)
+    if (normalized.includes('mile') || normalized.includes('run')) {
+        let totalSeconds = 0;
+        if (typeof numericValue === 'string' && numericValue.includes(':')) {
+            const [minutes, seconds] = numericValue.split(':').map(Number);
+            totalSeconds = (minutes * 60) + (seconds || 0);
+        } else {
+            totalSeconds = numericValue;
+        }
+        
+        if (totalSeconds <= 360) return 100;
+        if (totalSeconds <= 420) return 95;
+        if (totalSeconds <= 480) return 90;
+        if (totalSeconds <= 540) return 85;
+        if (totalSeconds <= 600) return 80;
+        if (totalSeconds <= 660) return 75;
+        if (totalSeconds <= 720) return 70;
+        if (totalSeconds <= 780) return 65;
+        return 60;
+    }
+    
+    // SIT-AND-REACH (DEFAULT - cm)
+    if (normalized.includes('sit-and-reach')) {
+        const distance = numericValue;
+        if (distance >= 25) return 100;
+        if (distance >= 20) return 95;
+        if (distance >= 15) return 90;
+        if (distance >= 10) return 85;
+        if (distance >= 5) return 80;
+        if (distance >= 0) return 75;
+        if (distance >= -5) return 70;
+        return 65;
+    }
+    
+    // GRIP STRENGTH (DEFAULT - kg)
+    if (normalized.includes('grip')) {
+        const strength = numericValue;
+        if (strength >= 60) return 100;
+        if (strength >= 55) return 95;
+        if (strength >= 50) return 90;
+        if (strength >= 45) return 85;
+        if (strength >= 40) return 80;
+        if (strength >= 35) return 75;
+        if (strength >= 30) return 70;
+        return 65;
+    }
+    
+    // BMI (DEFAULT)
+    if (normalized.includes('bmi')) {
+        const bmi = numericValue;
+        if (bmi >= 18.5 && bmi <= 24.9) return 100;
+        if (bmi >= 17.5 && bmi < 18.5) return 85;
+        if (bmi >= 25 && bmi <= 27) return 85;
+        if (bmi >= 15 && bmi < 17.5) return 70;
+        if (bmi > 27 && bmi <= 30) return 70;
+        return 60;
+    }
+    
+    // Default fallback
+    return 75;
+}
         // Open Manage Students Modal
         window.manageStudents = async function(testId, testName, section) {
             try {
