@@ -3,16 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>UmakFit - Student Management</title>
+    <title>UMakFit - Student Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * { 
             -webkit-font-smoothing: antialiased; 
             box-sizing: border-box; 
-            font-family: 'Inter', Helvetica, sans-serif; 
+            font-family: 'Poppins', sans-serif; 
         }
         body { 
             margin: 0; 
@@ -22,19 +25,127 @@
             width: 100%;
         }
         
-        /* Navigation styles */
-        .font-manrope { font-family: 'Manrope', sans-serif; }
+        .font-montserrat {
+            font-family: 'Montserrat', sans-serif;
+        }
+        
+        /* Custom animations */
+        @keyframes pulse { 
+            0%, 100% { opacity: 1; } 
+            50% { opacity: 0.5; } 
+        }
+        @keyframes spin { 
+            0% { transform: rotate(0deg); } 
+            100% { transform: rotate(360deg); } 
+        }
+        @keyframes dropdownSlide {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        @keyframes bounceSlow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .animate-fade-in-up { animation: fadeInUp 1s ease-out; }
+        .animate-slide-in-left { animation: slideInLeft 1s ease-out; }
+        .animate-slide-in-right { animation: slideInRight 1s ease-out; }
+        .animate-float { animation: float 6s ease-in-out infinite; }
+        .animate-float-delayed { animation: float 6s ease-in-out infinite 3s; }
+        .animate-bounce-slow { animation: bounceSlow 2s ease-in-out infinite; }
+        .slide-down { animation: slideDown 0.3s ease; }
         
         @keyframes slideDown {
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        
+        /* Hamburger Menu Styles */
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            cursor: pointer;
+            z-index: 60;
+        }
 
-        .slide-down { animation: slideDown 0.3s ease; }
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background: linear-gradient(135deg, #EAD38A 0%, #C5A046 50%, #8B6D2D 100%);
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+        }
+
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(7px, -6px);
+        }
+
+        /* Mobile Drawer */
+        .mobile-drawer {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 280px;
+            height: 100vh;
+            background: linear-gradient(135deg, #0D1B2A 0%, #1A2B3C 50%, #2C4A5E 100%);
+            z-index: 55;
+            transition: right 0.3s ease;
+            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.3);
+            overflow-y: auto;
+        }
+
+        .mobile-drawer.active { right: 0; }
+        .drawer-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 50;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .drawer-overlay.active { opacity: 1; visibility: visible; }
+
+        @media (max-width: 768px) {
+            .hamburger { display: flex; }
+            .desktop-nav { display: none; }
+        }
         
         /* Gradient text */
         .gradient-text {
-            background: linear-gradient(90deg, rgba(245, 158, 11, 1) 0%, rgba(255, 229, 0, 1) 100%);
+            background: linear-gradient(135deg, #EAD38A 0%, #C5A046 50%, #8B6D2D 100%);
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -67,10 +178,6 @@
             width: 50px;
             height: 50px;
             animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
         }
         
         /* Card styles */
@@ -158,7 +265,7 @@
         .btn-action {
             padding: 6px 12px;
             border: none;
-            border-radius: 6px;
+            border-radius: 20px;
             font-weight: 600;
             font-size: 12px;
             cursor: pointer;
@@ -167,17 +274,25 @@
             align-items: center;
             gap: 5px;
             white-space: nowrap;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
         .btn-view {
-            background: #10b981;
+            background: linear-gradient(135deg, #64748b 0%, #475569 100%);
             color: white;
         }
         .btn-view:hover {
-            background: #059669;
+            background: linear-gradient(135deg, #475569 0%, #334155 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(71, 85, 105, 0.2);
         }
         .btn-attempt {
-            background: #3b82f6;
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
             color: white;
+        }
+        .btn-attempt:hover {
+            background: linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
         }
         
         /* Empty State */
@@ -195,7 +310,7 @@
             color: #64748b;
         }
         
-        /* ⭐ FIXED: Modal Styles - No horizontal scroll, vertical scroll only */
+        /* ============ FIXED MODAL STYLES - NO VERTICAL SCROLL ON MODAL ITSELF ============ */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -215,15 +330,78 @@
             background: white;
             border-radius: 12px;
             width: 100%;
-            max-width: min(1200px, 95vw);
-            max-height: 90vh;
-            overflow-y: auto;
-            overflow-x: hidden;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-            position: relative;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            max-height: 85vh;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
         }
         
-        /* ⭐ FIXED: Modal table containers - vertical scroll only */
+        .modal-content.small {
+            max-width: 600px;
+        }
+        
+        .modal-header {
+            flex-shrink: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 24px;
+            border-bottom: 1px solid #e2e8f0;
+            background-color: white;
+            border-radius: 12px 12px 0 0;
+        }
+        
+        .modal-header h3 {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            color: #1e3a8a;
+            font-size: 20px;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .modal-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            background-color: white;
+        }
+        
+        .modal-footer {
+            flex-shrink: 0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 16px 24px;
+            border-top: 1px solid #e2e8f0;
+            background-color: #f9fafb;
+            border-radius: 0 0 12px 12px;
+        }
+        
+        .modal-close-btn {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            background-color: #f3f4f6;
+            color: #4b5563;
+            font-size: 20px;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .modal-close-btn:hover {
+            background-color: #e5e7eb;
+            color: #111827;
+        }
+        
         .modal-content .table-responsive {
             display: block !important;
             width: 100%;
@@ -237,7 +415,6 @@
             border-right: none;
         }
 
-        /* Make table width fit container */
         .modal-content .custom-table {
             width: 100%;
             min-width: 100% !important;
@@ -245,7 +422,6 @@
             word-wrap: break-word;
         }
 
-        /* Allow text to wrap in cells */
         .modal-content .custom-table td,
         .modal-content .custom-table th {
             white-space: normal;
@@ -253,7 +429,6 @@
             padding: 12px 8px;
         }
 
-        /* Email column - wrap long emails */
         .modal-content .email-cell {
             white-space: normal;
             word-break: break-all;
@@ -477,12 +652,10 @@
                 overflow-x: hidden;
             }
             
-            /* Hide tables on mobile */
             .table-responsive {
                 display: none !important;
             }
             
-            /* Mobile card view for sections */
             .mobile-sections-container {
                 display: block !important;
                 width: 100%;
@@ -545,7 +718,6 @@
                 overflow-wrap: break-word;
             }
             
-            /* Mobile card view for students */
             .student-card {
                 background: white;
                 border: 1px solid #e2e8f0;
@@ -645,7 +817,6 @@
                 color: #64748b;
             }
             
-            /* ⭐ FIXED: Modal styles for mobile - no horizontal scroll */
             .modal-overlay {
                 padding: 8px;
                 align-items: flex-start;
@@ -653,7 +824,7 @@
             }
             
             .modal-content {
-                max-height: 95vh;
+                max-height: 90vh;
                 margin: 8px 0;
                 width: 100%;
                 overflow-x: hidden;
@@ -705,7 +876,6 @@
                 z-index: 9999;
             }
             
-            /* Student details modal mobile fixes */
             .student-info-header {
                 flex-direction: column;
                 align-items: flex-start;
@@ -720,7 +890,6 @@
                 grid-template-columns: 1fr;
             }
             
-            /* Action buttons stack on mobile */
             .modal-content .action-buttons {
                 display: flex;
                 flex-direction: column;
@@ -735,7 +904,6 @@
             }
         }
         
-        /* ⭐ FIXED: Very small screens - stack table as cards */
         @media (max-width: 480px) {
             .modal-content .custom-table {
                 display: block;
@@ -785,7 +953,6 @@
             }
         }
         
-        /* ⭐ FIXED: Prevent horizontal scroll */
         .overflow-x-hidden {
             overflow-x: hidden;
         }
@@ -798,7 +965,6 @@
             word-break: break-all;
         }
         
-        /* Table cell max-width for email */
         .email-cell {
             max-width: 200px;
             overflow: hidden;
@@ -813,15 +979,6 @@
                 word-break: break-all;
             }
         }
-        
-        /* Fix for section details modal - student table */
-        #viewSectionModal .table-responsive,
-        #viewStudentModal .table-responsive,
-        #studentTestsModal .table-responsive {
-            overflow-x: hidden !important;
-            overflow-y: auto !important;
-            max-height: 400px;
-        }
     </style>
 </head>
 <body class="bg-gray-50 overflow-x-hidden">
@@ -832,77 +989,70 @@
     </div>
     
     <div id="mainContent" class="hidden overflow-x-hidden">
-        <!-- Navigation Banner -->
-        <nav class="bg-gradient-to-r from-blue-900 to-blue-500 shadow-lg">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex flex-wrap items-center justify-between gap-3 sm:gap-4 py-3 sm:py-4">
+        <!-- ✅ UPDATED NAVIGATION BANNER - MATCHING LANDING PAGE DESIGN -->
+        <header class="shadow-lg fixed w-full top-0 z-50" style="background: linear-gradient(135deg, #0D1B2A 0%, #1A2B3C 50%, #2C4A5E 100%);">
+            <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-20">
                     <!-- Logo -->
-                    <a href="#" class="flex items-center gap-2 sm:gap-3">
-                        <span class="text-xl sm:text-2xl md:text-3xl font-extrabold font-manrope bg-gradient-to-r from-yellow-400 to-yellow-200 bg-clip-text text-transparent">
-                            UMakFit
+                    <div class="flex items-center gap-3">
+                        <div class="w-16 h-16 flex items-center justify-center overflow-visible">
+                            <img src="UMakfit Logo (2).png" alt="UMakFIT Logo" class="w-20 h-20 object-contain">
+                        </div>
+                        <span class="text-xl sm:text-2xl md:text-3xl font-extrabold font-montserrat gradient-text">
+                            UMakFIT
                         </span>
-                    </a>
-                    
+                    </div>
+
                     <!-- Desktop Navigation -->
-                    <div class="hidden lg:flex items-center gap-2 flex-wrap">
-                        <a href="professor.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
-                            <i class="fas fa-tachometer-alt"></i> 
-                            <span>Dashboard</span>
+                    <div class="desktop-nav hidden md:flex items-center gap-8">
+                        <a href="professor.html" class="text-white/80 hover:text-white font-medium transition-colors">
+                            <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
                         </a>
-                        
-                        <a href="studentmanagement.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white text-gray-900 rounded-lg font-semibold text-sm flex items-center gap-2 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
-                            <i class="fas fa-users"></i> 
-                            <span>Student Management</span>
+                        <a href="studentmanagement.html" class="text-white font-medium px-3 py-2 rounded-lg" style="background: linear-gradient(135deg, #EAD38A 0%, #C5A046 50%, #8B6D2D 100%);">
+                            <i class="fas fa-users mr-2"></i>Students
                         </a>
-                        
-                        <a href="addactivities.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
-                            <i class="fas fa-dumbbell"></i> 
-                            <span>Add Activities</span>
+                        <a href="addactivities.html" class="text-white/80 hover:text-white font-medium transition-colors">
+                            <i class="fas fa-dumbbell mr-2"></i>Activities
                         </a>
-                        
-                        <a href="addlesson.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
-                            <i class="fas fa-book-open"></i> 
-                            <span>Add Lesson</span>
+                        <a href="addlesson.html" class="text-white/80 hover:text-white font-medium transition-colors">
+                            <i class="fas fa-book-open mr-2"></i>Lessons
                         </a>
-                        
-                        <a href="monitoringactivities.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
-                            <i class="fas fa-chart-bar"></i> 
-                            <span>Monitoring Activities</span>
+                        <a href="monitoringactivities.html" class="text-white/80 hover:text-white font-medium transition-colors">
+                            <i class="fas fa-chart-bar mr-2"></i>Monitoring
                         </a>
-                        
-                        <a href="grades.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
-                            <i class="fas fa-graduation-cap"></i> 
-                            <span>Grades</span>
+                        <a href="grades.html" class="text-white/80 hover:text-white font-medium transition-colors">
+                            <i class="fas fa-graduation-cap mr-2"></i>Grades
                         </a>
+                    </div>
+
+                    <!-- Desktop Profile -->
+                    <div class="hidden md:block relative">
+                        <img src="" alt="Profile" id="profilePictureBtn"
+                             class="w-10 h-10 rounded-full border-2 border-white/30 cursor-pointer hover:border-white/60 hover:scale-105 transition-all object-cover">
                         
-                        <!-- Profile Dropdown -->
-                        <div class="relative">
-                            <img src="" alt="Profile" id="profilePictureBtn"
-                                 class="w-9 h-9 xl:w-10 xl:h-10 rounded-full border-2 border-white/30 cursor-pointer hover:border-white/60 hover:scale-105 transition-all object-cover">
-                            
-                            <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-64 sm:w-72 bg-white rounded-xl shadow-2xl z-[9999] slide-down">
-                                <div class="p-4 sm:p-6 border-b-2 border-gray-200 text-center">
-                                    <img src="" alt="Profile" id="profileDropdownPicture" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full mx-auto mb-2 sm:mb-3 border-3 border-blue-500 object-cover">
-                                    <h6 id="profileDropdownName" class="font-bold text-gray-900 text-base sm:text-lg">Loading...</h6>
-                                    <p id="profileDropdownEmail" class="text-xs sm:text-sm text-gray-500 mt-1 truncate px-2">Loading...</p>
-                                </div>
-                                <div class="p-2">
-                                    <a href="#" onclick="showViewProfile(event)" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-gray-100 transition-colors">
-                                        <i class="bi bi-person-circle text-blue-500 text-lg sm:text-xl"></i>
-                                        <span class="font-medium text-gray-700 text-sm sm:text-base">View Profile</span>
-                                    </a>
-                                    <div class="h-px bg-gray-200 my-1 sm:my-2"></div>
-                                    <div onclick="handleLogout(event)" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-red-500">
-                                        <i class="fas fa-sign-out-alt text-lg sm:text-xl"></i>
-                                        <span class="font-medium text-sm sm:text-base">Logout</span>
-                                    </div>
+                        <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-2xl z-[9999] slide-down">
+                            <div class="p-6 border-b-2 border-gray-200 text-center">
+                                <img src="" alt="Profile" id="profileDropdownPicture" class="w-20 h-20 rounded-full mx-auto mb-3 border-3 border-blue-500 object-cover">
+                                <h6 id="profileDropdownName" class="font-bold text-gray-900 text-lg">Loading...</h6>
+                                <p id="profileDropdownEmail" class="text-sm text-gray-500 mt-1 truncate px-2">Loading...</p>
+                            </div>
+                            <div class="p-2">
+                                <a href="#" onclick="showViewProfile(event)" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 transition-colors">
+                                    <i class="bi bi-person-circle text-blue-500 text-xl"></i>
+                                    <span class="font-medium text-gray-700 text-base">View Profile</span>
+                                </a>
+                                <div class="h-px bg-gray-200 my-2"></div>
+                                <div onclick="handleLogout(event)" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-red-500">
+                                    <i class="fas fa-sign-out-alt text-xl"></i>
+                                    <span class="font-medium text-base">Logout</span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Mobile Right Icons -->
-                    <div class="flex lg:hidden items-center gap-2 sm:gap-3">
+                    <div class="flex md:hidden items-center gap-3">
+                        <!-- Mobile Profile -->
                         <div class="relative">
                             <img src="" alt="Profile" id="profilePictureBtnMobile"
                                  class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-white/30 cursor-pointer hover:border-white/60 object-cover">
@@ -927,38 +1077,59 @@
                             </div>
                         </div>
                         
-                        <button id="mobileMenuButton" class="text-white p-1 sm:p-2">
-                            <i class="bi bi-list text-2xl sm:text-3xl"></i>
-                        </button>
+                        <!-- Hamburger Menu -->
+                        <div class="hamburger" id="hamburger">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
                     </div>
                 </div>
-                
-                <!-- Mobile Navigation Menu -->
-                <div id="mobileMenu" class="hidden lg:hidden mt-3 sm:mt-4 space-y-2 pb-3">
-                    <a href="professor.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
-                        <i class="fas fa-tachometer-alt mr-2"></i> Dashboard
-                    </a>
-                    <a href="studentmanagement.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white text-gray-900 rounded-lg font-semibold text-sm">
-                        <i class="fas fa-users mr-2"></i> Student Management
-                    </a>
-                    <a href="addactivities.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
-                        <i class="fas fa-dumbbell mr-2"></i> Add Activities
-                    </a>
-                    <a href="addlesson.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
-                        <i class="fas fa-book-open mr-2"></i> Add Lesson
-                    </a>
-                    <a href="monitoringactivities.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
-                        <i class="fas fa-chart-bar mr-2"></i> Monitoring Activities
-                    </a>
-                    <a href="grades.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
-                        <i class="fas fa-graduation-cap mr-2"></i> Grades
-                    </a>
+            </nav>
+
+            <!-- Mobile Drawer Overlay -->
+            <div class="drawer-overlay" id="drawerOverlay"></div>
+
+            <!-- Mobile Drawer -->
+            <div class="mobile-drawer" id="mobileDrawer">
+                <div class="p-6 pt-8">
+                    <!-- Drawer Header -->
+                    <div class="flex items-center gap-3 mb-8 pb-6 border-b border-white/20">
+                        <div class="w-12 h-12 flex items-center justify-center overflow-visible">
+                            <img src="UMakfit Logo (2).png" alt="UMakFIT Logo" class="w-14 h-14 object-contain">
+                        </div>
+                        <span class="text-2xl font-extrabold font-montserrat gradient-text">
+                            UMakFIT
+                        </span>
+                    </div>
+
+                    <!-- Navigation Links -->
+                    <nav class="space-y-2 mb-8">
+                        <a href="professor-dashboard.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
+                            <i class="fas fa-tachometer-alt mr-3"></i>Dashboard
+                        </a>
+                        <a href="studentmanagement.html" class="mobile-nav-link block text-white font-medium py-3 px-4 rounded-lg" style="background: linear-gradient(135deg, #EAD38A 0%, #C5A046 50%, #8B6D2D 100%);">
+                            <i class="fas fa-users mr-3"></i>Student Management
+                        </a>
+                        <a href="addactivities.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
+                            <i class="fas fa-dumbbell mr-3"></i>Add Activities
+                        </a>
+                        <a href="addlesson.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
+                            <i class="fas fa-book-open mr-3"></i>Add Lesson
+                        </a>
+                        <a href="monitoringactivities.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
+                            <i class="fas fa-chart-bar mr-3"></i>Monitoring Activities
+                        </a>
+                        <a href="grades.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
+                            <i class="fas fa-graduation-cap mr-3"></i>Grades
+                        </a>
+                    </nav>
                 </div>
             </div>
-        </nav>
+        </header>
 
-        <!-- Main Content -->
-        <div class="bg-gradient-to-b from-gray-50 to-gray-100 min-h-screen pt-10 pb-20 overflow-x-hidden">
+        <!-- Main Content - with top padding to account for fixed header -->
+        <div class="bg-gradient-to-b from-gray-50 to-gray-100 min-h-screen pt-32 pb-20 overflow-x-hidden">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 overflow-x-hidden">
                 <!-- Page Header -->
                 <div class="bg-white rounded-2xl card-shadow border border-gray-200 p-8 mb-10">
@@ -1020,7 +1191,7 @@
                     </div>
 
                     <!-- Mobile Sections Container -->
-                    <div class="mobile-sections-container" id="mobileSectionsContainer">
+                    <div class="mobile-sections-container" id="mobileSectionsContainer" style="display: none;">
                         <!-- Mobile cards will be inserted here -->
                     </div>
 
@@ -1100,7 +1271,7 @@
                         </div>
 
                         <!-- Mobile Students Container -->
-                        <div class="mobile-students-container" id="mobileStudentsContainer">
+                        <div class="mobile-students-container" id="mobileStudentsContainer" style="display: none;">
                             <!-- Mobile cards will be inserted here -->
                         </div>
                         
@@ -1163,97 +1334,202 @@
             </div>
         </div>
 
-        <!-- Footer -->
-        <div class="bg-gradient-to-b from-gray-900 to-gray-950 mt-10 py-10">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h4 class="text-yellow-500 font-bold text-lg text-center mb-5">About CTBL</h4>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div class="text-gray-300 text-sm leading-relaxed">
-                        The Center for Technology Based Learning serves as the learning management system operating hub, 
-                        reporting to the university MANCOM officials, with a director on duty who manages and handles the 
-                        center's daily operations.
+        <!-- ✅ UPDATED FOOTER - MATCHING LANDING PAGE DESIGN -->
+        <footer class="bg-gradient-to-r from-blue-900 to-blue-800 text-white py-8 sm:py-12">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 text-center lg:text-left">
+                    <!-- About UmakFit & College of Human Kinetics -->
+                    <div>
+                        <div class="flex items-center justify-center lg:justify-start gap-3 mb-4">
+                            <img src="UMakfit Logo (2).png" 
+                                 alt="UMak Logo" class="h-12 w-auto object-contain">
+                            <div>
+                                <h6 class="text-yellow-400 font-bold text-lg lg:text-xl mb-1">UMakFit</h6>
+                                <p class="text-xs lg:text-sm text-blue-200 font-medium">College of Human Kinetics</p>
+                            </div>
+                        </div>
+                        <p class="text-sm lg:text-base leading-relaxed text-blue-100">
+                            UMakFit is the official fitness assessment and tracking platform of the College of Human Kinetics at University of Makati. 
+                            Our mission is to promote health, wellness, and physical fitness through comprehensive assessment and personalized tracking.
+                        </p>
+                        <div class="mt-4 flex flex-wrap gap-2 justify-center lg:justify-start">
+                            <span class="bg-blue-700/50 px-3 py-1 rounded-full text-xs font-semibold">Fitness Tracking</span>
+                            <span class="bg-blue-700/50 px-3 py-1 rounded-full text-xs font-semibold">Performance Assessment</span>
+                            <span class="bg-blue-700/50 px-3 py-1 rounded-full text-xs font-semibold">Health & Wellness</span>
+                        </div>
                     </div>
-                    <div class="text-gray-300 text-sm leading-relaxed">
-                        Working closely with the Office of the President, the Center for Information Technology, and the 
-                        Deans and Directors to support the LMS end-users' day-to-day activity.
+
+                    <!-- Quick Links -->
+                    <div>
+                        <h6 class="text-yellow-400 font-bold text-lg lg:text-xl mb-4 lg:mb-6">Quick Links</h6>
+                        <div class="grid grid-cols-2 gap-4 lg:gap-6">
+                            <div class="space-y-3">
+                                <a href="professor-dashboard.html" class="block text-blue-100 hover:text-yellow-300 hover:translate-x-1 transition-all duration-200 text-sm lg:text-base">
+                                    <i class="bi bi-tachometer mr-2"></i>Dashboard
+                                </a>
+                                <a href="studentmanagement.html" class="block text-yellow-300 hover:text-yellow-200 hover:translate-x-1 transition-all duration-200 text-sm lg:text-base font-semibold">
+                                    <i class="bi bi-people mr-2"></i>Students
+                                </a>
+                                <a href="addactivities.html" class="block text-blue-100 hover:text-yellow-300 hover:translate-x-1 transition-all duration-200 text-sm lg:text-base">
+                                    <i class="bi bi-dumbbell mr-2"></i>Activities
+                                </a>
+                            </div>
+                            <div class="space-y-3">
+                                <a href="addlesson.html" class="block text-blue-100 hover:text-yellow-300 hover:translate-x-1 transition-all duration-200 text-sm lg:text-base">
+                                    <i class="bi bi-book mr-2"></i>Lessons
+                                </a>
+                                <a href="monitoringactivities.html" class="block text-blue-100 hover:text-yellow-300 hover:translate-x-1 transition-all duration-200 text-sm lg:text-base">
+                                    <i class="bi bi-graph-up mr-2"></i>Monitoring
+                                </a>
+                                <a href="grades.html" class="block text-blue-100 hover:text-yellow-300 hover:translate-x-1 transition-all duration-200 text-sm lg:text-base">
+                                    <i class="bi bi-mortarboard mr-2"></i>Grades
+                                </a>
+                            </div>
+                        </div>
                     </div>
-                    <div class="text-gray-300 text-sm leading-relaxed">
-                        The center focuses on implementing new forms of training and determining the validity of data to 
-                        support the university's educational objectives.
+
+                    <!-- Contact & Social -->
+                    <div>
+                        <h6 class="text-yellow-400 font-bold text-lg lg:text-xl mb-4 lg:mb-6">Get In Touch</h6>
+                        <div class="space-y-4 lg:space-y-5">
+                            <div class="flex items-start gap-3">
+                                <i class="bi bi-geo-alt-fill text-yellow-400 text-lg lg:text-xl mt-1"></i>
+                                <p class="text-sm lg:text-base text-blue-100">
+                                    College of Human Kinetics<br>
+                                    University of Makati<br>
+                                   3rd floor, Administration Building, University of Makati, 
+                                   JP Rizal Ext., West Rembo, Taguig City
+                                </p>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <i class="bi bi-envelope-fill text-yellow-400 text-lg lg:text-xl"></i>
+                                <a href="mailto:chk@umak.edu.ph" class="text-blue-100 hover:text-yellow-300 transition-colors text-sm lg:text-base">
+                                    chk@umak.edu.ph
+                                </a>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <i class="bi bi-telephone-fill text-yellow-400 text-lg lg:text-xl"></i>
+                                <span class="text-blue-100 text-sm lg:text-base">+63 933 189 7230</span>
+                            </div>
+                            <div class="flex items-center gap-4 pt-3 justify-center lg:justify-start">
+                                <a href="https://www.facebook.com/profile.php?id=61577064971920" target="_blank" class="bg-blue-700 hover:bg-blue-600 p-2.5 rounded-lg transition-all duration-200 hover:scale-110">
+                                    <i class="bi bi-facebook text-white text-lg lg:text-xl"></i>
+                                </a>
+                                <a href="#" class="bg-blue-700 hover:bg-blue-600 p-2.5 rounded-lg transition-all duration-200 hover:scale-110">
+                                    <i class="bi bi-twitter text-white text-lg lg:text-xl"></i>
+                                </a>
+                                <a href="#" class="bg-blue-700 hover:bg-blue-600 p-2.5 rounded-lg transition-all duration-200 hover:scale-110">
+                                    <i class="bi bi-instagram text-white text-lg lg:text-xl"></i>
+                                </a>
+                                <a href="#" class="bg-blue-700 hover:bg-blue-600 p-2.5 rounded-lg transition-all duration-200 hover:scale-110">
+                                    <i class="bi bi-youtube text-white text-lg lg:text-xl"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Divider -->
+                <div class="border-t border-blue-600/50 mt-8 lg:mt-12 pt-6 lg:pt-8">
+                    <div class="flex flex-col lg:flex-row justify-between items-center gap-4">
+                        <!-- Copyright -->
+                        <div class="text-center lg:text-left">
+                            <p class="text-xs lg:text-sm text-blue-200">
+                                © 2025 University of Makati - College of Human Kinetics. All Rights Reserved.
+                            </p>
+                        </div>
+                        
+                        <!-- University Links -->
+                        <div class="flex flex-wrap justify-center gap-3 lg:gap-4">
+                            <a href="https://umak.edu.ph" target="_blank" class="text-xs lg:text-sm text-blue-200 hover:text-yellow-300 transition-colors">
+                                University of Makati
+                            </a>
+                            <span class="text-blue-400">•</span>
+                            <a href="https://library.umak.edu.ph" target="_blank" class="text-xs lg:text-sm text-blue-200 hover:text-yellow-300 transition-colors">
+                                UMak Online Library
+                            </a>
+                            <span class="text-blue-400">•</span>
+                            <a href="https://tbl.umak.edu.ph" target="_blank" class="text-xs lg:text-sm text-blue-200 hover:text-yellow-300 transition-colors">
+                                TBL Hub
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </footer>
     </div>
 
-    <!-- ⭐ FIXED: Student Tests Modal - Now with vertical scroll only and data-label attributes -->
+    <!-- ============ ⭐ FIXED STUDENT TESTS MODAL - NO VERTICAL SCROLL ON MODAL ITSELF ============ -->
     <div id="studentTestsModal" class="modal-overlay" style="display: none;" onclick="closeStudentTestsModal()">
         <div class="modal-content" onclick="event.stopPropagation()">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center p-6 border-b border-gray-200 gap-4">
-                <h3 class="text-xl font-bold text-gray-900 flex items-center gap-2">
-                    <i class="fas fa-clipboard-list"></i> <span id="modalStudentName">Student Tests</span>
+            <div class="modal-header">
+                <h3>
+                    <i class="fas fa-clipboard-list"></i> 
+                    <span id="modalStudentName">Student Tests</span>
                 </h3>
-                <div class="modal-header-controls w-full sm:w-auto">
-                    <!-- Test Filter Dropdown -->
-                    <div class="filter-dropdown w-full sm:w-auto">
-                        <button class="filter-button w-full sm:w-auto" onclick="toggleFilterDropdown(event)">
-                            <i class="fas fa-filter"></i>
-                            <span id="currentFilterLabel">Filter: All Tests</span>
-                            <i class="fas fa-chevron-down sort-icon"></i>
-                        </button>
-                        <div class="filter-dropdown-content" id="filterDropdown">
-                            <div class="filter-option active" onclick="changeFilter('all-tests')">
-                                <i class="fas fa-list"></i>
-                                <span>All Tests</span>
-                                <span class="filter-count" id="count-all">0</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Sorting Dropdown -->
-                    <div class="sort-dropdown w-full sm:w-auto">
-                        <button class="sort-button w-full sm:w-auto" onclick="toggleSortDropdown(event)">
-                            <i class="fas fa-sort-amount-down"></i>
-                            <span id="currentSortLabel">Sort: Newest First</span>
-                            <i class="fas fa-chevron-down sort-icon"></i>
-                        </button>
-                        <div class="sort-dropdown-content" id="sortDropdown">
-                            <div class="sort-option active" onclick="changeSort('newest-first')">
-                                <i class="fas fa-arrow-down"></i>
-                                <span>Newest First</span>
-                            </div>
-                            <div class="sort-option" onclick="changeSort('oldest-first')">
-                                <i class="fas fa-arrow-up"></i>
-                                <span>Oldest First</span>
-                            </div>
-                            <div class="sort-option" onclick="changeSort('test-name-a-z')">
-                                <i class="fas fa-sort-alpha-down"></i>
-                                <span>Test Name A-Z</span>
-                            </div>
-                            <div class="sort-option" onclick="changeSort('test-name-z-a')">
-                                <i class="fas fa-sort-alpha-up"></i>
-                                <span>Test Name Z-A</span>
-                            </div>
-                            <div class="sort-option" onclick="changeSort('score-high-low')">
-                                <i class="fas fa-chart-line"></i>
-                                <span>Score: High to Low</span>
-                            </div>
-                            <div class="sort-option" onclick="changeSort('score-low-high')">
-                                <i class="fas fa-chart-bar"></i>
-                                <span>Score: Low to High</span>
-                            </div>
-                            <div class="sort-option" onclick="changeSort('status')">
-                                <i class="fas fa-check-circle"></i>
-                                <span>Status (Pending First)</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <button class="text-gray-500 hover:text-gray-700 text-2xl ml-auto sm:ml-0" onclick="closeStudentTestsModal()">&times;</button>
-                </div>
+                <button class="modal-close-btn" onclick="closeStudentTestsModal()">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
             
-            <div style="max-height: 70vh; overflow-y: auto;" class="p-6">
+            <div class="modal-body">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                    <div class="modal-header-controls w-full sm:w-auto">
+                        <div class="filter-dropdown w-full sm:w-auto">
+                            <button class="filter-button w-full sm:w-auto" onclick="toggleFilterDropdown(event)">
+                                <i class="fas fa-filter"></i>
+                                <span id="currentFilterLabel">Filter: All Tests</span>
+                                <i class="fas fa-chevron-down sort-icon"></i>
+                            </button>
+                            <div class="filter-dropdown-content" id="filterDropdown">
+                                <div class="filter-option active" onclick="changeFilter('all-tests')">
+                                    <i class="fas fa-list"></i>
+                                    <span>All Tests</span>
+                                    <span class="filter-count" id="count-all">0</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="sort-dropdown w-full sm:w-auto">
+                            <button class="sort-button w-full sm:w-auto" onclick="toggleSortDropdown(event)">
+                                <i class="fas fa-sort-amount-down"></i>
+                                <span id="currentSortLabel">Sort: Newest First</span>
+                                <i class="fas fa-chevron-down sort-icon"></i>
+                            </button>
+                            <div class="sort-dropdown-content" id="sortDropdown">
+                                <div class="sort-option active" onclick="changeSort('newest-first')">
+                                    <i class="fas fa-arrow-down"></i>
+                                    <span>Newest First</span>
+                                </div>
+                                <div class="sort-option" onclick="changeSort('oldest-first')">
+                                    <i class="fas fa-arrow-up"></i>
+                                    <span>Oldest First</span>
+                                </div>
+                                <div class="sort-option" onclick="changeSort('test-name-a-z')">
+                                    <i class="fas fa-sort-alpha-down"></i>
+                                    <span>Test Name A-Z</span>
+                                </div>
+                                <div class="sort-option" onclick="changeSort('test-name-z-a')">
+                                    <i class="fas fa-sort-alpha-up"></i>
+                                    <span>Test Name Z-A</span>
+                                </div>
+                                <div class="sort-option" onclick="changeSort('score-high-low')">
+                                    <i class="fas fa-chart-line"></i>
+                                    <span>Score: High to Low</span>
+                                </div>
+                                <div class="sort-option" onclick="changeSort('score-low-high')">
+                                    <i class="fas fa-chart-bar"></i>
+                                    <span>Score: Low to High</span>
+                                </div>
+                                <div class="sort-option" onclick="changeSort('status')">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span>Status (Pending First)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="table-responsive" style="display: block !important; overflow-x: hidden !important; overflow-y: auto !important;">
                     <table class="custom-table" style="min-width: 100%;">
                         <thead style="position: sticky; top: 0; background: linear-gradient(90deg, rgba(30, 58, 138, 0.9) 0%, rgba(59, 130, 246, 0.9) 100%); z-index: 10;">
@@ -1272,7 +1548,7 @@
                 </div>
             </div>
             
-            <div class="flex justify-end p-6 border-t border-gray-200 bg-gray-50">
+            <div class="modal-footer">
                 <button class="px-6 py-2.5 bg-gray-700 hover:bg-gray-800 text-white rounded-lg font-semibold transition-all" onclick="closeStudentTestsModal()">
                     Close
                 </button>
@@ -1280,49 +1556,48 @@
         </div>
     </div>
 
-    <!-- View Section Details Modal - FIXED with vertical scroll only and data-label attributes -->
+    <!-- ============ ⭐ FIXED VIEW SECTION MODAL ============ -->
     <div id="viewSectionModal" class="modal-overlay" style="display: none;">
-        <div class="modal-content" style="max-width: 900px;">
-            <div class="flex justify-between items-center p-6 border-b border-gray-200">
-                <h3 class="text-xl font-bold text-gray-900 flex items-center gap-2">
-                    <i class="fas fa-layer-group"></i> Section Details
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3>
+                    <i class="fas fa-layer-group"></i> 
+                    Section Details
                 </h3>
-                <button class="text-gray-500 hover:text-gray-700 text-2xl" onclick="closeViewSectionModal()">&times;</button>
+                <button class="modal-close-btn" onclick="closeViewSectionModal()">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
             
-            <div style="max-height: 70vh; overflow-y: auto;">
-                <div class="p-6 border-b border-gray-100">
-                    <div id="sectionDetailsContent">
-                        <!-- Will be populated with section info -->
-                    </div>
+            <div class="modal-body">
+                <div id="sectionDetailsContent" class="mb-6">
+                    <!-- Will be populated with section info -->
                 </div>
                 
-                <div class="p-6">
-                    <h4 class="text-lg font-bold text-blue-900 mb-4 flex items-center gap-2">
-                        <i class="fas fa-user-graduate"></i> Students in this Section
-                    </h4>
-                    <div class="table-responsive" style="display: block !important; overflow-x: hidden !important; overflow-y: auto !important;">
-                        <table class="custom-table" style="min-width: 100%;">
-                            <thead style="position: sticky; top: 0; background: linear-gradient(90deg, rgba(30, 58, 138, 0.9) 0%, rgba(59, 130, 246, 0.9) 100%); z-index: 10;">
-                                <tr>
-                                    <th>UMaK ID</th>
-                                    <th>Student Name</th>
-                                    <th>Email</th>
-                                    <th>Total Attempts</th>
-                                    <th>Best Score</th>
-                                    <th>Average Score</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="sectionStudentsTableBody">
-                                <!-- Students will be loaded here with data-label attributes -->
-                            </tbody>
-                        </table>
-                    </div>
+                <h4 class="text-lg font-bold text-blue-900 mb-4 flex items-center gap-2">
+                    <i class="fas fa-user-graduate"></i> Students in this Section
+                </h4>
+                <div class="table-responsive" style="display: block !important; overflow-x: hidden !important; overflow-y: auto !important;">
+                    <table class="custom-table" style="min-width: 100%;">
+                        <thead style="position: sticky; top: 0; background: linear-gradient(90deg, rgba(30, 58, 138, 0.9) 0%, rgba(59, 130, 246, 0.9) 100%); z-index: 10;">
+                            <tr>
+                                <th>UMaK ID</th>
+                                <th>Student Name</th>
+                                <th>Email</th>
+                                <th>Total Attempts</th>
+                                <th>Best Score</th>
+                                <th>Average Score</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sectionStudentsTableBody">
+                            <!-- Students will be loaded here with data-label attributes -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
             
-            <div class="flex justify-end p-6 border-t border-gray-200 bg-gray-50">
+            <div class="modal-footer">
                 <button class="px-6 py-2.5 bg-gray-700 hover:bg-gray-800 text-white rounded-lg font-semibold transition-all" onclick="closeViewSectionModal()">
                     Close
                 </button>
@@ -1330,34 +1605,33 @@
         </div>
     </div>
 
-    <!-- View Student Details Modal - FIXED with vertical scroll only -->
+    <!-- ============ ⭐ FIXED VIEW STUDENT MODAL ============ -->
     <div id="viewStudentModal" class="modal-overlay" style="display: none;">
-        <div class="modal-content" style="max-width: 900px;">
-            <div class="flex justify-between items-center p-6 border-b border-gray-200">
-                <h3 class="text-xl font-bold text-gray-900 flex items-center gap-2">
-                    <i class="fas fa-user-circle"></i> Student Performance
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3>
+                    <i class="fas fa-user-circle"></i> 
+                    Student Performance
                 </h3>
-                <button class="text-gray-500 hover:text-gray-700 text-2xl" onclick="closeViewStudentModal()">&times;</button>
+                <button class="modal-close-btn" onclick="closeViewStudentModal()">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
             
-            <div style="max-height: 70vh; overflow-y: auto;">
-                <div class="p-6 border-b border-gray-100">
-                    <div id="studentDetailsContent">
-                        <!-- Will be populated with student info -->
-                    </div>
+            <div class="modal-body">
+                <div id="studentDetailsContent" class="mb-6">
+                    <!-- Will be populated with student info -->
                 </div>
                 
-                <div class="p-6">
-                    <h4 class="text-lg font-bold text-blue-900 mb-4 flex items-center gap-2">
-                        <i class="fas fa-history"></i> Activity Attempts
-                    </h4>
-                    <div id="attemptsTableBody">
-                        <!-- Attempts will be loaded here -->
-                    </div>
+                <h4 class="text-lg font-bold text-blue-900 mb-4 flex items-center gap-2">
+                    <i class="fas fa-history"></i> Activity Attempts
+                </h4>
+                <div id="attemptsTableBody">
+                    <!-- Attempts will be loaded here -->
                 </div>
             </div>
             
-            <div class="flex justify-end p-6 border-t border-gray-200 bg-gray-50">
+            <div class="modal-footer">
                 <button class="px-6 py-2.5 bg-gray-700 hover:bg-gray-800 text-white rounded-lg font-semibold transition-all" onclick="closeViewStudentModal()">
                     Close
                 </button>
@@ -1365,19 +1639,21 @@
         </div>
     </div>
 
-    <!-- Edit Score Modal -->
+    <!-- ============ ⭐ FIXED EDIT SCORE MODAL ============ -->
     <div id="editScoreModal" class="modal-overlay" style="display: none;">
-        <div class="modal-content" style="max-width: 600px;">
-            <div class="flex justify-between items-center p-6 border-b border-gray-200 bg-gradient-to-r from-purple-600 to-purple-500">
-                <div>
-                    <h3 class="text-xl font-bold text-white flex items-center gap-2">
-                        <span>📝</span> Edit Student Score
-                    </h3>
-                    <p class="text-white text-sm mt-1" id="editScoreTestName">Test Name</p>
-                </div>
-                <button class="text-white hover:bg-white/20 rounded-full w-8 h-8 flex items-center justify-center transition-all" onclick="closeEditScoreModal()">×</button>
+        <div class="modal-content small" onclick="event.stopPropagation()">
+            <div class="modal-header" style="background: linear-gradient(90deg, #9333ea 0%, #7e22ce 100%);">
+                <h3 style="color: white;">
+                    <span>📝</span> Edit Student Score
+                </h3>
+                <button class="modal-close-btn" onclick="closeEditScoreModal()" style="background: rgba(255,255,255,0.2); color: white;">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
-            <div class="p-6">
+            
+            <div class="modal-body">
+                <p class="text-sm text-gray-600 mb-4" id="editScoreTestName">Test Name</p>
+                
                 <div class="flex justify-between mb-6 relative">
                     <div class="absolute top-4 left-8 right-8 h-0.5 bg-gray-200 z-0"></div>
                     <div class="step active flex flex-col items-center gap-2 relative z-10" id="step1">
@@ -1436,19 +1712,23 @@
                     </div>
                 </div>
             </div>
-            <div class="flex justify-end gap-3 p-6 border-t border-gray-200 flex-wrap">
+            
+            <div class="modal-footer">
                 <button class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-semibold transition-all" onclick="closeEditScoreModal()">Cancel</button>
                 <button id="btnNext" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-all" onclick="nextStep()">
                     Next <i class="fas fa-arrow-right"></i>
                 </button>
-                <button id="btnSubmit" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition-all" onclick="submitScore()" style="display: none;">
+                <button id="btnSubmit" class="px-4 py-2 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-blue-900 font-semibold rounded-lg transition-all" onclick="submitScore()" style="display: none;">
                     <span>✓</span> Save Score
                 </button>
             </div>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    
     <script type="module">
+        // Import Firebase modules
         import { 
             initializeApp 
         } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
@@ -1457,7 +1737,6 @@
             onAuthStateChanged, 
             signOut
         } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-    
         import { 
             getFirestore,
             collection,
@@ -1489,7 +1768,6 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
         
-        // Make Firebase available globally
         window.db = db;
         window.collection = collection;
         window.doc = doc;
@@ -1508,6 +1786,251 @@
         window.auth = auth;
         window.signOut = signOut;
 
+        // ============ ⭐ EXACT SCORING FUNCTION FROM GRADES PAGE ============
+        function calculateActivityScore(testName, result, testTarget = null) {
+            const normalized = testName.toLowerCase().trim();
+            
+            // Check if this is a professor override with pre-calculated score
+            if (result && typeof result === 'object' && result !== null) {
+                if (result.score !== undefined && result.score !== null) {
+                    const score = parseFloat(result.score);
+                    if (!isNaN(score) && score >= 0 && score <= 100) {
+                        return score;
+                    }
+                }
+            }
+            
+            let numericValue = 0;
+            if (typeof result === 'object' && result !== null) {
+                numericValue = result.repetitions || result.time || result.distance || 
+                              result.value || result.result || result.count || 
+                              result.score || 0;
+            } else if (typeof result === 'string') {
+                const match = result.match(/(\d+\.?\d*)/);
+                if (match) {
+                    numericValue = parseFloat(match[1]);
+                } else {
+                    numericValue = parseFloat(result) || 0;
+                }
+            } else {
+                numericValue = parseFloat(result) || 0;
+            }
+            
+            if (testTarget && testTarget > 0) {
+                if (normalized.includes('push-up') || normalized.includes('pushup') || 
+                    normalized.includes('sit-up') || normalized.includes('situp') ||
+                    normalized.includes('curl-up')) {
+                    
+                    const reps = numericValue;
+                    if (reps >= testTarget) return 100;
+                    
+                    const percentage = (reps / testTarget) * 100;
+                    let score = Math.min(100, Math.max(50, percentage));
+                    
+                    if (percentage >= 100) score = 100;
+                    else if (percentage >= 90) score = 95;
+                    else if (percentage >= 80) score = 90;
+                    else if (percentage >= 70) score = 85;
+                    else if (percentage >= 60) score = 80;
+                    else if (percentage >= 50) score = 75;
+                    
+                    return Math.round(score);
+                }
+                
+                if (normalized.includes('plank')) {
+                    let seconds = numericValue;
+                    if (seconds >= testTarget) return 100;
+                    
+                    const percentage = (seconds / testTarget) * 100;
+                    let score = Math.min(100, Math.max(50, percentage));
+                    
+                    if (percentage >= 100) score = 100;
+                    else if (percentage >= 90) score = 95;
+                    else if (percentage >= 80) score = 90;
+                    else if (percentage >= 70) score = 85;
+                    else if (percentage >= 60) score = 80;
+                    else if (percentage >= 50) score = 75;
+                    
+                    return Math.round(score);
+                }
+                
+                if (normalized.includes('sit-and-reach')) {
+                    const distance = numericValue;
+                    if (distance >= testTarget) return 100;
+                    
+                    const percentage = (distance / testTarget) * 100;
+                    let score = Math.min(100, Math.max(50, percentage));
+                    
+                    if (percentage >= 100) score = 100;
+                    else if (percentage >= 90) score = 95;
+                    else if (percentage >= 80) score = 90;
+                    else if (percentage >= 70) score = 85;
+                    else if (percentage >= 60) score = 80;
+                    else if (percentage >= 50) score = 75;
+                    
+                    return Math.round(score);
+                }
+                
+                if (normalized.includes('grip')) {
+                    if (numericValue >= testTarget) return 100;
+                    
+                    const percentage = (numericValue / testTarget) * 100;
+                    let score = Math.min(100, Math.max(50, percentage));
+                    
+                    if (percentage >= 90) score = 95;
+                    else if (percentage >= 80) score = 90;
+                    else if (percentage >= 70) score = 85;
+                    else if (percentage >= 60) score = 80;
+                    else if (percentage >= 50) score = 75;
+                    
+                    return Math.round(score);
+                }
+                
+                if (normalized.includes('mile') || normalized.includes('run')) {
+                    if (numericValue <= testTarget) return 100;
+                    
+                    const percentage = (testTarget / numericValue) * 100;
+                    let score = Math.min(100, Math.max(50, percentage));
+                    
+                    if (percentage >= 90) score = 95;
+                    else if (percentage >= 80) score = 90;
+                    else if (percentage >= 70) score = 85;
+                    else if (percentage >= 60) score = 80;
+                    else if (percentage >= 50) score = 75;
+                    
+                    return Math.round(score);
+                }
+                
+                if (normalized.includes('step test') || normalized.includes('3-minute')) {
+                    if (numericValue <= testTarget) return 100;
+                    
+                    const percentage = (testTarget / numericValue) * 100;
+                    let score = Math.min(100, Math.max(50, percentage));
+                    
+                    if (percentage >= 90) score = 95;
+                    else if (percentage >= 80) score = 90;
+                    else if (percentage >= 70) score = 85;
+                    else if (percentage >= 60) score = 80;
+                    else if (percentage >= 50) score = 75;
+                    
+                    return Math.round(score);
+                }
+            }
+            
+            // FALLBACK DEFAULT SCORING (same as grades page)
+            if (normalized.includes('push-up') || normalized.includes('pushup')) {
+                const reps = numericValue;
+                if (reps >= 40) return 100;
+                if (reps >= 35) return 95;
+                if (reps >= 30) return 90;
+                if (reps >= 25) return 85;
+                if (reps >= 20) return 80;
+                if (reps >= 15) return 75;
+                if (reps >= 10) return 70;
+                if (reps >= 5) return 65;
+                return 60;
+            }
+            
+            if (normalized.includes('sit-up') || normalized.includes('situp')) {
+                const reps = numericValue;
+                if (reps >= 50) return 100;
+                if (reps >= 45) return 95;
+                if (reps >= 40) return 90;
+                if (reps >= 35) return 85;
+                if (reps >= 30) return 80;
+                if (reps >= 25) return 75;
+                if (reps >= 20) return 70;
+                if (reps >= 15) return 65;
+                return 60;
+            }
+            
+            if (normalized.includes('curl-up')) {
+                const reps = numericValue;
+                if (reps >= 75) return 100;
+                if (reps >= 60) return 95;
+                if (reps >= 50) return 90;
+                if (reps >= 40) return 85;
+                if (reps >= 30) return 80;
+                if (reps >= 25) return 75;
+                if (reps >= 20) return 70;
+                return 65;
+            }
+            
+            if (normalized.includes('plank')) {
+                let seconds = numericValue;
+                if (seconds >= 180) return 100;
+                if (seconds >= 150) return 95;
+                if (seconds >= 120) return 90;
+                if (seconds >= 100) return 85;
+                if (seconds >= 80) return 80;
+                if (seconds >= 60) return 75;
+                if (seconds >= 45) return 70;
+                if (seconds >= 30) return 65;
+                return 60;
+            }
+            
+            if (normalized.includes('step test') || normalized.includes('3-minute')) {
+                const heartRate = numericValue;
+                if (heartRate <= 70) return 100;
+                if (heartRate <= 80) return 95;
+                if (heartRate <= 90) return 90;
+                if (heartRate <= 100) return 85;
+                if (heartRate <= 110) return 80;
+                if (heartRate <= 120) return 75;
+                if (heartRate <= 130) return 70;
+                return 65;
+            }
+            
+            if (normalized.includes('mile') || normalized.includes('run')) {
+                let totalSeconds = numericValue;
+                if (totalSeconds <= 360) return 100;
+                if (totalSeconds <= 420) return 95;
+                if (totalSeconds <= 480) return 90;
+                if (totalSeconds <= 540) return 85;
+                if (totalSeconds <= 600) return 80;
+                if (totalSeconds <= 660) return 75;
+                if (totalSeconds <= 720) return 70;
+                if (totalSeconds <= 780) return 65;
+                return 60;
+            }
+            
+            if (normalized.includes('sit-and-reach')) {
+                const distance = numericValue;
+                if (distance >= 25) return 100;
+                if (distance >= 20) return 95;
+                if (distance >= 15) return 90;
+                if (distance >= 10) return 85;
+                if (distance >= 5) return 80;
+                if (distance >= 0) return 75;
+                if (distance >= -5) return 70;
+                return 65;
+            }
+            
+            if (normalized.includes('grip')) {
+                const strength = numericValue;
+                if (strength >= 60) return 100;
+                if (strength >= 55) return 95;
+                if (strength >= 50) return 90;
+                if (strength >= 45) return 85;
+                if (strength >= 40) return 80;
+                if (strength >= 35) return 75;
+                if (strength >= 30) return 70;
+                return 65;
+            }
+            
+            if (normalized.includes('bmi')) {
+                const bmi = numericValue;
+                if (bmi >= 18.5 && bmi <= 24.9) return 100;
+                if (bmi >= 17.5 && bmi < 18.5) return 85;
+                if (bmi >= 25 && bmi <= 27) return 85;
+                if (bmi >= 15 && bmi < 17.5) return 70;
+                if (bmi > 27 && bmi <= 30) return 70;
+                return 60;
+            }
+            
+            return 75;
+        }
+
         // Global variables
         window.currentUser = null;
         window.currentProfessor = null;
@@ -1522,7 +2045,6 @@
         window.filteredOverdueStudents = [];
         window.currentTab = 'all';
         
-        // Sorting and filtering state for student tests modal
         window.currentStudentTests = [];
         window.currentStudentTestsFiltered = [];
         window.currentSort = 'newest-first';
@@ -1530,51 +2052,40 @@
         window.availableTestTypes = [];
 
         // Navigation functions
-        const mobileMenuButton = document.getElementById('mobileMenuButton');
-        const mobileMenu = document.getElementById('mobileMenu');
+        const hamburger = document.getElementById('hamburger');
+        const mobileDrawer = document.getElementById('mobileDrawer');
+        const drawerOverlay = document.getElementById('drawerOverlay');
+        const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
         const profilePictureBtn = document.getElementById('profilePictureBtn');
         const profilePictureBtnMobile = document.getElementById('profilePictureBtnMobile');
         const profileDropdown = document.getElementById('profileDropdown');
         const profileDropdownMobile = document.getElementById('profileDropdownMobile');
 
-        function toggleMobileMenu() {
-            mobileMenu.classList.toggle('hidden');
-        }
-
-        function toggleProfileDropdown(event) {
-            event?.stopPropagation();
-            const isMobile = window.innerWidth < 1024;
-            const dropdown = isMobile ? profileDropdownMobile : profileDropdown;
-            
-            const isHidden = dropdown.classList.contains('hidden');
-            
-            if (isHidden) {
-                dropdown.classList.remove('hidden');
-                document.body.classList.add('dropdown-open');
-            } else {
-                dropdown.classList.add('hidden');
-                document.body.classList.remove('dropdown-open');
-            }
-        }
-
-        function closeProfileDropdown() {
-            profileDropdown.classList.add('hidden');
-            profileDropdownMobile.classList.add('hidden');
-            document.body.classList.remove('dropdown-open');
-        }
-
-        function closeAllDropdowns(event) {
-            if (!event.target.closest('#profilePictureBtn') && 
-                !event.target.closest('#profilePictureBtnMobile') && 
-                !event.target.closest('#profileDropdown') && 
-                !event.target.closest('#profileDropdownMobile')) {
-                closeProfileDropdown();
-            }
-        }
-
+        // Hamburger Menu Event Listeners
         document.addEventListener('DOMContentLoaded', () => {
-            if (mobileMenuButton) {
-                mobileMenuButton.addEventListener('click', toggleMobileMenu);
+            if (hamburger && mobileDrawer && drawerOverlay) {
+                hamburger.addEventListener('click', () => {
+                    hamburger.classList.toggle('active');
+                    mobileDrawer.classList.toggle('active');
+                    drawerOverlay.classList.toggle('active');
+                    document.body.style.overflow = mobileDrawer.classList.contains('active') ? 'hidden' : '';
+                });
+
+                drawerOverlay.addEventListener('click', () => {
+                    hamburger.classList.remove('active');
+                    mobileDrawer.classList.remove('active');
+                    drawerOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                });
+
+                mobileNavLinks.forEach(link => {
+                    link.addEventListener('click', () => {
+                        hamburger.classList.remove('active');
+                        mobileDrawer.classList.remove('active');
+                        drawerOverlay.classList.remove('active');
+                        document.body.style.overflow = '';
+                    });
+                });
             }
             
             if (profilePictureBtn) {
@@ -1587,12 +2098,39 @@
             
             document.addEventListener('click', closeAllDropdowns);
             
-            // Setup responsive view on load and resize
             setTimeout(updateResponsiveViews, 100);
             window.addEventListener('resize', function() {
                 setTimeout(updateResponsiveViews, 100);
             });
         });
+
+        function toggleProfileDropdown(event) {
+            event?.stopPropagation();
+            const isMobile = window.innerWidth < 768;
+            const dropdown = isMobile ? profileDropdownMobile : profileDropdown;
+            
+            const isHidden = dropdown.classList.contains('hidden');
+            
+            if (isHidden) {
+                dropdown.classList.remove('hidden');
+            } else {
+                dropdown.classList.add('hidden');
+            }
+        }
+
+        function closeProfileDropdown() {
+            if (profileDropdown) profileDropdown.classList.add('hidden');
+            if (profileDropdownMobile) profileDropdownMobile.classList.add('hidden');
+        }
+
+        function closeAllDropdowns(event) {
+            if (!event.target.closest('#profilePictureBtn') && 
+                !event.target.closest('#profilePictureBtnMobile') && 
+                !event.target.closest('#profileDropdown') && 
+                !event.target.closest('#profileDropdownMobile')) {
+                closeProfileDropdown();
+            }
+        }
 
         window.showViewProfile = function(event) { 
             if (event) event.preventDefault();
@@ -1642,7 +2180,6 @@
             if (dropdownEmailMobile) dropdownEmailMobile.textContent = email;
         }
 
-        // Authentication state change
         onAuthStateChanged(auth, async (user) => {
             const loadingScreen = document.getElementById('loadingScreen');
             const mainContent = document.getElementById('mainContent');
@@ -1654,14 +2191,12 @@
                     
                     window.currentUser = user;
                     
-                    // Get professor details
                     const professorsQuery = query(collection(db, 'professors'), where('email', '==', user.email));
                     const professorsSnapshot = await getDocs(professorsQuery);
                     
                     if (!professorsSnapshot.empty) {
                         window.currentProfessor = { id: professorsSnapshot.docs[0].id, ...professorsSnapshot.docs[0].data() };
                     } else {
-                        // Try users collection
                         const usersQuery = query(collection(db, 'users'), where('email', '==', user.email), where('role', '==', 'professor'));
                         const usersSnapshot = await getDocs(usersQuery);
                         if (!usersSnapshot.empty) {
@@ -1671,11 +2206,9 @@
                     
                     updateProfilePicture(user.photoURL, user.displayName);
                     
-                    // Load sections and students
                     await loadSections();
                     await loadStudents();
                     
-                    // Setup real-time updates
                     setupRealtimeUpdates();
 
                     loadingScreen.style.display = 'none';
@@ -1695,7 +2228,6 @@
             }
         });
 
-        // Load sections for this professor
         async function loadSections() {
             try {
                 console.log('📊 Loading sections...');
@@ -1703,7 +2235,6 @@
                 window.sections = [];
                 let professorEmail = window.currentUser.email;
                 
-                // Get professor name
                 let professorFullName = null;
                 if (window.currentProfessor) {
                     professorFullName = window.currentProfessor.fullName || window.currentProfessor.name;
@@ -1723,7 +2254,6 @@
                 
                 console.log('👤 Looking for sections of:', professorFullName);
                 
-                // Get all sections
                 const sectionsSnapshot = await getDocs(collection(db, 'sections'));
                 
                 sectionsSnapshot.forEach(sectionDoc => {
@@ -1804,7 +2334,6 @@
             }
         }
 
-        // Extract year level from section name
         function extractYearLevel(sectionName) {
             if (!sectionName) return 'N/A';
             
@@ -1829,10 +2358,10 @@
             return 'N/A';
         }
 
-        // Load students for this professor
+        // ⭐ CRITICAL FIX: Use EXACT same scoring as Grades page, store BEST score per test, average = sum of best scores / number of unique tests
         window.loadStudents = async function() {
             try {
-                console.log('=== LOADING STUDENTS FOR THIS PROFESSOR ===');
+                console.log('=== LOADING STUDENTS (GRADES-PAGE METHOD) ===');
 
                 if (window.sections.length === 0) {
                     console.log('No sections assigned. Skipping student load.');
@@ -1868,35 +2397,39 @@
                         let lastAttempt = null;
                         let lastAttemptTest = '';
                         let totalAttempts = 0;
-                        let testAttempts = {};
+
+                        // ⭐ CRITICAL: Track BEST score per test (EXACTLY like Grades page)
+                        const bestScoresPerTest = new Map();
+                        let totalBestScore = 0;
+                        let uniqueTestCount = 0;
 
                         if (studentEmail) {
                             try {
                                 const attemptsQuery = query(
                                     collection(db, 'testResults'), 
-                                    where('studentEmail', '==', studentEmail)
+                                    where('studentEmail', '==', studentEmail),
+                                    where('status', '==', 'completed')
                                 );
                                 const snapshot = await getDocs(attemptsQuery);
                                 totalAttempts = snapshot.size;
 
-                                const testBestScores = new Map();
-                                
                                 snapshot.forEach(doc => {
                                     const data = doc.data();
-                                    const testId = data.testId;
-                                    const testName = data.testName || 'Unknown Test';
-                                    const score = calculateTestScore(data.testName, data.result, data.testTarget);
+                                    const testId = data.testId || doc.id;
                                     
-                                    if (!testBestScores.has(testId) || score > testBestScores.get(testId)) {
-                                        testBestScores.set(testId, score);
+                                    // ⭐ Use EXACT same scoring function as Grades page
+                                    const score = calculateActivityScore(
+                                        data.testName,
+                                        data.result || data.resultData || data.repetitions || data,
+                                        data.testTarget || null
+                                    );
+                                    
+                                    // ⭐ KEEP ONLY THE BEST SCORE PER TEST
+                                    if (!bestScoresPerTest.has(testId) || score > bestScoresPerTest.get(testId)) {
+                                        bestScoresPerTest.set(testId, score);
                                     }
                                     
                                     if (score > bestScore) bestScore = score;
-
-                                    if (!testAttempts[testName]) {
-                                        testAttempts[testName] = 0;
-                                    }
-                                    testAttempts[testName]++;
 
                                     let attemptTime = null;
                                     if (data.submittedAt) {
@@ -1910,19 +2443,30 @@
                                     }
                                     if (attemptTime && (!lastAttempt || attemptTime > lastAttempt)) {
                                         lastAttempt = attemptTime;
-                                        lastAttemptTest = testName;
+                                        lastAttemptTest = data.testName;
                                     }
                                 });
                                 
-                                let totalScore = 0;
-                                testBestScores.forEach(score => {
-                                    totalScore += score;
+                                // ⭐ FIXED: Calculate average using BEST scores per test (EXACTLY like Grades page)
+                                uniqueTestCount = bestScoresPerTest.size;
+                                
+                                // Sum all best scores
+                                bestScoresPerTest.forEach(score => {
+                                    totalBestScore += score;
                                 });
                                 
-                                const totalUniqueTests = testBestScores.size;
-                                var averageScore = totalUniqueTests > 0 ? Math.round(totalScore / totalUniqueTests) : 0;
+                                // ✅ Average = total of best scores / number of unique tests
+                                var averageScore = uniqueTestCount > 0 ? 
+                                    parseFloat((totalBestScore / uniqueTestCount).toFixed(2)) : 0;
                                 
-                                console.log(`📊 ${fullName}: ${totalUniqueTests} unique tests, Best: ${bestScore}, Avg: ${averageScore}`);
+                                console.log(`📊 ${fullName}:`, {
+                                    uniqueTests: uniqueTestCount,
+                                    totalAttempts: totalAttempts,
+                                    bestScore: bestScore,
+                                    averageScore: averageScore,
+                                    bestScores: Array.from(bestScoresPerTest.values())
+                                });
+                                
                             } catch (e) {
                                 console.warn('Error loading attempts for student:', fullName, e);
                             }
@@ -1938,7 +2482,8 @@
                             section: section.name,
                             yearLevel: section.yearLevel || extractYearLevel(section.name),
                             totalAttempts: totalAttempts || 0,
-                            testAttempts: testAttempts || {},
+                            uniqueTestCount: uniqueTestCount || 0,
+                            testAttempts: {},
                             bestScore: bestScore || 0,
                             averageScore: averageScore || 0,
                             lastAttempt: lastAttempt,
@@ -1950,7 +2495,9 @@
                     }
                 }
 
-                console.log(`Total students loaded: ${window.students.length}`);
+                console.log(`✅ Total students loaded: ${window.students.length}`);
+                console.log(`🎯 Using BEST score per test for averages (Grades page method)`);
+                
                 window.filteredStudents = [...window.students];
                 window.currentPage = 1;
                 updateStudentsTable(window.filteredStudents);
@@ -1963,128 +2510,6 @@
                 updateStudentsTable([]);
             }
         };
-
-        // Calculate test score
-        function calculateTestScore(testName, result, testTarget = null) {
-            const normalized = testName?.toLowerCase().trim() || '';
-            
-            let numericValue = 0;
-            
-            if (typeof result === 'object' && result !== null) {
-                numericValue = result.repetitions || result.time || result.distance || result.value || result.score || 0;
-            } else if (typeof result === 'string') {
-                const match = result.match(/(\d+\.?\d*)/);
-                if (match) {
-                    numericValue = parseFloat(match[1]);
-                } else {
-                    numericValue = parseFloat(result) || 0;
-                }
-            } else {
-                numericValue = parseFloat(result) || 0;
-            }
-            
-            if (testTarget && testTarget > 0) {
-                if (normalized.includes('push-up') || normalized.includes('pushup') || 
-                    normalized.includes('sit-up') || normalized.includes('situp')) {
-                    const reps = numericValue;
-                    const percentage = (reps / testTarget) * 100;
-                    let score = Math.min(100, Math.max(50, percentage));
-                    
-                    if (percentage >= 100) score = 100;
-                    else if (percentage >= 90) score = 95;
-                    else if (percentage >= 80) score = 90;
-                    else if (percentage >= 70) score = 85;
-                    else if (percentage >= 60) score = 80;
-                    else if (percentage >= 50) score = 75;
-                    
-                    return Math.round(score);
-                } else if (normalized.includes('plank')) {
-                    let seconds = numericValue;
-                    const percentage = (seconds / testTarget) * 100;
-                    let score = Math.min(100, Math.max(50, percentage));
-                    
-                    if (percentage >= 100) score = 100;
-                    else if (percentage >= 90) score = 95;
-                    else if (percentage >= 80) score = 90;
-                    else if (percentage >= 70) score = 85;
-                    else if (percentage >= 60) score = 80;
-                    else if (percentage >= 50) score = 75;
-                    
-                    return Math.round(score);
-                } else if (normalized.includes('sit-and-reach')) {
-                    const distance = numericValue;
-                    const percentage = (distance / testTarget) * 100;
-                    let score = Math.min(100, Math.max(50, percentage));
-                    
-                    if (percentage >= 100) score = 100;
-                    else if (percentage >= 90) score = 95;
-                    else if (percentage >= 80) score = 90;
-                    else if (percentage >= 70) score = 85;
-                    else if (percentage >= 60) score = 80;
-                    else if (percentage >= 50) score = 75;
-                    
-                    return Math.round(score);
-                }
-            }
-            
-            // Default scoring
-            if (normalized.includes('push-up') || normalized.includes('pushup')) {
-                const reps = numericValue;
-                if (reps >= 40) return 100;
-                if (reps >= 35) return 95;
-                if (reps >= 30) return 90;
-                if (reps >= 25) return 85;
-                if (reps >= 20) return 80;
-                if (reps >= 15) return 75;
-                if (reps >= 10) return 70;
-                if (reps >= 5) return 65;
-                return 60;
-            } else if (normalized.includes('sit-up') || normalized.includes('situp')) {
-                const reps = numericValue;
-                if (reps >= 50) return 100;
-                if (reps >= 45) return 95;
-                if (reps >= 40) return 90;
-                if (reps >= 35) return 85;
-                if (reps >= 30) return 80;
-                if (reps >= 25) return 75;
-                if (reps >= 20) return 70;
-                if (reps >= 15) return 65;
-                return 60;
-            } else if (normalized.includes('plank')) {
-                let seconds = numericValue;
-                if (seconds >= 180) return 100;
-                if (seconds >= 150) return 95;
-                if (seconds >= 120) return 90;
-                if (seconds >= 100) return 85;
-                if (seconds >= 80) return 80;
-                if (seconds >= 60) return 75;
-                if (seconds >= 45) return 70;
-                if (seconds >= 30) return 65;
-                return 60;
-            } else if (normalized.includes('step test') || normalized.includes('3-minute')) {
-                const heartRate = numericValue;
-                if (heartRate <= 70) return 100;
-                if (heartRate <= 80) return 95;
-                if (heartRate <= 90) return 90;
-                if (heartRate <= 100) return 85;
-                if (heartRate <= 110) return 80;
-                if (heartRate <= 120) return 75;
-                if (heartRate <= 130) return 70;
-                return 65;
-            } else if (normalized.includes('sit-and-reach')) {
-                const distance = numericValue;
-                if (distance >= 25) return 100;
-                if (distance >= 20) return 95;
-                if (distance >= 15) return 90;
-                if (distance >= 10) return 85;
-                if (distance >= 5) return 80;
-                if (distance >= 0) return 75;
-                if (distance >= -5) return 70;
-                return 65;
-            }
-            
-            return 75;
-        }
 
         // Populate sections table
         function populateSectionsTable() {
@@ -2158,11 +2583,10 @@
             
             tableBody.innerHTML = html;
             
-            // Update mobile view
             updateResponsiveViews();
         }
 
-        // Update students table
+        // ⭐ CRITICAL FIX: Update students table – show averageScore with 2 decimals, computed from best scores per test
         function updateStudentsTable(students) {
             const tableBody = document.getElementById('studentsTableBody');
             const studentCount = document.getElementById('studentCount');
@@ -2211,13 +2635,13 @@
 
                 rowsHTML += `
                     <tr onclick="viewStudentDetails('${student.id}')" style="cursor: pointer;">
-                        <td><strong>${student.umakId || 'N/A'}</strong></td>
-                        <td>${student.firstName} ${student.lastName}</td>
-                        <td>${student.section || 'N/A'}</td>
-                        <td>${student.totalAttempts > 0 ? `<span class="score-badge ${scoreClass}">${student.bestScore}%</span><br><small style="color: #64748b;">${scoreText}</small>` : '—'}</td>
-                        <td>${student.totalAttempts > 0 ? `<strong>${student.averageScore}%</strong>` : '—'}</td>
-                        <td>${lastAttemptFormatted}</td>
-                        <td>
+                        <td data-label="UMaK ID"><strong>${student.umakId || 'N/A'}</strong></td>
+                        <td data-label="Student Name">${student.firstName} ${student.lastName}</td>
+                        <td data-label="Section">${student.section || 'N/A'}</td>
+                        <td data-label="Best Score">${student.totalAttempts > 0 ? `<span class="score-badge ${scoreClass}">${student.bestScore}%</span><br><small style="color: #64748b;">${scoreText}</small>` : '—'}</td>
+                        <td data-label="Average Score">${student.uniqueTestCount > 0 ? `<strong>${student.averageScore.toFixed(2)}%</strong>` : '—'}</td>
+                        <td data-label="Last Attempt">${lastAttemptFormatted}</td>
+                        <td data-label="Actions">
                             <div class="action-buttons">
                                 <button class="btn-action btn-view" onclick="event.stopPropagation(); viewStudentDetails('${student.id}')">
                                     <i class="fas fa-eye"></i> View
@@ -2229,7 +2653,6 @@
 
             tableBody.innerHTML = rowsHTML;
             
-            // Update mobile view
             updateResponsiveViews();
         }
 
@@ -2354,19 +2777,19 @@
                                 <span class="student-card-value">${student.section || 'N/A'}</span>
                             </div>
                             <div class="student-card-detail">
-                                <span class="student-card-label-small">Best Score</span>
+                                <span class="student-card-label-small">Average Score</span>
                                 <span class="student-card-value">
-                                    ${student.totalAttempts > 0 ? 
-                                        `<span class="score-badge ${scoreClass}">${student.bestScore}%</span>` : 
+                                    ${student.uniqueTestCount > 0 ? 
+                                        `<strong>${student.averageScore.toFixed(2)}%</strong>` : 
                                         '—'
                                     }
                                 </span>
                             </div>
                             <div class="student-card-detail">
-                                <span class="student-card-label-small">Average</span>
+                                <span class="student-card-label-small">Best</span>
                                 <span class="student-card-value">
                                     ${student.totalAttempts > 0 ? 
-                                        `<strong>${student.averageScore}%</strong>` : 
+                                        `<strong>${student.bestScore}%</strong>` : 
                                         '—'
                                     }
                                 </span>
@@ -2387,7 +2810,6 @@
         function updateResponsiveViews() {
             const isMobile = window.innerWidth <= 768;
             
-            // Sections
             const sectionsTable = document.querySelector('#sectionsTable')?.closest('.table-responsive');
             const mobileSectionsContainer = document.getElementById('mobileSectionsContainer');
             
@@ -2402,7 +2824,6 @@
                 }
             }
             
-            // Students
             const studentsTable = document.querySelector('#studentsTable')?.closest('.table-responsive');
             const mobileStudentsContainer = document.getElementById('mobileStudentsContainer');
             
@@ -2418,7 +2839,6 @@
             }
         }
 
-        // Check if mobile view
         function isMobileView() {
             return window.innerWidth <= 768;
         }
@@ -2451,7 +2871,7 @@
             console.log(`✓ Populated ${sectionFilter.options.length - 1} professor sections`);
         }
 
-        // View section details - with data-label attributes
+        // View section details
         window.viewSectionDetails = async function(sectionId) {
             try {
                 const sectionRef = doc(db, 'sections', sectionId);
@@ -2480,7 +2900,8 @@
                     }
                 });
                 
-                const averageScore = studentsWithAttempts > 0 ? Math.round(totalScore / studentsWithAttempts) : 0;
+                const averageScore = studentsWithAttempts > 0 ? 
+                    parseFloat((totalScore / studentsWithAttempts).toFixed(2)) : 0;                
                 const completionRate = sectionStudents.length > 0 ? Math.round((studentsWithAttempts / sectionStudents.length) * 100) : 0;
                 
                 let schedule = '';
@@ -2600,8 +3021,8 @@
                                     }
                                 </td>
                                 <td data-label="Average Score">
-                                    ${student.totalAttempts > 0 ? 
-                                        `<strong>${student.averageScore}%</strong>` : 
+                                    ${student.uniqueTestCount > 0 ? 
+                                        `<strong>${student.averageScore.toFixed(2)}%</strong>` : 
                                         '—'
                                     }
                                 </td>
@@ -2635,12 +3056,11 @@
             }
         };
 
-        // Close view section modal
         window.closeViewSectionModal = function() {
             document.getElementById('viewSectionModal').style.display = 'none';
         };
 
-        // View student details
+        // View student details (with corrected average)
         window.viewStudentDetails = async function(studentId) {
             try {
                 window.currentStudentId = studentId;
@@ -2652,37 +3072,52 @@
 
                 const attemptsQuery = query(
                     collection(db, 'testResults'), 
-                    where('studentEmail', '==', student.email)
+                    where('studentEmail', '==', student.email),
+                    where('status', '==', 'completed')
                 );
                 const attemptsSnapshot = await getDocs(attemptsQuery);
 
-                const testGroups = {};
+                const bestScoresPerTest = new Map();
+                const allAttemptsByTest = new Map();
                 
                 attemptsSnapshot.forEach(docSnap => {
                     const attempt = { id: docSnap.id, ...docSnap.data() };
                     const testId = attempt.testId || attempt.testName;
                     
-                    if (!testGroups[testId]) {
-                        testGroups[testId] = {
+                    if (!allAttemptsByTest.has(testId)) {
+                        allAttemptsByTest.set(testId, {
                             testName: attempt.testName || 'Unknown Test',
                             attempts: []
-                        };
+                        });
                     }
-                    testGroups[testId].attempts.push(attempt);
+                    allAttemptsByTest.get(testId).attempts.push(attempt);
+                    
+                    const score = calculateActivityScore(
+                        attempt.testName, 
+                        attempt.result || attempt.resultData || attempt.repetitions || attempt,
+                        attempt.testTarget || null
+                    );
+                    
+                    if (!bestScoresPerTest.has(testId) || score > bestScoresPerTest.get(testId)) {
+                        bestScoresPerTest.set(testId, score);
+                    }
                 });
 
-                let totalScore = 0, bestScore = 0, totalAttempts = 0;
+                let totalBestScore = 0;
+                let uniqueTestCount = bestScoresPerTest.size;
                 
-                Object.values(testGroups).forEach(group => {
-                    group.attempts.forEach(attempt => {
-                        const score = calculateTestScore(attempt.testName, attempt.result, attempt.testTarget);
-                        totalScore += score;
-                        totalAttempts++;
-                        if (score > bestScore) bestScore = score;
-                    });
+                bestScoresPerTest.forEach(score => {
+                    totalBestScore += score;
+                });
+                
+                const averageScore = uniqueTestCount > 0 ? 
+                    parseFloat((totalBestScore / uniqueTestCount).toFixed(2)) : 0;
+                
+                let bestScore = 0;
+                bestScoresPerTest.forEach(score => {
+                    if (score > bestScore) bestScore = score;
                 });
 
-                const averageScore = totalAttempts > 0 ? Math.round(totalScore / totalAttempts) : 0;
                 const initials = (student.firstName?.charAt(0) || '') + (student.lastName?.charAt(0) || '');
                 
                 let sectionSchedule = 'Not Set';
@@ -2718,12 +3153,12 @@
                         </div>
                         <div class="info-item">
                             <div class="info-label">Total Tests Taken</div>
-                            <div class="info-value"><strong>${Object.keys(testGroups).length}</strong></div>
+                            <div class="info-value"><strong>${uniqueTestCount}</strong></div>
                         </div>
                         <div class="info-item">
                             <div class="info-label">Best Score</div>
                             <div class="info-value">
-                                ${totalAttempts > 0 ? 
+                                ${uniqueTestCount > 0 ? 
                                     `<span class="score-badge ${bestScore >= 90 ? 'score-excellent' : bestScore >= 70 ? 'score-good' : 'score-poor'}">${bestScore}%</span>` : 
                                     'No attempts'
                                 }
@@ -2731,7 +3166,12 @@
                         </div>
                         <div class="info-item">
                             <div class="info-label">Average Score</div>
-                            <div class="info-value">${totalAttempts > 0 ? `<strong>${averageScore}%</strong>` : 'No attempts'}</div>
+                            <div class="info-value">
+                                ${uniqueTestCount > 0 ? 
+                                    `<strong style="color: #1e3a8a;">${averageScore.toFixed(2)}%</strong>` : 
+                                    'No attempts'
+                                }
+                            </div>
                         </div>
                         <div class="info-item">
                             <div class="info-label">Status</div>
@@ -2742,27 +3182,9 @@
                 document.getElementById('studentDetailsContent').innerHTML = html;
 
                 let attemptsHTML = '';
-                if (Object.keys(testGroups).length > 0) {
-                    const sortedTests = Object.entries(testGroups).sort((a, b) => {
-                        const getLatestTime = (attempts) => {
-                            const timestamps = attempts.map(att => {
-                                if (!att.submittedAt) return 0;
-                                if (typeof att.submittedAt.toMillis === 'function') return att.submittedAt.toMillis();
-                                if (att.submittedAt instanceof Date) return att.submittedAt.getTime();
-                                if (typeof att.submittedAt === 'string' || typeof att.submittedAt === 'number') return new Date(att.submittedAt).getTime();
-                                if (att.submittedAt.seconds && att.submittedAt.nanoseconds) return att.submittedAt.seconds * 1000;
-                                return 0;
-                            });
-                            return Math.max(...timestamps);
-                        };
-                        return getLatestTime(b[1].attempts) - getLatestTime(a[1].attempts);
-                    });
-
-                    sortedTests.forEach(([testId, group]) => {
-                        const testName = group.testName;
-                        const testAttempts = group.attempts;
-                        
-                        testAttempts.sort((a, b) => {
+                if (uniqueTestCount > 0) {
+                    const testGroups = Array.from(allAttemptsByTest.entries()).map(([testId, group]) => {
+                        group.attempts.sort((a, b) => {
                             const getTimestamp = (attempt) => {
                                 if (!attempt.submittedAt) return 0;
                                 if (typeof attempt.submittedAt.toMillis === 'function') return attempt.submittedAt.toMillis();
@@ -2771,24 +3193,48 @@
                                 if (attempt.submittedAt.seconds && attempt.submittedAt.nanoseconds) return attempt.submittedAt.seconds * 1000;
                                 return 0;
                             };
-                            return getTimestamp(a) - getTimestamp(b);
+                            return getTimestamp(b) - getTimestamp(a);
                         });
-
-                        const totalAttemptsInTest = testAttempts.length;
-                        const bestScoreInTest = Math.max(...testAttempts.map(a => calculateTestScore(a.testName, a.result, a.testTarget)));
                         
-                        // Test group card header
+                        return {
+                            testId,
+                            testName: group.testName,
+                            attempts: group.attempts,
+                            bestScore: bestScoresPerTest.get(testId)
+                        };
+                    });
+
+                    testGroups.sort((a, b) => {
+                        const getLatest = (attempts) => {
+                            if (!attempts.length) return 0;
+                            const att = attempts[0];
+                            if (att.submittedAt) {
+                                if (typeof att.submittedAt.toMillis === 'function') return att.submittedAt.toMillis();
+                                if (att.submittedAt instanceof Date) return att.submittedAt.getTime();
+                                if (typeof att.submittedAt === 'string' || typeof att.submittedAt === 'number') return new Date(att.submittedAt).getTime();
+                                if (att.submittedAt.seconds && att.submittedAt.nanoseconds) return att.submittedAt.seconds * 1000;
+                            }
+                            return 0;
+                        };
+                        return getLatest(b.attempts) - getLatest(a.attempts);
+                    });
+
+                    testGroups.forEach(({ testId, testName, attempts, bestScore }) => {
+                        const totalAttemptsInTest = attempts.length;
+                        
                         attemptsHTML += `
                             <div style="margin-bottom: 16px; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden;">
                                 <div style="background: linear-gradient(90deg, rgba(30,58,138,0.9) 0%, rgba(59,130,246,0.9) 100%); padding: 10px 14px; display: flex; justify-content: space-between; align-items: center;">
                                     <span style="color: white; font-weight: 700; font-size: 14px;">
                                         <i class="fas fa-clipboard-check" style="margin-right: 6px;"></i>${testName}
                                     </span>
-                                    <span style="color: rgba(255,255,255,0.8); font-size: 12px;">${totalAttemptsInTest} attempt${totalAttemptsInTest > 1 ? 's' : ''}</span>
+                                    <span style="color: rgba(255,255,255,0.8); font-size: 12px;">
+                                        Best: <strong style="color: white;">${bestScore}%</strong> • ${totalAttemptsInTest} attempt${totalAttemptsInTest > 1 ? 's' : ''}
+                                    </span>
                                 </div>
                         `;
 
-                        testAttempts.forEach((attempt, index) => {
+                        attempts.forEach((attempt, index) => {
                             const attemptNumber = index + 1;
                             
                             let date = new Date();
@@ -2807,10 +3253,15 @@
                             const formattedDate = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                             const formattedTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                             
-                            const score = calculateTestScore(attempt.testName, attempt.result, attempt.testTarget);
+                            const score = calculateActivityScore(
+                                attempt.testName, 
+                                attempt.result || attempt.resultData || attempt.repetitions || attempt,
+                                attempt.testTarget || null
+                            );
+                            
                             const statusClass = score >= 90 ? 'score-excellent' : score >= 70 ? 'score-good' : 'score-poor';
                             const statusText = score >= 90 ? 'Excellent' : score >= 70 ? 'Good' : 'Needs Improvement';
-                            const isBest = score === bestScoreInTest && totalAttemptsInTest > 1;
+                            const isBest = score === bestScore;
                             const bgColor = isBest ? '#f0fdf4' : (index % 2 === 0 ? '#ffffff' : '#f8fafc');
 
                             attemptsHTML += `
@@ -2838,7 +3289,7 @@
                             `;
                         });
 
-                        attemptsHTML += `</div>`; // close test group card
+                        attemptsHTML += `</div>`;
                     });
                 } else {
                     attemptsHTML = `
@@ -2858,7 +3309,6 @@
             }
         };
 
-        // View attempt details
         window.viewAttemptDetails = async function(attemptId) {
             try {
                 const attemptRef = doc(db, 'testResults', attemptId);
@@ -2875,7 +3325,7 @@
                 alert(
                     `Attempt Details:\n\n` +
                     `Test: ${attempt.testName || 'Unknown'}\n` +
-                    `Score: ${attempt.score || calculateTestScore(attempt.testName, attempt.result, attempt.testTarget)}%\n` +
+                    `Score: ${attempt.score || calculateActivityScore(attempt.testName, attempt.result, attempt.testTarget)}%\n` +
                     `Result: ${attempt.result || 'N/A'}\n` +
                     `Target: ${attempt.testTarget || 'N/A'} ${attempt.testUnit || ''}\n` +
                     `Date: ${date.toLocaleDateString()}\n` +
@@ -2890,13 +3340,11 @@
             }
         };
 
-        // Close view student modal
         window.closeViewStudentModal = function() {
             document.getElementById('viewStudentModal').style.display = 'none';
             window.currentStudentId = null;
         };
 
-        // Filter sections
         window.filterSections = function() {
             const searchTerm = document.getElementById('searchSections').value.toLowerCase();
             
@@ -2916,7 +3364,6 @@
             }
         };
 
-        // Filter students
         window.filterStudents = function() {
             const searchTerm = document.getElementById('searchStudents').value.toLowerCase();
             const sectionFilter = document.getElementById('filterSection').value;
@@ -2960,7 +3407,6 @@
             }
         };
 
-        // Pagination functions
         window.previousPage = function() {
             if (window.currentPage > 1) {
                 window.currentPage--;
@@ -2976,7 +3422,6 @@
             }
         };
 
-        // Export students data
         window.exportStudents = function() {
             if (window.filteredStudents.length === 0) {
                 alert('No students to export.');
@@ -2984,7 +3429,7 @@
             }
 
             let csvContent = "data:text/csv;charset=utf-8,";
-            csvContent += "UMaK ID,Student Name,Section,Total Attempts,Best Score,Average Score,Last Attempt\n";
+            csvContent += "UMaK ID,Student Name,Section,Total Attempts,Best Score,Average Score (2 decimals),Last Attempt\n";
             
             window.filteredStudents.forEach(student => {
                 const row = [
@@ -2993,7 +3438,7 @@
                     student.section || '',
                     student.totalAttempts || 0,
                     student.bestScore || 0,
-                    student.averageScore || 0,
+                    (student.averageScore || 0).toFixed(2),
                     student.lastAttempt ? 
                         (student.lastAttempt.toDate ? student.lastAttempt.toDate().toLocaleDateString() : 
                          new Date(student.lastAttempt).toLocaleDateString()) : 'No attempts'
@@ -3011,7 +3456,6 @@
             document.body.removeChild(link);
         };
 
-        // Refresh data
         window.refreshData = async function(event) {
             try {
                 const refreshBtn = event?.target?.closest('button');
@@ -3039,7 +3483,6 @@
             }
         };
 
-        // Setup real-time updates
         function setupRealtimeUpdates() {
             if (window.currentUser && window.currentProfessor) {
                 const professorName = window.currentProfessor.fullName || window.currentProfessor.name || window.currentUser.displayName;
@@ -3063,7 +3506,6 @@
             }
         }
 
-        // Switch between tabs
         window.switchTab = function(tab) {
             window.currentTab = tab;
             
@@ -3089,7 +3531,6 @@
             }
         };
 
-        // Load overdue students
         window.loadOverdueStudents = async function() {
             try {
                 window.overdueStudents = [];
@@ -3118,7 +3559,7 @@
                         completedSnapshot.forEach(doc => {
                             const data = doc.data();
                             const testId = data.testId;
-                            const score = data.score || calculateTestScore(data.testName, data.result, data.testTarget);
+                            const score = data.score || calculateActivityScore(data.testName, data.result, data.testTarget);
                             
                             if (!completedTests.has(testId) || score > completedTests.get(testId).score) {
                                 completedTests.set(testId, {
@@ -3179,7 +3620,6 @@
             }
         };
 
-        // Format deadline
         function formatDeadline(deadline, deadlineTime) {
             if (!deadline) return 'No deadline';
             const date = new Date(deadline);
@@ -3198,7 +3638,6 @@
             return dateText + timeText;
         }
 
-        // Render overdue table
         function renderOverdueTable() {
             const tableBody = document.getElementById('overdueTableBody');
             
@@ -3302,7 +3741,6 @@
             tableBody.innerHTML = html;
         }
 
-        // Filter overdue students
         window.filterOverdueStudents = function() {
             const searchTerm = document.getElementById('searchOverdue').value.toLowerCase();
             const sectionFilter = document.getElementById('filterOverdueSection').value;
@@ -3321,7 +3759,6 @@
             renderOverdueTable();
         };
 
-        // Enable overdue test
         window.enableOverdueTest = async function(studentEmail, testId, testName) {
             if (!confirm(`Enable "${testName}" for this student? They will be able to take this test even though it's overdue.`)) {
                 return;
@@ -3360,12 +3797,10 @@
             }
         };
 
-        // Set overdue score
         window.setOverdueScore = function(studentEmail, testId, testName, testTarget, testUnit, studentName, currentScore = 0, currentResult = '', resultId = '') {
             window.openEditScoreModal(studentEmail, testId, testName, testTarget, testUnit, studentName, currentScore, currentResult, resultId);
         };
 
-        // Open edit score modal
         window.openEditScoreModal = function(studentEmail, testId, testName, testTarget, testUnit, studentName, currentScore = 0, currentResult = '', resultId = '') {
             console.log('🔧 Opening edit score modal for:', studentName);
             
@@ -3470,12 +3905,10 @@
             console.log('✅ Modal opened successfully');
         };
 
-        // Close edit score modal
         window.closeEditScoreModal = function() {
             document.getElementById('editScoreModal').style.display = 'none';
         };
 
-        // Next step
         window.nextStep = function() {
             if (currentStep === 1) {
                 currentStep = 2;
@@ -3483,7 +3916,6 @@
             }
         };
 
-        // Submit score
         window.submitScore = async function() {
             const newResult = parseFloat(document.getElementById('newResult').value);
             
@@ -3528,7 +3960,7 @@
                     submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Saving...';
                 }
                 
-                const calculatedScore = calculateTestScore(
+                const calculatedScore = calculateActivityScore(
                     editScoreData.testName,
                     newResult,
                     editScoreData.testTarget
@@ -3599,7 +4031,6 @@
             }
         };
 
-        // Update step UI
         function updateStepUI() {
             console.log('🔄 Updating step UI, current step:', currentStep);
             
@@ -3639,7 +4070,6 @@
             console.log('✅ Step UI updated');
         }
 
-        // Filter functions for student tests modal
         function toggleFilterDropdown(event) {
             event.stopPropagation();
             const dropdown = document.getElementById('filterDropdown');
@@ -3975,7 +4405,6 @@
             document.getElementById('studentTestsTableBody').innerHTML = html;
         }
 
-        // Show student tests
         window.showStudentTests = async function(studentEmail) {
             const studentTests = window.filteredOverdueStudents.filter(t => t.studentEmail === studentEmail);
             
@@ -4011,7 +4440,6 @@
             console.log('📊 Showing', studentTests.length, 'tests for', studentName);
         };
 
-        // Close student tests modal
         window.closeStudentTestsModal = function() {
             document.getElementById('studentTestsModal').style.display = 'none';
             window.currentStudentTests = [];
@@ -4023,7 +4451,6 @@
             document.getElementById('filterDropdown')?.classList.remove('show');
         };
 
-        // Close dropdowns when clicking outside
         document.addEventListener('click', function(event) {
             const sortDropdown = document.getElementById('sortDropdown');
             const filterDropdown = document.getElementById('filterDropdown');
@@ -4043,7 +4470,6 @@
             }
         });
 
-        // Get grade letter
         function getGradeLetter(score) {
             if (score >= 97) return 'A+';
             if (score >= 93) return 'A';
@@ -4060,7 +4486,6 @@
             return 'F';
         }
 
-        // Initialize
         let currentStep = 1;
         let editScoreData = {
             studentEmail: '',
@@ -4074,7 +4499,6 @@
             currentResult: ''
         };
 
-        // Make functions globally available
         window.viewSectionDetails = viewSectionDetails;
         window.closeViewSectionModal = closeViewSectionModal;
         window.viewStudentDetails = viewStudentDetails;
@@ -4100,7 +4524,6 @@
         window.changeSort = changeSort;
         window.closeStudentTestsModal = closeStudentTestsModal;
 
-        // Add input listener for result preview
         document.addEventListener('DOMContentLoaded', function() {
             const newResultInput = document.getElementById('newResult');
             const formHint = document.getElementById('resultHint');
@@ -4152,7 +4575,7 @@
                             }
                         }
                         
-                        const calculatedScore = calculateTestScore(
+                        const calculatedScore = calculateActivityScore(
                             editScoreData.testName,
                             result,
                             editScoreData.testTarget

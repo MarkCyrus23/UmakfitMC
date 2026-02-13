@@ -3,14 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UmakFit - Add Lesson</title>
+    <title>UMakFit - Add Lesson</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css?family=Manrope:600,800|Inter:300,500,400,700" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * { -webkit-font-smoothing: antialiased; box-sizing: border-box; }
-        body { font-family: 'Inter', Helvetica, sans-serif; }
+        * { 
+            -webkit-font-smoothing: antialiased; 
+            box-sizing: border-box; 
+            font-family: 'Poppins', sans-serif; 
+        }
+        body { 
+            margin: 0; 
+            padding: 0; 
+            background-color: #f6f6f6;
+            overflow-x: hidden;
+            width: 100%;
+        }
+        
+        .font-montserrat {
+            font-family: 'Montserrat', sans-serif;
+        }
         
         /* Custom animations */
         @keyframes pulse { 
@@ -25,28 +42,110 @@
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        
-        /* Navigation styles */
-        .font-manrope { font-family: 'Manrope', sans-serif; }
-        
-        .slide-down {
-            animation: slideDown 0.3s ease;
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
+        
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        @keyframes bounceSlow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .animate-fade-in-up { animation: fadeInUp 1s ease-out; }
+        .animate-slide-in-left { animation: slideInLeft 1s ease-out; }
+        .animate-slide-in-right { animation: slideInRight 1s ease-out; }
+        .animate-float { animation: float 6s ease-in-out infinite; }
+        .animate-float-delayed { animation: float 6s ease-in-out infinite 3s; }
+        .animate-bounce-slow { animation: bounceSlow 2s ease-in-out infinite; }
+        .slide-down { animation: slideDown 0.3s ease; }
         
         @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
-        /* Custom styles not covered by Tailwind */
+        /* Hamburger Menu Styles */
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            cursor: pointer;
+            z-index: 60;
+        }
+
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background: linear-gradient(135deg, #EAD38A 0%, #C5A046 50%, #8B6D2D 100%);
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+        }
+
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(7px, -6px);
+        }
+
+        /* Mobile Drawer */
+        .mobile-drawer {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 280px;
+            height: 100vh;
+            background: linear-gradient(135deg, #0D1B2A 0%, #1A2B3C 50%, #2C4A5E 100%);
+            z-index: 55;
+            transition: right 0.3s ease;
+            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.3);
+            overflow-y: auto;
+        }
+
+        .mobile-drawer.active { right: 0; }
+        .drawer-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 50;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .drawer-overlay.active { opacity: 1; visibility: visible; }
+
+        @media (max-width: 768px) {
+            .hamburger { display: flex; }
+            .desktop-nav { display: none; }
+        }
+        
+        /* Gradient text */
         .gradient-text {
-            background: linear-gradient(90deg, rgba(245, 158, 11, 1) 0%, rgba(255, 229, 0, 1) 100%);
+            background: linear-gradient(135deg, #EAD38A 0%, #C5A046 50%, #8B6D2D 100%);
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -81,7 +180,7 @@
             height: 50px;
         }
         
-        /* Modal styles */
+        /* ============ FIXED MODAL STYLES - NO VERTICAL SCROLL ON MODAL ITSELF ============ */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -93,7 +192,8 @@
             justify-content: center;
             align-items: center;
             z-index: 2000;
-            padding: 20px;
+            padding: 16px;
+            box-sizing: border-box;
         }
         
         .modal-content {
@@ -101,8 +201,75 @@
             border-radius: 12px;
             width: 100%;
             max-width: 600px;
-            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            max-height: 85vh;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+        
+        .modal-content.large {
+            max-width: 800px;
+        }
+        
+        .modal-header {
+            flex-shrink: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 24px;
+            border-bottom: 1px solid #e2e8f0;
+            background-color: white;
+            border-radius: 12px 12px 0 0;
+        }
+        
+        .modal-header h3 {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            color: #1e3a8a;
+            font-size: 20px;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .modal-body {
+            flex: 1;
             overflow-y: auto;
+            padding: 24px;
+            background-color: white;
+        }
+        
+        .modal-footer {
+            flex-shrink: 0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 16px 24px;
+            border-top: 1px solid #e2e8f0;
+            background-color: #f9fafb;
+            border-radius: 0 0 12px 12px;
+        }
+        
+        .modal-close-btn {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            background-color: #f3f4f6;
+            color: #4b5563;
+            font-size: 20px;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .modal-close-btn:hover {
+            background-color: #e5e7eb;
+            color: #111827;
         }
         
         /* File preview styles */
@@ -223,152 +390,210 @@
                 height: 250px;
             }
         }
+        
+        /* Lesson card styles */
+        .lesson-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            width: 100%;
+            max-width: 100%;
+            overflow-x: hidden;
+            box-sizing: border-box;
+        }
+        
+        @media (max-width: 768px) {
+            .modal-content {
+                max-height: 90vh;
+                margin: 8px 0;
+                width: 100%;
+            }
+            
+            .modal-header {
+                padding: 12px 16px;
+            }
+            
+            .modal-body {
+                padding: 16px;
+            }
+            
+            .modal-footer {
+                padding: 12px 16px;
+            }
+            
+            .youtube-iframe {
+                height: 180px;
+            }
+            
+            .file-preview-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .file-preview-info {
+                width: 100%;
+            }
+            
+            .file-preview-item button {
+                width: 100%;
+                margin-left: 0;
+            }
+        }
     </style>
 </head>
-<body class="bg-gray-50">
+<body class="bg-gray-50 overflow-x-hidden">
+    <!-- Loading Screen -->
     <div id="loadingScreen" class="fixed inset-0 bg-white bg-opacity-95 flex flex-col justify-center items-center z-50">
         <div class="spinner"></div>
         <div class="mt-5 text-gray-600 font-medium">Loading Lesson Management...</div>
     </div>
     
-    <div id="mainContent" class="hidden">
-        <!-- Navigation Banner - MATCHING GRADES PAGE -->
-      <nav class="bg-gradient-to-r from-blue-900 to-blue-500 shadow-lg">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex flex-wrap items-center justify-between gap-3 sm:gap-4 py-3 sm:py-4">
-            <!-- Logo -->
-            <a href="#" class="flex items-center gap-2 sm:gap-3">
-                <span class="text-xl sm:text-2xl md:text-3xl font-extrabold font-manrope bg-gradient-to-r from-yellow-400 to-yellow-200 bg-clip-text text-transparent">
-                    UMakFit
-                </span>
-            </a>
-            
-            <!-- Desktop Navigation -->
-            <div class="hidden lg:flex items-center gap-2 flex-wrap">
-                <!-- Dashboard -->
-                <a href="professor.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
-                    <i class="fas fa-tachometer-alt"></i> 
-                    <span>Dashboard</span>
-                </a>
-                
-                <!-- Student Management -->
-                <a href="studentmanagement.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
-                    <i class="fas fa-users"></i> 
-                    <span>Student Management</span>
-                </a>
-                
-                <!-- Add Activities -->
-                <a href="addactivities.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
-                    <i class="fas fa-dumbbell"></i> 
-                    <span>Add Activities</span>
-                </a>
-                
-                <!-- Add Lesson -->
-                <a href="addlesson.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
-                    <i class="fas fa-book-open"></i> 
-                    <span>Add Lesson</span>
-                </a>
-                
-                <!-- Monitoring Activities -->
-                <a href="monitoringactivities.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
-                    <i class="fas fa-chart-bar"></i> 
-                    <span>Monitoring Activities</span>
-                </a>
-                
-                <!-- Grades -->
-                <a href="grades.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
-                    <i class="fas fa-graduation-cap"></i> 
-                    <span>Grades</span>
-                </a>
-                
-                <!-- Profile Dropdown -->
-                <div class="relative">
-                    <img src="" alt="Profile" id="profilePictureBtn"
-                         class="w-9 h-9 xl:w-10 xl:h-10 rounded-full border-2 border-white/30 cursor-pointer hover:border-white/60 hover:scale-105 transition-all object-cover">
-                    
-                    <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-64 sm:w-72 bg-white rounded-xl shadow-2xl z-[9999] slide-down">
-                        <div class="p-4 sm:p-6 border-b-2 border-gray-200 text-center">
-                            <img src="" alt="Profile" id="profileDropdownPicture" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full mx-auto mb-2 sm:mb-3 border-3 border-blue-500 object-cover">
-                            <h6 id="profileDropdownName" class="font-bold text-gray-900 text-base sm:text-lg">Loading...</h6>
-                            <p id="profileDropdownEmail" class="text-xs sm:text-sm text-gray-500 mt-1 truncate px-2">Loading...</p>
+    <div id="mainContent" class="hidden overflow-x-hidden">
+        <!-- ✅ UPDATED NAVIGATION BANNER - MATCHING LANDING PAGE DESIGN -->
+        <header class="shadow-lg fixed w-full top-0 z-50" style="background: linear-gradient(135deg, #0D1B2A 0%, #1A2B3C 50%, #2C4A5E 100%);">
+            <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-20">
+                    <!-- Logo -->
+                    <div class="flex items-center gap-3">
+                        <div class="w-16 h-16 flex items-center justify-center overflow-visible">
+                            <img src="UMakfit Logo (2).png" alt="UMakFIT Logo" class="w-20 h-20 object-contain">
                         </div>
-                        <div class="p-2">
-                            <a href="#" onclick="showViewProfile(event)" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-gray-100 transition-colors">
-                                <i class="bi bi-person-circle text-blue-500 text-lg sm:text-xl"></i>
-                                <span class="font-medium text-gray-700 text-sm sm:text-base">View Profile</span>
-                            </a>
-                            <div class="h-px bg-gray-200 my-1 sm:my-2"></div>
-                            <div onclick="handleLogout(event)" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-red-500">
-                                <i class="fas fa-sign-out-alt text-lg sm:text-xl"></i>
-                                <span class="font-medium text-sm sm:text-base">Logout</span>
-                            </div>
-                        </div>
+                        <span class="text-xl sm:text-2xl md:text-3xl font-extrabold font-montserrat gradient-text">
+                            UMakFIT
+                        </span>
                     </div>
-                </div>
-            </div>
-            
-            <!-- Mobile Right Icons -->
-            <div class="flex lg:hidden items-center gap-2 sm:gap-3">
-                <!-- Mobile Profile -->
-                <div class="relative">
-                    <img src="" alt="Profile" id="profilePictureBtnMobile"
-                         class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-white/30 cursor-pointer hover:border-white/60 object-cover">
-                    
-                    <!-- Mobile Profile Dropdown -->
-                    <div id="profileDropdownMobile" class="hidden fixed right-2 top-20 w-64 sm:w-72 bg-white rounded-xl shadow-2xl z-[9999] slide-down">
-                        <div class="p-4 sm:p-6 border-b-2 border-gray-200 text-center">
-                            <img src="" alt="Profile" id="profileDropdownPictureMobile" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full mx-auto mb-2 sm:mb-3 border-3 border-blue-500 object-cover">
-                            <h6 id="profileDropdownNameMobile" class="font-bold text-gray-900 text-base sm:text-lg">Loading...</h6>
-                            <p id="profileDropdownEmailMobile" class="text-xs sm:text-sm text-gray-500 mt-1 truncate px-2">Loading...</p>
-                        </div>
-                        <div class="p-2">
-                            <a href="#" onclick="showViewProfile(event)" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-gray-100 transition-colors">
-                                <i class="bi bi-person-circle text-blue-500 text-lg sm:text-xl"></i>
-                                <span class="font-medium text-gray-700 text-sm sm:text-base">View Profile</span>
-                            </a>
-                            <div class="h-px bg-gray-200 my-1 sm:my-2"></div>
-                            <div onclick="handleLogout(event)" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-red-500">
-                                <i class="fas fa-sign-out-alt text-lg sm:text-xl"></i>
-                                <span class="font-medium text-sm sm:text-base">Logout</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Mobile Menu Button -->
-                <button id="mobileMenuButton" class="text-white p-1 sm:p-2">
-                    <i class="bi bi-list text-2xl sm:text-3xl"></i>
-                </button>
-            </div>
-        </div>
-        
-        <!-- Mobile Navigation Menu -->
-        <div id="mobileMenu" class="hidden lg:hidden mt-3 sm:mt-4 space-y-2 pb-3">
-            <a href="professor.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
-                <i class="fas fa-tachometer-alt mr-2"></i> Dashboard
-            </a>
-            <a href="studentmanagement.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
-                <i class="fas fa-users mr-2"></i> Student Management
-            </a>
-            <a href="addactivities.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
-                <i class="fas fa-dumbbell mr-2"></i> Add Activities
-            </a>
-            <a href="addlesson.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
-                <i class="fas fa-book-open mr-2"></i> Add Lesson
-            </a>
-            <a href="monitoringactivities.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
-                <i class="fas fa-chart-bar mr-2"></i> Monitoring Activities
-            </a>
-            <a href="grades.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
-                <i class="fas fa-graduation-cap mr-2"></i> Grades
-            </a>
-        </div>
-    </div>
-</nav>
 
-        
-        <!-- Main Content -->
-        <div class="bg-gradient-to-b from-gray-50 to-gray-100 min-h-screen pt-10 pb-20">
+                    <!-- Desktop Navigation -->
+                    <div class="desktop-nav hidden md:flex items-center gap-8">
+                        <a href="professor.html" class="text-white/80 hover:text-white font-medium transition-colors">
+                            <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                        </a>
+                        <a href="studentmanagement.html" class="text-white/80 hover:text-white font-medium transition-colors">
+                            <i class="fas fa-users mr-2"></i>Students
+                        </a>
+                        <a href="addactivities.html" class="text-white/80 hover:text-white font-medium transition-colors">
+                            <i class="fas fa-dumbbell mr-2"></i>Activities
+                        </a>
+                        <a href="addlesson.html" class="text-white font-medium px-3 py-2 rounded-lg" style="background: linear-gradient(135deg, #EAD38A 0%, #C5A046 50%, #8B6D2D 100%);">
+                            <i class="fas fa-book-open mr-2"></i>Lessons
+                        </a>
+                        <a href="monitoringactivities.html" class="text-white/80 hover:text-white font-medium transition-colors">
+                            <i class="fas fa-chart-bar mr-2"></i>Monitoring
+                        </a>
+                        <a href="grades.html" class="text-white/80 hover:text-white font-medium transition-colors">
+                            <i class="fas fa-graduation-cap mr-2"></i>Grades
+                        </a>
+                    </div>
+
+                    <!-- Desktop Profile -->
+                    <div class="hidden md:block relative">
+                        <img src="" alt="Profile" id="profilePictureBtn"
+                             class="w-10 h-10 rounded-full border-2 border-white/30 cursor-pointer hover:border-white/60 hover:scale-105 transition-all object-cover">
+                        
+                        <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-2xl z-[9999] slide-down">
+                            <div class="p-6 border-b-2 border-gray-200 text-center">
+                                <img src="" alt="Profile" id="profileDropdownPicture" class="w-20 h-20 rounded-full mx-auto mb-3 border-3 border-blue-500 object-cover">
+                                <h6 id="profileDropdownName" class="font-bold text-gray-900 text-lg">Loading...</h6>
+                                <p id="profileDropdownEmail" class="text-sm text-gray-500 mt-1 truncate px-2">Loading...</p>
+                            </div>
+                            <div class="p-2">
+                                <a href="#" onclick="showViewProfile(event)" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 transition-colors">
+                                    <i class="bi bi-person-circle text-blue-500 text-xl"></i>
+                                    <span class="font-medium text-gray-700 text-base">View Profile</span>
+                                </a>
+                                <div class="h-px bg-gray-200 my-2"></div>
+                                <div onclick="handleLogout(event)" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-red-500">
+                                    <i class="fas fa-sign-out-alt text-xl"></i>
+                                    <span class="font-medium text-base">Logout</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mobile Right Icons -->
+                    <div class="flex md:hidden items-center gap-3">
+                        <!-- Mobile Profile -->
+                        <div class="relative">
+                            <img src="" alt="Profile" id="profilePictureBtnMobile"
+                                 class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-white/30 cursor-pointer hover:border-white/60 object-cover">
+                            
+                            <div id="profileDropdownMobile" class="hidden fixed right-2 top-20 w-64 sm:w-72 bg-white rounded-xl shadow-2xl z-[9999] slide-down">
+                                <div class="p-4 sm:p-6 border-b-2 border-gray-200 text-center">
+                                    <img src="" alt="Profile" id="profileDropdownPictureMobile" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full mx-auto mb-2 sm:mb-3 border-3 border-blue-500 object-cover">
+                                    <h6 id="profileDropdownNameMobile" class="font-bold text-gray-900 text-base sm:text-lg">Loading...</h6>
+                                    <p id="profileDropdownEmailMobile" class="text-xs sm:text-sm text-gray-500 mt-1 truncate px-2">Loading...</p>
+                                </div>
+                                <div class="p-2">
+                                    <a href="#" onclick="showViewProfile(event)" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-gray-100 transition-colors">
+                                        <i class="bi bi-person-circle text-blue-500 text-lg sm:text-xl"></i>
+                                        <span class="font-medium text-gray-700 text-sm sm:text-base">View Profile</span>
+                                    </a>
+                                    <div class="h-px bg-gray-200 my-1 sm:my-2"></div>
+                                    <div onclick="handleLogout(event)" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-red-500">
+                                        <i class="fas fa-sign-out-alt text-lg sm:text-xl"></i>
+                                        <span class="font-medium text-sm sm:text-base">Logout</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Hamburger Menu -->
+                        <div class="hamburger" id="hamburger">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Mobile Drawer Overlay -->
+            <div class="drawer-overlay" id="drawerOverlay"></div>
+
+            <!-- Mobile Drawer -->
+            <div class="mobile-drawer" id="mobileDrawer">
+                <div class="p-6 pt-8">
+                    <!-- Drawer Header -->
+                    <div class="flex items-center gap-3 mb-8 pb-6 border-b border-white/20">
+                        <div class="w-12 h-12 flex items-center justify-center overflow-visible">
+                            <img src="UMakfit Logo (2).png" alt="UMakFIT Logo" class="w-14 h-14 object-contain">
+                        </div>
+                        <span class="text-2xl font-extrabold font-montserrat gradient-text">
+                            UMakFIT
+                        </span>
+                    </div>
+
+                    <!-- Navigation Links -->
+                    <nav class="space-y-2 mb-8">
+                        <a href="professor-dashboard.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
+                            <i class="fas fa-tachometer-alt mr-3"></i>Dashboard
+                        </a>
+                        <a href="studentmanagement.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
+                            <i class="fas fa-users mr-3"></i>Student Management
+                        </a>
+                        <a href="addactivities.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
+                            <i class="fas fa-dumbbell mr-3"></i>Add Activities
+                        </a>
+                        <a href="addlesson.html" class="mobile-nav-link block text-white font-medium py-3 px-4 rounded-lg" style="background: linear-gradient(135deg, #EAD38A 0%, #C5A046 50%, #8B6D2D 100%);">
+                            <i class="fas fa-book-open mr-3"></i>Add Lesson
+                        </a>
+                        <a href="monitoringactivities.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
+                            <i class="fas fa-chart-bar mr-3"></i>Monitoring Activities
+                        </a>
+                        <a href="grades.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
+                            <i class="fas fa-graduation-cap mr-3"></i>Grades
+                        </a>
+                    </nav>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content - with top padding to account for fixed header -->
+        <div class="bg-gradient-to-b from-gray-50 to-gray-100 min-h-screen pt-32 pb-20">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <!-- Page Header -->
                 <div class="bg-white rounded-2xl card-shadow border border-gray-200 p-8 mb-10">
@@ -386,32 +611,32 @@
                 <!-- Lessons Container -->
                 <div class="bg-white rounded-2xl card-shadow border border-gray-200 p-6 mb-8">
                     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
-                <h3 class="text-gray-900 font-bold text-xl flex items-center gap-2">
-                    <i class="fas fa-book"></i>
-                    My Lessons
-                </h3>
-                <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
-                    <!-- Filter Dropdown -->
-                    <div class="flex items-center gap-2">
-                        <label for="lessonTypeFilter" class="text-sm font-medium text-gray-700 whitespace-nowrap">
-                            <i class="fas fa-filter"></i> Filter:
-                        </label>
-                        <select id="lessonTypeFilter" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm" onchange="filterLessons()">
-                            <option value="all">All Types</option>
-                            <option value="lecture">Lecture</option>
-                            <option value="reading">Reading Material</option>
-                            <option value="video">Video Lesson</option>
-                            <option value="quiz">Quiz</option>
-                            <option value="assignment">Assignment</option>
-                        </select>
+                        <h3 class="text-gray-900 font-bold text-xl flex items-center gap-2">
+                            <i class="fas fa-book"></i>
+                            My Lessons
+                        </h3>
+                        <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+                            <!-- Filter Dropdown -->
+                            <div class="flex items-center gap-2">
+                                <label for="lessonTypeFilter" class="text-sm font-medium text-gray-700 whitespace-nowrap">
+                                    <i class="fas fa-filter"></i> Filter:
+                                </label>
+                                <select id="lessonTypeFilter" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm" onchange="filterLessons()">
+                                    <option value="all">All Types</option>
+                                    <option value="lecture">Lecture</option>
+                                    <option value="reading">Reading Material</option>
+                                    <option value="video">Video Lesson</option>
+                                    <option value="quiz">Quiz</option>
+                                    <option value="assignment">Assignment</option>
+                                </select>
+                            </div>
+                            <!-- Create Button -->
+                            <button class="bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-blue-900 font-semibold py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg" onclick="showAddLessonModal()">
+                                <i class="fas fa-plus"></i>
+                                <span>Create New Lesson</span>
+                            </button>
+                        </div>
                     </div>
-                    <!-- Create Button -->
-                    <button class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg" onclick="showAddLessonModal()">
-                        <i class="fas fa-plus"></i>
-                        <span>Create New Lesson</span>
-                    </button>
-                </div>
-            </div>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="lessonsGrid">
                         <div class="col-span-3">
@@ -428,40 +653,145 @@
                 </div>
             </div>
         </div>
-        
-        <!-- Footer -->
-        <div class="bg-gradient-to-b from-gray-900 to-gray-950 mt-10 py-10">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h4 class="text-yellow-500 font-bold text-lg text-center mb-5">About CTBL</h4>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div class="text-gray-300 text-sm leading-relaxed">
-                        The Center for Technology Based Learning serves as the learning management system operating hub, 
-                        reporting to the university MANCOM officials, with a director on duty who manages and handles the 
-                        center's daily operations.
+
+        <!-- ✅ UPDATED FOOTER - MATCHING LANDING PAGE DESIGN -->
+        <footer class="bg-gradient-to-r from-blue-900 to-blue-800 text-white py-8 sm:py-12">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 text-center lg:text-left">
+                    <!-- About UmakFit & College of Human Kinetics -->
+                    <div>
+                        <div class="flex items-center justify-center lg:justify-start gap-3 mb-4">
+                            <img src="UMakfit Logo (2).png" 
+                                 alt="UMak Logo" class="h-12 w-auto object-contain">
+                            <div>
+                                <h6 class="text-yellow-400 font-bold text-lg lg:text-xl mb-1">UMakFit</h6>
+                                <p class="text-xs lg:text-sm text-blue-200 font-medium">College of Human Kinetics</p>
+                            </div>
+                        </div>
+                        <p class="text-sm lg:text-base leading-relaxed text-blue-100">
+                            UMakFit is the official fitness assessment and tracking platform of the College of Human Kinetics at University of Makati. 
+                            Our mission is to promote health, wellness, and physical fitness through comprehensive assessment and personalized tracking.
+                        </p>
+                        <div class="mt-4 flex flex-wrap gap-2 justify-center lg:justify-start">
+                            <span class="bg-blue-700/50 px-3 py-1 rounded-full text-xs font-semibold">Fitness Tracking</span>
+                            <span class="bg-blue-700/50 px-3 py-1 rounded-full text-xs font-semibold">Performance Assessment</span>
+                            <span class="bg-blue-700/50 px-3 py-1 rounded-full text-xs font-semibold">Health & Wellness</span>
+                        </div>
                     </div>
-                    <div class="text-gray-300 text-sm leading-relaxed">
-                        Working closely with the Office of the President, the Center for Information Technology, and the 
-                        Deans and Directors to support the LMS end-users' day-to-day activity.
+
+                    <!-- Quick Links -->
+                    <div>
+                        <h6 class="text-yellow-400 font-bold text-lg lg:text-xl mb-4 lg:mb-6">Quick Links</h6>
+                        <div class="grid grid-cols-2 gap-4 lg:gap-6">
+                            <div class="space-y-3">
+                                <a href="professor-dashboard.html" class="block text-blue-100 hover:text-yellow-300 hover:translate-x-1 transition-all duration-200 text-sm lg:text-base">
+                                    <i class="bi bi-tachometer mr-2"></i>Dashboard
+                                </a>
+                                <a href="studentmanagement.html" class="block text-blue-100 hover:text-yellow-300 hover:translate-x-1 transition-all duration-200 text-sm lg:text-base">
+                                    <i class="bi bi-people mr-2"></i>Students
+                                </a>
+                                <a href="addactivities.html" class="block text-blue-100 hover:text-yellow-300 hover:translate-x-1 transition-all duration-200 text-sm lg:text-base">
+                                    <i class="bi bi-dumbbell mr-2"></i>Activities
+                                </a>
+                            </div>
+                            <div class="space-y-3">
+                                <a href="addlesson.html" class="block text-yellow-300 hover:text-yellow-200 hover:translate-x-1 transition-all duration-200 text-sm lg:text-base font-semibold">
+                                    <i class="bi bi-book mr-2"></i>Lessons
+                                </a>
+                                <a href="monitoringactivities.html" class="block text-blue-100 hover:text-yellow-300 hover:translate-x-1 transition-all duration-200 text-sm lg:text-base">
+                                    <i class="bi bi-graph-up mr-2"></i>Monitoring
+                                </a>
+                                <a href="grades.html" class="block text-blue-100 hover:text-yellow-300 hover:translate-x-1 transition-all duration-200 text-sm lg:text-base">
+                                    <i class="bi bi-mortarboard mr-2"></i>Grades
+                                </a>
+                            </div>
+                        </div>
                     </div>
-                    <div class="text-gray-300 text-sm leading-relaxed">
-                        The center focuses on implementing new forms of training and determining the validity of data to 
-                        support the university's educational objectives.
+
+                    <!-- Contact & Social -->
+                    <div>
+                        <h6 class="text-yellow-400 font-bold text-lg lg:text-xl mb-4 lg:mb-6">Get In Touch</h6>
+                        <div class="space-y-4 lg:space-y-5">
+                            <div class="flex items-start gap-3">
+                                <i class="bi bi-geo-alt-fill text-yellow-400 text-lg lg:text-xl mt-1"></i>
+                                <p class="text-sm lg:text-base text-blue-100">
+                                    College of Human Kinetics<br>
+                                    University of Makati<br>
+                                   3rd floor, Administration Building, University of Makati, 
+                                   JP Rizal Ext., West Rembo, Taguig City
+                                </p>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <i class="bi bi-envelope-fill text-yellow-400 text-lg lg:text-xl"></i>
+                                <a href="mailto:chk@umak.edu.ph" class="text-blue-100 hover:text-yellow-300 transition-colors text-sm lg:text-base">
+                                    chk@umak.edu.ph
+                                </a>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <i class="bi bi-telephone-fill text-yellow-400 text-lg lg:text-xl"></i>
+                                <span class="text-blue-100 text-sm lg:text-base">+63 933 189 7230</span>
+                            </div>
+                            <div class="flex items-center gap-4 pt-3 justify-center lg:justify-start">
+                                <a href="https://www.facebook.com/profile.php?id=61577064971920" target="_blank" class="bg-blue-700 hover:bg-blue-600 p-2.5 rounded-lg transition-all duration-200 hover:scale-110">
+                                    <i class="bi bi-facebook text-white text-lg lg:text-xl"></i>
+                                </a>
+                                <a href="#" class="bg-blue-700 hover:bg-blue-600 p-2.5 rounded-lg transition-all duration-200 hover:scale-110">
+                                    <i class="bi bi-twitter text-white text-lg lg:text-xl"></i>
+                                </a>
+                                <a href="#" class="bg-blue-700 hover:bg-blue-600 p-2.5 rounded-lg transition-all duration-200 hover:scale-110">
+                                    <i class="bi bi-instagram text-white text-lg lg:text-xl"></i>
+                                </a>
+                                <a href="#" class="bg-blue-700 hover:bg-blue-600 p-2.5 rounded-lg transition-all duration-200 hover:scale-110">
+                                    <i class="bi bi-youtube text-white text-lg lg:text-xl"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Divider -->
+                <div class="border-t border-blue-600/50 mt-8 lg:mt-12 pt-6 lg:pt-8">
+                    <div class="flex flex-col lg:flex-row justify-between items-center gap-4">
+                        <!-- Copyright -->
+                        <div class="text-center lg:text-left">
+                            <p class="text-xs lg:text-sm text-blue-200">
+                                © 2025 University of Makati - College of Human Kinetics. All Rights Reserved.
+                            </p>
+                        </div>
+                        
+                        <!-- University Links -->
+                        <div class="flex flex-wrap justify-center gap-3 lg:gap-4">
+                            <a href="https://umak.edu.ph" target="_blank" class="text-xs lg:text-sm text-blue-200 hover:text-yellow-300 transition-colors">
+                                University of Makati
+                            </a>
+                            <span class="text-blue-400">•</span>
+                            <a href="https://library.umak.edu.ph" target="_blank" class="text-xs lg:text-sm text-blue-200 hover:text-yellow-300 transition-colors">
+                                UMak Online Library
+                            </a>
+                            <span class="text-blue-400">•</span>
+                            <a href="https://tbl.umak.edu.ph" target="_blank" class="text-xs lg:text-sm text-blue-200 hover:text-yellow-300 transition-colors">
+                                TBL Hub
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </footer>
     </div>
 
-    <!-- Add/Edit Lesson Modal -->
+    <!-- ============ ⭐ FIXED ADD/EDIT LESSON MODAL - NO VERTICAL SCROLL ON MODAL ITSELF ============ -->
     <div class="modal-overlay" id="lessonModal">
-        <div class="modal-content">
-            <div class="flex justify-between items-center p-6 border-b border-gray-200">
-                <h3 class="text-xl font-bold text-gray-900" id="modalTitle">Create New Lesson</h3>
-                <button class="text-gray-500 hover:text-gray-700" onclick="closeLessonModal()">
-                    <i class="fas fa-times text-xl"></i>
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 id="modalTitle">
+                    <i class="fas fa-book"></i> 
+                    Create New Lesson
+                </h3>
+                <button class="modal-close-btn" onclick="closeLessonModal()">
+                    <i class="fas fa-times"></i>
                 </button>
             </div>
-            <div class="p-6">
+            <div class="modal-body">
                 <form id="lessonForm">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
@@ -539,13 +869,15 @@
                     <input type="hidden" id="lessonId">
                 </form>
             </div>
-            <div class="flex justify-end gap-3 p-6 border-t border-gray-200">
-                <button class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50" onclick="closeLessonModal()">Cancel</button>
-                <button class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700" id="saveLessonBtn" onclick="saveLesson()">Create Lesson</button>
+            <div class="modal-footer">
+                <button class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors" onclick="closeLessonModal()">Cancel</button>
+                <button class="px-4 py-2 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-blue-900 font-semibold rounded-lg transition-all hover:-translate-y-0.5" id="saveLessonBtn" onclick="saveLesson()">Create Lesson</button>
             </div>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
@@ -571,21 +903,42 @@
         let selectedFiles = [];
 
         // DOM Elements for navigation
-        const mobileMenuButton = document.getElementById('mobileMenuButton');
-        const mobileMenu = document.getElementById('mobileMenu');
+        const hamburger = document.getElementById('hamburger');
+        const mobileDrawer = document.getElementById('mobileDrawer');
+        const drawerOverlay = document.getElementById('drawerOverlay');
+        const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
         const profilePictureBtn = document.getElementById('profilePictureBtn');
         const profilePictureBtnMobile = document.getElementById('profilePictureBtnMobile');
         const profileDropdown = document.getElementById('profileDropdown');
         const profileDropdownMobile = document.getElementById('profileDropdownMobile');
 
-        // Event Listeners for navigation
+        // Hamburger Menu Event Listeners
         document.addEventListener('DOMContentLoaded', () => {
-            // Mobile menu toggle
-            if (mobileMenuButton) {
-                mobileMenuButton.addEventListener('click', toggleMobileMenu);
+            if (hamburger && mobileDrawer && drawerOverlay) {
+                hamburger.addEventListener('click', () => {
+                    hamburger.classList.toggle('active');
+                    mobileDrawer.classList.toggle('active');
+                    drawerOverlay.classList.toggle('active');
+                    document.body.style.overflow = mobileDrawer.classList.contains('active') ? 'hidden' : '';
+                });
+
+                drawerOverlay.addEventListener('click', () => {
+                    hamburger.classList.remove('active');
+                    mobileDrawer.classList.remove('active');
+                    drawerOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                });
+
+                mobileNavLinks.forEach(link => {
+                    link.addEventListener('click', () => {
+                        hamburger.classList.remove('active');
+                        mobileDrawer.classList.remove('active');
+                        drawerOverlay.classList.remove('active');
+                        document.body.style.overflow = '';
+                    });
+                });
             }
             
-            // Profile dropdowns
             if (profilePictureBtn) {
                 profilePictureBtn.addEventListener('click', toggleProfileDropdown);
             }
@@ -594,39 +947,29 @@
                 profilePictureBtnMobile.addEventListener('click', toggleProfileDropdown);
             }
             
-            // Close dropdowns when clicking outside
             document.addEventListener('click', closeAllDropdowns);
         });
-
-        // Mobile menu toggle
-        function toggleMobileMenu() {
-            mobileMenu.classList.toggle('hidden');
-        }
 
         // Profile dropdown
         function toggleProfileDropdown(event) {
             event?.stopPropagation();
-            const isMobile = window.innerWidth < 1024;
+            const isMobile = window.innerWidth < 768;
             const dropdown = isMobile ? profileDropdownMobile : profileDropdown;
             
             const isHidden = dropdown.classList.contains('hidden');
             
             if (isHidden) {
                 dropdown.classList.remove('hidden');
-                document.body.classList.add('dropdown-open');
             } else {
                 dropdown.classList.add('hidden');
-                document.body.classList.remove('dropdown-open');
             }
         }
 
         function closeProfileDropdown() {
-            profileDropdown.classList.add('hidden');
-            profileDropdownMobile.classList.add('hidden');
-            document.body.classList.remove('dropdown-open');
+            if (profileDropdown) profileDropdown.classList.add('hidden');
+            if (profileDropdownMobile) profileDropdownMobile.classList.add('hidden');
         }
 
-        // Close all dropdowns when clicking outside
         function closeAllDropdowns(event) {
             if (!event.target.closest('#profilePictureBtn') && 
                 !event.target.closest('#profilePictureBtnMobile') && 
@@ -636,14 +979,12 @@
             }
         }
 
-        // View profile function
         window.showViewProfile = function(event) { 
             if (event) event.preventDefault();
             alert('Profile view would open here');
             closeProfileDropdown();
         };
 
-        // Logout function
         window.handleLogout = async function(event) {
             if (event) event.preventDefault();
             closeProfileDropdown();
@@ -666,25 +1007,21 @@
             const dropdownPic = document.getElementById('profileDropdownPicture');
             const dropdownPicMobile = document.getElementById('profileDropdownPictureMobile');
             
-            const displayName = currentProfessor?.fullName || currentProfessor?.name || userName || 'Professor';
-            const email = currentProfessor?.email || 'professor@umak.edu.ph';
+            const displayName = window.currentProfessor?.fullName || window.currentProfessor?.name || userName || 'Professor';
+            const email = window.currentProfessor?.email || window.currentUser?.email || 'professor@umak.edu.ph';
             
-            // Use provided photo URL or create initial avatar
             const photoUrlToUse = photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=3b82f6&color=fff&size=128`;
             
-            // Update all profile pictures
             if (profileBtn) profileBtn.src = photoUrlToUse;
             if (profileBtnMobile) profileBtnMobile.src = photoUrlToUse;
             if (dropdownPic) dropdownPic.src = photoUrlToUse;
             if (dropdownPicMobile) dropdownPicMobile.src = photoUrlToUse;
             
-            // Update names
             const dropdownName = document.getElementById('profileDropdownName');
             const dropdownNameMobile = document.getElementById('profileDropdownNameMobile');
             if (dropdownName) dropdownName.textContent = displayName;
             if (dropdownNameMobile) dropdownNameMobile.textContent = displayName;
             
-            // Update emails
             const dropdownEmail = document.getElementById('profileDropdownEmail');
             const dropdownEmailMobile = document.getElementById('profileDropdownEmailMobile');
             if (dropdownEmail) dropdownEmail.textContent = email;
@@ -695,7 +1032,6 @@
         function extractYouTubeId(url) {
             if (!url || typeof url !== 'string') return null;
             
-            // Clean the URL
             const cleanUrl = url.trim();
             if (!cleanUrl) return null;
             
@@ -714,16 +1050,19 @@
                 }
             }
             
-            // Try to extract from any YouTube URL format
-            const urlObj = new URL(cleanUrl);
-            if (urlObj.hostname.includes('youtube.com') || urlObj.hostname.includes('youtu.be')) {
-                if (urlObj.pathname.includes('/watch') && urlObj.searchParams.get('v')) {
-                    return urlObj.searchParams.get('v');
-                } else if (urlObj.pathname.includes('/embed/')) {
-                    return urlObj.pathname.split('/embed/')[1]?.split('?')[0];
-                } else if (urlObj.hostname.includes('youtu.be')) {
-                    return urlObj.pathname.substring(1);
+            try {
+                const urlObj = new URL(cleanUrl);
+                if (urlObj.hostname.includes('youtube.com') || urlObj.hostname.includes('youtu.be')) {
+                    if (urlObj.pathname.includes('/watch') && urlObj.searchParams.get('v')) {
+                        return urlObj.searchParams.get('v');
+                    } else if (urlObj.pathname.includes('/embed/')) {
+                        return urlObj.pathname.split('/embed/')[1]?.split('?')[0];
+                    } else if (urlObj.hostname.includes('youtu.be')) {
+                        return urlObj.pathname.substring(1);
+                    }
                 }
+            } catch (e) {
+                console.warn('Invalid URL format:', e);
             }
             
             return null;
@@ -767,10 +1106,16 @@
                 try {
                     console.log('User authenticated:', user.email);
                     
+                    window.currentUser = user;
+                    
                     // Update profile picture with Google photo
                     updateProfilePicture(user.photoURL, user.displayName);
                     
-                    currentProfessor = { id: user.uid, email: user.email };
+                    currentProfessor = { 
+                        id: user.uid, 
+                        email: user.email,
+                        name: user.displayName
+                    };
                     
                     await loadProfessorData();
                     await loadAssignedSections();
@@ -812,98 +1157,6 @@
             }
         });
 
-        function handleFileSelection(event) {
-            const files = Array.from(event.target.files);
-            const maxSize = 50 * 1024 * 1024; // 50MB
-            
-            files.forEach(file => {
-                if (file.size > maxSize) {
-                    alert(`File "${file.name}" is too large. Maximum size is 50MB.`);
-                    return;
-                }
-                
-                const exists = selectedFiles.find(f => f.name === file.name && f.size === file.size);
-                if (!exists) {
-                    selectedFiles.push(file);
-                }
-            });
-            
-            displayFilePreview();
-            event.target.value = '';
-        }
-
-        function displayFilePreview() {
-            const container = document.getElementById('filePreviewContainer');
-            if (!container) return;
-            
-            if (selectedFiles.length === 0) {
-                container.innerHTML = '';
-                return;
-            }
-            
-            let html = '<div class="mb-2"><strong class="text-sm text-gray-700">Selected Files:</strong></div>';
-            
-            selectedFiles.forEach((file, index) => {
-                const size = formatFileSize(file.size);
-                const icon = getFileIcon(file.name);
-                
-                html += `
-                    <div class="file-preview-item">
-                        <div class="file-preview-info">
-                            <div class="file-preview-icon">
-                                <i class="${icon}"></i>
-                            </div>
-                            <div class="file-preview-details">
-                                <div class="file-preview-name">${file.name}</div>
-                                <div class="file-preview-size">${size}</div>
-                            </div>
-                        </div>
-                        <button type="button" class="px-3 py-1 bg-red-100 text-red-700 rounded text-sm hover:bg-red-200" onclick="removeSelectedFile(${index})">
-                            <i class="fas fa-times"></i> Remove
-                        </button>
-                    </div>
-                `;
-            });
-            
-            container.innerHTML = html;
-        }
-
-        window.removeSelectedFile = function(index) {
-            selectedFiles.splice(index, 1);
-            displayFilePreview();
-        };
-
-        function formatFileSize(bytes) {
-            if (bytes === 0) return '0 Bytes';
-            const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
-        }
-
-        function getFileIcon(filename) {
-            const ext = filename.split('.').pop().toLowerCase();
-            const iconMap = {
-                'pdf': 'fas fa-file-pdf',
-                'doc': 'fas fa-file-word',
-                'docx': 'fas fa-file-word',
-                'ppt': 'fas fa-file-powerpoint',
-                'pptx': 'fas fa-file-powerpoint',
-                'xls': 'fas fa-file-excel',
-                'xlsx': 'fas fa-file-excel',
-                'jpg': 'fas fa-file-image',
-                'jpeg': 'fas fa-file-image',
-                'png': 'fas fa-file-image',
-                'gif': 'fas fa-file-image',
-                'mp4': 'fas fa-file-video',
-                'avi': 'fas fa-file-video',
-                'mov': 'fas fa-file-video',
-                'zip': 'fas fa-file-archive',
-                'rar': 'fas fa-file-archive'
-            };
-            return iconMap[ext] || 'fas fa-file';
-        }
-
         async function loadProfessorData() {
             try {
                 const professorsQuery = query(
@@ -921,12 +1174,16 @@
                         firstName: professorData.firstName,
                         lastName: professorData.lastName
                     };
+                    window.currentProfessor = currentProfessor;
                 } else {
-                    const userRef = doc(db, 'users', currentProfessor.id);
-                    const userDoc = await getDoc(userRef);
+                    const usersQuery = query(
+                        collection(db, 'users'),
+                        where('email', '==', currentProfessor.email)
+                    );
+                    const usersSnapshot = await getDocs(usersQuery);
                     
-                    if (userDoc.exists()) {
-                        const userData = userDoc.data();
+                    if (!usersSnapshot.empty) {
+                        const userData = usersSnapshot.docs[0].data();
                         if (userData.role !== 'professor') {
                             await signOut(auth);
                             window.location.href = '/login/index.html';
@@ -938,8 +1195,12 @@
                             name: userData.name || userData.fullName,
                             fullName: userData.name || userData.fullName
                         };
+                        window.currentProfessor = currentProfessor;
                     }
                 }
+                
+                updateProfilePicture(null, currentProfessor.name);
+                
             } catch (error) {
                 console.error('Error loading professor data:', error);
             }
@@ -965,12 +1226,7 @@
                 }
                 
                 if (!professorFullName) {
-                    const userRef = doc(db, 'users', currentProfessor.id);
-                    const userDoc = await getDoc(userRef);
-                    if (userDoc.exists()) {
-                        const userData = userDoc.data();
-                        professorFullName = userData.name || userData.fullName;
-                    }
+                    professorFullName = currentProfessor.fullName || currentProfessor.name;
                 }
                 
                 const sectionsQuery = query(collection(db, 'sections'));
@@ -980,10 +1236,12 @@
                     const sectionData = docSnap.data();
                     
                     const sectionProfessor = sectionData.professor || '';
+                    
                     const isProfessorMatch = 
                         sectionProfessor === professorFullName ||
-                        sectionProfessor.toLowerCase() === professorFullName?.toLowerCase() ||
-                        (professorFullName && sectionProfessor.toLowerCase().includes(professorFullName.toLowerCase()));
+                        (professorFullName && sectionProfessor.toLowerCase() === professorFullName.toLowerCase()) ||
+                        (professorFullName && sectionProfessor.toLowerCase().includes(professorFullName.toLowerCase())) ||
+                        sectionData.professorEmail === currentProfessor.email;
                     
                     if (isProfessorMatch) {
                         const studentList = Array.isArray(sectionData.students) ? sectionData.students : [];
@@ -995,7 +1253,10 @@
                             students: studentCount,
                             studentList: studentList,
                             courseCode: sectionData.courseCode || 'PE 3',
-                            professor: sectionProfessor
+                            professor: sectionProfessor,
+                            time: sectionData.time || '',
+                            day: sectionData.day || '',
+                            room: sectionData.room || ''
                         });
                     }
                 }
@@ -1012,7 +1273,11 @@
                         const option = document.createElement('option');
                         option.value = section.section;
                         const count = section.students || 0;
-                        option.textContent = `${section.section} (${count} student${count !== 1 ? 's' : ''})`;
+                        let scheduleInfo = '';
+                        if (section.time && section.day && section.room) {
+                            scheduleInfo = ` - ${section.time} / ${section.day} / ${section.room}`;
+                        }
+                        option.textContent = `${section.section}${scheduleInfo} (${count} student${count !== 1 ? 's' : ''})`;
                         sectionSelect.appendChild(option);
                     });
                 }
@@ -1047,7 +1312,8 @@
                 
                 const lessonsQuery = query(
                     collection(db, 'lessons'),
-                    where('professorEmail', '==', currentProfessor.email)
+                    where('professorEmail', '==', currentProfessor.email),
+                    orderBy('createdAt', 'desc')
                 );
                 
                 const lessonsSnapshot = await getDocs(lessonsQuery);
@@ -1063,13 +1329,36 @@
                     });
                 });
                 
-                allLessons.sort((a, b) => b.createdAt - a.createdAt);
                 displayLessons();
                 
             } catch (error) {
                 console.error('Error loading lessons:', error);
-                alert('Error loading lessons: ' + error.message);
-                displayLessons();
+                if (error.code === 'failed-precondition') {
+                    console.log('Index not ready, using fallback sorting...');
+                    const lessonsQuery = query(
+                        collection(db, 'lessons'),
+                        where('professorEmail', '==', currentProfessor.email)
+                    );
+                    const lessonsSnapshot = await getDocs(lessonsQuery);
+                    
+                    allLessons = [];
+                    lessonsSnapshot.forEach(docSnap => {
+                        const lesson = docSnap.data();
+                        allLessons.push({
+                            id: docSnap.id,
+                            ...lesson,
+                            createdAt: lesson.createdAt?.toDate() || new Date(),
+                            publishDate: lesson.publishDate?.toDate() || null,
+                            updatedAt: lesson.updatedAt?.toDate() || null
+                        });
+                    });
+                    
+                    allLessons.sort((a, b) => b.createdAt - a.createdAt);
+                    displayLessons();
+                } else {
+                    alert('Error loading lessons: ' + error.message);
+                    displayLessons();
+                }
             }
         }
 
@@ -1170,20 +1459,20 @@
                         
                         <div class="flex justify-between items-center pt-3 border-t border-gray-200">
                             <div class="flex gap-2">
-                                <button class="px-3 py-1 bg-yellow-500 text-white rounded text-sm hover:bg-yellow-600 flex items-center gap-1" onclick="editLesson('${lesson.id}')">
+                                <button class="px-3 py-1 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-blue-900 font-semibold rounded text-sm flex items-center gap-1 transition-all hover:-translate-y-0.5" onclick="editLesson('${lesson.id}')">
                                     <i class="fas fa-edit"></i> Edit
                                 </button>
-                                <button class="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700 flex items-center gap-1" onclick="deleteLesson('${lesson.id}')">
+                                <button class="px-3 py-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold rounded text-sm flex items-center gap-1 transition-all hover:-translate-y-0.5" onclick="deleteLesson('${lesson.id}')">
                                     <i class="fas fa-trash-alt"></i> Delete
                                 </button>
                             </div>
                             <div>
                                 ${lesson.status === 'published' ? `
-                                    <button class="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700 flex items-center gap-1" onclick="viewLessonDetails('${lesson.id}')">
+                                    <button class="px-3 py-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold rounded text-sm flex items-center gap-1 transition-all hover:-translate-y-0.5" onclick="viewLessonDetails('${lesson.id}')">
                                         <i class="fas fa-eye"></i> View
                                     </button>
                                 ` : `
-                                    <button class="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 flex items-center gap-1" onclick="publishLesson('${lesson.id}')">
+                                    <button class="px-3 py-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold rounded text-sm flex items-center gap-1 transition-all hover:-translate-y-0.5" onclick="publishLesson('${lesson.id}')">
                                         <i class="fas fa-paper-plane"></i> Publish
                                     </button>
                                 `}
@@ -1195,142 +1484,236 @@
             
             lessonsGrid.innerHTML = html;
         }
-            window.filterLessons = function() {
-    const filterValue = document.getElementById('lessonTypeFilter').value;
-    
-    if (filterValue === 'all') {
-        displayLessons();
-        return;
-    }
-    
-    const filteredLessons = allLessons.filter(lesson => lesson.type === filterValue);
-    displayFilteredLessons(filteredLessons, filterValue);
-};
 
-function displayFilteredLessons(lessons, filterType) {
-    const lessonsGrid = document.getElementById('lessonsGrid');
-    
-    if (lessons.length === 0) {
-        lessonsGrid.innerHTML = `
-            <div class="col-span-3">
-                <div class="flex flex-col items-center justify-center py-12">
-                    <div class="text-5xl mb-3 opacity-40">🔍</div>
-                    <div class="text-gray-700 font-semibold mb-1">No ${filterType} Lessons Found</div>
-                    <div class="text-gray-500 text-sm text-center max-w-md">
-                        You haven't created any ${filterType} lessons yet.
-                    </div>
-                    <button class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2" onclick="document.getElementById('lessonTypeFilter').value = 'all'; filterLessons();">
-                        <i class="fas fa-times"></i> Clear Filter
-                    </button>
-                </div>
-            </div>
-        `;
-        return;
-    }
-    
-    let html = '';
-    
-    lessons.forEach(lesson => {
-        const date = lesson.publishDate ? 
-            lesson.publishDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 
-            lesson.createdAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-        
-        const contentPreview = lesson.content && lesson.content.length > 120 ? 
-            lesson.content.substring(0, 120) + '...' : 
-            (lesson.content || 'No content');
-        
-        let badgeClass = 'badge-draft';
-        let badgeText = lesson.status || 'draft';
-        if (lesson.status === 'published') {
-            badgeClass = 'badge-published';
-            badgeText = 'Published';
-        } else if (lesson.status === 'scheduled') {
-            badgeClass = 'badge-scheduled';
-            badgeText = 'Scheduled';
-        } else {
-            badgeText = 'Draft';
-        }
-        
-        const hasFiles = lesson.materials && lesson.materials.length > 0;
-        const fileCount = hasFiles ? lesson.materials.length : 0;
-        const hasYouTube = lesson.youtubeVideoId && lesson.youtubeVideoId.trim() !== '';
-        
-        html += `
-            <div class="bg-gray-50 rounded-xl border border-gray-200 p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-blue-500">
-                <div class="flex justify-between items-start mb-3">
-                    <h4 class="text-gray-900 font-bold text-lg">${lesson.title || 'Untitled Lesson'}</h4>
-                    <span class="badge ${badgeClass}">${badgeText}</span>
-                </div>
-                
-                <div class="space-y-1 mb-3 text-sm text-gray-600">
-                    <div class="flex items-center gap-2"><i class="fas fa-chalkboard-teacher w-4"></i> ${lesson.section || 'No Section'}</div>
-                    <div class="flex items-center gap-2"><i class="fas fa-calendar-alt w-4"></i> ${date}</div>
-                    <div class="flex items-center gap-2"><i class="fas fa-tag w-4"></i> ${lesson.type || 'lecture'}</div>
-                    ${hasYouTube ? `
-                        <div class="flex items-center gap-2">
-                            <i class="fab fa-youtube text-red-600 w-4"></i> 
-                            <span>Includes Video</span>
+        window.filterLessons = function() {
+            const filterValue = document.getElementById('lessonTypeFilter').value;
+            
+            if (filterValue === 'all') {
+                displayLessons();
+                return;
+            }
+            
+            const filteredLessons = allLessons.filter(lesson => lesson.type === filterValue);
+            displayFilteredLessons(filteredLessons, filterValue);
+        };
+
+        function displayFilteredLessons(lessons, filterType) {
+            const lessonsGrid = document.getElementById('lessonsGrid');
+            
+            if (lessons.length === 0) {
+                lessonsGrid.innerHTML = `
+                    <div class="col-span-3">
+                        <div class="flex flex-col items-center justify-center py-12">
+                            <div class="text-5xl mb-3 opacity-40">🔍</div>
+                            <div class="text-gray-700 font-semibold mb-1">No ${filterType} Lessons Found</div>
+                            <div class="text-gray-500 text-sm text-center max-w-md">
+                                You haven't created any ${filterType} lessons yet.
+                            </div>
+                            <button class="mt-4 px-4 py-2 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-blue-900 font-semibold rounded-lg flex items-center gap-2 transition-all hover:-translate-y-0.5" onclick="document.getElementById('lessonTypeFilter').value = 'all'; filterLessons();">
+                                <i class="fas fa-times"></i> Clear Filter
+                            </button>
                         </div>
-                    ` : ''}
-                    ${hasFiles ? `<div class="flex items-center gap-2"><i class="fas fa-paperclip w-4"></i> ${fileCount} file${fileCount > 1 ? 's' : ''}</div>` : ''}
-                </div>
-                
-                ${lesson.description ? `
-                    <div class="mb-3">
-                        <div class="text-blue-900 font-medium text-sm mb-1">Description:</div>
-                        <div class="text-gray-700 text-sm">${lesson.description}</div>
                     </div>
-                ` : ''}
+                `;
+                return;
+            }
+            
+            let html = '';
+            
+            lessons.forEach(lesson => {
+                const date = lesson.publishDate ? 
+                    lesson.publishDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 
+                    lesson.createdAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                 
-                <div class="mb-3">
-                    <div class="text-blue-900 font-medium text-sm mb-1">Content Preview:</div>
-                    <div class="text-gray-700 text-sm">${contentPreview}</div>
-                </div>
+                const contentPreview = lesson.content && lesson.content.length > 120 ? 
+                    lesson.content.substring(0, 120) + '...' : 
+                    (lesson.content || 'No content');
                 
-                ${hasFiles ? `
-                    <div class="mb-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                        <div class="text-blue-900 font-medium text-sm mb-2 flex items-center gap-1">
-                            <i class="fas fa-folder-open"></i> Attached Files:
+                let badgeClass = 'badge-draft';
+                let badgeText = lesson.status || 'draft';
+                if (lesson.status === 'published') {
+                    badgeClass = 'badge-published';
+                    badgeText = 'Published';
+                } else if (lesson.status === 'scheduled') {
+                    badgeClass = 'badge-scheduled';
+                    badgeText = 'Scheduled';
+                } else {
+                    badgeText = 'Draft';
+                }
+                
+                const hasFiles = lesson.materials && lesson.materials.length > 0;
+                const fileCount = hasFiles ? lesson.materials.length : 0;
+                const hasYouTube = lesson.youtubeVideoId && lesson.youtubeVideoId.trim() !== '';
+                
+                html += `
+                    <div class="bg-gray-50 rounded-xl border border-gray-200 p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-blue-500">
+                        <div class="flex justify-between items-start mb-3">
+                            <h4 class="text-gray-900 font-bold text-lg">${lesson.title || 'Untitled Lesson'}</h4>
+                            <span class="badge ${badgeClass}">${badgeText}</span>
                         </div>
-                        <div class="space-y-1">
-                            ${lesson.materials.map((file, index) => `
-                                <div class="uploaded-file-item">
-                                    <i class="${getFileIcon(file.name)}"></i>
-                                    <a href="#" onclick="viewFile('${lesson.id}', ${index}); return false;">${file.name}</a>
-                                    <span class="text-xs text-gray-500">${formatFileSize(file.size)}</span>
+                        
+                        <div class="space-y-1 mb-3 text-sm text-gray-600">
+                            <div class="flex items-center gap-2"><i class="fas fa-chalkboard-teacher w-4"></i> ${lesson.section || 'No Section'}</div>
+                            <div class="flex items-center gap-2"><i class="fas fa-calendar-alt w-4"></i> ${date}</div>
+                            <div class="flex items-center gap-2"><i class="fas fa-tag w-4"></i> ${lesson.type || 'lecture'}</div>
+                            ${hasYouTube ? `
+                                <div class="flex items-center gap-2">
+                                    <i class="fab fa-youtube text-red-600 w-4"></i> 
+                                    <span>Includes Video</span>
                                 </div>
-                            `).join('')}
+                            ` : ''}
+                            ${hasFiles ? `<div class="flex items-center gap-2"><i class="fas fa-paperclip w-4"></i> ${fileCount} file${fileCount > 1 ? 's' : ''}</div>` : ''}
+                        </div>
+                        
+                        ${lesson.description ? `
+                            <div class="mb-3">
+                                <div class="text-blue-900 font-medium text-sm mb-1">Description:</div>
+                                <div class="text-gray-700 text-sm">${lesson.description}</div>
+                            </div>
+                        ` : ''}
+                        
+                        <div class="mb-3">
+                            <div class="text-blue-900 font-medium text-sm mb-1">Content Preview:</div>
+                            <div class="text-gray-700 text-sm">${contentPreview}</div>
+                        </div>
+                        
+                        ${hasFiles ? `
+                            <div class="mb-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                                <div class="text-blue-900 font-medium text-sm mb-2 flex items-center gap-1">
+                                    <i class="fas fa-folder-open"></i> Attached Files:
+                                </div>
+                                <div class="space-y-1">
+                                    ${lesson.materials.map((file, index) => `
+                                        <div class="uploaded-file-item">
+                                            <i class="${getFileIcon(file.name)}"></i>
+                                            <a href="#" onclick="viewFile('${lesson.id}', ${index}); return false;">${file.name}</a>
+                                            <span class="text-xs text-gray-500">${formatFileSize(file.size)}</span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        <div class="flex justify-between items-center pt-3 border-t border-gray-200">
+                            <div class="flex gap-2">
+                                <button class="px-3 py-1 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-blue-900 font-semibold rounded text-sm flex items-center gap-1 transition-all hover:-translate-y-0.5" onclick="editLesson('${lesson.id}')">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                                <button class="px-3 py-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold rounded text-sm flex items-center gap-1 transition-all hover:-translate-y-0.5" onclick="deleteLesson('${lesson.id}')">
+                                    <i class="fas fa-trash-alt"></i> Delete
+                                </button>
+                            </div>
+                            <div>
+                                ${lesson.status === 'published' ? `
+                                    <button class="px-3 py-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold rounded text-sm flex items-center gap-1 transition-all hover:-translate-y-0.5" onclick="viewLessonDetails('${lesson.id}')">
+                                        <i class="fas fa-eye"></i> View
+                                    </button>
+                                ` : `
+                                    <button class="px-3 py-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold rounded text-sm flex items-center gap-1 transition-all hover:-translate-y-0.5" onclick="publishLesson('${lesson.id}')">
+                                        <i class="fas fa-paper-plane"></i> Publish
+                                    </button>
+                                `}
+                            </div>
                         </div>
                     </div>
-                ` : ''}
+                `;
+            });
+            
+            lessonsGrid.innerHTML = html;
+        }
+
+        function handleFileSelection(event) {
+            const files = Array.from(event.target.files);
+            const maxSize = 50 * 1024 * 1024; // 50MB
+            
+            files.forEach(file => {
+                if (file.size > maxSize) {
+                    alert(`File "${file.name}" is too large. Maximum size is 50MB.`);
+                    return;
+                }
                 
-                <div class="flex justify-between items-center pt-3 border-t border-gray-200">
-                    <div class="flex gap-2">
-                        <button class="px-3 py-1 bg-yellow-500 text-white rounded text-sm hover:bg-yellow-600 flex items-center gap-1" onclick="editLesson('${lesson.id}')">
-                            <i class="fas fa-edit"></i> Edit
-                        </button>
-                        <button class="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700 flex items-center gap-1" onclick="deleteLesson('${lesson.id}')">
-                            <i class="fas fa-trash-alt"></i> Delete
+                const exists = selectedFiles.find(f => f.name === file.name && f.size === file.size);
+                if (!exists) {
+                    selectedFiles.push(file);
+                }
+            });
+            
+            displayFilePreview();
+            event.target.value = '';
+        }
+
+        function displayFilePreview() {
+            const container = document.getElementById('filePreviewContainer');
+            if (!container) return;
+            
+            if (selectedFiles.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            let html = '<div class="mb-2"><strong class="text-sm text-gray-700">Selected Files:</strong></div>';
+            
+            selectedFiles.forEach((file, index) => {
+                const size = formatFileSize(file.size);
+                const icon = getFileIcon(file.name);
+                
+                html += `
+                    <div class="file-preview-item">
+                        <div class="file-preview-info">
+                            <div class="file-preview-icon">
+                                <i class="${icon}"></i>
+                            </div>
+                            <div class="file-preview-details">
+                                <div class="file-preview-name">${file.name}</div>
+                                <div class="file-preview-size">${size}</div>
+                            </div>
+                        </div>
+                        <button type="button" class="px-3 py-1 bg-red-100 text-red-700 rounded text-sm hover:bg-red-200" onclick="removeSelectedFile(${index})">
+                            <i class="fas fa-times"></i> Remove
                         </button>
                     </div>
-                    <div>
-                        ${lesson.status === 'published' ? `
-                            <button class="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700 flex items-center gap-1" onclick="viewLessonDetails('${lesson.id}')">
-                                <i class="fas fa-eye"></i> View
-                            </button>
-                        ` : `
-                            <button class="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 flex items-center gap-1" onclick="publishLesson('${lesson.id}')">
-                                <i class="fas fa-paper-plane"></i> Publish
-                            </button>
-                        `}
-                    </div>
-                </div>
-            </div>
-        `;
-    });
-    
-    lessonsGrid.innerHTML = html;
-}
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        window.removeSelectedFile = function(index) {
+            selectedFiles.splice(index, 1);
+            displayFilePreview();
+        };
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        function getFileIcon(filename) {
+            const ext = filename.split('.').pop().toLowerCase();
+            const iconMap = {
+                'pdf': 'fas fa-file-pdf',
+                'doc': 'fas fa-file-word',
+                'docx': 'fas fa-file-word',
+                'ppt': 'fas fa-file-powerpoint',
+                'pptx': 'fas fa-file-powerpoint',
+                'xls': 'fas fa-file-excel',
+                'xlsx': 'fas fa-file-excel',
+                'jpg': 'fas fa-file-image',
+                'jpeg': 'fas fa-file-image',
+                'png': 'fas fa-file-image',
+                'gif': 'fas fa-file-image',
+                'mp4': 'fas fa-file-video',
+                'avi': 'fas fa-file-video',
+                'mov': 'fas fa-file-video',
+                'zip': 'fas fa-file-archive',
+                'rar': 'fas fa-file-archive'
+            };
+            return iconMap[ext] || 'fas fa-file';
+        }
+
         window.showAddLessonModal = function() {
             editingLessonId = null;
             selectedFiles = [];
@@ -1385,62 +1768,62 @@ function displayFilteredLessons(lessons, filterType) {
             if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExt)) {
                 content = `
                     <div class="modal-content" style="max-width: 90vw; max-height: 90vh;">
-                        <div class="flex justify-between items-center p-6 border-b border-gray-200">
-                            <h3 class="text-xl font-bold text-gray-900">${file.name}</h3>
-                            <button class="text-gray-500 hover:text-gray-700" onclick="this.closest('.modal-overlay').remove()">
-                                <i class="fas fa-times text-xl"></i>
+                        <div class="modal-header">
+                            <h3>${file.name}</h3>
+                            <button class="modal-close-btn" onclick="this.closest('.modal-overlay').remove()">
+                                <i class="fas fa-times"></i>
                             </button>
                         </div>
-                        <div class="p-6" style="overflow: auto; max-height: calc(90vh - 120px);">
+                        <div class="modal-body" style="overflow: auto; text-align: center;">
                             <img src="${file.data}" alt="${file.name}" class="max-w-full h-auto">
                         </div>
-                        <div class="flex justify-end gap-3 p-6 border-t border-gray-200">
-                            <a href="${file.data}" download="${file.name}" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
+                        <div class="modal-footer">
+                            <a href="${file.data}" download="${file.name}" class="px-4 py-2 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-blue-900 font-semibold rounded-lg flex items-center gap-2 transition-all hover:-translate-y-0.5">
                                 <i class="fas fa-download"></i> Download
                             </a>
-                            <button class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50" onclick="this.closest('.modal-overlay').remove()">Close</button>
+                            <button class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors" onclick="this.closest('.modal-overlay').remove()">Close</button>
                         </div>
                     </div>
                 `;
             } else if (fileExt === 'pdf') {
                 content = `
                     <div class="modal-content" style="max-width: 90vw; max-height: 90vh;">
-                        <div class="flex justify-between items-center p-6 border-b border-gray-200">
-                            <h3 class="text-xl font-bold text-gray-900">${file.name}</h3>
-                            <button class="text-gray-500 hover:text-gray-700" onclick="this.closest('.modal-overlay').remove()">
-                                <i class="fas fa-times text-xl"></i>
+                        <div class="modal-header">
+                            <h3>${file.name}</h3>
+                            <button class="modal-close-btn" onclick="this.closest('.modal-overlay').remove()">
+                                <i class="fas fa-times"></i>
                             </button>
                         </div>
-                        <div class="p-0" style="height: calc(90vh - 120px);">
-                            <iframe src="${file.data}" class="w-full h-full border-0"></iframe>
+                        <div class="modal-body" style="padding: 0;">
+                            <iframe src="${file.data}" class="w-full h-full border-0" style="min-height: 70vh;"></iframe>
                         </div>
-                        <div class="flex justify-end gap-3 p-6 border-t border-gray-200">
-                            <a href="${file.data}" download="${file.name}" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
+                        <div class="modal-footer">
+                            <a href="${file.data}" download="${file.name}" class="px-4 py-2 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-blue-900 font-semibold rounded-lg flex items-center gap-2 transition-all hover:-translate-y-0.5">
                                 <i class="fas fa-download"></i> Download
                             </a>
-                            <button class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50" onclick="this.closest('.modal-overlay').remove()">Close</button>
+                            <button class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors" onclick="this.closest('.modal-overlay').remove()">Close</button>
                         </div>
                     </div>
                 `;
             } else {
                 content = `
                     <div class="modal-content">
-                        <div class="flex justify-between items-center p-6 border-b border-gray-200">
-                            <h3 class="text-xl font-bold text-gray-900">${file.name}</h3>
-                            <button class="text-gray-500 hover:text-gray-700" onclick="this.closest('.modal-overlay').remove()">
-                                <i class="fas fa-times text-xl"></i>
+                        <div class="modal-header">
+                            <h3>${file.name}</h3>
+                            <button class="modal-close-btn" onclick="this.closest('.modal-overlay').remove()">
+                                <i class="fas fa-times"></i>
                             </button>
                         </div>
-                        <div class="p-10 text-center">
+                        <div class="modal-body text-center">
                             <i class="${getFileIcon(file.name)} text-6xl text-blue-500 mb-4"></i>
                             <p class="text-gray-600 mb-2">Preview not available for this file type.</p>
                             <p class="text-gray-500 text-sm">Click download to view the file.</p>
                         </div>
-                        <div class="flex justify-end gap-3 p-6 border-t border-gray-200">
-                            <a href="${file.data}" download="${file.name}" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
+                        <div class="modal-footer">
+                            <a href="${file.data}" download="${file.name}" class="px-4 py-2 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-blue-900 font-semibold rounded-lg flex items-center gap-2 transition-all hover:-translate-y-0.5">
                                 <i class="fas fa-download"></i> Download
                             </a>
-                            <button class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50" onclick="this.closest('.modal-overlay').remove()">Close</button>
+                            <button class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors" onclick="this.closest('.modal-overlay').remove()">Close</button>
                         </div>
                     </div>
                 `;
@@ -1566,6 +1949,7 @@ function displayFilteredLessons(lessons, filterType) {
                         lessonData.materials = newUploadedFiles;
                     }
                     
+                    lessonData.createdAt = existingDoc.data().createdAt || serverTimestamp();
                     await updateDoc(lessonRef, lessonData);
                     lessonId = editingLessonId;
                     
@@ -1851,14 +2235,14 @@ function displayFilteredLessons(lessons, filterType) {
                 lesson.createdAt.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
             
             modal.innerHTML = `
-                <div class="modal-content" style="max-width: 800px;">
-                    <div class="flex justify-between items-center p-6 border-b border-gray-200">
-                        <h3 class="text-xl font-bold text-gray-900"><i class="fas fa-book-open mr-2"></i> ${lesson.title}</h3>
-                        <button class="text-gray-500 hover:text-gray-700" onclick="this.closest('.modal-overlay').remove()">
-                            <i class="fas fa-times text-xl"></i>
+                <div class="modal-content large" onclick="event.stopPropagation()">
+                    <div class="modal-header">
+                        <h3><i class="fas fa-book-open mr-2"></i> ${lesson.title}</h3>
+                        <button class="modal-close-btn" onclick="this.closest('.modal-overlay').remove()">
+                            <i class="fas fa-times"></i>
                         </button>
                     </div>
-                    <div class="p-6" style="max-height: 70vh; overflow-y: auto;">
+                    <div class="modal-body">
                         <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-5 rounded-lg mb-5">
                             <div class="grid grid-cols-2 gap-4 text-sm">
                                 <div><i class="fas fa-chalkboard-teacher"></i> <strong>Section:</strong> ${lesson.section}</div>
@@ -1924,11 +2308,11 @@ function displayFilteredLessons(lessons, filterType) {
                             </div>
                         ` : ''}
                     </div>
-                    <div class="flex justify-end gap-3 p-6 border-t border-gray-200">
-                        <button class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 flex items-center gap-2" onclick="this.closest('.modal-overlay').remove(); editLesson('${lesson.id}')">
+                    <div class="modal-footer">
+                        <button class="px-4 py-2 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-blue-900 font-semibold rounded-lg flex items-center gap-2 transition-all hover:-translate-y-0.5" onclick="this.closest('.modal-overlay').remove(); editLesson('${lesson.id}')">
                             <i class="fas fa-edit"></i> Edit
                         </button>
-                        <button class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50" onclick="this.closest('.modal-overlay').remove()">Close</button>
+                        <button class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors" onclick="this.closest('.modal-overlay').remove()">Close</button>
                     </div>
                 </div>
             `;

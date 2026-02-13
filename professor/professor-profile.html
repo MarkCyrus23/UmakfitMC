@@ -3,44 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UmakFit - Professor Profile</title>
+    <title>UMakFit - Professor Profile</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * { font-family: 'Inter', sans-serif; }
-        .font-manrope { font-family: 'Manrope', sans-serif; }
-        
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        * { 
+            -webkit-font-smoothing: antialiased; 
+            box-sizing: border-box; 
+            font-family: 'Poppins', sans-serif; 
         }
-
-        .slide-down {
-            animation: slideDown 0.3s ease;
+        body { 
+            margin: 0; 
+            padding: 0; 
+            background-color: #f6f6f6;
+            overflow-x: hidden;
+            width: 100%;
         }
         
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .fade-in {
-            animation: fadeIn 0.3s ease;
+        .font-montserrat {
+            font-family: 'Montserrat', sans-serif;
         }
         
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        /* Custom animations */
+        @keyframes pulse { 
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
         }
+        .pulse-animation { animation: pulse 2s infinite; }
         
+        @keyframes spin { 
+            0% { transform: rotate(0deg); } 
+            100% { transform: rotate(360deg); } 
+        }
         .spinner {
             border: 4px solid #e5e7eb;
             border-top: 4px solid #3b82f6;
@@ -49,7 +48,96 @@
             height: 50px;
             animation: spin 1s linear infinite;
         }
+        
+        /* Hamburger Menu Styles */
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            cursor: pointer;
+            z-index: 60;
+        }
 
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background: linear-gradient(135deg, #EAD38A 0%, #C5A046 50%, #8B6D2D 100%);
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+        }
+
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(7px, -6px);
+        }
+
+        /* Mobile Drawer */
+        .mobile-drawer {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 280px;
+            height: 100vh;
+            background: linear-gradient(135deg, #0D1B2A 0%, #1A2B3C 50%, #2C4A5E 100%);
+            z-index: 55;
+            transition: right 0.3s ease;
+            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.3);
+            overflow-y: auto;
+        }
+
+        .mobile-drawer.active { right: 0; }
+        .drawer-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 50;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .drawer-overlay.active { opacity: 1; visibility: visible; }
+
+        @media (max-width: 768px) {
+            .hamburger { display: flex; }
+            .desktop-nav { display: none; }
+        }
+        
+        /* Gradient text */
+        .gradient-text {
+            background: linear-gradient(135deg, #EAD38A 0%, #C5A046 50%, #8B6D2D 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .slide-down {
+            animation: slideDown 0.3s ease;
+        }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
         /* Custom scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
@@ -67,17 +155,6 @@
         
         ::-webkit-scrollbar-thumb:hover {
             background: #2563eb;
-        }
-        
-        .gradient-text {
-            background: linear-gradient(90deg, rgba(245, 158, 11, 1) 0%, rgba(255, 229, 0, 1) 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        .nav-shadow {
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
         
         .card-shadow {
@@ -102,7 +179,7 @@
             z-index: 10;
         }
         
-        /* Modal styles */
+        /* ============ FIXED MODAL STYLES - NO VERTICAL SCROLL ON MODAL ITSELF ============ */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -113,18 +190,82 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 9999;
+            z-index: 2000;
+            padding: 20px;
             animation: fadeIn 0.3s ease;
         }
         
         .modal-content {
             background: white;
             border-radius: 16px;
-            width: 90%;
+            width: 100%;
             max-width: 1000px;
-            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            max-height: 85vh;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
             overflow: hidden;
             animation: slideDown 0.3s ease;
+        }
+        
+        .modal-header {
+            flex-shrink: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 24px;
+            border-bottom: 1px solid #e2e8f0;
+            background-color: white;
+            border-radius: 16px 16px 0 0;
+        }
+        
+        .modal-header h3 {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            color: #1e3a8a;
+            font-size: 24px;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .modal-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            background-color: white;
+        }
+        
+        .modal-footer {
+            flex-shrink: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 24px;
+            border-top: 1px solid #e2e8f0;
+            background-color: #f9fafb;
+            border-radius: 0 0 16px 16px;
+        }
+        
+        .modal-close-btn {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            background-color: #f3f4f6;
+            color: #4b5563;
+            font-size: 20px;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .modal-close-btn:hover {
+            background-color: #e5e7eb;
+            color: #111827;
         }
         
         /* Student table styles */
@@ -161,99 +302,123 @@
                 display: block !important;
             }
         }
+        
+        @media (max-width: 768px) {
+            .modal-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+            
+            .modal-header h3 {
+                font-size: 20px;
+            }
+            
+            .modal-body {
+                padding: 16px;
+            }
+            
+            .modal-footer {
+                flex-direction: column;
+                gap: 12px;
+            }
+            
+            .modal-footer > div:first-child {
+                text-align: center;
+            }
+            
+            .student-table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+            
+            .profile-section-card {
+                padding: 16px !important;
+            }
+            
+            .profile-section-card h3 {
+                font-size: 18px;
+            }
+        }
     </style>
 </head>
-<body class="bg-gray-50">
+<body class="bg-gray-50 overflow-x-hidden">
     <!-- Loading Screen -->
     <div id="loadingScreen" class="fixed inset-0 bg-white bg-opacity-95 flex flex-col justify-center items-center z-50">
         <div class="w-12 h-12 border-4 border-gray-100 border-t-blue-500 rounded-full spinner"></div>
         <div class="mt-5 text-gray-600 font-medium">Loading Profile...</div>
     </div>
     
-    <div id="profileContent" class="hidden">
-        <!-- Navigation Banner - SAME AS DASHBOARD -->
-        <nav class="bg-gradient-to-r from-blue-900 to-blue-500 shadow-lg">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex flex-wrap items-center justify-between gap-3 sm:gap-4 py-3 sm:py-4">
+    <div id="profileContent" class="hidden overflow-x-hidden">
+        <!-- ✅ UPDATED NAVIGATION BANNER - MATCHING LANDING PAGE DESIGN -->
+        <header class="shadow-lg fixed w-full top-0 z-50" style="background: linear-gradient(135deg, #0D1B2A 0%, #1A2B3C 50%, #2C4A5E 100%);">
+            <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-20">
                     <!-- Logo -->
-                    <a href="professor.html" class="flex items-center gap-2 sm:gap-3">
-                        <span class="text-xl sm:text-2xl md:text-3xl font-extrabold font-manrope bg-gradient-to-r from-yellow-400 to-yellow-200 bg-clip-text text-transparent">
-                            UMakFit
+                    <div class="flex items-center gap-3">
+                        <div class="w-16 h-16 flex items-center justify-center overflow-visible">
+                            <img src="UMakfit Logo (2).png" alt="UMakFIT Logo" class="w-20 h-20 object-contain">
+                        </div>
+                        <span class="text-xl sm:text-2xl md:text-3xl font-extrabold font-montserrat gradient-text">
+                            UMakFIT
                         </span>
-                    </a>
-                    
+                    </div>
+
                     <!-- Desktop Navigation -->
-                    <div class="hidden lg:flex items-center gap-2 flex-wrap">
-                        <!-- Dashboard -->
-                        <a href="professordashboard.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
-                            <i class="fas fa-tachometer-alt"></i> 
-                            <span>Dashboard</span>
+                    <div class="desktop-nav hidden md:flex items-center gap-8">
+                        <a href="professor.html" class="text-white/80 hover:text-white font-medium transition-colors">
+                            <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
                         </a>
-                        
-                        <!-- Student Management -->
-                        <a href="studentmanagement.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
-                            <i class="fas fa-users"></i> 
-                            <span>Student Management</span>
+                        <a href="studentmanagement.html" class="text-white/80 hover:text-white font-medium transition-colors">
+                            <i class="fas fa-users mr-2"></i>Students
                         </a>
-                        
-                        <!-- Add Activities -->
-                        <a href="addactivities.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
-                            <i class="fas fa-dumbbell"></i> 
-                            <span>Add Activities</span>
+                        <a href="addactivities.html" class="text-white/80 hover:text-white font-medium transition-colors">
+                            <i class="fas fa-dumbbell mr-2"></i>Activities
                         </a>
-                        
-                        <!-- Add Lesson -->
-                        <a href="addlesson.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
-                            <i class="fas fa-book-open"></i> 
-                            <span>Add Lesson</span>
+                        <a href="addlesson.html" class="text-white/80 hover:text-white font-medium transition-colors">
+                            <i class="fas fa-book-open mr-2"></i>Lessons
                         </a>
-                        
-                        <!-- Monitoring Activities -->
-                        <a href="monitoringactivities.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
-                            <i class="fas fa-chart-bar"></i> 
-                            <span>Monitoring Activities</span>
+                        <a href="monitoringactivities.html" class="text-white/80 hover:text-white font-medium transition-colors">
+                            <i class="fas fa-chart-bar mr-2"></i>Monitoring
                         </a>
-                        
-                        <!-- Grades -->
-                        <a href="grades.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
-                            <i class="fas fa-graduation-cap"></i> 
-                            <span>Grades</span>
+                        <a href="grades.html" class="text-white/80 hover:text-white font-medium transition-colors">
+                            <i class="fas fa-graduation-cap mr-2"></i>Grades
                         </a>
+                    </div>
+
+                    <!-- Desktop Profile -->
+                    <div class="hidden md:block relative">
+                        <img src="" alt="Profile" id="profilePictureBtn"
+                             class="w-10 h-10 rounded-full border-2 border-white/30 cursor-pointer hover:border-white/60 hover:scale-105 transition-all object-cover">
                         
-                        <!-- Profile Dropdown -->
-                        <div class="relative">
-                            <img src="" alt="Profile" id="profilePictureBtn"
-                                 class="w-9 h-9 xl:w-10 xl:h-10 rounded-full border-2 border-white/30 cursor-pointer hover:border-white/60 hover:scale-105 transition-all object-cover">
-                            
-                            <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-64 sm:w-72 bg-white rounded-xl shadow-2xl z-[9999] slide-down">
-                                <div class="p-4 sm:p-6 border-b-2 border-gray-200 text-center">
-                                    <img src="" alt="Profile" id="profileDropdownPicture" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full mx-auto mb-2 sm:mb-3 border-3 border-blue-500 object-cover">
-                                    <h6 id="profileDropdownName" class="font-bold text-gray-900 text-base sm:text-lg">Loading...</h6>
-                                    <p id="profileDropdownEmail" class="text-xs sm:text-sm text-gray-500 mt-1 truncate px-2">Loading...</p>
-                                </div>
-                                <div class="p-2">
-                                    <a href="#" onclick="showViewProfile(event)" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-gray-100 transition-colors bg-blue-50">
-                                        <i class="bi bi-person-circle text-blue-500 text-lg sm:text-xl"></i>
-                                        <span class="font-medium text-gray-700 text-sm sm:text-base">View Profile</span>
-                                    </a>
-                                    <div class="h-px bg-gray-200 my-1 sm:my-2"></div>
-                                    <div onclick="handleLogout(event)" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-red-500">
-                                        <i class="fas fa-sign-out-alt text-lg sm:text-xl"></i>
-                                        <span class="font-medium text-sm sm:text-base">Logout</span>
-                                    </div>
+                        <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-2xl z-[9999] slide-down">
+                            <div class="p-6 border-b-2 border-gray-200 text-center">
+                                <img src="" alt="Profile" id="profileDropdownPicture" class="w-20 h-20 rounded-full mx-auto mb-3 border-3 border-blue-500 object-cover">
+                                <h6 id="profileDropdownName" class="font-bold text-gray-900 text-lg">Loading...</h6>
+                                <p id="profileDropdownEmail" class="text-sm text-gray-500 mt-1 truncate px-2">Loading...</p>
+                            </div>
+                            <div class="p-2">
+                                <a href="professor-profile.html" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 transition-colors bg-blue-50">
+                                    <i class="bi bi-person-circle text-blue-500 text-xl"></i>
+                                    <span class="font-medium text-gray-700 text-base">View Profile</span>
+                                </a>
+                                <div class="h-px bg-gray-200 my-2"></div>
+                                <div onclick="handleLogout(event)" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-red-500">
+                                    <i class="fas fa-sign-out-alt text-xl"></i>
+                                    <span class="font-medium text-base">Logout</span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Mobile Right Icons -->
-                    <div class="flex lg:hidden items-center gap-2 sm:gap-3">
+                    <div class="flex md:hidden items-center gap-3">
                         <!-- Mobile Profile -->
                         <div class="relative">
                             <img src="" alt="Profile" id="profilePictureBtnMobile"
                                  class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-white/30 cursor-pointer hover:border-white/60 object-cover">
                             
-                            <!-- Mobile Profile Dropdown -->
                             <div id="profileDropdownMobile" class="hidden fixed right-2 top-20 w-64 sm:w-72 bg-white rounded-xl shadow-2xl z-[9999] slide-down">
                                 <div class="p-4 sm:p-6 border-b-2 border-gray-200 text-center">
                                     <img src="" alt="Profile" id="profileDropdownPictureMobile" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full mx-auto mb-2 sm:mb-3 border-3 border-blue-500 object-cover">
@@ -261,7 +426,7 @@
                                     <p id="profileDropdownEmailMobile" class="text-xs sm:text-sm text-gray-500 mt-1 truncate px-2">Loading...</p>
                                 </div>
                                 <div class="p-2">
-                                    <a href="#" onclick="showViewProfile(event)" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-gray-100 transition-colors bg-blue-50">
+                                    <a href="professor-profile.html" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-gray-100 transition-colors bg-blue-50">
                                         <i class="bi bi-person-circle text-blue-500 text-lg sm:text-xl"></i>
                                         <span class="font-medium text-gray-700 text-sm sm:text-base">View Profile</span>
                                     </a>
@@ -274,52 +439,89 @@
                             </div>
                         </div>
                         
-                        <!-- Mobile Menu Button -->
-                        <button id="mobileMenuButton" class="text-white p-1 sm:p-2">
-                            <i class="bi bi-list text-2xl sm:text-3xl"></i>
-                        </button>
+                        <!-- Hamburger Menu -->
+                        <div class="hamburger" id="hamburger">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
                     </div>
                 </div>
-                
-                <!-- Mobile Navigation Menu -->
-                <div id="mobileMenu" class="hidden lg:hidden mt-3 sm:mt-4 space-y-2 pb-3">
-                    <a href="professor-dashboard.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
-                        <i class="fas fa-tachometer-alt mr-2"></i> Dashboard
-                    </a>
-                    <a href="studentmanagement.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
-                        <i class="fas fa-users mr-2"></i> Student Management
-                    </a>
-                    <a href="addactivities.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
-                        <i class="fas fa-dumbbell mr-2"></i> Add Activities
-                    </a>
-                    <a href="addlesson.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
-                        <i class="fas fa-book-open mr-2"></i> Add Lesson
-                    </a>
-                    <a href="monitoringactivities.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
-                        <i class="fas fa-chart-bar mr-2"></i> Monitoring Activities
-                    </a>
-                    <a href="grades.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
-                        <i class="fas fa-graduation-cap mr-2"></i> Grades
-                    </a>
+            </nav>
+
+            <!-- Mobile Drawer Overlay -->
+            <div class="drawer-overlay" id="drawerOverlay"></div>
+
+            <!-- Mobile Drawer -->
+            <div class="mobile-drawer" id="mobileDrawer">
+                <div class="p-6 pt-8">
+                    <!-- Drawer Header -->
+                    <div class="flex items-center gap-3 mb-8 pb-6 border-b border-white/20">
+                        <div class="w-12 h-12 flex items-center justify-center overflow-visible">
+                            <img src="UMakfit Logo (2).png" alt="UMakFIT Logo" class="w-14 h-14 object-contain">
+                        </div>
+                        <span class="text-2xl font-extrabold font-montserrat gradient-text">
+                            UMakFIT
+                        </span>
+                    </div>
+
+                    <!-- Navigation Links -->
+                    <nav class="space-y-2 mb-8">
+                        <a href="professor-dashboard.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
+                            <i class="fas fa-tachometer-alt mr-3"></i>Dashboard
+                        </a>
+                        <a href="studentmanagement.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
+                            <i class="fas fa-users mr-3"></i>Student Management
+                        </a>
+                        <a href="addactivities.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
+                            <i class="fas fa-dumbbell mr-3"></i>Add Activities
+                        </a>
+                        <a href="addlesson.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
+                            <i class="fas fa-book-open mr-3"></i>Add Lesson
+                        </a>
+                        <a href="monitoringactivities.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
+                            <i class="fas fa-chart-bar mr-3"></i>Monitoring Activities
+                        </a>
+                        <a href="grades.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
+                            <i class="fas fa-graduation-cap mr-3"></i>Grades
+                        </a>
+                    </nav>
+                    
+                    <!-- Active Profile Indicator -->
+                    <div class="mt-4 p-4 bg-white/10 rounded-lg">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 flex items-center justify-center">
+                                <i class="fas fa-user-tie text-blue-900"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="text-white text-sm font-semibold" id="mobileProfessorName">Professor</div>
+                                <div class="text-white/70 text-xs">Viewing Profile</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </nav>
+        </header>
 
-        <!-- Main Content -->
-        <div class="bg-gradient-to-b from-gray-50 to-gray-100 min-h-screen pt-8 pb-16">
+        <!-- Main Content - with top padding to account for fixed header -->
+        <div class="bg-gradient-to-b from-gray-50 to-gray-100 min-h-screen pt-32 pb-20">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <!-- Header with Back Button -->
-                <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center justify-between mb-6 no-print">
                     <div class="flex items-center space-x-4">
+                        <a href="professor-dashboard.html" class="flex items-center px-4 py-2 bg-white text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors border border-gray-200 shadow-sm">
+                            <i class="fas fa-arrow-left mr-2"></i>
+                            <span>Back to Dashboard</span>
+                        </a>
                         <h1 class="text-2xl md:text-3xl font-bold text-blue-900">Professor Profile</h1>
                     </div>
                     <div class="flex space-x-3">
-                        <button onclick="printProfile()" class="no-print flex items-center px-4 py-2 bg-blue-100 text-blue-700 rounded-lg font-medium hover:bg-blue-200 transition-colors">
+                        <button onclick="printProfile()" class="no-print flex items-center px-4 py-2 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-blue-900 font-semibold rounded-lg transition-all hover:-translate-y-0.5 hover:shadow-lg">
                             <i class="fas fa-print mr-2"></i>
                             <span class="hidden sm:inline">Print Profile</span>
                             <span class="sm:hidden">Print</span>
                         </button>
-                        <button onclick="refreshProfile()" class="no-print flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors">
+                        <button onclick="refreshProfile()" class="no-print flex items-center px-4 py-2 bg-gradient-to-r from-blue-400 to-blue-500 hover:from-blue-500 hover:to-blue-600 text-white font-semibold rounded-lg transition-all hover:-translate-y-0.5 hover:shadow-lg">
                             <i class="fas fa-sync-alt mr-2"></i>
                             <span class="hidden sm:inline">Refresh</span>
                             <span class="sm:hidden">Refresh</span>
@@ -334,12 +536,12 @@
                         <div class="flex flex-col items-center">
                             <div class="relative">
                                 <img id="profileMainPicture" src="" alt="Profile" class="w-40 h-40 rounded-full border-4 border-blue-100 object-cover shadow-lg">
-                                <div class="absolute bottom-3 right-3 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white">
-                                    <i class="fas fa-user-tie text-white text-sm"></i>
+                                <div class="absolute bottom-3 right-3 w-8 h-8 bg-gradient-to-r from-amber-400 to-amber-500 rounded-full flex items-center justify-center border-2 border-white">
+                                    <i class="fas fa-user-tie text-blue-900 text-sm"></i>
                                 </div>
                             </div>
                             <div class="mt-4 text-center">
-                                <div class="inline-flex items-center px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-sm font-medium">
+                                <div class="inline-flex items-center px-3 py-1 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-blue-900 text-sm font-semibold">
                                     <i class="fas fa-user-tie mr-1"></i>
                                     <span>Professor</span>
                                 </div>
@@ -361,21 +563,21 @@
                             
                             <!-- Stats Grid -->
                             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                                <div class="bg-blue-50 rounded-xl p-4 text-center">
+                                <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 text-center border border-blue-200">
                                     <div class="text-2xl font-bold text-blue-700" id="statTotalSections">0</div>
                                     <div class="text-sm text-gray-600 mt-1">Sections</div>
                                 </div>
-                                <div class="bg-green-50 rounded-xl p-4 text-center">
+                                <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 text-center border border-green-200">
                                     <div class="text-2xl font-bold text-green-700" id="statTotalStudents">0</div>
                                     <div class="text-sm text-gray-600 mt-1">Students</div>
                                 </div>
-                                <div class="bg-purple-50 rounded-xl p-4 text-center">
+                                <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 text-center border border-purple-200">
                                     <div class="text-2xl font-bold text-purple-700" id="statActivitiesCreated">0</div>
-                                    <div class="text-sm text-gray-600 mt-1">Activities Created</div>
+                                    <div class="text-sm text-gray-600 mt-1">Activities</div>
                                 </div>
-                                <div class="bg-yellow-50 rounded-xl p-4 text-center">
+                                <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl p-4 text-center border border-yellow-200">
                                     <div class="text-2xl font-bold text-yellow-700" id="statLessonsCreated">0</div>
-                                    <div class="text-sm text-gray-600 mt-1">Lessons Created</div>
+                                    <div class="text-sm text-gray-600 mt-1">Lessons</div>
                                 </div>
                             </div>
                         </div>
@@ -463,7 +665,7 @@
                             <i class="fas fa-history text-purple-500 mr-2"></i>
                             Recent Activity History
                         </h3>
-                        <button onclick="viewFullHistory()" class="text-purple-600 hover:text-purple-800 text-sm font-medium">
+                        <button onclick="viewFullHistory()" class="text-purple-600 hover:text-purple-800 text-sm font-medium flex items-center">
                             <i class="fas fa-external-link-alt mr-1"></i>
                             View Full History
                         </button>
@@ -480,36 +682,138 @@
             </div>
         </div>
         
-        <!-- Footer -->
-        <div class="bg-gradient-to-b from-gray-900 to-gray-950 mt-10 py-10">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h4 class="text-yellow-500 font-bold text-lg text-center mb-5">About CTBL</h4>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div class="text-gray-300 text-sm leading-relaxed">
-                        The Center for Technology Based Learning serves as the learning management system operating hub, 
-                        reporting to the university MANCOM officials, with a director on duty who manages and handles the 
-                        center's daily operations.
+        <!-- ✅ UPDATED FOOTER - MATCHING LANDING PAGE DESIGN -->
+        <footer class="bg-gradient-to-r from-blue-900 to-blue-800 text-white py-8 sm:py-12">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 text-center lg:text-left">
+                    <!-- About UmakFit & College of Human Kinetics -->
+                    <div>
+                        <div class="flex items-center justify-center lg:justify-start gap-3 mb-4">
+                            <img src="UMakfit Logo (2).png" 
+                                 alt="UMak Logo" class="h-12 w-auto object-contain">
+                            <div>
+                                <h6 class="text-yellow-400 font-bold text-lg lg:text-xl mb-1">UMakFit</h6>
+                                <p class="text-xs lg:text-sm text-blue-200 font-medium">College of Human Kinetics</p>
+                            </div>
+                        </div>
+                        <p class="text-sm lg:text-base leading-relaxed text-blue-100">
+                            UMakFit is the official fitness assessment and tracking platform of the College of Human Kinetics at University of Makati. 
+                            Our mission is to promote health, wellness, and physical fitness through comprehensive assessment and personalized tracking.
+                        </p>
+                        <div class="mt-4 flex flex-wrap gap-2 justify-center lg:justify-start">
+                            <span class="bg-blue-700/50 px-3 py-1 rounded-full text-xs font-semibold">Fitness Tracking</span>
+                            <span class="bg-blue-700/50 px-3 py-1 rounded-full text-xs font-semibold">Performance Assessment</span>
+                            <span class="bg-blue-700/50 px-3 py-1 rounded-full text-xs font-semibold">Health & Wellness</span>
+                        </div>
                     </div>
-                    <div class="text-gray-300 text-sm leading-relaxed">
-                        Working closely with the Office of the President, the Center for Information Technology, and the 
-                        Deans and Directors to support the LMS end-users' day-to-day activity.
+
+                    <!-- Quick Links -->
+                    <div>
+                        <h6 class="text-yellow-400 font-bold text-lg lg:text-xl mb-4 lg:mb-6">Quick Links</h6>
+                        <div class="grid grid-cols-2 gap-4 lg:gap-6">
+                            <div class="space-y-3">
+                                <a href="professor-dashboard.html" class="block text-blue-100 hover:text-yellow-300 hover:translate-x-1 transition-all duration-200 text-sm lg:text-base">
+                                    <i class="bi bi-tachometer mr-2"></i>Dashboard
+                                </a>
+                                <a href="studentmanagement.html" class="block text-blue-100 hover:text-yellow-300 hover:translate-x-1 transition-all duration-200 text-sm lg:text-base">
+                                    <i class="bi bi-people mr-2"></i>Students
+                                </a>
+                                <a href="addactivities.html" class="block text-blue-100 hover:text-yellow-300 hover:translate-x-1 transition-all duration-200 text-sm lg:text-base">
+                                    <i class="bi bi-dumbbell mr-2"></i>Activities
+                                </a>
+                            </div>
+                            <div class="space-y-3">
+                                <a href="addlesson.html" class="block text-blue-100 hover:text-yellow-300 hover:translate-x-1 transition-all duration-200 text-sm lg:text-base">
+                                    <i class="bi bi-book mr-2"></i>Lessons
+                                </a>
+                                <a href="monitoringactivities.html" class="block text-blue-100 hover:text-yellow-300 hover:translate-x-1 transition-all duration-200 text-sm lg:text-base">
+                                    <i class="bi bi-graph-up mr-2"></i>Monitoring
+                                </a>
+                                <a href="grades.html" class="block text-blue-100 hover:text-yellow-300 hover:translate-x-1 transition-all duration-200 text-sm lg:text-base">
+                                    <i class="bi bi-mortarboard mr-2"></i>Grades
+                                </a>
+                            </div>
+                        </div>
                     </div>
-                    <div class="text-gray-300 text-sm leading-relaxed">
-                        The center focuses on implementing new forms of training and determining the validity of data to 
-                        support the university's educational objectives.
+
+                    <!-- Contact & Social -->
+                    <div>
+                        <h6 class="text-yellow-400 font-bold text-lg lg:text-xl mb-4 lg:mb-6">Get In Touch</h6>
+                        <div class="space-y-4 lg:space-y-5">
+                            <div class="flex items-start gap-3">
+                                <i class="bi bi-geo-alt-fill text-yellow-400 text-lg lg:text-xl mt-1"></i>
+                                <p class="text-sm lg:text-base text-blue-100">
+                                    College of Human Kinetics<br>
+                                    University of Makati<br>
+                                   3rd floor, Administration Building, University of Makati, 
+                                   JP Rizal Ext., West Rembo, Taguig City
+                                </p>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <i class="bi bi-envelope-fill text-yellow-400 text-lg lg:text-xl"></i>
+                                <a href="mailto:chk@umak.edu.ph" class="text-blue-100 hover:text-yellow-300 transition-colors text-sm lg:text-base">
+                                    chk@umak.edu.ph
+                                </a>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <i class="bi bi-telephone-fill text-yellow-400 text-lg lg:text-xl"></i>
+                                <span class="text-blue-100 text-sm lg:text-base">+63 933 189 7230</span>
+                            </div>
+                            <div class="flex items-center gap-4 pt-3 justify-center lg:justify-start">
+                                <a href="https://www.facebook.com/profile.php?id=61577064971920" target="_blank" class="bg-blue-700 hover:bg-blue-600 p-2.5 rounded-lg transition-all duration-200 hover:scale-110">
+                                    <i class="bi bi-facebook text-white text-lg lg:text-xl"></i>
+                                </a>
+                                <a href="#" class="bg-blue-700 hover:bg-blue-600 p-2.5 rounded-lg transition-all duration-200 hover:scale-110">
+                                    <i class="bi bi-twitter text-white text-lg lg:text-xl"></i>
+                                </a>
+                                <a href="#" class="bg-blue-700 hover:bg-blue-600 p-2.5 rounded-lg transition-all duration-200 hover:scale-110">
+                                    <i class="bi bi-instagram text-white text-lg lg:text-xl"></i>
+                                </a>
+                                <a href="#" class="bg-blue-700 hover:bg-blue-600 p-2.5 rounded-lg transition-all duration-200 hover:scale-110">
+                                    <i class="bi bi-youtube text-white text-lg lg:text-xl"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Divider -->
+                <div class="border-t border-blue-600/50 mt-8 lg:mt-12 pt-6 lg:pt-8">
+                    <div class="flex flex-col lg:flex-row justify-between items-center gap-4">
+                        <!-- Copyright -->
+                        <div class="text-center lg:text-left">
+                            <p class="text-xs lg:text-sm text-blue-200">
+                                © 2025 University of Makati - College of Human Kinetics. All Rights Reserved.
+                            </p>
+                        </div>
+                        
+                        <!-- University Links -->
+                        <div class="flex flex-wrap justify-center gap-3 lg:gap-4">
+                            <a href="https://umak.edu.ph" target="_blank" class="text-xs lg:text-sm text-blue-200 hover:text-yellow-300 transition-colors">
+                                University of Makati
+                            </a>
+                            <span class="text-blue-400">•</span>
+                            <a href="https://library.umak.edu.ph" target="_blank" class="text-xs lg:text-sm text-blue-200 hover:text-yellow-300 transition-colors">
+                                UMak Online Library
+                            </a>
+                            <span class="text-blue-400">•</span>
+                            <a href="https://tbl.umak.edu.ph" target="_blank" class="text-xs lg:text-sm text-blue-200 hover:text-yellow-300 transition-colors">
+                                TBL Hub
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </footer>
     </div>
 
-    <!-- Modal for All Sections -->
+    <!-- ============ ⭐ FIXED MODAL FOR ALL SECTIONS - NO VERTICAL SCROLL ON MODAL ITSELF ============ -->
     <div id="sectionsModal" class="modal-overlay hidden">
-        <div class="modal-content">
-            <div class="flex items-center justify-between p-6 border-b border-gray-200">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
                 <div>
                     <h3 class="text-2xl font-bold text-gray-900">All Sections</h3>
-                    <p class="text-gray-600 mt-1">Showing all assigned sections with complete details</p>
+                    <p class="text-gray-600 mt-1 text-sm">Showing all assigned sections with complete details</p>
                 </div>
                 <div class="flex items-center space-x-3">
                     <div class="relative">
@@ -524,24 +828,24 @@
                             <i class="fas fa-sort"></i>
                         </div>
                     </div>
-                    <button onclick="closeSectionsModal()" class="text-gray-500 hover:text-gray-700">
-                        <i class="fas fa-times text-2xl"></i>
+                    <button class="modal-close-btn" onclick="closeSectionsModal()">
+                        <i class="fas fa-times"></i>
                     </button>
                 </div>
             </div>
             
-            <div class="p-6">
-                <div id="modalSectionsList" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+            <div class="modal-body">
+                <div id="modalSectionsList" class="space-y-4">
                     <!-- Modal sections will be loaded here -->
                 </div>
             </div>
             
-            <div class="p-4 border-t border-gray-200 bg-gray-50 flex justify-between items-center">
+            <div class="modal-footer">
                 <div class="text-gray-600 text-sm">
                     <span id="modalSectionCount">0</span> sections found
                 </div>
-                <div>
-                    <button onclick="closeSectionsModal()" class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors">
+                <div class="flex items-center space-x-3">
+                    <button onclick="closeSectionsModal()" class="px-4 py-2 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-blue-900 font-semibold rounded-lg transition-all hover:-translate-y-0.5 hover:shadow-lg">
                         Close
                     </button>
                 </div>
@@ -549,13 +853,13 @@
         </div>
     </div>
 
-    <!-- Modal for All Students -->
+    <!-- ============ ⭐ FIXED MODAL FOR ALL STUDENTS - NO VERTICAL SCROLL ON MODAL ITSELF ============ -->
     <div id="studentsModal" class="modal-overlay hidden">
-        <div class="modal-content">
-            <div class="flex items-center justify-between p-6 border-b border-gray-200">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
                 <div>
                     <h3 class="text-2xl font-bold text-gray-900">All Students</h3>
-                    <p class="text-gray-600 mt-1">Showing all students across all sections</p>
+                    <p class="text-gray-600 mt-1 text-sm">Showing all students across all sections</p>
                 </div>
                 <div class="flex items-center space-x-3">
                     <div class="relative">
@@ -570,15 +874,15 @@
                             <i class="fas fa-sort"></i>
                         </div>
                     </div>
-                    <button onclick="closeStudentsModal()" class="text-gray-500 hover:text-gray-700">
-                        <i class="fas fa-times text-2xl"></i>
+                    <button class="modal-close-btn" onclick="closeStudentsModal()">
+                        <i class="fas fa-times"></i>
                     </button>
                 </div>
             </div>
             
-            <div class="p-6">
+            <div class="modal-body">
                 <div class="mb-4">
-                    <div class="relative w-full max-w-md">
+                    <div class="relative w-full">
                         <input type="text" id="studentSearch" placeholder="Search students by name or email..." 
                                class="w-full p-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                         <div class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
@@ -609,16 +913,16 @@
                 </div>
             </div>
             
-            <div class="p-4 border-t border-gray-200 bg-gray-50 flex justify-between items-center">
+            <div class="modal-footer">
                 <div class="text-gray-600 text-sm">
                     <span id="modalStudentCount">0</span> students found
                 </div>
                 <div class="flex items-center space-x-3">
-                    <button onclick="exportStudents()" class="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center">
+                    <button onclick="exportStudents()" class="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold rounded-lg flex items-center transition-all hover:-translate-y-0.5 hover:shadow-lg">
                         <i class="fas fa-download mr-2"></i>
                         Export
                     </button>
-                    <button onclick="closeStudentsModal()" class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors">
+                    <button onclick="closeStudentsModal()" class="px-4 py-2 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-blue-900 font-semibold rounded-lg transition-all hover:-translate-y-0.5 hover:shadow-lg">
                         Close
                     </button>
                 </div>
@@ -626,6 +930,8 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
@@ -653,8 +959,10 @@
         let currentStudentSort = 'name-asc';
 
         // DOM Elements
-        const mobileMenuButton = document.getElementById('mobileMenuButton');
-        const mobileMenu = document.getElementById('mobileMenu');
+        const hamburger = document.getElementById('hamburger');
+        const mobileDrawer = document.getElementById('mobileDrawer');
+        const drawerOverlay = document.getElementById('drawerOverlay');
+        const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
         const profilePictureBtn = document.getElementById('profilePictureBtn');
         const profilePictureBtnMobile = document.getElementById('profilePictureBtnMobile');
         const profileDropdown = document.getElementById('profileDropdown');
@@ -666,11 +974,31 @@
         const sectionsModal = document.getElementById('sectionsModal');
         const studentsModal = document.getElementById('studentsModal');
 
-        // Event Listeners for navigation
+        // Hamburger Menu Event Listeners
         document.addEventListener('DOMContentLoaded', () => {
-            // Mobile menu toggle
-            if (mobileMenuButton) {
-                mobileMenuButton.addEventListener('click', toggleMobileMenu);
+            if (hamburger && mobileDrawer && drawerOverlay) {
+                hamburger.addEventListener('click', () => {
+                    hamburger.classList.toggle('active');
+                    mobileDrawer.classList.toggle('active');
+                    drawerOverlay.classList.toggle('active');
+                    document.body.style.overflow = mobileDrawer.classList.contains('active') ? 'hidden' : '';
+                });
+
+                drawerOverlay.addEventListener('click', () => {
+                    hamburger.classList.remove('active');
+                    mobileDrawer.classList.remove('active');
+                    drawerOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                });
+
+                mobileNavLinks.forEach(link => {
+                    link.addEventListener('click', () => {
+                        hamburger.classList.remove('active');
+                        mobileDrawer.classList.remove('active');
+                        drawerOverlay.classList.remove('active');
+                        document.body.style.overflow = '';
+                    });
+                });
             }
             
             // Profile dropdowns
@@ -714,7 +1042,7 @@
             // Close dropdowns when clicking outside
             document.addEventListener('click', closeAllDropdowns);
             
-            // Close modal when clicking outside
+            // Close modal when clicking outside overlay
             document.addEventListener('click', function(event) {
                 if (event.target === sectionsModal) {
                     closeSectionsModal();
@@ -725,32 +1053,18 @@
             });
         });
 
-        // Mobile menu toggle
-        function toggleMobileMenu() {
-            mobileMenu.classList.toggle('hidden');
-        }
-
         // Profile dropdown
         function toggleProfileDropdown(event) {
             event?.stopPropagation();
-            const isMobile = window.innerWidth < 1024;
+            const isMobile = window.innerWidth < 768;
             const dropdown = isMobile ? profileDropdownMobile : profileDropdown;
-            
             const isHidden = dropdown.classList.contains('hidden');
-            
-            if (isHidden) {
-                dropdown.classList.remove('hidden');
-                document.body.classList.add('dropdown-open');
-            } else {
-                dropdown.classList.add('hidden');
-                document.body.classList.remove('dropdown-open');
-            }
+            dropdown.classList.toggle('hidden');
         }
 
         function closeProfileDropdown() {
-            profileDropdown.classList.add('hidden');
-            profileDropdownMobile.classList.add('hidden');
-            document.body.classList.remove('dropdown-open');
+            if (profileDropdown) profileDropdown.classList.add('hidden');
+            if (profileDropdownMobile) profileDropdownMobile.classList.add('hidden');
         }
 
         // Close all dropdowns when clicking outside
@@ -789,13 +1103,11 @@
         // Export students function
         window.exportStudents = function() {
             alert('Export functionality would be implemented here. CSV/Excel download.');
-            // In a real implementation, this would generate and download a CSV/Excel file
         };
 
         // View profile function
         window.showViewProfile = function(event) { 
             if (event) event.preventDefault();
-            // Already on profile page, just close dropdown
             closeProfileDropdown();
         };
 
@@ -832,6 +1144,7 @@
                 await loadProfessorProfile();
                 
                 loadingScreen.style.display = 'none';
+                profileContent.classList.remove('hidden');
                 profileContent.style.display = 'block';
             }
         };
@@ -839,8 +1152,6 @@
         // View full history function
         window.viewFullHistory = function() {
             alert('Redirecting to full activity history page...');
-            // In a real implementation, this would redirect to a history page
-            // window.location.href = 'activity-history.html';
         };
 
         // Update profile picture in navigation
@@ -850,8 +1161,8 @@
             const dropdownPic = document.getElementById('profileDropdownPicture');
             const dropdownPicMobile = document.getElementById('profileDropdownPictureMobile');
             
-            const displayName = currentProfessor?.fullName || currentProfessor?.name || userName || 'Professor';
-            const email = currentProfessor?.email || 'professor@umak.edu.ph';
+            const displayName = window.currentProfessor?.fullName || window.currentProfessor?.name || userName || 'Professor';
+            const email = window.currentProfessor?.email || 'professor@umak.edu.ph';
             
             const photoUrlToUse = photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=3b82f6&color=fff&size=128`;
             
@@ -875,6 +1186,12 @@
             if (profileMainPicture) {
                 profileMainPicture.src = photoUrlToUse;
             }
+            
+            // Update mobile drawer professor name
+            const mobileProfessorName = document.getElementById('mobileProfessorName');
+            if (mobileProfessorName) {
+                mobileProfessorName.textContent = displayName;
+            }
         }
 
         onAuthStateChanged(auth, async (user) => {
@@ -897,7 +1214,8 @@
                     
                     if (!professorsSnapshot.empty) {
                         const professorDoc = professorsSnapshot.docs[0];
-                        currentProfessor = { id: professorDoc.id, ...professorDoc.data() };
+                        window.currentProfessor = { id: professorDoc.id, ...professorDoc.data() };
+                        currentProfessor = window.currentProfessor;
                         console.log('✓ Professor found in professors collection:', currentProfessor);
                     } else {
                         // Try users collection
@@ -910,7 +1228,8 @@
                         
                         if (!usersSnapshot.empty) {
                             const userDoc = usersSnapshot.docs[0];
-                            currentProfessor = { id: userDoc.id, ...userDoc.data() };
+                            window.currentProfessor = { id: userDoc.id, ...userDoc.data() };
+                            currentProfessor = window.currentProfessor;
                             console.log('✓ Professor found in users collection:', currentProfessor);
                         } else {
                             throw new Error('Professor account not found. Please contact the secretary.');
@@ -925,6 +1244,7 @@
                     
                     // Show profile content
                     loadingScreen.style.display = 'none';
+                    profileContent.classList.remove('hidden');
                     profileContent.style.display = 'block';
                     
                 } catch (error) {
@@ -953,8 +1273,8 @@
                 professorLessons = [];
                 
                 // Get professor's name for matching
-                const professorName = currentProfessor.fullName || currentProfessor.name || '';
-                const professorEmail = currentProfessor.email;
+                const professorName = window.currentProfessor.fullName || window.currentProfessor.name || '';
+                const professorEmail = window.currentProfessor.email;
                 
                 console.log('Loading profile for:', professorName);
                 
@@ -978,12 +1298,12 @@
 
         function updateProfileInformation() {
             // Update profile information
-            const fullName = currentProfessor.fullName || currentProfessor.name || 'Professor';
-            const email = currentProfessor.email || 'professor@umak.edu.ph';
+            const fullName = window.currentProfessor.fullName || window.currentProfessor.name || 'Professor';
+            const email = window.currentProfessor.email || 'professor@umak.edu.ph';
             
             document.getElementById('profileFullName').textContent = fullName;
             document.getElementById('profileEmail').textContent = email;
-            document.getElementById('professorId').textContent = currentProfessor.id?.substring(0, 8) || 'PROF-' + Math.floor(Math.random() * 10000);
+            document.getElementById('professorId').textContent = window.currentProfessor.id?.substring(0, 8) || 'PROF-' + Math.floor(Math.random() * 10000);
         }
 
         async function loadProfessorSections() {
@@ -993,8 +1313,8 @@
                 professorSections = [];
                 professorStudents = [];
                 
-                const professorName = currentProfessor.fullName || currentProfessor.name || '';
-                const professorEmail = currentProfessor.email;
+                const professorName = window.currentProfessor.fullName || window.currentProfessor.name || '';
+                const professorEmail = window.currentProfessor.email;
                 
                 // Query sections collection for this professor
                 const sectionsQuery = query(
@@ -1100,9 +1420,9 @@
             }
             
             let html = '';
-            sectionsToDisplay.forEach((section, index) => {
+            sectionsToDisplay.slice(0, 5).forEach((section, index) => { // Show only 5 in main view
                 const students = section.students || [];
-                const isExpanded = false; // All collapsed by default in main view
+                const isExpanded = false;
                 
                 html += `
                     <div class="bg-gray-50 rounded-xl border border-gray-200 overflow-hidden">
@@ -1194,6 +1514,20 @@
                     </div>
                 `;
             });
+            
+            // Add "View More" message if there are more sections
+            if (sectionsToDisplay.length > 5) {
+                html += `
+                    <div class="text-center py-4">
+                        <span class="text-gray-500 text-sm">
+                            And ${sectionsToDisplay.length - 5} more sections. 
+                            <button onclick="openSectionsModal()" class="text-blue-600 hover:text-blue-800 font-medium">
+                                View all sections →
+                            </button>
+                        </span>
+                    </div>
+                `;
+            }
             
             sectionsList.innerHTML = html;
         }
@@ -1333,7 +1667,7 @@
             }
             
             let html = '';
-            professorStudents.slice(0, 15).forEach(student => { // Show only 15 in main view
+            professorStudents.slice(0, 15).forEach(student => {
                 const displayName = student.name || student.email || 'Unknown Student';
                 const initials = getInitials(displayName);
                 const section = student.section || 'Unassigned';
@@ -1364,7 +1698,6 @@
                 `;
             });
             
-            // Add "View More" message if there are more students
             if (professorStudents.length > 15) {
                 html += `
                     <div class="text-center py-4">
@@ -1387,10 +1720,8 @@
             
             if (!modalStudentsList || professorStudents.length === 0) return;
             
-            // Get search term
             const searchTerm = studentSearch ? studentSearch.value.toLowerCase() : '';
             
-            // Filter students based on search
             let filteredStudents = [...professorStudents];
             
             if (searchTerm) {
@@ -1405,7 +1736,6 @@
                 });
             }
             
-            // Sort students based on current sort option
             switch(currentStudentSort) {
                 case 'name-asc':
                     filteredStudents.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
@@ -1479,12 +1809,10 @@
         function updateSectionFilter() {
             const sectionFilter = document.getElementById('sectionFilter');
             
-            // Clear existing options except "All Sections"
             while (sectionFilter.options.length > 1) {
                 sectionFilter.remove(1);
             }
             
-            // Add section options
             professorSections.forEach(section => {
                 const option = document.createElement('option');
                 option.value = section.id;
@@ -1492,7 +1820,6 @@
                 sectionFilter.appendChild(option);
             });
             
-            // Add event listener for filtering
             sectionFilter.addEventListener('change', filterStudentsBySection);
         }
 
@@ -1550,7 +1877,6 @@
                 `;
             });
             
-            // Add "View More" message if there are more students
             if (filteredStudents.length > 15) {
                 html += `
                     <div class="text-center py-4">
@@ -1569,10 +1895,9 @@
 
         async function loadProfessorActivities() {
             try {
-                // Query activities created by this professor
                 const activitiesQuery = query(
-                    collection(db, 'activities'),
-                    where('createdBy', '==', currentProfessor.id || currentProfessor.email),
+                    collection(db, 'scheduledTests'),
+                    where('professorEmail', '==', window.currentProfessor.email),
                     orderBy('createdAt', 'desc'),
                     limit(5)
                 );
@@ -1580,20 +1905,19 @@
                 const activitiesSnapshot = await getDocs(activitiesQuery);
                 professorActivities = activitiesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 
-                // Update statistics
                 document.getElementById('statActivitiesCreated').textContent = professorActivities.length;
                 
             } catch (error) {
                 console.error('Error loading activities:', error);
+                document.getElementById('statActivitiesCreated').textContent = '0';
             }
         }
 
         async function loadProfessorLessons() {
             try {
-                // Query lessons created by this professor
                 const lessonsQuery = query(
                     collection(db, 'lessons'),
-                    where('createdBy', '==', currentProfessor.id || currentProfessor.email),
+                    where('professorEmail', '==', window.currentProfessor.email),
                     orderBy('createdAt', 'desc'),
                     limit(5)
                 );
@@ -1601,11 +1925,11 @@
                 const lessonsSnapshot = await getDocs(lessonsQuery);
                 professorLessons = lessonsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 
-                // Update statistics
                 document.getElementById('statLessonsCreated').textContent = professorLessons.length;
                 
             } catch (error) {
                 console.error('Error loading lessons:', error);
+                document.getElementById('statLessonsCreated').textContent = '0';
             }
         }
 
@@ -1613,10 +1937,8 @@
             try {
                 const activityHistory = document.getElementById('activityHistory');
                 
-                // Combine activities and lessons
                 const allItems = [...professorActivities, ...professorLessons];
                 
-                // Sort by date
                 allItems.sort((a, b) => {
                     const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt || 0);
                     const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt || 0);
@@ -1634,14 +1956,13 @@
                     return;
                 }
                 
-                
                 let html = '';
                 allItems.slice(0, 5).forEach(item => {
-                    const isActivity = item.type === 'activity' || item.hasOwnProperty('questions');
+                    const isActivity = item.testName !== undefined;
                     const icon = isActivity ? 'fa-dumbbell' : 'fa-book-open';
                     const color = isActivity ? 'text-green-500' : 'text-purple-500';
                     const type = isActivity ? 'Activity' : 'Lesson';
-                    const title = item.title || item.name || 'Untitled';
+                    const title = item.testName || item.title || 'Untitled';
                     const date = item.createdAt ? formatDate(item.createdAt) : 'Unknown date';
                     
                     html += `
@@ -1669,7 +1990,7 @@
                                 </div>
                             </div>
                             <div class="text-sm ${isActivity ? 'text-green-600' : 'text-purple-600'} font-medium">
-                                ${isActivity ? 'Activity' : 'Lesson'}
+                                ${type}
                             </div>
                         </div>
                     `;
@@ -1688,7 +2009,6 @@
             if (sectionDetails) {
                 sectionDetails.classList.toggle('hidden');
                 
-                // Update chevron icon
                 const chevron = sectionDetails.previousElementSibling.querySelector('.fas.fa-chevron-up, .fas.fa-chevron-down');
                 if (chevron) {
                     if (sectionDetails.classList.contains('hidden')) {
