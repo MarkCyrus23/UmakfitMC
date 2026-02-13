@@ -3,22 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UmakFit - Test Management</title>
+    <title>UMakFit - Test Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * { font-family: 'Inter', sans-serif; }
-        .font-manrope { font-family: 'Manrope', sans-serif; }
-        
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
+        * { -webkit-font-smoothing: antialiased; box-sizing: border-box; }
+        body { 
+            font-family: 'Poppins', sans-serif; 
+        }
+        .font-montserrat {
+            font-family: 'Montserrat', sans-serif;
         }
         
-        .pulse-animation {
-            animation: pulse 2s infinite;
+        /* Custom animations */
+        @keyframes pulse { 
+            0%, 100% { opacity: 1; } 
+            50% { opacity: 0.5; } 
+        }
+        @keyframes spin { 
+            0% { transform: rotate(0deg); } 
+            100% { transform: rotate(360deg); } 
+        }
+        @keyframes dropdownSlide {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+        
+        @keyframes bounceSlow {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+        
+        .animate-fade-in-up {
+            animation: fadeInUp 1s ease-out;
+        }
+        
+        .animate-slide-in-left {
+            animation: slideInLeft 1s ease-out;
+        }
+        
+        .animate-slide-in-right {
+            animation: slideInRight 1s ease-out;
+        }
+        
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        .animate-float-delayed {
+            animation: float 6s ease-in-out infinite 3s;
+        }
+        
+        .animate-bounce-slow {
+            animation: bounceSlow 2s ease-in-out infinite;
+        }
+        
+        .slide-down {
+            animation: slideDown 0.3s ease;
         }
         
         @keyframes slideDown {
@@ -31,25 +122,119 @@
                 transform: translateY(0);
             }
         }
+        
+        /* Hamburger Menu Styles */
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            cursor: pointer;
+            z-index: 60;
+        }
 
-        .slide-down {
-            animation: slideDown 0.3s ease;
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background: linear-gradient(135deg, #EAD38A 0%, #C5A046 50%, #8B6D2D 100%);
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+        }
+
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(7px, -6px);
+        }
+
+        /* Mobile Drawer */
+        .mobile-drawer {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 280px;
+            height: 100vh;
+            background: linear-gradient(135deg, #0D1B2A 0%, #1A2B3C 50%, #2C4A5E 100%);
+            z-index: 55;
+            transition: right 0.3s ease;
+            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.3);
+            overflow-y: auto;
+        }
+
+        .mobile-drawer.active {
+            right: 0;
+        }
+
+        .drawer-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 50;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .drawer-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        @media (max-width: 768px) {
+            .hamburger {
+                display: flex;
+            }
+            
+            .desktop-nav {
+                display: none;
+            }
         }
         
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        /* Gradient text */
+        .gradient-text {
+            background: linear-gradient(135deg, #EAD38A 0%, #C5A046 50%, #8B6D2D 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .custom-shadow {
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+        
+        .card-shadow {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        
+        .btn-shadow {
+            box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
+        }
+        
+        .btn-shadow:hover {
+            box-shadow: 0 4px 8px rgba(245, 158, 11, 0.4);
+        }
+        
+        .live-dot {
+            animation: pulse 2s infinite;
         }
         
         .spinner {
-            border: 4px solid #e5e7eb;
+            animation: spin 1s linear infinite;
+            border: 4px solid #f1f5f9;
             border-top: 4px solid #3b82f6;
             border-radius: 50%;
             width: 50px;
             height: 50px;
-            animation: spin 1s linear infinite;
         }
-
+        
         /* Custom scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
@@ -67,76 +252,6 @@
         
         ::-webkit-scrollbar-thumb:hover {
             background: #2563eb;
-        }
-        
-        /* Custom animations */
-        @keyframes dropdownSlide {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .gradient-text {
-            background: linear-gradient(90deg, rgba(245, 158, 11, 1) 0%, rgba(255, 229, 0, 1) 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        .live-dot {
-            animation: pulse 2s infinite;
-        }
-        
-        /* Custom styles */
-        .custom-shadow {
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-        }
-        
-        .nav-shadow {
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        
-        .card-shadow {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        }
-        
-        .btn-shadow {
-            box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
-        }
-        
-        .btn-shadow:hover {
-            box-shadow: 0 4px 8px rgba(245, 158, 11, 0.4);
-        }
-        
-        /* Profile dropdown styles */
-        .profile-container {
-            position: relative;
-        }
-        .profile-circle {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #3b82f6 0%, #1e3a8a 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 700;
-            font-size: 16px;
-            cursor: pointer;
-            border: 2px solid #e2e8f0;
-            transition: all 0.3s;
-            position: relative;
-            overflow: hidden;
-        }
-        .profile-circle img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 50%;
-        }
-        .profile-circle:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
         }
         
         /* Table styling */
@@ -253,86 +368,86 @@
             font-weight: 700;
         }
         
- /* Action buttons - UPDATED DESIGN */
-.action-buttons {
-    display: flex;
-    gap: 6px;
-    justify-content: center;
-    align-items: center;
-    flex-wrap: nowrap; /* Important: Prevent wrapping */
-    white-space: nowrap;
-}
+        /* Action buttons */
+        .action-buttons {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: nowrap;
+            white-space: nowrap;
+        }
 
-.btn-action {
-    padding: 6px 12px;
-    border: none;
-    border-radius: 20px;
-    font-family: "Inter", Helvetica;
-    font-weight: 600;
-    font-size: 12px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    letter-spacing: 0.3px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    line-height: 1;
-    white-space: nowrap;
-}
+        .btn-action {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 20px;
+            font-family: "Inter", Helvetica;
+            font-weight: 600;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            letter-spacing: 0.3px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            line-height: 1;
+            white-space: nowrap;
+        }
 
-.btn-edit {
-    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-    color: white;
-    border: 1px solid rgba(255,255,255,0.2);
-}
+        .btn-edit {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
 
-.btn-edit:hover {
-    background: linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-}
+        .btn-edit:hover {
+            background: linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
 
-.btn-edit i {
-    font-size: 12px;
-}
+        .btn-edit i {
+            font-size: 12px;
+        }
 
-.btn-delete {
-    background: white;
-    color: #dc2626;
-    border: 1.5px solid #dc2626;
-}
+        .btn-delete {
+            background: white;
+            color: #dc2626;
+            border: 1.5px solid #dc2626;
+        }
 
-.btn-delete:hover {
-    background: #dc2626;
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
-}
+        .btn-delete:hover {
+            background: #dc2626;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
+        }
 
-.btn-delete i {
-    font-size: 12px;
-}
+        .btn-delete i {
+            font-size: 12px;
+        }
 
-.btn-view {
-    background: linear-gradient(135deg, #64748b 0%, #475569 100%);
-    color: white;
-    border: 1px solid rgba(255,255,255,0.2);
-}
+        .btn-view {
+            background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
 
-.btn-view:hover {
-    background: linear-gradient(135deg, #475569 0%, #334155 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(71, 85, 105, 0.2);
-}
+        .btn-view:hover {
+            background: linear-gradient(135deg, #475569 0%, #334155 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(71, 85, 105, 0.2);
+        }
 
-/* Fix table cell for actions */
-.custom-table td:last-child {
-    white-space: nowrap;
-    width: 1%; /* Shrink to fit content */
-}
-        /* Modal styles */
+        .custom-table td:last-child {
+            white-space: nowrap;
+            width: 1%;
+        }
+        
+        /* ============ FIXED MODAL STYLES - NO VERTICAL SCROLL ON MODAL ITSELF ============ */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -340,55 +455,87 @@
             width: 100%;
             height: 100%;
             background-color: rgba(0, 0, 0, 0.5);
-            display: flex;
+            display: none;
             justify-content: center;
             align-items: center;
             z-index: 2000;
             padding: 20px;
         }
+        
         .modal-content {
             background-color: white;
             border-radius: 12px;
             width: 100%;
             max-width: 600px;
-            max-height: 90vh;
-            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            max-height: 85vh;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
         }
+        
+        .modal-content.large {
+            max-width: 900px;
+        }
+        
         .modal-header {
-            padding: 20px 25px;
-            border-bottom: 1px solid #e2e8f0;
+            flex-shrink: 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 16px 24px;
+            border-bottom: 1px solid #e2e8f0;
+            background-color: white;
+            border-radius: 12px 12px 0 0;
         }
-        .modal-title {
-            font-family: "Inter", Helvetica;
-            font-weight: 600;
+        
+        .modal-header h3 {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
             color: #1e3a8a;
             font-size: 20px;
             margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        .close-modal {
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: #64748b;
-            transition: color 0.3s;
-        }
-        .close-modal:hover {
-            color: #1e293b;
-        }
+        
         .modal-body {
-            padding: 25px;
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            background-color: white;
         }
+        
         .modal-footer {
-            padding: 20px 25px;
-            border-top: 1px solid #e2e8f0;
+            flex-shrink: 0;
             display: flex;
             justify-content: flex-end;
             gap: 10px;
+            padding: 16px 24px;
+            border-top: 1px solid #e2e8f0;
+            background-color: #f9fafb;
+            border-radius: 0 0 12px 12px;
+        }
+        
+        .modal-close-btn {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            background-color: #f3f4f6;
+            color: #4b5563;
+            font-size: 20px;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .modal-close-btn:hover {
+            background-color: #e5e7eb;
+            color: #111827;
         }
         
         /* Form styles */
@@ -397,7 +544,7 @@
         }
         .form-label {
             display: block;
-            font-family: "Inter", Helvetica;
+            font-family: 'Poppins', sans-serif;
             font-weight: 500;
             color: #374151;
             font-size: 14px;
@@ -408,7 +555,7 @@
             padding: 10px 12px;
             border: 1px solid #d1d5db;
             border-radius: 6px;
-            font-family: "Inter", Helvetica;
+            font-family: 'Poppins', sans-serif;
             font-size: 14px;
             transition: border-color 0.3s;
         }
@@ -422,7 +569,7 @@
             padding: 10px 12px;
             border: 1px solid #d1d5db;
             border-radius: 6px;
-            font-family: "Inter", Helvetica;
+            font-family: 'Poppins', sans-serif;
             font-size: 14px;
             background-color: white;
             cursor: pointer;
@@ -444,14 +591,14 @@
             opacity: 0.4;
         }
         .empty-title {
-            font-family: "Inter", Helvetica;
+            font-family: 'Poppins', sans-serif;
             font-weight: 700;
             color: #1f2937;
             font-size: 20px;
             margin-bottom: 12px;
         }
         .empty-text {
-            font-family: "Inter", Helvetica;
+            font-family: 'Poppins', sans-serif;
             font-weight: 400;
             color: #64748b;
             font-size: 14px;
@@ -481,25 +628,29 @@
             font-size: 24px;
             font-weight: 700;
             color: white;
+            flex-shrink: 0;
         }
         
         .student-basic-info {
             flex: 1;
+            min-width: 0;
         }
         
         .student-name {
-            font-family: "Inter", Helvetica;
+            font-family: 'Poppins', sans-serif;
             font-weight: 700;
             color: #1e3a8a;
             font-size: 20px;
             margin-bottom: 5px;
+            word-wrap: break-word;
         }
         
         .student-id {
-            font-family: "Inter", Helvetica;
+            font-family: 'Poppins', sans-serif;
             font-weight: 500;
             color: #64748b;
             font-size: 14px;
+            word-wrap: break-word;
         }
         
         /* Score badges */
@@ -637,115 +788,144 @@
             }
             
             .modal-content {
-                margin: 10px;
-                max-height: calc(100vh - 20px);
+                max-height: 90vh;
+                width: 95%;
             }
-            /* Mobile action buttons */
-@media (max-width: 768px) {
-    .action-buttons {
-        justify-content: flex-start;
-        gap: 10px;
-        margin-top: 5px;
-    }
-    
-    .btn-action {
-        padding: 8px 16px;
-        font-size: 13px;
-    }
-    
-    .btn-edit, .btn-delete, .btn-view {
-        width: auto;
-        flex: 0 1 auto;
-    }
-    
-    .custom-table td:has(.action-buttons) {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-    }
-}
+            
+            .modal-header {
+                padding: 12px 16px;
+            }
+            
+            .modal-body {
+                padding: 16px;
+            }
+            
+            .modal-footer {
+                padding: 12px 16px;
+            }
+            
+            .action-buttons {
+                justify-content: flex-start;
+                gap: 10px;
+                margin-top: 5px;
+            }
+            
+            .btn-action {
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+            
+            .custom-table td:has(.action-buttons) {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .student-name {
+                font-size: 18px;
+            }
+            
+            .student-avatar {
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+            }
+            
+            .empty-state {
+                padding: 40px 20px;
+            }
+            
+            .empty-icon {
+                font-size: 48px;
+            }
+            
+            .empty-title {
+                font-size: 18px;
+            }
+            
+            .empty-text {
+                font-size: 13px;
+            }
+            
+            button {
+                min-height: 44px;
+                min-width: 44px;
+            }
         }
     </style>
 </head>
 <body class="bg-gray-50">
     <!-- Loading Screen -->
-    <div id="loadingScreen" class="fixed inset-0 bg-white bg-opacity-95 flex flex-col justify-center items-center z-50">
-        <div class="w-12 h-12 border-4 border-gray-100 border-t-blue-500 rounded-full spinner"></div>
-        <div class="mt-5 text-gray-600 font-medium">Loading Test Management...</div>
+    <div id="loadingScreen" class="fixed inset-0 bg-white/98 flex flex-col items-center justify-center z-50">
+        <div class="spinner"></div>
+        <div class="mt-5 text-gray-600 font-medium text-sm md:text-base">Loading Test Management...</div>
     </div>
     
     <div id="mainContent" class="hidden">
-        <!-- Navigation Banner -->
-        <nav class="bg-gradient-to-r from-blue-900 to-blue-500 shadow-lg">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex flex-wrap items-center justify-between gap-3 sm:gap-4 py-3 sm:py-4">
+        <!-- ✅ UPDATED NAVIGATION BANNER - MATCHING LANDING PAGE DESIGN -->
+        <header class="shadow-lg fixed w-full top-0 z-50" style="background: linear-gradient(135deg, #0D1B2A 0%, #1A2B3C 50%, #2C4A5E 100%);">
+            <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-20">
                     <!-- Logo -->
-                    <a href="professor-dashboard.html" class="flex items-center gap-2 sm:gap-3">
-                        <span class="text-xl sm:text-2xl md:text-3xl font-extrabold font-manrope bg-gradient-to-r from-yellow-400 to-yellow-200 bg-clip-text text-transparent">
-                            UMakFit
+                    <div class="flex items-center gap-3">
+                        <div class="w-16 h-16 flex items-center justify-center overflow-visible">
+                            <img src="UMakfit Logo (2).png" alt="UMakFIT Logo" class="w-20 h-20 object-contain">
+                        </div>
+                        <span class="text-xl sm:text-2xl md:text-3xl font-extrabold font-montserrat gradient-text">
+                            UMakFIT
                         </span>
-                    </a>
-                    
+                    </div>
+
                     <!-- Desktop Navigation -->
-                    <div class="hidden lg:flex items-center gap-2 flex-wrap">
-                        <a href="professor-dashboard.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
-                            <i class="fas fa-tachometer-alt"></i> 
-                            <span>Dashboard</span>
+                    <div class="desktop-nav hidden md:flex items-center gap-8">
+                        <a href="professor.html" class="text-white/80 hover:text-white font-medium transition-colors">
+                            <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
                         </a>
-                        
-                        <a href="studentmanagement.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
-                            <i class="fas fa-users"></i> 
-                            <span>Student Management</span>
+                        <a href="studentmanagement.html" class="text-white/80 hover:text-white font-medium transition-colors">
+                            <i class="fas fa-users mr-2"></i>Students
                         </a>
-                        
-                        <a href="addactivities.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white text-gray-900 rounded-lg font-semibold text-sm flex items-center gap-2 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
-                            <i class="fas fa-dumbbell"></i> 
-                            <span>Add Activities</span>
+                        <a href="addactivities.html" class="text-white font-medium px-3 py-2 rounded-lg" style="background: linear-gradient(135deg, #EAD38A 0%, #C5A046 50%, #8B6D2D 100%);">
+                            <i class="fas fa-dumbbell mr-2"></i>Activities
                         </a>
-                        
-                        <a href="addlesson.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
-                            <i class="fas fa-book-open"></i> 
-                            <span>Add Lesson</span>
+                        <a href="addlesson.html" class="text-white/80 hover:text-white font-medium transition-colors">
+                            <i class="fas fa-book-open mr-2"></i>Lessons
                         </a>
-                        
-                        <a href="monitoringactivities.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
-                            <i class="fas fa-chart-bar"></i> 
-                            <span>Monitoring Activities</span>
+                        <a href="monitoringactivities.html" class="text-white/80 hover:text-white font-medium transition-colors">
+                            <i class="fas fa-chart-bar mr-2"></i>Monitoring
                         </a>
-                        
-                        <a href="grades.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
-                            <i class="fas fa-graduation-cap"></i> 
-                            <span>Grades</span>
+                        <a href="grades.html" class="text-white/80 hover:text-white font-medium transition-colors">
+                            <i class="fas fa-graduation-cap mr-2"></i>Grades
                         </a>
+                    </div>
+
+                    <!-- Desktop Profile -->
+                    <div class="hidden md:block relative">
+                        <img src="" alt="Profile" id="profilePictureBtn"
+                             class="w-10 h-10 rounded-full border-2 border-white/30 cursor-pointer hover:border-white/60 hover:scale-105 transition-all object-cover">
                         
-                        <!-- Profile Dropdown -->
-                        <div class="relative">
-                            <img src="" alt="Profile" id="profilePictureBtn"
-                                 class="w-9 h-9 xl:w-10 xl:h-10 rounded-full border-2 border-white/30 cursor-pointer hover:border-white/60 hover:scale-105 transition-all object-cover">
-                            
-                            <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-64 sm:w-72 bg-white rounded-xl shadow-2xl z-[9999] slide-down">
-                                <div class="p-4 sm:p-6 border-b-2 border-gray-200 text-center">
-                                    <img src="" alt="Profile" id="profileDropdownPicture" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full mx-auto mb-2 sm:mb-3 border-3 border-blue-500 object-cover">
-                                    <h6 id="profileDropdownName" class="font-bold text-gray-900 text-base sm:text-lg">Loading...</h6>
-                                    <p id="profileDropdownEmail" class="text-xs sm:text-sm text-gray-500 mt-1 truncate px-2">Loading...</p>
-                                </div>
-                                <div class="p-2">
-                                    <a href="#" onclick="showViewProfile(event)" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-gray-100 transition-colors">
-                                        <i class="bi bi-person-circle text-blue-500 text-lg sm:text-xl"></i>
-                                        <span class="font-medium text-gray-700 text-sm sm:text-base">View Profile</span>
-                                    </a>
-                                    <div class="h-px bg-gray-200 my-1 sm:my-2"></div>
-                                    <div onclick="handleLogout(event)" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-red-500">
-                                        <i class="fas fa-sign-out-alt text-lg sm:text-xl"></i>
-                                        <span class="font-medium text-sm sm:text-base">Logout</span>
-                                    </div>
+                        <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-2xl z-[9999] slide-down">
+                            <div class="p-6 border-b-2 border-gray-200 text-center">
+                                <img src="" alt="Profile" id="profileDropdownPicture" class="w-20 h-20 rounded-full mx-auto mb-3 border-3 border-blue-500 object-cover">
+                                <h6 id="profileDropdownName" class="font-bold text-gray-900 text-lg">Loading...</h6>
+                                <p id="profileDropdownEmail" class="text-sm text-gray-500 mt-1 truncate px-2">Loading...</p>
+                            </div>
+                            <div class="p-2">
+                                <a href="professor-profile.html" onclick="showViewProfile(event)" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 transition-colors">
+                                    <i class="bi bi-person-circle text-blue-500 text-xl"></i>
+                                    <span class="font-medium text-gray-700 text-base">View Profile</span>
+                                </a>
+                                <div class="h-px bg-gray-200 my-2"></div>
+                                <div onclick="handleLogout(event)" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-red-500">
+                                    <i class="fas fa-sign-out-alt text-xl"></i>
+                                    <span class="font-medium text-base">Logout</span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Mobile Right Icons -->
-                    <div class="flex lg:hidden items-center gap-2 sm:gap-3">
+                    <div class="flex md:hidden items-center gap-3">
+                        <!-- Mobile Profile -->
                         <div class="relative">
                             <img src="" alt="Profile" id="profilePictureBtnMobile"
                                  class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-white/30 cursor-pointer hover:border-white/60 object-cover">
@@ -757,7 +937,7 @@
                                     <p id="profileDropdownEmailMobile" class="text-xs sm:text-sm text-gray-500 mt-1 truncate px-2">Loading...</p>
                                 </div>
                                 <div class="p-2">
-                                    <a href="#" onclick="showViewProfile(event)" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-gray-100 transition-colors">
+                                    <a href="professor-profile.html" onclick="showViewProfile(event)" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-gray-100 transition-colors">
                                         <i class="bi bi-person-circle text-blue-500 text-lg sm:text-xl"></i>
                                         <span class="font-medium text-gray-700 text-sm sm:text-base">View Profile</span>
                                     </a>
@@ -770,38 +950,59 @@
                             </div>
                         </div>
                         
-                        <button id="mobileMenuButton" class="text-white p-1 sm:p-2">
-                            <i class="bi bi-list text-2xl sm:text-3xl"></i>
-                        </button>
+                        <!-- Hamburger Menu -->
+                        <div class="hamburger" id="hamburger">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
                     </div>
                 </div>
-                
-                <!-- Mobile Navigation Menu -->
-                <div id="mobileMenu" class="hidden lg:hidden mt-3 sm:mt-4 space-y-2 pb-3">
-                    <a href="professor-dashboard.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
-                        <i class="fas fa-tachometer-alt mr-2"></i> Dashboard
-                    </a>
-                    <a href="studentmanagement.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
-                        <i class="fas fa-users mr-2"></i> Student Management
-                    </a>
-                    <a href="addactivities.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white text-gray-900 rounded-lg font-semibold text-sm">
-                        <i class="fas fa-dumbbell mr-2"></i> Add Activities
-                    </a>
-                    <a href="addlesson.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
-                        <i class="fas fa-book-open mr-2"></i> Add Lesson
-                    </a>
-                    <a href="monitoringactivities.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
-                        <i class="fas fa-chart-bar mr-2"></i> Monitoring Activities
-                    </a>
-                    <a href="grades.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
-                        <i class="fas fa-graduation-cap mr-2"></i> Grades
-                    </a>
+            </nav>
+
+            <!-- Mobile Drawer Overlay -->
+            <div class="drawer-overlay" id="drawerOverlay"></div>
+
+            <!-- Mobile Drawer -->
+            <div class="mobile-drawer" id="mobileDrawer">
+                <div class="p-6 pt-8">
+                    <!-- Drawer Header -->
+                    <div class="flex items-center gap-3 mb-8 pb-6 border-b border-white/20">
+                        <div class="w-12 h-12 flex items-center justify-center overflow-visible">
+                            <img src="UMakfit Logo (2).png" alt="UMakFIT Logo" class="w-14 h-14 object-contain">
+                        </div>
+                        <span class="text-2xl font-extrabold font-montserrat gradient-text">
+                            UMakFIT
+                        </span>
+                    </div>
+
+                    <!-- Navigation Links -->
+                    <nav class="space-y-2 mb-8">
+                        <a href="professor.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
+                            <i class="fas fa-tachometer-alt mr-3"></i>Dashboard
+                        </a>
+                        <a href="studentmanagement.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
+                            <i class="fas fa-users mr-3"></i>Student Management
+                        </a>
+                        <a href="addactivities.html" class="mobile-nav-link block text-white font-medium py-3 px-4 rounded-lg" style="background: linear-gradient(135deg, #EAD38A 0%, #C5A046 50%, #8B6D2D 100%);">
+                            <i class="fas fa-dumbbell mr-3"></i>Add Activities
+                        </a>
+                        <a href="addlesson.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
+                            <i class="fas fa-book-open mr-3"></i>Add Lesson
+                        </a>
+                        <a href="monitoringactivities.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
+                            <i class="fas fa-chart-bar mr-3"></i>Monitoring Activities
+                        </a>
+                        <a href="grades.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
+                            <i class="fas fa-graduation-cap mr-3"></i>Grades
+                        </a>
+                    </nav>
                 </div>
             </div>
-        </nav>
+        </header>
 
-        <!-- Main Content -->
-        <div class="bg-gradient-to-b from-gray-50 to-gray-100 min-h-screen pt-10 pb-20">
+        <!-- Main Content - with top padding to account for fixed header -->
+        <div class="bg-gradient-to-b from-gray-50 to-gray-100 min-h-screen pt-32 pb-20">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <!-- Info Banner -->
                 <div class="bg-white rounded-2xl card-shadow border border-gray-200 p-8 mb-8">
@@ -823,7 +1024,7 @@
                             <i class="fas fa-calendar-check text-blue-600 text-xl mr-3"></i>
                             <h3 class="text-gray-900 font-bold text-xl">My Test Schedule</h3>
                         </div>
-                        <button class="bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white font-semibold py-2.5 px-5 rounded-lg flex items-center gap-2 transition-all hover:-translate-y-0.5 hover:shadow-lg" onclick="showScheduleTestModal()">
+                        <button class="bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-blue-900 font-semibold py-2.5 px-5 rounded-lg flex items-center gap-2 transition-all hover:-translate-y-0.5 hover:shadow-lg" onclick="showScheduleTestModal()">
                             <i class="fas fa-plus"></i> Schedule New Test
                         </button>
                     </div>
@@ -887,7 +1088,7 @@
                             <i class="fas fa-chart-line text-green-600 text-xl mr-3"></i>
                             <h3 class="text-gray-900 font-bold text-xl">Recent Test Results</h3>
                         </div>
-                        <button class="bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white font-semibold py-2 px-4 rounded-lg flex items-center gap-2 text-sm transition-all hover:-translate-y-0.5 hover:shadow-lg" onclick="generateReports()">
+                        <button class="bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-blue-900 font-semibold py-2 px-4 rounded-lg flex items-center gap-2 text-sm transition-all hover:-translate-y-0.5 hover:shadow-lg" onclick="generateReports()">
                             <i class="fas fa-file-alt"></i> Generate Reports
                         </button>
                     </div>
@@ -962,73 +1163,176 @@
                 </div>
             </div>
         </div>
-        
-        <!-- Footer -->
-        <div class="bg-gradient-to-b from-gray-900 to-gray-950 mt-10 py-10">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h4 class="text-yellow-500 font-bold text-lg text-center mb-5">About CTBL</h4>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div class="text-gray-300 text-sm leading-relaxed">
-                        The Center for Technology Based Learning serves as the learning management system operating hub, 
-                        reporting to the university MANCOM officials, with a director on duty who manages and handles the 
-                        center's daily operations.
-                    </div>
-                    <div class="text-gray-300 text-sm leading-relaxed">
-                        Working closely with the Office of the President, the Center for Information Technology, and the 
-                        Deans and Directors to support the LMS end-users' day-to-day activity.
-                    </div>
-                    <div class="text-gray-300 text-sm leading-relaxed">
-                        The center focuses on implementing new forms of training and determining the validity of data to 
-                        support the university's educational objectives.
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Student Test Results Modal -->
-    <div id="studentTestResultsModal" class="modal-overlay" style="display: none;" onclick="closeStudentTestResultsModal()">
-        <div class="modal-content" style="max-width: 900px;" onclick="event.stopPropagation()">
-            <div class="flex justify-between items-center p-6 border-b border-gray-200">
-                <h3 class="text-xl font-bold text-gray-900 flex items-center gap-2">
-                    <i class="fas fa-clipboard-list"></i> <span id="modalStudentName">Student Test Results</span>
-                </h3>
-                <button class="text-gray-500 hover:text-gray-700 text-2xl" onclick="closeStudentTestResultsModal()">&times;</button>
-            </div>
-            
-            <div style="max-height: 70vh; overflow-y: auto;">
-                <div class="p-6">
-                    <!-- Student Info Header -->
-                    <div id="studentInfoHeader" class="student-info-header" style="display: none;">
-                        <div class="student-avatar" id="studentAvatar">??</div>
-                        <div class="student-basic-info">
-                            <div class="student-name" id="studentNameDetail">Student Name</div>
-                            <div class="student-id" id="studentSectionDetail">Section</div>
+        <!-- ✅ UPDATED FOOTER - MATCHING LANDING PAGE DESIGN -->
+        <footer class="bg-gradient-to-r from-blue-900 to-blue-800 text-white py-8 sm:py-12">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 text-center lg:text-left">
+                    <!-- About UmakFit & College of Human Kinetics -->
+                    <div>
+                        <div class="flex items-center justify-center lg:justify-start gap-3 mb-4">
+                            <img src="UMakfit Logo (2).png" 
+                                 alt="UMak Logo" class="h-12 w-auto object-contain">
+                            <div>
+                                <h6 class="text-yellow-400 font-bold text-lg lg:text-xl mb-1">UMakFit</h6>
+                                <p class="text-xs lg:text-sm text-blue-200 font-medium">College of Human Kinetics</p>
+                            </div>
+                        </div>
+                        <p class="text-sm lg:text-base leading-relaxed text-blue-100">
+                            UMakFit is the official fitness assessment and tracking platform of the College of Human Kinetics at University of Makati. 
+                            Our mission is to promote health, wellness, and physical fitness through comprehensive assessment and personalized tracking.
+                        </p>
+                        <div class="mt-4 flex flex-wrap gap-2 justify-center lg:justify-start">
+                            <span class="bg-blue-700/50 px-3 py-1 rounded-full text-xs font-semibold">Fitness Tracking</span>
+                            <span class="bg-blue-700/50 px-3 py-1 rounded-full text-xs font-semibold">Performance Assessment</span>
+                            <span class="bg-blue-700/50 px-3 py-1 rounded-full text-xs font-semibold">Health & Wellness</span>
                         </div>
                     </div>
-                    
-                    <!-- Test Results Table -->
-                    <div class="table-responsive">
-                        <table class="custom-table">
-                            <thead style="position: sticky; top: 0; background: linear-gradient(90deg, rgba(30, 58, 138, 0.9) 0%, rgba(59, 130, 246, 0.9) 100%); z-index: 10;">
-                                <tr>
-                                    <th>Date & Time</th>
-                                    <th>Test Name</th>
-                                    <th>Score</th>
-                                    <th>Rating</th>
-                                    <th>Result</th>
-                                    <th>Attempt</th>
-                                </tr>
-                            </thead>
-                            <tbody id="studentTestsTableBody">
-                                <!-- Tests will be loaded here -->
-                            </tbody>
-                        </table>
+
+                    <!-- Quick Links -->
+                    <div>
+                        <h6 class="text-yellow-400 font-bold text-lg lg:text-xl mb-4 lg:mb-6">Quick Links</h6>
+                        <div class="grid grid-cols-2 gap-4 lg:gap-6">
+                            <div class="space-y-3">
+                                <a href="professor.html" class="block text-blue-100 hover:text-yellow-300 hover:translate-x-1 transition-all duration-200 text-sm lg:text-base">
+                                    <i class="bi bi-tachometer mr-2"></i>Dashboard
+                                </a>
+                                <a href="studentmanagement.html" class="block text-blue-100 hover:text-yellow-300 hover:translate-x-1 transition-all duration-200 text-sm lg:text-base">
+                                    <i class="bi bi-people mr-2"></i>Students
+                                </a>
+                                <a href="addactivities.html" class="block text-yellow-300 hover:text-yellow-200 hover:translate-x-1 transition-all duration-200 text-sm lg:text-base font-semibold">
+                                    <i class="bi bi-dumbbell mr-2"></i>Activities
+                                </a>
+                            </div>
+                            <div class="space-y-3">
+                                <a href="addlesson.html" class="block text-blue-100 hover:text-yellow-300 hover:translate-x-1 transition-all duration-200 text-sm lg:text-base">
+                                    <i class="bi bi-book mr-2"></i>Lessons
+                                </a>
+                                <a href="monitoringactivities.html" class="block text-blue-100 hover:text-yellow-300 hover:translate-x-1 transition-all duration-200 text-sm lg:text-base">
+                                    <i class="bi bi-graph-up mr-2"></i>Monitoring
+                                </a>
+                                <a href="grades.html" class="block text-blue-100 hover:text-yellow-300 hover:translate-x-1 transition-all duration-200 text-sm lg:text-base">
+                                    <i class="bi bi-mortarboard mr-2"></i>Grades
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact & Social -->
+                    <div>
+                        <h6 class="text-yellow-400 font-bold text-lg lg:text-xl mb-4 lg:mb-6">Get In Touch</h6>
+                        <div class="space-y-4 lg:space-y-5">
+                            <div class="flex items-start gap-3">
+                                <i class="bi bi-geo-alt-fill text-yellow-400 text-lg lg:text-xl mt-1"></i>
+                                <p class="text-sm lg:text-base text-blue-100">
+                                    College of Human Kinetics<br>
+                                    University of Makati<br>
+                                   3rd floor, Administration Building, University of Makati, 
+                                   JP Rizal Ext., West Rembo, Taguig City
+                                </p>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <i class="bi bi-envelope-fill text-yellow-400 text-lg lg:text-xl"></i>
+                                <a href="mailto:chk@umak.edu.ph" class="text-blue-100 hover:text-yellow-300 transition-colors text-sm lg:text-base">
+                                    chk@umak.edu.ph
+                                </a>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <i class="bi bi-telephone-fill text-yellow-400 text-lg lg:text-xl"></i>
+                                <span class="text-blue-100 text-sm lg:text-base">+63 933 189 7230</span>
+                            </div>
+                            <div class="flex items-center gap-4 pt-3 justify-center lg:justify-start">
+                                <a href="https://www.facebook.com/profile.php?id=61577064971920" target="_blank" class="bg-blue-700 hover:bg-blue-600 p-2.5 rounded-lg transition-all duration-200 hover:scale-110">
+                                    <i class="bi bi-facebook text-white text-lg lg:text-xl"></i>
+                                </a>
+                                <a href="#" class="bg-blue-700 hover:bg-blue-600 p-2.5 rounded-lg transition-all duration-200 hover:scale-110">
+                                    <i class="bi bi-twitter text-white text-lg lg:text-xl"></i>
+                                </a>
+                                <a href="#" class="bg-blue-700 hover:bg-blue-600 p-2.5 rounded-lg transition-all duration-200 hover:scale-110">
+                                    <i class="bi bi-instagram text-white text-lg lg:text-xl"></i>
+                                </a>
+                                <a href="#" class="bg-blue-700 hover:bg-blue-600 p-2.5 rounded-lg transition-all duration-200 hover:scale-110">
+                                    <i class="bi bi-youtube text-white text-lg lg:text-xl"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Divider -->
+                <div class="border-t border-blue-600/50 mt-8 lg:mt-12 pt-6 lg:pt-8">
+                    <div class="flex flex-col lg:flex-row justify-between items-center gap-4">
+                        <!-- Copyright -->
+                        <div class="text-center lg:text-left">
+                            <p class="text-xs lg:text-sm text-blue-200">
+                                © 2025 University of Makati - College of Human Kinetics. All Rights Reserved.
+                            </p>
+                        </div>
+                        
+                        <!-- University Links -->
+                        <div class="flex flex-wrap justify-center gap-3 lg:gap-4">
+                            <a href="https://umak.edu.ph" target="_blank" class="text-xs lg:text-sm text-blue-200 hover:text-yellow-300 transition-colors">
+                                University of Makati
+                            </a>
+                            <span class="text-blue-400">•</span>
+                            <a href="https://library.umak.edu.ph" target="_blank" class="text-xs lg:text-sm text-blue-200 hover:text-yellow-300 transition-colors">
+                                UMak Online Library
+                            </a>
+                            <span class="text-blue-400">•</span>
+                            <a href="https://tbl.umak.edu.ph" target="_blank" class="text-xs lg:text-sm text-blue-200 hover:text-yellow-300 transition-colors">
+                                TBL Hub
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
+        </footer>
+    </div>
+
+    <!-- ============ ⭐ FIXED STUDENT TEST RESULTS MODAL - NO VERTICAL SCROLL ON MODAL ITSELF ============ -->
+    <div id="studentTestResultsModal" class="modal-overlay" style="display: none;" onclick="closeStudentTestResultsModal()">
+        <div class="modal-content large" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3>
+                    <i class="fas fa-clipboard-list"></i> 
+                    <span id="modalStudentName">Student Test Results</span>
+                </h3>
+                <button class="modal-close-btn" onclick="closeStudentTestResultsModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
             
-            <div class="flex justify-end p-6 border-t border-gray-200 bg-gray-50">
+            <div class="modal-body" id="modalBodyContent">
+                <!-- Student Info Header -->
+                <div id="studentInfoHeader" class="student-info-header" style="display: none;">
+                    <div class="student-avatar" id="studentAvatar">??</div>
+                    <div class="student-basic-info">
+                        <div class="student-name" id="studentNameDetail">Student Name</div>
+                        <div class="student-id" id="studentSectionDetail">Section</div>
+                    </div>
+                </div>
+                
+                <!-- Test Results Table -->
+                <div class="table-responsive">
+                    <table class="custom-table" style="min-width: 100%;">
+                        <thead style="position: sticky; top: 0; background: linear-gradient(90deg, rgba(30, 58, 138, 0.9) 0%, rgba(59, 130, 246, 0.9) 100%); z-index: 10;">
+                            <tr>
+                                <th>Date & Time</th>
+                                <th>Test Name</th>
+                                <th>Score</th>
+                                <th>Rating</th>
+                                <th>Result</th>
+                                <th>Attempt</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentTestsTableBody">
+                            <!-- Tests will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
                 <button class="px-6 py-2.5 bg-gray-700 hover:bg-gray-800 text-white rounded-lg font-semibold transition-all" onclick="closeStudentTestResultsModal()">
                     Close
                 </button>
@@ -1036,12 +1340,17 @@
         </div>
     </div>
 
-    <!-- Schedule Test Modal -->
+    <!-- ============ ⭐ FIXED SCHEDULE TEST MODAL ============ -->
     <div id="scheduleTestModal" class="modal-overlay" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">Schedule New Test</h3>
-                <button class="close-modal" onclick="closeScheduleTestModal()">&times;</button>
+                <h3>
+                    <i class="fas fa-calendar-plus"></i> 
+                    Schedule New Test
+                </h3>
+                <button class="modal-close-btn" onclick="closeScheduleTestModal()">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
             <div class="modal-body">
                 <div class="form-group">
@@ -1115,17 +1424,22 @@
             </div>
             <div class="modal-footer">
                 <button class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg transition-colors" onclick="closeScheduleTestModal()">Cancel</button>
-                <button class="bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white font-medium py-2 px-4 rounded-lg transition-all hover:-translate-y-0.5" onclick="scheduleTest()">Schedule Test</button>
+                <button class="bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-blue-900 font-medium py-2 px-4 rounded-lg transition-all hover:-translate-y-0.5" onclick="scheduleTest()">Schedule Test</button>
             </div>
         </div>
     </div>
 
-    <!-- Edit Test Modal -->
+    <!-- ============ ⭐ FIXED EDIT TEST MODAL ============ -->
     <div id="editTestModal" class="modal-overlay" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">Edit Test</h3>
-                <button class="close-modal" onclick="closeEditTestModal()">&times;</button>
+                <h3>
+                    <i class="fas fa-pencil-alt"></i> 
+                    Edit Test
+                </h3>
+                <button class="modal-close-btn" onclick="closeEditTestModal()">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
             <div class="modal-body">
                 <div class="form-group">
@@ -1167,26 +1481,30 @@
                     <small class="text-muted" id="editTestTargetHint"></small>
                 </div>
                 
-               <input type="hidden" id="editAttemptsAllowed" value="2">
-                
+                <input type="hidden" id="editAttemptsAllowed" value="2">
                 <input type="hidden" id="editTestId">
             </div>
             <div class="modal-footer">
                 <button class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg transition-colors" onclick="closeEditTestModal()">Cancel</button>
-                <button class="bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white font-medium py-2 px-4 rounded-lg transition-all hover:-translate-y-0.5" onclick="saveEditTest()">Save Changes</button>
+                <button class="bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-blue-900 font-medium py-2 px-4 rounded-lg transition-all hover:-translate-y-0.5" onclick="saveEditTest()">Save Changes</button>
             </div>
         </div>
     </div>
 
-    <!-- Manage Students Modal -->
+    <!-- ============ ⭐ FIXED MANAGE STUDENTS MODAL ============ -->
     <div id="manageStudentsModal" class="modal-overlay" style="display: none;">
         <div class="modal-content" style="max-width: 700px;">
             <div class="modal-header">
                 <div>
-                    <h3 class="modal-title">Manage Test Access</h3>
+                    <h3 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+                        <i class="fas fa-users"></i> 
+                        Manage Test Access
+                    </h3>
                     <p style="font-size: 12px; color: #64748b; margin-top: 5px;" id="testInfoHeader">Select students who can take this test</p>
                 </div>
-                <button class="close-modal" onclick="closeManageStudentsModal()">&times;</button>
+                <button class="modal-close-btn" onclick="closeManageStudentsModal()">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
             <div class="modal-body">
                 <!-- Selection Summary -->
@@ -1195,7 +1513,7 @@
                         <i class="fas fa-users"></i> <span id="selectedCount">0</span> of <span id="totalCount">0</span> students selected
                     </span>
                     <div class="bulk-actions">
-                        <button type="button" onclick="selectAllStudentsInModal()" class="bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white font-medium py-1 px-3 rounded text-sm">
+                        <button type="button" onclick="selectAllStudentsInModal()" class="bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-blue-900 font-medium py-1 px-3 rounded text-sm">
                             <i class="fas fa-check-double"></i> Select All
                         </button>
                         <button type="button" onclick="deselectAllStudentsInModal()" class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-1 px-3 rounded text-sm">
@@ -1225,14 +1543,17 @@
             </div>
             <div class="modal-footer">
                 <button class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg transition-colors" onclick="closeManageStudentsModal()">Cancel</button>
-                <button class="bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white font-medium py-2 px-4 rounded-lg transition-all hover:-translate-y-0.5" onclick="saveStudentSelection()">
+                <button class="bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-blue-900 font-medium py-2 px-4 rounded-lg transition-all hover:-translate-y-0.5" onclick="saveStudentSelection()">
                     <i class="fas fa-save"></i> Save Selection
                 </button>
             </div>
         </div>
     </div>
     
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    
     <script type="module">
+        // Import Firebase modules
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
         import { 
@@ -1265,21 +1586,42 @@
         const db = getFirestore(app);
 
         // DOM Elements for navigation
-        const mobileMenuButton = document.getElementById('mobileMenuButton');
-        const mobileMenu = document.getElementById('mobileMenu');
+        const hamburger = document.getElementById('hamburger');
+        const mobileDrawer = document.getElementById('mobileDrawer');
+        const drawerOverlay = document.getElementById('drawerOverlay');
+        const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
         const profilePictureBtn = document.getElementById('profilePictureBtn');
         const profilePictureBtnMobile = document.getElementById('profilePictureBtnMobile');
         const profileDropdown = document.getElementById('profileDropdown');
         const profileDropdownMobile = document.getElementById('profileDropdownMobile');
 
-        // Event Listeners for navigation
+        // Hamburger Menu Event Listeners
         document.addEventListener('DOMContentLoaded', () => {
-            // Mobile menu toggle
-            if (mobileMenuButton) {
-                mobileMenuButton.addEventListener('click', toggleMobileMenu);
+            if (hamburger && mobileDrawer && drawerOverlay) {
+                hamburger.addEventListener('click', () => {
+                    hamburger.classList.toggle('active');
+                    mobileDrawer.classList.toggle('active');
+                    drawerOverlay.classList.toggle('active');
+                    document.body.style.overflow = mobileDrawer.classList.contains('active') ? 'hidden' : '';
+                });
+
+                drawerOverlay.addEventListener('click', () => {
+                    hamburger.classList.remove('active');
+                    mobileDrawer.classList.remove('active');
+                    drawerOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                });
+
+                mobileNavLinks.forEach(link => {
+                    link.addEventListener('click', () => {
+                        hamburger.classList.remove('active');
+                        mobileDrawer.classList.remove('active');
+                        drawerOverlay.classList.remove('active');
+                        document.body.style.overflow = '';
+                    });
+                });
             }
             
-            // Profile dropdowns
             if (profilePictureBtn) {
                 profilePictureBtn.addEventListener('click', toggleProfileDropdown);
             }
@@ -1288,39 +1630,28 @@
                 profilePictureBtnMobile.addEventListener('click', toggleProfileDropdown);
             }
             
-            // Close dropdowns when clicking outside
             document.addEventListener('click', closeAllDropdowns);
         });
 
-        // Mobile menu toggle
-        function toggleMobileMenu() {
-            mobileMenu.classList.toggle('hidden');
-        }
-
-        // Profile dropdown
         function toggleProfileDropdown(event) {
             event?.stopPropagation();
-            const isMobile = window.innerWidth < 1024;
+            const isMobile = window.innerWidth < 768;
             const dropdown = isMobile ? profileDropdownMobile : profileDropdown;
             
             const isHidden = dropdown.classList.contains('hidden');
             
             if (isHidden) {
                 dropdown.classList.remove('hidden');
-                document.body.classList.add('dropdown-open');
             } else {
                 dropdown.classList.add('hidden');
-                document.body.classList.remove('dropdown-open');
             }
         }
 
         function closeProfileDropdown() {
-            profileDropdown.classList.add('hidden');
-            profileDropdownMobile.classList.add('hidden');
-            document.body.classList.remove('dropdown-open');
+            if (profileDropdown) profileDropdown.classList.add('hidden');
+            if (profileDropdownMobile) profileDropdownMobile.classList.add('hidden');
         }
 
-        // Close all dropdowns when clicking outside
         function closeAllDropdowns(event) {
             if (!event.target.closest('#profilePictureBtn') && 
                 !event.target.closest('#profilePictureBtnMobile') && 
@@ -1330,14 +1661,12 @@
             }
         }
 
-        // View profile function
         window.showViewProfile = function(event) { 
             if (event) event.preventDefault();
             alert('Profile view would open here');
             closeProfileDropdown();
         };
 
-        // Logout function
         window.handleLogout = async function(event) {
             if (event) event.preventDefault();
             closeProfileDropdown();
@@ -1355,31 +1684,26 @@
 
         // Function to update profile picture
         function updateProfilePicture(photoURL, userName) {
-            // For navigation
             const profileBtn = document.getElementById('profilePictureBtn');
             const profileBtnMobile = document.getElementById('profilePictureBtnMobile');
             const dropdownPic = document.getElementById('profileDropdownPicture');
             const dropdownPicMobile = document.getElementById('profileDropdownPictureMobile');
             
-            const displayName = currentUser?.displayName || userName || 'Professor';
-            const email = currentUser?.email || 'professor@umak.edu.ph';
+            const displayName = window.currentUser?.displayName || userName || 'Professor';
+            const email = window.currentUser?.email || 'professor@umak.edu.ph';
             
-            // Use provided photo URL or create initial avatar
             const photoUrlToUse = photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=3b82f6&color=fff&size=128`;
             
-            // Update all profile pictures for navigation
             if (profileBtn) profileBtn.src = photoUrlToUse;
             if (profileBtnMobile) profileBtnMobile.src = photoUrlToUse;
             if (dropdownPic) dropdownPic.src = photoUrlToUse;
             if (dropdownPicMobile) dropdownPicMobile.src = photoUrlToUse;
             
-            // Update names
             const dropdownName = document.getElementById('profileDropdownName');
             const dropdownNameMobile = document.getElementById('profileDropdownNameMobile');
             if (dropdownName) dropdownName.textContent = displayName;
             if (dropdownNameMobile) dropdownNameMobile.textContent = displayName;
             
-            // Update emails
             const dropdownEmail = document.getElementById('profileDropdownEmail');
             const dropdownEmailMobile = document.getElementById('profileDropdownEmailMobile');
             if (dropdownEmail) dropdownEmail.textContent = email;
@@ -1392,7 +1716,7 @@
         window.currentTestStudents = [];
         window.selectedStudentEmails = new Set();
         window.currentManagingTestId = null;
-        window.studentResultsMap = new Map(); // Store grouped student results
+        window.studentResultsMap = new Map();
 
         onAuthStateChanged(auth, async (user) => {
             const loadingScreen = document.getElementById('loadingScreen');
@@ -1402,10 +1726,10 @@
                 try {
                     console.log('User authenticated:', user.email);
                     
+                    window.currentUser = user;
+                    
                     // Update profile picture with Google photo
                     updateProfilePicture(user.photoURL, user.displayName);
-                    
-                    window.currentUser = user;
                     
                     await loadScheduledTests(user.email, user.uid);
                     await loadTestResults(user.email, user.uid);
@@ -1429,14 +1753,14 @@
             if (score >= 70) return { text: 'Fair', class: 'rating-fair' };
             return { text: 'Needs Improvement', class: 'rating-fair' };
         }
-
+        
         // Function to get rating class for score badge
         function getScoreClass(score) {
             if (score >= 90) return 'score-excellent';
             if (score >= 70) return 'score-good';
             return 'score-poor';
         }
-
+        
         async function loadScheduledTests(userEmail, userId) {
             try {
                 console.log('=== LOADING SCHEDULED TESTS ===');
@@ -1637,19 +1961,19 @@
                                     <span class="status-badge ${statusClass}">${status.charAt(0).toUpperCase() + status.slice(1)}</span>
                                     ${isOverdue ? '<br><small style="color: #ef4444;">⚠️ Overdue</small>' : ''}
                                 </td>
-<td data-label="Action">  <!-- Change from "Actions" to "Action" -->
-    <div class="action-buttons">
-        <button class="btn-action btn-edit" onclick="editTest('${docSnap.id}')">
-            <i class="fas fa-pencil-alt"></i> Edit
-        </button>
-        <button class="btn-action btn-view" onclick="manageStudents('${docSnap.id}', '${test.testName}', '${test.section}')">
-            <i class="fas fa-users"></i> Manage
-        </button>
-        <button class="btn-action btn-delete" onclick="deleteTest('${docSnap.id}')">
-            <i class="fas fa-trash-alt"></i> Delete
-        </button>
-    </div>
-</td>
+                                <td data-label="Action">
+                                    <div class="action-buttons">
+                                        <button class="btn-action btn-edit" onclick="editTest('${docSnap.id}')">
+                                            <i class="fas fa-pencil-alt"></i> Edit
+                                        </button>
+                                        <button class="btn-action btn-view" onclick="manageStudents('${docSnap.id}', '${test.testName}', '${test.section}')">
+                                            <i class="fas fa-users"></i> Manage
+                                        </button>
+                                        <button class="btn-action btn-delete" onclick="deleteTest('${docSnap.id}')">
+                                            <i class="fas fa-trash-alt"></i> Delete
+                                        </button>
+                                    </div>
+                                </td>
                             </tr>
                         `;
                          }
@@ -1669,7 +1993,8 @@
                                             All scheduled tests have expired or you haven't created any tests yet.<br>
                                             Click "Schedule New Test" to create a fitness test for your assigned section(s).
                                         </div>
-                                    </td>
+                                    </div>
+                                </td>
                             </tr>
                         `;
                     } else {
@@ -1683,7 +2008,8 @@
                                             You have not been assigned to any sections yet.<br><br>
                                             Please contact the Secretary to assign you to a section.
                                         </div>
-                                    </td>
+                                    </div>
+                                </td>
                             </tr>
                         `;
                     }
@@ -1706,7 +2032,8 @@
                                             You haven't scheduled any tests yet.<br>
                                             Click "Schedule New Test" to create a fitness test for your assigned section(s).
                                         </div>
-                                    </td>
+                                    </div>
+                                </td>
                             </tr>
                         `;
                     } else {
@@ -1720,7 +2047,8 @@
                                             You have not been assigned to any sections yet.<br><br>
                                             Please contact the Secretary to assign you to a section.
                                         </div>
-                                    </td>
+                                    </div>
+                                </td>
                             </tr>
                         `;
                     }
@@ -1734,7 +2062,7 @@
             }
         }
 
-        // Load Test Results - GROUP BY STUDENT
+        // Load Test Results - Grouped by Student
         async function loadTestResults(userEmail, userId) {
             try {
                 console.log('📊 Loading test results grouped by student...');
@@ -1756,37 +2084,93 @@
                     });
                 }
                 
-                // Query all test results
-                const resultsQuery = query(
-                    collection(db, 'testResults'),
-                    orderBy('submittedAt', 'desc')
-                );
+                // Query test results
+                const resultsRef = collection(db, 'testResults');
+                let resultsSnapshot;
                 
-                const resultsSnapshot = await getDocs(resultsQuery);
+                if (window.assignedSections.length > 0) {
+                    const sectionNames = window.assignedSections.map(s => s.section);
+                    const batches = [];
+                    
+                    for (let i = 0; i < sectionNames.length; i += 10) {
+                        const batch = sectionNames.slice(i, i + 10);
+                        const q = query(
+                            resultsRef,
+                            where('section', 'in', batch)
+                        );
+                        batches.push(getDocs(q));
+                    }
+                    
+                    const batchResults = await Promise.all(batches);
+                    resultsSnapshot = {
+                        empty: batchResults.every(batch => batch.empty),
+                        forEach: (callback) => {
+                            batchResults.forEach(batch => {
+                                batch.forEach(callback);
+                            });
+                        },
+                        size: batchResults.reduce((acc, batch) => acc + batch.size, 0)
+                    };
+                } else {
+                    resultsSnapshot = await getDocs(resultsRef);
+                }
+                
                 const tableBody = document.getElementById('resultsTableBody');
 
                 if (!resultsSnapshot.empty) {
-                    // GROUP RESULTS BY STUDENT
+                    // Group by BEST SCORE per test, not all attempts
                     window.studentResultsMap = new Map();
-                    let totalResults = 0;
-                    let totalScore = 0;
+                    const testGroups = new Map();
                     
                     resultsSnapshot.forEach((docSnap) => {
                         const result = docSnap.data();
                         
-                        // Filter by assigned sections
-                        if (window.assignedSections.length > 0) {
-                            const sectionNames = window.assignedSections.map(s => s.section);
-                            if (!sectionNames.includes(result.section)) return;
-                        }
+                        // Only include completed tests
+                        if (result.status !== 'completed') return;
                         
                         const studentEmail = result.studentEmail;
-                        const score = calculateTestScore(result.testName, result.resultData || result.result, result.testTarget);
+                        if (!studentEmail) return;
                         
-                        totalResults++;
-                        totalScore += score;
+                        // Calculate score using the EXACT same function as grades page
+                        const score = calculateTestScore(
+                            result.testName, 
+                            result.resultData || result.result || result.repetitions || result, 
+                            result.testTarget
+                        );
                         
-                        // Group by student
+                        // Validate score
+                        const validScore = Math.max(0, Math.min(100, score));
+                        
+                        // Parse date properly
+                        let submittedDate = new Date();
+                        if (result.submittedAt) {
+                            if (typeof result.submittedAt.toDate === 'function') {
+                                submittedDate = result.submittedAt.toDate();
+                            } else if (typeof result.submittedAt === 'string') {
+                                submittedDate = new Date(result.submittedAt);
+                            } else if (result.submittedAt.seconds) {
+                                submittedDate = new Date(result.submittedAt.seconds * 1000);
+                            }
+                        }
+                        
+                        // Group by testId and keep HIGHEST score
+                        const testId = result.testId || docSnap.id;
+                        const groupKey = `${studentEmail}_${testId}`;
+                        
+                        if (!testGroups.has(groupKey) || validScore > testGroups.get(groupKey).score) {
+                            testGroups.set(groupKey, {
+                                ...result,
+                                id: docSnap.id,
+                                score: validScore,
+                                submittedAt: submittedDate
+                            });
+                        }
+                    });
+                    
+                    // Now group by student using ONLY the best scores
+                    testGroups.forEach((result, key) => {
+                        const studentEmail = result.studentEmail;
+                        
                         if (!window.studentResultsMap.has(studentEmail)) {
                             window.studentResultsMap.set(studentEmail, {
                                 studentName: result.studentName || 'Unknown',
@@ -1802,50 +2186,39 @@
                         
                         const studentData = window.studentResultsMap.get(studentEmail);
                         
-                        // Add test result
-                        const date = result.submittedAt ? 
-                            (typeof result.submittedAt.toDate === 'function' ? result.submittedAt.toDate() : new Date(result.submittedAt)) : 
-                            new Date();
-                        
                         studentData.tests.push({
-                            id: docSnap.id,
+                            id: result.id,
                             testName: result.testName,
-                            score: score,
-                            result: result.result || result.resultData,
-                            date: date,
+                            score: result.score,
+                            result: result.result || result.resultData || result.repetitions || 'N/A',
+                            date: result.submittedAt,
                             attempt: result.attemptNumber || 1,
-                            rating: getRating(score)
+                            rating: getRating(result.score)
                         });
                         
                         // Update stats
                         studentData.totalTests++;
-                        if (score > studentData.bestScore) {
-                            studentData.bestScore = score;
+                        
+                        if (result.score > studentData.bestScore) {
+                            studentData.bestScore = result.score;
                         }
                         
-                        if (!studentData.lastActivity || date > studentData.lastActivity) {
-                            studentData.lastActivity = date;
+                        if (!studentData.lastActivity || result.submittedAt > studentData.lastActivity) {
+                            studentData.lastActivity = result.submittedAt;
                             studentData.lastTestName = result.testName;
                         }
                     });
                     
-                    // CALCULATE AVERAGES PER STUDENT
+                    // Calculate averages - show decimals instead of rounding
                     window.studentResultsMap.forEach((studentData) => {
-                        // Calculate average from all test scores
-                        const totalStudentScore = studentData.tests.reduce((sum, test) => sum + test.score, 0);
-                        studentData.averageScore = Math.round(totalStudentScore / studentData.tests.length);
+                        if (studentData.tests.length > 0) {
+                            const totalScore = studentData.tests.reduce((sum, test) => sum + test.score, 0);
+                            // Show 2 decimal places for average, but keep as number
+                            studentData.averageScore = parseFloat((totalScore / studentData.tests.length).toFixed(2));
+                        }
                     });
                     
-                    // UPDATE SUMMARY CARD
-                    const summaryCard = document.getElementById('resultsSummary');
-                    if (window.studentResultsMap.size > 0) {
-                        summaryCard.style.display = 'block';
-                        document.getElementById('totalResults').textContent = totalResults;
-                        document.getElementById('uniqueStudents').textContent = window.studentResultsMap.size;
-                        document.getElementById('averageScore').textContent = Math.round(totalScore / totalResults) + '%';
-                    }
-                    
-                    // RENDER GROUPED TABLE
+                    // Render table
                     renderStudentResultsTable();
                     
                 } else {
@@ -1865,7 +2238,7 @@
                 console.error('Error loading test results:', error);
             }
         }
-
+        
         // Render Student Results Table (One Row Per Student)
         function renderStudentResultsTable() {
             const tableBody = document.getElementById('resultsTableBody');
@@ -1901,11 +2274,11 @@
                         <strong>${studentData.averageScore}%</strong>
                     </td>
                     <td data-label="Last Activity">${lastActivityFormatted}</td>
-<td data-label="Actions">
-    <button class="btn-action btn-view" onclick="event.stopPropagation(); showStudentTestResults('${studentEmail}')">
-        <i class="fas fa-chart-line"></i> View Results
-    </button>
-</td>
+                    <td data-label="Actions">
+                        <button class="btn-action btn-view" onclick="event.stopPropagation(); showStudentTestResults('${studentEmail}')">
+                            <i class="fas fa-chart-line"></i> View Results
+                        </button>
+                    </td>
                 </tr>
                 `;
             });
@@ -1978,6 +2351,12 @@
             
             // Show modal
             document.getElementById('studentTestResultsModal').style.display = 'flex';
+            
+            // Scroll modal body to top
+            const modalBody = document.getElementById('modalBodyContent');
+            if (modalBody) {
+                modalBody.scrollTop = 0;
+            }
         };
 
         // Close Student Test Results Modal
@@ -1985,13 +2364,31 @@
             document.getElementById('studentTestResultsModal').style.display = 'none';
         };
 
+        // ============ REPLACE calculateTestScore() with this EXACT version ============
+        // Function to calculate test score - EXACT SAME AS STUDENT GRADES PAGE
         function calculateTestScore(testName, result, testTarget = null) {
-            const normalized = testName.toLowerCase();
+            const normalized = testName.toLowerCase().trim();
             
-            let numericValue = 0;
+            // ⭐ CRITICAL: Check if this is a professor override with pre-calculated score
+            if (result && typeof result === 'object' && result !== null) {
+                // If professor already set a final score, use it directly
+                if (result.score !== undefined && result.score !== null) {
+                    const score = parseFloat(result.score);
+                    if (!isNaN(score) && score >= 0 && score <= 100) {
+                        console.log(`✅ Using stored professor score: ${score} for ${testName}`);
+                        return score;
+                    }
+                }
+            }
             
             // Extract numeric value from result
-            if (typeof result === 'string') {
+            let numericValue = 0;
+            
+            if (typeof result === 'object' && result !== null) {
+                numericValue = result.repetitions || result.time || result.distance || 
+                              result.value || result.result || result.count || 
+                              result.score || 0;
+            } else if (typeof result === 'string') {
                 const match = result.match(/(\d+\.?\d*)/);
                 if (match) {
                     numericValue = parseFloat(match[1]);
@@ -2002,172 +2399,239 @@
                 numericValue = parseFloat(result) || 0;
             }
             
-            console.log(`🎯 Scoring: ${testName} | Value: ${numericValue} | Target: ${testTarget}`);
+            console.log(`🎯 Calculating: ${testName} | Value: ${numericValue} | Target: ${testTarget}`);
             
-            // If professor set a target, use target-based scoring
+            // Use test target if available
             if (testTarget && testTarget > 0) {
-                
-                // REPETITION TESTS (push-ups, sit-ups, curl-ups)
                 if (normalized.includes('push-up') || normalized.includes('pushup') || 
                     normalized.includes('sit-up') || normalized.includes('situp') ||
-                    normalized.includes('curl-up') || normalized.includes('curl up')) {
+                    normalized.includes('curl-up')) {
                     
-                    // Perfect score if meets or exceeds target
-                    if (numericValue >= testTarget) return 100;
+                    const reps = numericValue;
+                    if (reps >= testTarget) return 100;
                     
-                    const percentage = (numericValue / testTarget) * 100;
-                    if (percentage >= 90) return 95;
-                    if (percentage >= 80) return 90;
-                    if (percentage >= 70) return 85;
-                    if (percentage >= 60) return 80;
-                    if (percentage >= 50) return 75;
-                    if (percentage >= 40) return 70;
-                    return Math.max(50, Math.round(percentage));
+                    const percentage = (reps / testTarget) * 100;
+                    let score = Math.min(100, Math.max(50, percentage));
+                    
+                    if (percentage >= 100) score = 100;
+                    else if (percentage >= 90) score = 95;
+                    else if (percentage >= 80) score = 90;
+                    else if (percentage >= 70) score = 85;
+                    else if (percentage >= 60) score = 80;
+                    else if (percentage >= 50) score = 75;
+                    
+                    return score;
                 }
                 
-                // PLANK (seconds)
                 if (normalized.includes('plank')) {
-                    // Convert MM:SS to seconds if needed
-                    if (typeof result === 'string' && result.includes(':')) {
-                        const [mins, secs] = result.split(':').map(Number);
-                        numericValue = (mins * 60) + secs;
-                    }
+                    let seconds = numericValue;
+                    if (seconds >= testTarget) return 100;
                     
-                    if (numericValue >= testTarget) return 100;
+                    const percentage = (seconds / testTarget) * 100;
+                    let score = Math.min(100, Math.max(50, percentage));
                     
-                    const percentage = (numericValue / testTarget) * 100;
-                    if (percentage >= 90) return 95;
-                    if (percentage >= 80) return 90;
-                    if (percentage >= 70) return 85;
-                    if (percentage >= 60) return 80;
-                    if (percentage >= 50) return 75;
-                    return Math.max(50, Math.round(percentage));
+                    if (percentage >= 100) score = 100;
+                    else if (percentage >= 90) score = 95;
+                    else if (percentage >= 80) score = 90;
+                    else if (percentage >= 70) score = 85;
+                    else if (percentage >= 60) score = 80;
+                    else if (percentage >= 50) score = 75;
+                    
+                    return score;
                 }
                 
-                // GRIP STRENGTH (kg)
+                if (normalized.includes('sit-and-reach')) {
+                    const distance = numericValue;
+                    if (distance >= testTarget) return 100;
+                    
+                    const percentage = (distance / testTarget) * 100;
+                    let score = Math.min(100, Math.max(50, percentage));
+                    
+                    if (percentage >= 100) score = 100;
+                    else if (percentage >= 90) score = 95;
+                    else if (percentage >= 80) score = 90;
+                    else if (percentage >= 70) score = 85;
+                    else if (percentage >= 60) score = 80;
+                    else if (percentage >= 50) score = 75;
+                    
+                    return score;
+                }
+                
                 if (normalized.includes('grip')) {
                     if (numericValue >= testTarget) return 100;
                     
                     const percentage = (numericValue / testTarget) * 100;
-                    if (percentage >= 90) return 95;
-                    if (percentage >= 80) return 90;
-                    if (percentage >= 70) return 85;
-                    if (percentage >= 60) return 80;
-                    if (percentage >= 50) return 75;
-                    return Math.max(50, Math.round(percentage));
-                }
-                
-                // SIT-AND-REACH (cm)
-                if (normalized.includes('sit-and-reach')) {
-                    if (numericValue >= testTarget) return 100;
+                    let score = Math.min(100, Math.max(50, percentage));
                     
-                    const percentage = (numericValue / testTarget) * 100;
-                    if (percentage >= 90) return 95;
-                    if (percentage >= 80) return 90;
-                    if (percentage >= 70) return 85;
-                    if (percentage >= 60) return 80;
-                    if (percentage >= 50) return 75;
-                    return Math.max(50, Math.round(percentage));
+                    if (percentage >= 90) score = 95;
+                    else if (percentage >= 80) score = 90;
+                    else if (percentage >= 70) score = 85;
+                    else if (percentage >= 60) score = 80;
+                    else if (percentage >= 50) score = 75;
+                    
+                    return score;
                 }
                 
-                // 1-MILE RUN (seconds - LOWER IS BETTER)
                 if (normalized.includes('mile') || normalized.includes('run')) {
-            // Convert MM:SS to total seconds if needed
-                    if (typeof result === 'string' && result.includes(':')) {
-                        const [mins, secs] = result.split(':').map(Number);
-                        numericValue = (mins * 60) + secs;
-                    }
+                    if (numericValue <= testTarget) return 100;
                     
-                    // Convert testTarget from MINUTES to SECONDS
-                    const targetInSeconds = testTarget * 60;
+                    const percentage = (testTarget / numericValue) * 100;
+                    let score = Math.min(100, Math.max(50, percentage));
                     
-                    // If student time is <= target, perfect score
-                    if (numericValue <= targetInSeconds) return 100;
+                    if (percentage >= 90) score = 95;
+                    else if (percentage >= 80) score = 90;
+                    else if (percentage >= 70) score = 85;
+                    else if (percentage >= 60) score = 80;
+                    else if (percentage >= 50) score = 75;
                     
-                    const percentage = (targetInSeconds / numericValue) * 100;
-                    if (percentage >= 90) return 95;
-                    if (percentage >= 80) return 90;
-                    if (percentage >= 70) return 85;
-                    if (percentage >= 60) return 80;
-                    if (percentage >= 50) return 75;
-                    return Math.max(50, Math.round(percentage));
+                    return score;
                 }
                 
-                // STEP TEST (heart rate - LOWER IS BETTER)
                 if (normalized.includes('step test') || normalized.includes('3-minute')) {
                     if (numericValue <= testTarget) return 100;
                     
                     const percentage = (testTarget / numericValue) * 100;
-                    if (percentage >= 90) return 95;
-                    if (percentage >= 80) return 90;
-                    if (percentage >= 70) return 85;
-                    if (percentage >= 60) return 80;
-                    if (percentage >= 50) return 75;
-                    return Math.max(50, Math.round(percentage));
+                    let score = Math.min(100, Math.max(50, percentage));
+                    
+                    if (percentage >= 90) score = 95;
+                    else if (percentage >= 80) score = 90;
+                    else if (percentage >= 70) score = 85;
+                    else if (percentage >= 60) score = 80;
+                    else if (percentage >= 50) score = 75;
+                    
+                    return score;
                 }
             }
             
-            // Fallback to default scoring if no target set
+            // ============ FALLBACK DEFAULT SCORING ============
+            
             if (normalized.includes('push-up') || normalized.includes('pushup')) {
-                if (numericValue >= 40) return 100;
-                if (numericValue >= 30) return 90;
-                if (numericValue >= 20) return 80;
-                if (numericValue >= 15) return 70;
-                if (numericValue >= 10) return 60;
-                return 50;
-            } else if (normalized.includes('sit-up') || normalized.includes('situp')) {
-                if (numericValue >= 50) return 100;
-                if (numericValue >= 40) return 90;
-                if (numericValue >= 30) return 80;
-                if (numericValue >= 20) return 70;
-                if (numericValue >= 15) return 60;
-                return 50;
-            } else if (normalized.includes('plank')) {
-                if (numericValue >= 120) return 100;
-                if (numericValue >= 90) return 90;
-                if (numericValue >= 60) return 80;
-                if (numericValue >= 45) return 70;
-                if (numericValue >= 30) return 60;
-                return 50;
-            } else if (normalized.includes('step test') || normalized.includes('3-minute')) {
-                if (numericValue <= 80) return 100;
-                if (numericValue <= 100) return 90;
-                if (numericValue <= 120) return 80;
-                if (numericValue <= 140) return 70;
-                if (numericValue <= 160) return 60;
-                return 50;
-            } else if (normalized.includes('mile') || normalized.includes('run')) {
-                if (numericValue <= 420) return 100;
-                if (numericValue <= 480) return 90;
-                if (numericValue <= 540) return 80;
-                if (numericValue <= 600) return 70;
-                if (numericValue <= 660) return 60;
-                return 50;
-            } else if (normalized.includes('sit-and-reach')) {
-                if (numericValue >= 20) return 100;
-                if (numericValue >= 15) return 90;
-                if (numericValue >= 10) return 80;
-                if (numericValue >= 5) return 70;
-                if (numericValue >= 0) return 60;
-                return 50;
-            } else if (normalized.includes('grip')) {
-                if (numericValue >= 60) return 100;
-                if (numericValue >= 50) return 90;
-                if (numericValue >= 40) return 80;
-                if (numericValue >= 30) return 70;
-                return 60;
-            } else if (normalized.includes('curl-up')) {
-                if (numericValue >= 75) return 100;
-                if (numericValue >= 50) return 90;
-                if (numericValue >= 30) return 80;
-                if (numericValue >= 20) return 70;
+                const reps = numericValue;
+                if (reps >= 40) return 100;
+                if (reps >= 35) return 95;
+                if (reps >= 30) return 90;
+                if (reps >= 25) return 85;
+                if (reps >= 20) return 80;
+                if (reps >= 15) return 75;
+                if (reps >= 10) return 70;
+                if (reps >= 5) return 65;
                 return 60;
             }
             
-            return 75; // Default fallback
+            if (normalized.includes('sit-up') || normalized.includes('situp')) {
+                const reps = numericValue;
+                if (reps >= 50) return 100;
+                if (reps >= 45) return 95;
+                if (reps >= 40) return 90;
+                if (reps >= 35) return 85;
+                if (reps >= 30) return 80;
+                if (reps >= 25) return 75;
+                if (reps >= 20) return 70;
+                if (reps >= 15) return 65;
+                return 60;
+            }
+            
+            if (normalized.includes('curl-up')) {
+                const reps = numericValue;
+                if (reps >= 75) return 100;
+                if (reps >= 60) return 95;
+                if (reps >= 50) return 90;
+                if (reps >= 40) return 85;
+                if (reps >= 30) return 80;
+                if (reps >= 25) return 75;
+                if (reps >= 20) return 70;
+                return 65;
+            }
+            
+            if (normalized.includes('plank')) {
+                let seconds = 0;
+                if (typeof numericValue === 'string' && numericValue.includes(':')) {
+                    const [mins, secs] = numericValue.split(':').map(Number);
+                    seconds = (mins * 60) + (secs || 0);
+                } else {
+                    seconds = numericValue;
+                }
+                
+                if (seconds >= 180) return 100;
+                if (seconds >= 150) return 95;
+                if (seconds >= 120) return 90;
+                if (seconds >= 100) return 85;
+                if (seconds >= 80) return 80;
+                if (seconds >= 60) return 75;
+                if (seconds >= 45) return 70;
+                if (seconds >= 30) return 65;
+                return 60;
+            }
+            
+            if (normalized.includes('step test') || normalized.includes('3-minute')) {
+                const heartRate = numericValue;
+                if (heartRate <= 70) return 100;
+                if (heartRate <= 80) return 95;
+                if (heartRate <= 90) return 90;
+                if (heartRate <= 100) return 85;
+                if (heartRate <= 110) return 80;
+                if (heartRate <= 120) return 75;
+                if (heartRate <= 130) return 70;
+                return 65;
+            }
+            
+            if (normalized.includes('mile') || normalized.includes('run')) {
+                let totalSeconds = 0;
+                if (typeof numericValue === 'string' && numericValue.includes(':')) {
+                    const [minutes, seconds] = numericValue.split(':').map(Number);
+                    totalSeconds = (minutes * 60) + (seconds || 0);
+                } else {
+                    totalSeconds = numericValue;
+                }
+                
+                if (totalSeconds <= 360) return 100;
+                if (totalSeconds <= 420) return 95;
+                if (totalSeconds <= 480) return 90;
+                if (totalSeconds <= 540) return 85;
+                if (totalSeconds <= 600) return 80;
+                if (totalSeconds <= 660) return 75;
+                if (totalSeconds <= 720) return 70;
+                if (totalSeconds <= 780) return 65;
+                return 60;
+            }
+            
+            if (normalized.includes('sit-and-reach')) {
+                const distance = numericValue;
+                if (distance >= 25) return 100;
+                if (distance >= 20) return 95;
+                if (distance >= 15) return 90;
+                if (distance >= 10) return 85;
+                if (distance >= 5) return 80;
+                if (distance >= 0) return 75;
+                if (distance >= -5) return 70;
+                return 65;
+            }
+            
+            if (normalized.includes('grip')) {
+                const strength = numericValue;
+                if (strength >= 60) return 100;
+                if (strength >= 55) return 95;
+                if (strength >= 50) return 90;
+                if (strength >= 45) return 85;
+                if (strength >= 40) return 80;
+                if (strength >= 35) return 75;
+                if (strength >= 30) return 70;
+                return 65;
+            }
+            
+            if (normalized.includes('bmi')) {
+                const bmi = numericValue;
+                if (bmi >= 18.5 && bmi <= 24.9) return 100;
+                if (bmi >= 17.5 && bmi < 18.5) return 85;
+                if (bmi >= 25 && bmi <= 27) return 85;
+                if (bmi >= 15 && bmi < 17.5) return 70;
+                if (bmi > 27 && bmi <= 30) return 70;
+                return 60;
+            }
+            
+            return 75;
         }
-
-        // Open Manage Students Modal
+        
         window.manageStudents = async function(testId, testName, section) {
             try {
                 console.log('📋 Opening student management for test:', testId);
@@ -2179,153 +2643,154 @@
                 // Update header
                 document.getElementById('testInfoHeader').textContent = `${testName} - ${section}`;
                         
-                        // Reset button state before showing modal
-                        const saveBtn = document.querySelector('#manageStudentsModal .btn-success');
-                        const cancelBtn = document.querySelector('#manageStudentsModal .btn-secondary');
-                        if (saveBtn) {
-                            saveBtn.disabled = false;
-                            saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Selection';
-                        }
-                        if (cancelBtn) {
-                            cancelBtn.disabled = false;
-                        }
-                        
-                        // Show modal
-                        document.getElementById('manageStudentsModal').style.display = 'flex';
-                        
-                        // Load test data to get currently selected students
-                        const testDoc = await getDoc(doc(db, 'scheduledTests', testId));
-                        const testData = testDoc.data();
-                        
-                        // Auto-select all students if none selected yet
-                        if (!testData.selectedStudents || testData.selectedStudents.length === 0) {
-                            console.log('🔄 No students selected yet, will auto-select all after loading');
-                            window.selectedStudentEmails = new Set();
-                            window.autoSelectAll = true; // Flag to auto-select after loading
-                        } else {
-                            // Initialize selected students from saved data
-                            window.selectedStudentEmails = new Set(testData.selectedStudents || []);
-                            window.autoSelectAll = false;
-                        }
-                        
-                        // Load students from this section
-                        await loadStudentsForTest(section);
-                        
-                    } catch (error) {
-                        console.error('Error opening student management:', error);
-                        alert('Error loading students: ' + error.message);
-                        
-                        // Reset button state on error too
-                        const saveBtn = document.querySelector('#manageStudentsModal .btn-success');
-                        const cancelBtn = document.querySelector('#manageStudentsModal .btn-secondary');
-                        if (saveBtn) {
-                            saveBtn.disabled = false;
-                            saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Selection';
-                        }
-                        if (cancelBtn) {
-                            cancelBtn.disabled = false;
-                        }
-                    }
-                };
-async function loadStudentsForTest(section) {
-    const container = document.getElementById('studentsListContainer');
-    
-    try {
-        container.innerHTML = '<p style="text-align: center; color: #64748b; padding: 20px;"><i class="fas fa-spinner fa-spin"></i> Loading students...</p>';
-        
-        // Query the sections collection
-        const sectionsQuery = query(
-            collection(db, 'sections'),
-            where('name', '==', section)
-        );
-        
-        const sectionsSnapshot = await getDocs(sectionsQuery);
-        
-        if (sectionsSnapshot.empty) {
-            container.innerHTML = `<p style="text-align: center; color: #64748b; padding: 20px;">No section found: ${section}</p>`;
-            window.currentTestStudents = [];
-            updateStudentSelectionCount();
-            return;
-        }
-        
-        const sectionData = sectionsSnapshot.docs[0].data();
-        console.log('📋 Raw section data:', sectionData);
-        console.log('📋 Students field:', sectionData.students);
-        
-        const rawStudents = sectionData.students || [];
-        
-        if (rawStudents.length === 0) {
-            container.innerHTML = '<p style="text-align: center; color: #64748b; padding: 20px;">No students found in this section</p>';
-            window.currentTestStudents = [];
-            updateStudentSelectionCount();
-            return;
-        }
-        
-        // ✅ HANDLE ALL FORMATS: string emails OR objects
-        window.currentTestStudents = rawStudents.map((student, index) => {
-            // If it's already a string (email)
-            if (typeof student === 'string') {
-                return {
-                    id: student,
-                    email: student,
-                    displayName: student,
-                    name: student,
-                    studentNumber: 'N/A'
-                };
-            }
-            
-            // If it's an object - extract fields
-            if (typeof student === 'object' && student !== null) {
-                const email = student.email || student.studentEmail || student.id || `student_${index}`;
-                const name = student.displayName || student.name || student.fullName || 
-                             student.firstName || email;
-                const studentNumber = student.studentNumber || student.studentId || 
-                                     student.idNumber || 'N/A';
+                // Reset button state before showing modal
+                const saveBtn = document.querySelector('#manageStudentsModal .modal-footer button:last-child');
+                const cancelBtn = document.querySelector('#manageStudentsModal .modal-footer button:first-child');
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Selection';
+                }
+                if (cancelBtn) {
+                    cancelBtn.disabled = false;
+                }
                 
-                return {
-                    id: student.id || email,
-                    email: email,
-                    displayName: name,
-                    name: name,
-                    studentNumber: studentNumber,
-                    ...student  // keep all original fields
-                };
+                // Show modal
+                document.getElementById('manageStudentsModal').style.display = 'flex';
+                
+                // Load test data to get currently selected students
+                const testDoc = await getDoc(doc(db, 'scheduledTests', testId));
+                const testData = testDoc.data();
+                
+                // Auto-select all students if none selected yet
+                if (!testData.selectedStudents || testData.selectedStudents.length === 0) {
+                    console.log('🔄 No students selected yet, will auto-select all after loading');
+                    window.selectedStudentEmails = new Set();
+                    window.autoSelectAll = true;
+                } else {
+                    // Initialize selected students from saved data
+                    window.selectedStudentEmails = new Set(testData.selectedStudents || []);
+                    window.autoSelectAll = false;
+                }
+                
+                // Load students from this section
+                await loadStudentsForTest(section);
+                
+            } catch (error) {
+                console.error('Error opening student management:', error);
+                alert('Error loading students: ' + error.message);
+                
+                const saveBtn = document.querySelector('#manageStudentsModal .modal-footer button:last-child');
+                const cancelBtn = document.querySelector('#manageStudentsModal .modal-footer button:first-child');
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Selection';
+                }
+                if (cancelBtn) {
+                    cancelBtn.disabled = false;
+                }
             }
+        };
+        
+        async function loadStudentsForTest(section) {
+            const container = document.getElementById('studentsListContainer');
             
-            // Fallback
-            return {
-                id: `student_${index}`,
-                email: `student_${index}@unknown.com`,
-                displayName: 'Unknown Student',
-                name: 'Unknown Student',
-                studentNumber: 'N/A'
-            };
-        });
-        
-        // Sort safely
-        window.currentTestStudents.sort((a, b) => {
-            const nameA = String(a.displayName || a.name || a.email || '');
-            const nameB = String(b.displayName || b.name || b.email || '');
-            return nameA.localeCompare(nameB);
-        });
-        
-        // Auto-select all if flag is set
-        if (window.autoSelectAll) {
-            window.currentTestStudents.forEach(student => {
-                window.selectedStudentEmails.add(student.email);
-            });
-            window.autoSelectAll = false;
+            try {
+                container.innerHTML = '<p style="text-align: center; color: #64748b; padding: 20px;"><i class="fas fa-spinner fa-spin"></i> Loading students...</p>';
+                
+                // Query the sections collection
+                const sectionsQuery = query(
+                    collection(db, 'sections'),
+                    where('name', '==', section)
+                );
+                
+                const sectionsSnapshot = await getDocs(sectionsQuery);
+                
+                if (sectionsSnapshot.empty) {
+                    container.innerHTML = `<p style="text-align: center; color: #64748b; padding: 20px;">No section found: ${section}</p>`;
+                    window.currentTestStudents = [];
+                    updateStudentSelectionCount();
+                    return;
+                }
+                
+                const sectionData = sectionsSnapshot.docs[0].data();
+                console.log('📋 Raw section data:', sectionData);
+                console.log('📋 Students field:', sectionData.students);
+                
+                const rawStudents = sectionData.students || [];
+                
+                if (rawStudents.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #64748b; padding: 20px;">No students found in this section</p>';
+                    window.currentTestStudents = [];
+                    updateStudentSelectionCount();
+                    return;
+                }
+                
+                // ✅ HANDLE ALL FORMATS: string emails OR objects
+                window.currentTestStudents = rawStudents.map((student, index) => {
+                    // If it's already a string (email)
+                    if (typeof student === 'string') {
+                        return {
+                            id: student,
+                            email: student,
+                            displayName: student,
+                            name: student,
+                            studentNumber: 'N/A'
+                        };
+                    }
+                    
+                    // If it's an object - extract fields
+                    if (typeof student === 'object' && student !== null) {
+                        const email = student.email || student.studentEmail || student.id || `student_${index}`;
+                        const name = student.displayName || student.name || student.fullName || 
+                                     student.firstName || email;
+                        const studentNumber = student.studentNumber || student.studentId || 
+                                             student.idNumber || 'N/A';
+                        
+                        return {
+                            id: student.id || email,
+                            email: email,
+                            displayName: name,
+                            name: name,
+                            studentNumber: studentNumber,
+                            ...student
+                        };
+                    }
+                    
+                    // Fallback
+                    return {
+                        id: `student_${index}`,
+                        email: `student_${index}@unknown.com`,
+                        displayName: 'Unknown Student',
+                        name: 'Unknown Student',
+                        studentNumber: 'N/A'
+                    };
+                });
+                
+                // Sort safely
+                window.currentTestStudents.sort((a, b) => {
+                    const nameA = String(a.displayName || a.name || a.email || '');
+                    const nameB = String(b.displayName || b.name || b.email || '');
+                    return nameA.localeCompare(nameB);
+                });
+                
+                // Auto-select all if flag is set
+                if (window.autoSelectAll) {
+                    window.currentTestStudents.forEach(student => {
+                        window.selectedStudentEmails.add(student.email);
+                    });
+                    window.autoSelectAll = false;
+                }
+                
+                console.log(`✅ Processed ${window.currentTestStudents.length} students:`, window.currentTestStudents);
+                
+                renderStudentListForTest();
+                
+            } catch (error) {
+                console.error('Error loading students:', error);
+                container.innerHTML = `<p style="text-align: center; color: #ef4444; padding: 20px;">Error: ${error.message}</p>`;
+            }
         }
         
-        console.log(`✅ Processed ${window.currentTestStudents.length} students:`, window.currentTestStudents);
-        
-        renderStudentListForTest();
-        
-    } catch (error) {
-        console.error('Error loading students:', error);
-        container.innerHTML = `<p style="text-align: center; color: #ef4444; padding: 20px;">Error: ${error.message}</p>`;
-    }
-}
         // Render student list with checkboxes
         function renderStudentListForTest(filterText = '') {
             const container = document.getElementById('studentsListContainer');
@@ -2421,15 +2886,19 @@ async function loadStudentsForTest(section) {
                 }
             }
             
-            const saveBtn = document.querySelector('#manageStudentsModal .btn-success');
-            const cancelBtn = document.querySelector('#manageStudentsModal .btn-secondary');
-            const originalText = saveBtn.innerHTML;
+            const saveBtn = document.querySelector('#manageStudentsModal .modal-footer button:last-child');
+            const cancelBtn = document.querySelector('#manageStudentsModal .modal-footer button:first-child');
+            const originalText = saveBtn ? saveBtn.innerHTML : '<i class="fas fa-save"></i> Save Selection';
             
             try {
                 // Disable buttons
-                saveBtn.disabled = true;
-                cancelBtn.disabled = true;
-                saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+                if (saveBtn) {
+                    saveBtn.disabled = true;
+                    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+                }
+                if (cancelBtn) {
+                    cancelBtn.disabled = true;
+                }
                 
                 // Convert Set to Array
                 const selectedStudentsArray = Array.from(window.selectedStudentEmails);
@@ -2490,9 +2959,13 @@ async function loadStudentsForTest(section) {
                 console.log(`✅ Created ${notificationPromises.length} notifications`);
                 
                 // Reset button state BEFORE closing modal
-                saveBtn.disabled = false;
-                cancelBtn.disabled = false;
-                saveBtn.innerHTML = originalText;
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = originalText;
+                }
+                if (cancelBtn) {
+                    cancelBtn.disabled = false;
+                }
                 
                 // Close modal
                 closeManageStudentsModal();
@@ -2508,9 +2981,13 @@ async function loadStudentsForTest(section) {
                 alert('Error saving: ' + error.message);
                 
                 // Reset button state on error
-                saveBtn.disabled = false;
-                cancelBtn.disabled = false;
-                saveBtn.innerHTML = originalText;
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = originalText;
+                }
+                if (cancelBtn) {
+                    cancelBtn.disabled = false;
+                }
             }
         };
 
@@ -2520,8 +2997,8 @@ async function loadStudentsForTest(section) {
             modal.style.display = 'none';
             
             // Reset button state when closing
-            const saveBtn = document.querySelector('#manageStudentsModal .btn-success');
-            const cancelBtn = document.querySelector('#manageStudentsModal .btn-secondary');
+            const saveBtn = document.querySelector('#manageStudentsModal .modal-footer button:last-child');
+            const cancelBtn = document.querySelector('#manageStudentsModal .modal-footer button:first-child');
             if (saveBtn) {
                 saveBtn.disabled = false;
                 saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Selection';
@@ -2539,79 +3016,79 @@ async function loadStudentsForTest(section) {
 
         // Show schedule test modal
         window.showScheduleTestModal = function() {
-        console.log('Opening schedule modal...');
-        
-        const modal = document.getElementById('scheduleTestModal');
-        const sectionSelect = document.getElementById('testSection');
-        
-        // **RESET BUTTON STATE FIRST**
-        const submitBtn = document.querySelector('#scheduleTestModal .modal-footer button:last-child');
-        const cancelBtn = document.querySelector('#scheduleTestModal .modal-footer button:first-child');
-        
-        if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'Schedule Test';
-        }
-        if (cancelBtn) {
-            cancelBtn.disabled = false;
-        }
-        
-        // Clear all form fields
-        document.getElementById('testType').value = '';
-        document.getElementById('videoURL').value = '';
-        document.getElementById('testInstructions').value = '';
-        document.getElementById('testTarget').value = '';
-        document.getElementById('attemptsAllowed').value = '1';
-        document.getElementById('testTargetGroup').style.display = 'none';
-        
-        // Clear previous options
-        sectionSelect.innerHTML = '<option value="">Select Section</option>';
-        
-        if (window.assignedSections && window.assignedSections.length > 0) {
-            const uniqueSections = [];
-            const seenSections = new Set();
+            console.log('Opening schedule modal...');
             
-            window.assignedSections.forEach(section => {
-                if (!seenSections.has(section.section)) {
-                    seenSections.add(section.section);
-                    uniqueSections.push(section);
-                }
-            });
+            const modal = document.getElementById('scheduleTestModal');
+            const sectionSelect = document.getElementById('testSection');
             
-            uniqueSections.forEach(section => {
+            // RESET BUTTON STATE FIRST
+            const submitBtn = document.querySelector('#scheduleTestModal .modal-footer button:last-child');
+            const cancelBtn = document.querySelector('#scheduleTestModal .modal-footer button:first-child');
+            
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Schedule Test';
+            }
+            if (cancelBtn) {
+                cancelBtn.disabled = false;
+            }
+            
+            // Clear all form fields
+            document.getElementById('testType').value = '';
+            document.getElementById('videoURL').value = '';
+            document.getElementById('testInstructions').value = '';
+            document.getElementById('testTarget').value = '';
+            document.getElementById('attemptsAllowed').value = '1';
+            document.getElementById('testTargetGroup').style.display = 'none';
+            
+            // Clear previous options
+            sectionSelect.innerHTML = '<option value="">Select Section</option>';
+            
+            if (window.assignedSections && window.assignedSections.length > 0) {
+                const uniqueSections = [];
+                const seenSections = new Set();
+                
+                window.assignedSections.forEach(section => {
+                    if (!seenSections.has(section.section)) {
+                        seenSections.add(section.section);
+                        uniqueSections.push(section);
+                    }
+                });
+                
+                uniqueSections.forEach(section => {
+                    const option = document.createElement('option');
+                    option.value = section.section;
+                    option.textContent = `${section.section} (${section.students} students) - ${section.time || 'TBA'} / ${section.day || 'TBA'} / ${section.room || 'TBA'}`;
+                    sectionSelect.appendChild(option);
+                });
+                
+                console.log('✓ Added', uniqueSections.length, 'unique sections to dropdown');
+            } else {
                 const option = document.createElement('option');
-                option.value = section.section;
-                option.textContent = `${section.section} (${section.students} students) - ${section.time || 'TBA'} / ${section.day || 'TBA'} / ${section.room || 'TBA'}`;
+                option.value = "no-sections";
+                option.textContent = "No sections assigned - Contact Head Admin";
+                option.disabled = true;
                 sectionSelect.appendChild(option);
-            });
+            }
             
-            console.log('✓ Added', uniqueSections.length, 'unique sections to dropdown');
-        } else {
-            const option = document.createElement('option');
-            option.value = "no-sections";
-            option.textContent = "No sections assigned - Contact Head Admin";
-            option.disabled = true;
-            sectionSelect.appendChild(option);
-        }
-        
-        // Set default dates
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('testDate').value = today;
-        
-        const nextWeek = new Date();
-        nextWeek.setDate(nextWeek.getDate() + 7);
-        document.getElementById('testDeadline').value = nextWeek.toISOString().split('T')[0];
-        document.getElementById('testDeadlineTime').value = '23:59';
-        document.getElementById('testTime').value = '00:00';
-        
-        // Setup test type change handler
-        const testTypeSelect = document.getElementById('testType');
-        testTypeSelect.removeEventListener('change', handleTestTypeChange);
-        testTypeSelect.addEventListener('change', handleTestTypeChange);
-        
-        // Show modal
-        modal.style.display = 'flex';
-    };
+            // Set default dates
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('testDate').value = today;
+            
+            const nextWeek = new Date();
+            nextWeek.setDate(nextWeek.getDate() + 7);
+            document.getElementById('testDeadline').value = nextWeek.toISOString().split('T')[0];
+            document.getElementById('testDeadlineTime').value = '23:59';
+            document.getElementById('testTime').value = '00:00';
+            
+            // Setup test type change handler
+            const testTypeSelect = document.getElementById('testType');
+            testTypeSelect.removeEventListener('change', handleTestTypeChange);
+            testTypeSelect.addEventListener('change', handleTestTypeChange);
+            
+            // Show modal
+            modal.style.display = 'flex';
+        };
 
         function handleTestTypeChange(event) {
             const testType = event.target.value;
@@ -2627,7 +3104,6 @@ async function loadStudentsForTest(section) {
             
             const normalizedType = testType.toLowerCase();
             
-            // 3-Minute Step Test (Fixed Duration)
             if (normalizedType.includes('3-minute') || normalizedType.includes('step test')) {
                 targetGroup.style.display = 'block';
                 targetLabel.textContent = 'Target Duration (minutes)';
@@ -2636,7 +3112,6 @@ async function loadStudentsForTest(section) {
                 targetInput.readOnly = true;
                 targetHint.textContent = 'This test has a fixed duration of 3 minutes';
             }
-            // Curl-Up Test
             else if (normalizedType.includes('curl-up')) {
                 targetGroup.style.display = 'block';
                 targetLabel.textContent = 'Target Curl-Ups';
@@ -2645,7 +3120,6 @@ async function loadStudentsForTest(section) {
                 targetInput.readOnly = false;
                 targetHint.textContent = 'Set the target number of abdominal curls (one every 3 seconds)';
             }
-            // Push-Up Test
             else if (normalizedType.includes('push-up') || normalizedType.includes('pushup')) {
                 targetGroup.style.display = 'block';
                 targetLabel.textContent = 'Target Push-ups';
@@ -2654,7 +3128,6 @@ async function loadStudentsForTest(section) {
                 targetInput.readOnly = false;
                 targetHint.textContent = 'Set the target number of push-ups students should aim to complete';
             }
-            // Sit-and-Reach
             else if (normalizedType.includes('sit-and-reach')) {
                 targetGroup.style.display = 'block';
                 targetLabel.textContent = 'Target Distance (cm)';
@@ -2663,7 +3136,6 @@ async function loadStudentsForTest(section) {
                 targetInput.readOnly = false;
                 targetHint.textContent = 'Set the target reach distance in centimeters';
             }
-            // Skinfold Caliper
             else if (normalizedType.includes('skinfold')) {
                 targetGroup.style.display = 'block';
                 targetLabel.textContent = 'Target Body Fat %';
@@ -2677,7 +3149,6 @@ async function loadStudentsForTest(section) {
             }
         }
 
-        // Schedule test function
         // Schedule test function
         window.scheduleTest = async function() {
             const testType = document.getElementById('testType').value;
@@ -2705,7 +3176,6 @@ async function loadStudentsForTest(section) {
             const now = new Date();
             const today = now.toISOString().split('T')[0];
 
-            // Only check if the date is in the past (ignore time for today's date)
             if (testDate < today) {
                 alert('❌ Error: Test date cannot be in the past.\n\nPlease select today or a future date.');
                 return;
@@ -2855,7 +3325,7 @@ async function loadStudentsForTest(section) {
         };
 
         // Delete test function
-        async function deleteTest(testId) {
+        window.deleteTest = async function(testId) {
             if (confirm('Are you sure you want to delete this test? This action cannot be undone.')) {
                 try {
                     await deleteDoc(doc(db, 'scheduledTests', testId));
@@ -2866,7 +3336,7 @@ async function loadStudentsForTest(section) {
                     alert('Error deleting test: ' + error.message);
                 }
             }
-        }
+        };
 
         // Edit test function
         window.editTest = async function(testId) {
@@ -2972,8 +3442,8 @@ async function loadStudentsForTest(section) {
                 }
                 
                 // Enable buttons
-                const saveBtn = document.querySelector('#editTestModal .btn-success');
-                const cancelBtn = document.querySelector('#editTestModal .btn-secondary');
+                const saveBtn = document.querySelector('#editTestModal .modal-footer button:last-child');
+                const cancelBtn = document.querySelector('#editTestModal .modal-footer button:first-child');
                 
                 if (saveBtn) {
                     saveBtn.disabled = false;
@@ -2996,130 +3466,124 @@ async function loadStudentsForTest(section) {
         };
 
         window.saveEditTest = async function() {
-    const testId = document.getElementById('editTestId').value;
-    const newDate = document.getElementById('editTestDate').value;
-    const newTime = document.getElementById('editTestTime').value;
-    const newDeadline = document.getElementById('editTestDeadline').value;
-    const newDeadlineTime = document.getElementById('editTestDeadlineTime').value;
-    const newTarget = document.getElementById('editTestTarget').value;
-    
-    if (!newDate || !newTime || !newDeadline || !newDeadlineTime) {
-        alert('Please fill in all required fields');
-        return;
-    }
-    
-    // Only validate that deadline is after test date + time
-    const testDateTime = new Date(`${newDate}T${newTime}`);
-    const deadlineDateTime = new Date(`${newDeadline}T${newDeadlineTime}`);
-    
-    if (deadlineDateTime <= testDateTime) {
-        alert('❌ Error: Deadline must be after the test date and time.');
-        return;
-    }
-    
-    const saveBtn = document.querySelector('#editTestModal .modal-footer button:last-child');
-    const cancelBtn = document.querySelector('#editTestModal .modal-footer button:first-child');
-    const originalText = saveBtn ? saveBtn.textContent : 'Save Changes';
-    
-    try {
-        if (saveBtn) saveBtn.disabled = true;
-        if (cancelBtn) cancelBtn.disabled = true;
-        if (saveBtn) saveBtn.textContent = 'Saving...';
-        
-        const updateData = {
-            date: newDate,
-            time: newTime,
-            dateTime: testDateTime.toISOString(),
-            deadline: newDeadline,
-            deadlineTime: newDeadlineTime,
-            deadlineDateTime: deadlineDateTime.toISOString(),
-            testTarget: newTarget ? parseInt(newTarget) : null,
-            updatedAt: serverTimestamp()
+            const testId = document.getElementById('editTestId').value;
+            const newDate = document.getElementById('editTestDate').value;
+            const newTime = document.getElementById('editTestTime').value;
+            const newDeadline = document.getElementById('editTestDeadline').value;
+            const newDeadlineTime = document.getElementById('editTestDeadlineTime').value;
+            const newTarget = document.getElementById('editTestTarget').value;
+            
+            if (!newDate || !newTime || !newDeadline || !newDeadlineTime) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            const testDateTime = new Date(`${newDate}T${newTime}`);
+            const deadlineDateTime = new Date(`${newDeadline}T${newDeadlineTime}`);
+            
+            if (deadlineDateTime <= testDateTime) {
+                alert('❌ Error: Deadline must be after the test date and time.');
+                return;
+            }
+            
+            const saveBtn = document.querySelector('#editTestModal .modal-footer button:last-child');
+            const cancelBtn = document.querySelector('#editTestModal .modal-footer button:first-child');
+            const originalText = saveBtn ? saveBtn.textContent : 'Save Changes';
+            
+            try {
+                if (saveBtn) saveBtn.disabled = true;
+                if (cancelBtn) cancelBtn.disabled = true;
+                if (saveBtn) saveBtn.textContent = 'Saving...';
+                
+                const updateData = {
+                    date: newDate,
+                    time: newTime,
+                    dateTime: testDateTime.toISOString(),
+                    deadline: newDeadline,
+                    deadlineTime: newDeadlineTime,
+                    deadlineDateTime: deadlineDateTime.toISOString(),
+                    testTarget: newTarget ? parseInt(newTarget) : null,
+                    updatedAt: serverTimestamp()
+                };
+                
+                const now = new Date();
+                if (testDateTime <= now && deadlineDateTime >= now) {
+                    updateData.status = 'active';
+                } else if (deadlineDateTime < now) {
+                    updateData.status = 'completed';
+                } else {
+                    updateData.status = 'scheduled';
+                }
+                
+                await updateDoc(doc(db, 'scheduledTests', testId), updateData);
+                
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = originalText;
+                }
+                if (cancelBtn) {
+                    cancelBtn.disabled = false;
+                }
+                
+                closeEditTestModal();
+                alert('✅ Test updated successfully!');
+                await loadScheduledTests(window.currentUser.email, window.currentUser.uid);
+                
+            } catch (error) {
+                console.error('❌ Error:', error);
+                alert('Error updating test: ' + error.message);
+                
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = originalText;
+                }
+                if (cancelBtn) {
+                    cancelBtn.disabled = false;
+                }
+            }
         };
-        
-        const now = new Date();
-        if (testDateTime <= now && deadlineDateTime >= now) {
-            updateData.status = 'active';
-        } else if (deadlineDateTime < now) {
-            updateData.status = 'completed';
-        } else {
-            updateData.status = 'scheduled';
-        }
-        
-        await updateDoc(doc(db, 'scheduledTests', testId), updateData);
-        
-        // Re-enable buttons BEFORE closing modal
-        if (saveBtn) {
-            saveBtn.disabled = false;
-            saveBtn.textContent = originalText;
-        }
-        if (cancelBtn) {
-            cancelBtn.disabled = false;
-        }
-        
-        closeEditTestModal();
-        alert('✅ Test updated successfully!');
-        await loadScheduledTests(window.currentUser.email, window.currentUser.uid);
-        
-    } catch (error) {
-        console.error('❌ Error:', error);
-        alert('Error updating test: ' + error.message);
-        
-        // Re-enable buttons on error
-        if (saveBtn) {
-            saveBtn.disabled = false;
-            saveBtn.textContent = originalText;
-        }
-        if (cancelBtn) {
-            cancelBtn.disabled = false;
-        }
-    }
-};
 
         // Export functions to window
         window.loadScheduledTests = loadScheduledTests;
         window.loadTestResults = loadTestResults;
-        window.deleteTest = deleteTest;
     </script>
 
     <script>
         // Filter functions
-       function filterScheduleTable() {
-        const searchInput = document.getElementById('searchSchedule');
-        const typeFilter = document.getElementById('filterTestType');
-        
-        const searchValue = (searchInput?.value || '').toUpperCase();
-        const typeValue = (typeFilter?.value || '').toUpperCase();
-        
-        const table = document.getElementById('scheduleTable');
-        const tr = table.getElementsByTagName('tr');
-        
-        for (let i = 1; i < tr.length; i++) {
-            const td = tr[i].getElementsByTagName('td');
-            if (td.length <= 1) continue; // skip empty state rows
+        function filterScheduleTable() {
+            const searchInput = document.getElementById('searchSchedule');
+            const typeFilter = document.getElementById('filterTestType');
             
-            let showRow = true;
+            const searchValue = (searchInput?.value || '').toUpperCase();
+            const typeValue = (typeFilter?.value || '').toUpperCase();
             
-            // Search filter — check test name (col 0) and section (col 1)
-            if (searchValue) {
-                const testName = (td[0]?.textContent || '').toUpperCase();
-                const section  = (td[1]?.textContent || '').toUpperCase();
-                if (!testName.includes(searchValue) && !section.includes(searchValue)) {
-                    showRow = false;
+            const table = document.getElementById('scheduleTable');
+            const tr = table.getElementsByTagName('tr');
+            
+            for (let i = 1; i < tr.length; i++) {
+                const td = tr[i].getElementsByTagName('td');
+                if (td.length <= 1) continue;
+                
+                let showRow = true;
+                
+                if (searchValue) {
+                    const testName = (td[0]?.textContent || '').toUpperCase();
+                    const section  = (td[1]?.textContent || '').toUpperCase();
+                    if (!testName.includes(searchValue) && !section.includes(searchValue)) {
+                        showRow = false;
+                    }
                 }
-            }
-            
-            // Test type filter — check test name (col 0)
-            if (showRow && typeValue) {
-                const testName = (td[0]?.textContent || '').toUpperCase();
-                if (!testName.includes(typeValue)) {
-                    showRow = false;
+                
+                if (showRow && typeValue) {
+                    const testName = (td[0]?.textContent || '').toUpperCase();
+                    if (!testName.includes(typeValue)) {
+                        showRow = false;
+                    }
                 }
+                
+                tr[i].style.display = showRow ? '' : 'none';
             }
-            
-            tr[i].style.display = showRow ? '' : 'none';
         }
-    }
         
         function filterResultsTable() {
             const searchInput = document.getElementById('searchResults');
@@ -3134,14 +3598,12 @@ async function loadStudentsForTest(section) {
             for (let i = 1; i < tr.length; i++) {
                 const td = tr[i].getElementsByTagName('td');
                 
-                // Skip if it's the empty state row
                 if (td.length === 1) {
                     continue;
                 }
                 
                 let showRow = true;
                 
-                // Search filter (student name - column 0)
                 if (searchValue) {
                     const studentName = td[0] ? (td[0].textContent || td[0].innerText).toUpperCase() : '';
                     if (studentName.indexOf(searchValue) === -1) {
@@ -3149,7 +3611,6 @@ async function loadStudentsForTest(section) {
                     }
                 }
                 
-                // Section filter (column 1)
                 if (showRow && sectionValue) {
                     const section = td[1] ? (td[1].textContent || td[1].innerText).toUpperCase() : '';
                     if (section.indexOf(sectionValue) === -1) {
@@ -3160,7 +3621,6 @@ async function loadStudentsForTest(section) {
                 tr[i].style.display = showRow ? '' : 'none';
             }
             
-            // Count visible rows
             let visibleCount = 0;
             for (let i = 1; i < tr.length; i++) {
                 if (tr[i].style.display !== 'none' && tr[i].getElementsByTagName('td').length > 1) {
@@ -3168,7 +3628,6 @@ async function loadStudentsForTest(section) {
                 }
             }
             
-            // Show "no results" message if nothing visible
             if (visibleCount === 0 && (searchValue || sectionValue)) {
                 const tableBody = document.getElementById('resultsTableBody');
                 const emptyRow = tableBody.querySelector('tr[data-filter-empty]');
@@ -3188,7 +3647,6 @@ async function loadStudentsForTest(section) {
                     tableBody.appendChild(newEmptyRow);
                 }
             } else {
-                // Remove filter empty message if exists
                 const emptyRow = document.querySelector('tr[data-filter-empty]');
                 if (emptyRow) {
                     emptyRow.remove();
@@ -3204,35 +3662,33 @@ async function loadStudentsForTest(section) {
         
         // Close schedule test modal
         window.closeScheduleTestModal = function() {
-    const modal = document.getElementById('scheduleTestModal');
-    modal.style.display = 'none';
-    
-    // **RESET BUTTON STATE**
-    const submitBtn = document.querySelector('#scheduleTestModal .modal-footer button:last-child');
-    const cancelBtn = document.querySelector('#scheduleTestModal .modal-footer button:first-child');
-    
-    if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Schedule Test';
-    }
-    if (cancelBtn) {
-        cancelBtn.disabled = false;
-    }
-    
-    // Clear form
-    document.getElementById('testType').value = '';
-    document.getElementById('testSection').value = '';
-    document.getElementById('testDate').value = '';
-    document.getElementById('testDeadline').value = '';
-    document.getElementById('testDeadlineTime').value = '23:59';
-    document.getElementById('testTime').value = '00:00';
-    document.getElementById('attemptsAllowed').value = '1';
-    document.getElementById('testInstructions').value = '';
-    document.getElementById('testTarget').value = '';
-    document.getElementById('videoURL').value = '';
-    
-    document.getElementById('testTargetGroup').style.display = 'none';
-
+            const modal = document.getElementById('scheduleTestModal');
+            modal.style.display = 'none';
+            
+            const submitBtn = document.querySelector('#scheduleTestModal .modal-footer button:last-child');
+            const cancelBtn = document.querySelector('#scheduleTestModal .modal-footer button:first-child');
+            
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Schedule Test';
+            }
+            if (cancelBtn) {
+                cancelBtn.disabled = false;
+            }
+            
+            // Clear form
+            document.getElementById('testType').value = '';
+            document.getElementById('testSection').value = '';
+            document.getElementById('testDate').value = '';
+            document.getElementById('testDeadline').value = '';
+            document.getElementById('testDeadlineTime').value = '23:59';
+            document.getElementById('testTime').value = '00:00';
+            document.getElementById('attemptsAllowed').value = '1';
+            document.getElementById('testInstructions').value = '';
+            document.getElementById('testTarget').value = '';
+            document.getElementById('videoURL').value = '';
+            
+            document.getElementById('testTargetGroup').style.display = 'none';
             
             if (window.currentUser) {
                 loadScheduledTests(window.currentUser.email, window.currentUser.uid);

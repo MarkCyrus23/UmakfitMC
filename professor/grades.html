@@ -5,12 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UMakFit - Grades Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css?family=Manrope:600,800|Inter:300,500,400,700" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * { -webkit-font-smoothing: antialiased; box-sizing: border-box; }
-        body { font-family: 'Inter', Helvetica, sans-serif; }
+        body { 
+            font-family: 'Poppins', sans-serif; 
+        }
+        .font-montserrat {
+            font-family: 'Montserrat', sans-serif;
+        }
         
         /* Custom animations */
         @keyframes pulse { 
@@ -25,9 +33,80 @@
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
         
-        /* Navigation styles */
-        .font-manrope { font-family: 'Manrope', sans-serif; }
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+        
+        @keyframes bounceSlow {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+        
+        .animate-fade-in-up {
+            animation: fadeInUp 1s ease-out;
+        }
+        
+        .animate-slide-in-left {
+            animation: slideInLeft 1s ease-out;
+        }
+        
+        .animate-slide-in-right {
+            animation: slideInRight 1s ease-out;
+        }
+        
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        .animate-float-delayed {
+            animation: float 6s ease-in-out infinite 3s;
+        }
+        
+        .animate-bounce-slow {
+            animation: bounceSlow 2s ease-in-out infinite;
+        }
         
         .slide-down {
             animation: slideDown 0.3s ease;
@@ -44,9 +123,84 @@
             }
         }
         
-        /* Custom styles not covered by Tailwind */
+        /* Hamburger Menu Styles */
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            cursor: pointer;
+            z-index: 60;
+        }
+
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background: linear-gradient(135deg, #EAD38A 0%, #C5A046 50%, #8B6D2D 100%);
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+        }
+
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(7px, -6px);
+        }
+
+        /* Mobile Drawer */
+        .mobile-drawer {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 280px;
+            height: 100vh;
+            background: linear-gradient(135deg, #0D1B2A 0%, #1A2B3C 50%, #2C4A5E 100%);
+            z-index: 55;
+            transition: right 0.3s ease;
+            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.3);
+            overflow-y: auto;
+        }
+
+        .mobile-drawer.active {
+            right: 0;
+        }
+
+        .drawer-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 50;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .drawer-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        @media (max-width: 768px) {
+            .hamburger {
+                display: flex;
+            }
+            
+            .desktop-nav {
+                display: none;
+            }
+        }
+        
+        /* Gradient text */
         .gradient-text {
-            background: linear-gradient(90deg, rgba(245, 158, 11, 1) 0%, rgba(255, 229, 0, 1) 100%);
+            background: linear-gradient(135deg, #EAD38A 0%, #C5A046 50%, #8B6D2D 100%);
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -255,7 +409,7 @@
             color: #991b1b;
         }
         
-        /* Modal Styles */
+        /* ============ FIXED MODAL STYLES - NO VERTICAL SCROLL ON MODAL ITSELF ============ */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -275,42 +429,61 @@
             border-radius: 12px;
             width: 100%;
             max-width: 900px;
-            max-height: 90vh;
-            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            max-height: 85vh;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
         }
         
-        /* Empty State */
-        .empty-state { 
-            padding: 60px 40px; 
-            text-align: center; 
+        .modal-header {
+            flex-shrink: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 24px;
+            border-bottom: 1px solid #e2e8f0;
+            background-color: white;
+            border-radius: 12px 12px 0 0;
         }
         
-        .empty-icon { 
-            font-size: 64px; 
-            margin-bottom: 20px; 
-            opacity: 0.4; 
+        .modal-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            background-color: white;
         }
         
-        .empty-title { 
-            font-weight: 700; 
-            color: #1f2937; 
-            font-size: 20px; 
-            margin-bottom: 12px; 
+        .modal-footer {
+            flex-shrink: 0;
+            display: flex;
+            justify-content: flex-end;
+            padding: 16px 24px;
+            border-top: 1px solid #e2e8f0;
+            background-color: #f9fafb;
+            border-radius: 0 0 12px 12px;
         }
         
-        .empty-text { 
-            font-weight: 400; 
-            color: #64748b; 
-            font-size: 14px; 
-            line-height: 1.6; 
-            max-width: 600px; 
-            margin: 0 auto; 
+        .modal-close-btn {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            background-color: #f3f4f6;
+            color: #4b5563;
+            font-size: 20px;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
         }
         
-
+        .modal-close-btn:hover {
+            background-color: #e5e7eb;
+            color: #111827;
+        }
         
-        /* Student Info Header */
         .student-info-header {
             display: flex;
             align-items: center;
@@ -331,28 +504,29 @@
             font-size: 24px;
             font-weight: 700;
             color: white;
+            flex-shrink: 0;
         }
         
         .student-basic-info {
             flex: 1;
+            min-width: 0;
         }
         
         .student-name {
-            font-family: "Inter", Helvetica;
             font-weight: 700;
             color: #1e3a8a;
             font-size: 20px;
             margin-bottom: 5px;
+            word-wrap: break-word;
         }
         
         .student-id {
-            font-family: "Inter", Helvetica;
             font-weight: 500;
             color: #64748b;
             font-size: 14px;
+            word-wrap: break-word;
         }
         
-        /* Score badges */
         .score-badge {
             display: inline-block;
             padding: 4px 8px;
@@ -373,7 +547,6 @@
             color: #991b1b;
         }
         
-        /* Summary Card */
         .summary-card {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-radius: 12px;
@@ -398,7 +571,6 @@
             font-weight: 700;
         }
 
-        /* Filter Styles */
         .filter-select {
             padding: 10px 16px;
             border: 2px solid #e2e8f0;
@@ -428,8 +600,35 @@
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
         
-        /* Mobile adjustments for summary card */
+        /* Mobile adjustments */
         @media screen and (max-width: 768px) {
+            .modal-content {
+                max-height: 90vh;
+                width: 95%;
+            }
+            
+            .modal-header {
+                padding: 12px 16px;
+            }
+            
+            .modal-body {
+                padding: 16px;
+            }
+            
+            .modal-footer {
+                padding: 12px 16px;
+            }
+            
+            .student-name {
+                font-size: 18px;
+            }
+            
+            .student-avatar {
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+            }
+            
             .summary-card {
                 padding: 16px;
                 margin: 0 0 16px 0;
@@ -461,7 +660,6 @@
                 font-size: 13px;
             }
             
-            /* Mobile button touch targets */
             button {
                 min-height: 44px;
                 min-width: 44px;
@@ -477,89 +675,74 @@
     </div>
     
     <div id="mainContent" class="hidden">
-        <!-- Navigation Banner - MATCHING OTHER PROFESSOR PAGES -->
-        <nav class="bg-gradient-to-r from-blue-900 to-blue-500 shadow-lg">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex flex-wrap items-center justify-between gap-3 sm:gap-4 py-3 sm:py-4">
+        <!-- ✅ UPDATED NAVIGATION BANNER - MATCHING LANDING PAGE DESIGN -->
+        <header class="shadow-lg fixed w-full top-0 z-50" style="background: linear-gradient(135deg, #0D1B2A 0%, #1A2B3C 50%, #2C4A5E 100%);">
+            <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-20">
                     <!-- Logo -->
-                    <a href="#" class="flex items-center gap-2 sm:gap-3">
-                        <span class="text-xl sm:text-2xl md:text-3xl font-extrabold font-manrope bg-gradient-to-r from-yellow-400 to-yellow-200 bg-clip-text text-transparent">
-                            UMakFit
+                    <div class="flex items-center gap-3">
+                        <div class="w-16 h-16 flex items-center justify-center overflow-visible">
+                            <img src="UMakfit Logo (2).png" alt="UMakFIT Logo" class="w-20 h-20 object-contain">
+                        </div>
+                        <span class="text-xl sm:text-2xl md:text-3xl font-extrabold font-montserrat gradient-text">
+                            UMakFIT
                         </span>
-                    </a>
-                    
+                    </div>
+
                     <!-- Desktop Navigation -->
-                    <div class="hidden lg:flex items-center gap-2 flex-wrap">
-                        <!-- Dashboard -->
-                        <a href="professor.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
-                            <i class="fas fa-tachometer-alt"></i> 
-                            <span>Dashboard</span>
+                    <div class="desktop-nav hidden md:flex items-center gap-8">
+                        <a href="professor.html" class="text-white/80 hover:text-white font-medium transition-colors">
+                            <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
                         </a>
-                        
-                        <!-- Student Management -->
-                        <a href="studentmanagement.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
-                            <i class="fas fa-users"></i> 
-                            <span>Student Management</span>
+                        <a href="studentmanagement.html" class="text-white/80 hover:text-white font-medium transition-colors">
+                            <i class="fas fa-users mr-2"></i>Students
                         </a>
-                        
-                        <!-- Add Activities -->
-                        <a href="addactivities.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
-                            <i class="fas fa-dumbbell"></i> 
-                            <span>Add Activities</span>
+                        <a href="addactivities.html" class="text-white/80 hover:text-white font-medium transition-colors">
+                            <i class="fas fa-dumbbell mr-2"></i>Activities
                         </a>
-                        
-                        <!-- Add Lesson -->
-                        <a href="addlesson.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
-                            <i class="fas fa-book-open"></i> 
-                            <span>Add Lesson</span>
+                        <a href="addlesson.html" class="text-white/80 hover:text-white font-medium transition-colors">
+                            <i class="fas fa-book-open mr-2"></i>Lessons
                         </a>
-                        
-                        <!-- Monitoring Activities -->
-                        <a href="monitoringactivities.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-white/30 transition-all">
-                            <i class="fas fa-chart-bar"></i> 
-                            <span>Monitoring Activities</span>
+                        <a href="monitoringactivities.html" class="text-white/80 hover:text-white font-medium transition-colors">
+                            <i class="fas fa-chart-bar mr-2"></i>Monitoring
                         </a>
-                        
-                        <!-- Grades -->
-                        <a href="grades.html" class="px-3 xl:px-4 py-2.5 xl:py-3 bg-white text-gray-900 rounded-lg font-semibold text-sm flex items-center gap-2 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
-                            <i class="fas fa-graduation-cap"></i> 
-                            <span>Grades</span>
+                        <a href="grades.html" class="text-white font-medium px-3 py-2 rounded-lg" style="background: linear-gradient(135deg, #EAD38A 0%, #C5A046 50%, #8B6D2D 100%);">
+                            <i class="fas fa-graduation-cap mr-2"></i>Grades
                         </a>
+                    </div>
+
+                    <!-- Desktop Profile -->
+                    <div class="hidden md:block relative">
+                        <img src="" alt="Profile" id="profilePictureBtn"
+                             class="w-10 h-10 rounded-full border-2 border-white/30 cursor-pointer hover:border-white/60 hover:scale-105 transition-all object-cover">
                         
-                        <!-- Profile Dropdown -->
-                        <div class="relative">
-                            <img src="" alt="Profile" id="profilePictureBtn"
-                                 class="w-9 h-9 xl:w-10 xl:h-10 rounded-full border-2 border-white/30 cursor-pointer hover:border-white/60 hover:scale-105 transition-all object-cover">
-                            
-                            <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-64 sm:w-72 bg-white rounded-xl shadow-2xl z-[9999] slide-down">
-                                <div class="p-4 sm:p-6 border-b-2 border-gray-200 text-center">
-                                    <img src="" alt="Profile" id="profileDropdownPicture" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full mx-auto mb-2 sm:mb-3 border-3 border-blue-500 object-cover">
-                                    <h6 id="profileDropdownName" class="font-bold text-gray-900 text-base sm:text-lg">Loading...</h6>
-                                    <p id="profileDropdownEmail" class="text-xs sm:text-sm text-gray-500 mt-1 truncate px-2">Loading...</p>
-                                </div>
-                                <div class="p-2">
-                                    <a href="#" onclick="showViewProfile(event)" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-gray-100 transition-colors">
-                                        <i class="bi bi-person-circle text-blue-500 text-lg sm:text-xl"></i>
-                                        <span class="font-medium text-gray-700 text-sm sm:text-base">View Profile</span>
-                                    </a>
-                                    <div class="h-px bg-gray-200 my-1 sm:my-2"></div>
-                                    <div onclick="handleLogout(event)" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-red-500">
-                                        <i class="fas fa-sign-out-alt text-lg sm:text-xl"></i>
-                                        <span class="font-medium text-sm sm:text-base">Logout</span>
-                                    </div>
+                        <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-2xl z-[9999] slide-down">
+                            <div class="p-6 border-b-2 border-gray-200 text-center">
+                                <img src="" alt="Profile" id="profileDropdownPicture" class="w-20 h-20 rounded-full mx-auto mb-3 border-3 border-blue-500 object-cover">
+                                <h6 id="profileDropdownName" class="font-bold text-gray-900 text-lg">Loading...</h6>
+                                <p id="profileDropdownEmail" class="text-sm text-gray-500 mt-1 truncate px-2">Loading...</p>
+                            </div>
+                            <div class="p-2">
+                                <a href="professor-profile.html" onclick="showViewProfile(event)" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 transition-colors">
+                                    <i class="bi bi-person-circle text-blue-500 text-xl"></i>
+                                    <span class="font-medium text-gray-700 text-base">View Profile</span>
+                                </a>
+                                <div class="h-px bg-gray-200 my-2"></div>
+                                <div onclick="handleLogout(event)" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-red-500">
+                                    <i class="fas fa-sign-out-alt text-xl"></i>
+                                    <span class="font-medium text-base">Logout</span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Mobile Right Icons -->
-                    <div class="flex lg:hidden items-center gap-2 sm:gap-3">
+                    <div class="flex md:hidden items-center gap-3">
                         <!-- Mobile Profile -->
                         <div class="relative">
                             <img src="" alt="Profile" id="profilePictureBtnMobile"
                                  class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-white/30 cursor-pointer hover:border-white/60 object-cover">
                             
-                            <!-- Mobile Profile Dropdown -->
                             <div id="profileDropdownMobile" class="hidden fixed right-2 top-20 w-64 sm:w-72 bg-white rounded-xl shadow-2xl z-[9999] slide-down">
                                 <div class="p-4 sm:p-6 border-b-2 border-gray-200 text-center">
                                     <img src="" alt="Profile" id="profileDropdownPictureMobile" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full mx-auto mb-2 sm:mb-3 border-3 border-blue-500 object-cover">
@@ -567,7 +750,7 @@
                                     <p id="profileDropdownEmailMobile" class="text-xs sm:text-sm text-gray-500 mt-1 truncate px-2">Loading...</p>
                                 </div>
                                 <div class="p-2">
-                                    <a href="#" onclick="showViewProfile(event)" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-gray-100 transition-colors">
+                                    <a href="professor-profile.html" onclick="showViewProfile(event)" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-gray-100 transition-colors">
                                         <i class="bi bi-person-circle text-blue-500 text-lg sm:text-xl"></i>
                                         <span class="font-medium text-gray-700 text-sm sm:text-base">View Profile</span>
                                     </a>
@@ -580,39 +763,59 @@
                             </div>
                         </div>
                         
-                        <!-- Mobile Menu Button -->
-                        <button id="mobileMenuButton" class="text-white p-1 sm:p-2">
-                            <i class="bi bi-list text-2xl sm:text-3xl"></i>
-                        </button>
+                        <!-- Hamburger Menu -->
+                        <div class="hamburger" id="hamburger">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
                     </div>
                 </div>
-                
-                <!-- Mobile Navigation Menu -->
-                <div id="mobileMenu" class="hidden lg:hidden mt-3 sm:mt-4 space-y-2 pb-3">
-                    <a href="professor-dashboard.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
-                        <i class="fas fa-tachometer-alt mr-2"></i> Dashboard
-                    </a>
-                    <a href="studentmanagement.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
-                        <i class="fas fa-users mr-2"></i> Student Management
-                    </a>
-                    <a href="addactivities.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
-                        <i class="fas fa-dumbbell mr-2"></i> Add Activities
-                    </a>
-                    <a href="addlesson.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
-                        <i class="fas fa-book-open mr-2"></i> Add Lesson
-                    </a>
-                    <a href="monitoringactivities.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white/20 text-white rounded-lg font-semibold text-sm">
-                        <i class="fas fa-chart-bar mr-2"></i> Monitoring Activities
-                    </a>
-                    <a href="grades.html" class="block px-3 sm:px-4 py-2.5 sm:py-3 bg-white text-gray-900 rounded-lg font-semibold text-sm">
-                        <i class="fas fa-graduation-cap mr-2"></i> Grades
-                    </a>
+            </nav>
+
+            <!-- Mobile Drawer Overlay -->
+            <div class="drawer-overlay" id="drawerOverlay"></div>
+
+            <!-- Mobile Drawer -->
+            <div class="mobile-drawer" id="mobileDrawer">
+                <div class="p-6 pt-8">
+                    <!-- Drawer Header -->
+                    <div class="flex items-center gap-3 mb-8 pb-6 border-b border-white/20">
+                        <div class="w-12 h-12 flex items-center justify-center overflow-visible">
+                            <img src="UMakfit Logo (2).png" alt="UMakFIT Logo" class="w-14 h-14 object-contain">
+                        </div>
+                        <span class="text-2xl font-extrabold font-montserrat gradient-text">
+                            UMakFIT
+                        </span>
+                    </div>
+
+                    <!-- Navigation Links -->
+                    <nav class="space-y-2 mb-8">
+                        <a href="professor.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
+                            <i class="fas fa-tachometer-alt mr-3"></i>Dashboard
+                        </a>
+                        <a href="studentmanagement.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
+                            <i class="fas fa-users mr-3"></i>Student Management
+                        </a>
+                        <a href="addactivities.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
+                            <i class="fas fa-dumbbell mr-3"></i>Add Activities
+                        </a>
+                        <a href="addlesson.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
+                            <i class="fas fa-book-open mr-3"></i>Add Lesson
+                        </a>
+                        <a href="monitoringactivities.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
+                            <i class="fas fa-chart-bar mr-3"></i>Monitoring Activities
+                        </a>
+                        <a href="grades.html" class="mobile-nav-link block text-white font-medium py-3 px-4 rounded-lg" style="background: linear-gradient(135deg, #EAD38A 0%, #C5A046 50%, #8B6D2D 100%);">
+                            <i class="fas fa-graduation-cap mr-3"></i>Grades
+                        </a>
+                    </nav>
                 </div>
             </div>
-        </nav>
+        </header>
 
-        <!-- Main Content -->
-        <div class="bg-gradient-to-b from-gray-50 to-gray-100 min-h-screen pt-10 pb-20">
+        <!-- Main Content - with top padding to account for fixed header -->
+        <div class="bg-gradient-to-b from-gray-50 to-gray-100 min-h-screen pt-32 pb-20">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <!-- Page Header -->
                 <div class="bg-white rounded-2xl card-shadow border border-gray-200 p-8 mb-10">
@@ -682,7 +885,7 @@
                         </div>
                     </div>
 
-                    <!-- ⭐ NEW: FILTER SECTION -->
+                    <!-- ⭐ FILTER SECTION -->
                     <div class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-xl border-2 border-gray-200">
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
@@ -726,7 +929,7 @@
                         </div>
                     </div>
                     
-                    <!-- ⭐ FINAL GRADES TABLE - NOW CLICKABLE -->
+                    <!-- ⭐ FINAL GRADES TABLE - CLICKABLE -->
                     <div class="table-responsive">
                         <table class="custom-table" id="finalGradesTable">
                             <thead>
@@ -755,72 +958,173 @@
                 </div>
             </div>
         </div>
-        
-        <!-- Footer -->
-        <div class="bg-gradient-to-b from-gray-900 to-gray-950 mt-10 py-10">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h4 class="text-yellow-500 font-bold text-lg text-center mb-5">About CTBL</h4>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div class="text-gray-300 text-sm leading-relaxed">
-                        The Center for Technology Based Learning serves as the learning management system operating hub, 
-                        reporting to the university MANCOM officials, with a director on duty who manages and handles the 
-                        center's daily operations.
-                    </div>
-                    <div class="text-gray-300 text-sm leading-relaxed">
-                        Working closely with the Office of the President, the Center for Information Technology, and the 
-                        Deans and Directors to support the LMS end-users' day-to-day activity.
-                    </div>
-                    <div class="text-gray-300 text-sm leading-relaxed">
-                        The center focuses on implementing new forms of training and determining the validity of data to 
-                        support the university's educational objectives.
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- ⭐ NEW: Student Grades Details Modal (Similar to Test Results) -->
-    <div id="studentGradesModal" class="modal-overlay" style="display: none;" onclick="closeStudentGradesModal()">
-        <div class="modal-content" style="max-width: 900px;" onclick="event.stopPropagation()">
-            <div class="flex justify-between items-center p-6 border-b border-gray-200">
-                <h3 class="text-xl font-bold text-gray-900 flex items-center gap-2">
-                    <i class="fas fa-clipboard-list"></i> <span id="modalStudentName">Student Grades Details</span>
-                </h3>
-                <button class="text-gray-500 hover:text-gray-700 text-2xl" onclick="closeStudentGradesModal()">&times;</button>
-            </div>
-            
-            <div style="max-height: 70vh; overflow-y: auto;">
-                <div class="p-6">
-                    <!-- Student Info Header -->
-                    <div id="studentInfoHeader" class="student-info-header" style="display: none;">
-                        <div class="student-avatar" id="studentAvatar">??</div>
-                        <div class="student-basic-info">
-                            <div class="student-name" id="studentNameDetail">Student Name</div>
-                            <div class="student-id" id="studentSectionDetail">Section</div>
+        <!-- ✅ UPDATED FOOTER - MATCHING LANDING PAGE DESIGN -->
+        <footer class="bg-gradient-to-r from-blue-900 to-blue-800 text-white py-8 sm:py-12">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 text-center lg:text-left">
+                    <!-- About UmakFit & College of Human Kinetics -->
+                    <div>
+                        <div class="flex items-center justify-center lg:justify-start gap-3 mb-4">
+                            <img src="Umaklogo.png" 
+                                 alt="UMak Logo" class="h-12 w-auto object-contain">
+                            <div>
+                                <h6 class="text-yellow-400 font-bold text-lg lg:text-xl mb-1">UMakFit</h6>
+                                <p class="text-xs lg:text-sm text-blue-200 font-medium">College of Human Kinetics</p>
+                            </div>
+                        </div>
+                        <p class="text-sm lg:text-base leading-relaxed text-blue-100">
+                            UMakFit is the official fitness assessment and tracking platform of the College of Human Kinetics at University of Makati. 
+                            Our mission is to promote health, wellness, and physical fitness through comprehensive assessment and personalized tracking.
+                        </p>
+                        <div class="mt-4 flex flex-wrap gap-2 justify-center lg:justify-start">
+                            <span class="bg-blue-700/50 px-3 py-1 rounded-full text-xs font-semibold">Fitness Tracking</span>
+                            <span class="bg-blue-700/50 px-3 py-1 rounded-full text-xs font-semibold">Performance Assessment</span>
+                            <span class="bg-blue-700/50 px-3 py-1 rounded-full text-xs font-semibold">Health & Wellness</span>
                         </div>
                     </div>
-                    
-                    <!-- Student Grades Table -->
-                    <div class="table-responsive">
-                        <table class="custom-table">
-                            <thead style="position: sticky; top: 0; background: linear-gradient(90deg, rgba(30, 58, 138, 0.9) 0%, rgba(59, 130, 246, 0.9) 100%); z-index: 10;">
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Activity</th>
-                                    <th>Result</th>
-                                    <th>Score</th>
-                                    <th>Rating</th>
-                                </tr>
-                            </thead>
-                            <tbody id="studentGradesTableBody">
-                                <!-- Grades will be loaded here -->
-                            </tbody>
-                        </table>
+
+                    <!-- Quick Links -->
+                    <div>
+                        <h6 class="text-yellow-400 font-bold text-lg lg:text-xl mb-4 lg:mb-6">Quick Links</h6>
+                        <div class="grid grid-cols-2 gap-4 lg:gap-6">
+                            <div class="space-y-3">
+                                <a href="professor.html" class="block text-blue-100 hover:text-yellow-300 hover:translate-x-1 transition-all duration-200 text-sm lg:text-base">
+                                    <i class="bi bi-tachometer mr-2"></i>Dashboard
+                                </a>
+                                <a href="studentmanagement.html" class="block text-blue-100 hover:text-yellow-300 hover:translate-x-1 transition-all duration-200 text-sm lg:text-base">
+                                    <i class="bi bi-people mr-2"></i>Students
+                                </a>
+                                <a href="addactivities.html" class="block text-blue-100 hover:text-yellow-300 hover:translate-x-1 transition-all duration-200 text-sm lg:text-base">
+                                    <i class="bi bi-dumbbell mr-2"></i>Activities
+                                </a>
+                            </div>
+                            <div class="space-y-3">
+                                <a href="addlesson.html" class="block text-blue-100 hover:text-yellow-300 hover:translate-x-1 transition-all duration-200 text-sm lg:text-base">
+                                    <i class="bi bi-book mr-2"></i>Lessons
+                                </a>
+                                <a href="monitoringactivities.html" class="block text-blue-100 hover:text-yellow-300 hover:translate-x-1 transition-all duration-200 text-sm lg:text-base">
+                                    <i class="bi bi-graph-up mr-2"></i>Monitoring
+                                </a>
+                                <a href="grades.html" class="block text-yellow-300 hover:text-yellow-200 hover:translate-x-1 transition-all duration-200 text-sm lg:text-base font-semibold">
+                                    <i class="bi bi-mortarboard mr-2"></i>Grades
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact & Social -->
+                    <div>
+                        <h6 class="text-yellow-400 font-bold text-lg lg:text-xl mb-4 lg:mb-6">Get In Touch</h6>
+                        <div class="space-y-4 lg:space-y-5">
+                            <div class="flex items-start gap-3">
+                                <i class="bi bi-geo-alt-fill text-yellow-400 text-lg lg:text-xl mt-1"></i>
+                                <p class="text-sm lg:text-base text-blue-100">
+                                    College of Human Kinetics<br>
+                                    University of Makati<br>
+                                   3rd floor, Administration Building, University of Makati, 
+                                   JP Rizal Ext., West Rembo, Taguig City
+                                </p>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <i class="bi bi-envelope-fill text-yellow-400 text-lg lg:text-xl"></i>
+                                <a href="mailto:chk@umak.edu.ph" class="text-blue-100 hover:text-yellow-300 transition-colors text-sm lg:text-base">
+                                    chk@umak.edu.ph
+                                </a>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <i class="bi bi-telephone-fill text-yellow-400 text-lg lg:text-xl"></i>
+                                <span class="text-blue-100 text-sm lg:text-base">+63 933 189 7230</span>
+                            </div>
+                            <div class="flex items-center gap-4 pt-3 justify-center lg:justify-start">
+                                <a href="https://www.facebook.com/profile.php?id=61577064971920" target="_blank" class="bg-blue-700 hover:bg-blue-600 p-2.5 rounded-lg transition-all duration-200 hover:scale-110">
+                                    <i class="bi bi-facebook text-white text-lg lg:text-xl"></i>
+                                </a>
+                                <a href="#" class="bg-blue-700 hover:bg-blue-600 p-2.5 rounded-lg transition-all duration-200 hover:scale-110">
+                                    <i class="bi bi-twitter text-white text-lg lg:text-xl"></i>
+                                </a>
+                                <a href="#" class="bg-blue-700 hover:bg-blue-600 p-2.5 rounded-lg transition-all duration-200 hover:scale-110">
+                                    <i class="bi bi-instagram text-white text-lg lg:text-xl"></i>
+                                </a>
+                                <a href="#" class="bg-blue-700 hover:bg-blue-600 p-2.5 rounded-lg transition-all duration-200 hover:scale-110">
+                                    <i class="bi bi-youtube text-white text-lg lg:text-xl"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Divider -->
+                <div class="border-t border-blue-600/50 mt-8 lg:mt-12 pt-6 lg:pt-8">
+                    <div class="flex flex-col lg:flex-row justify-between items-center gap-4">
+                        <!-- Copyright -->
+                        <div class="text-center lg:text-left">
+                            <p class="text-xs lg:text-sm text-blue-200">
+                                © 2025 University of Makati - College of Human Kinetics. All Rights Reserved.
+                            </p>
+                        </div>
+                        
+                        <!-- University Links -->
+                        <div class="flex flex-wrap justify-center gap-3 lg:gap-4">
+                            <a href="https://umak.edu.ph" target="_blank" class="text-xs lg:text-sm text-blue-200 hover:text-yellow-300 transition-colors">
+                                University of Makati
+                            </a>
+                            <span class="text-blue-400">•</span>
+                            <a href="https://library.umak.edu.ph" target="_blank" class="text-xs lg:text-sm text-blue-200 hover:text-yellow-300 transition-colors">
+                                UMak Online Library
+                            </a>
+                            <span class="text-blue-400">•</span>
+                            <a href="https://tbl.umak.edu.ph" target="_blank" class="text-xs lg:text-sm text-blue-200 hover:text-yellow-300 transition-colors">
+                                TBL Hub
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
+        </footer>
+    </div>
+
+    <!-- Student Grades Details Modal -->
+    <div id="studentGradesModal" class="modal-overlay" style="display: none;" onclick="closeStudentGradesModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+                    <i class="fas fa-clipboard-list"></i> 
+                    <span id="modalStudentName">Student Grades Details</span>
+                </h3>
+                <button class="modal-close-btn" onclick="closeStudentGradesModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
             
-            <div class="flex justify-end p-6 border-t border-gray-200 bg-gray-50">
+            <div class="modal-body" id="modalBodyContent">
+                <div id="studentInfoHeader" class="student-info-header" style="display: none;">
+                    <div class="student-avatar" id="studentAvatar">??</div>
+                    <div class="student-basic-info">
+                        <div class="student-name" id="studentNameDetail">Student Name</div>
+                        <div class="student-id" id="studentSectionDetail">Section</div>
+                    </div>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="custom-table" style="min-width: 100%;">
+                        <thead style="position: sticky; top: 0; background: linear-gradient(90deg, rgba(30, 58, 138, 0.9) 0%, rgba(59, 130, 246, 0.9) 100%); z-index: 10;">
+                            <tr>
+                                <th>Date</th>
+                                <th>Activity</th>
+                                <th>Result</th>
+                                <th>Score</th>
+                                <th>Rating</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentGradesTableBody">
+                            <!-- Grades will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
                 <button class="px-6 py-2.5 bg-gray-700 hover:bg-gray-800 text-white rounded-lg font-semibold transition-all" onclick="closeStudentGradesModal()">
                     Close
                 </button>
@@ -831,11 +1135,13 @@
     <!-- Edit Grade Modal -->
     <div id="editGradeModal" class="modal-overlay" style="display: none;">
         <div class="modal-content">
-            <div class="flex justify-between items-center p-6 border-b border-gray-200">
+            <div class="modal-header">
                 <h3 class="text-xl font-bold text-gray-900">Edit Grade</h3>
-                <button class="text-gray-500 hover:text-gray-700 text-2xl" onclick="closeEditModal()">&times;</button>
+                <button class="modal-close-btn" onclick="closeEditModal()">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
-            <div class="p-6">
+            <div class="modal-body">
                 <div class="mb-4">
                     <label class="block text-gray-700 font-medium mb-2">Student</label>
                     <input type="text" id="editStudentName" readonly 
@@ -862,9 +1168,9 @@
                 
                 <input type="hidden" id="editGradeId">
             </div>
-            <div class="flex justify-end gap-3 p-6 border-t border-gray-200">
+            <div class="modal-footer">
                 <button onclick="closeEditModal()" 
-                        class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-all duration-300">
+                        class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-all duration-300 mr-2">
                     Cancel
                 </button>
                 <button onclick="saveGrade()" 
@@ -875,6 +1181,8 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    
     <script type="module">
         // Import Firebase modules
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
@@ -903,744 +1211,31 @@
         let filteredFinalGrades = [];
 
         // DOM Elements for navigation
-        const mobileMenuButton = document.getElementById('mobileMenuButton');
-        const mobileMenu = document.getElementById('mobileMenu');
+        const hamburger = document.getElementById('hamburger');
+        const mobileDrawer = document.getElementById('mobileDrawer');
+        const drawerOverlay = document.getElementById('drawerOverlay');
+        const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
         const profilePictureBtn = document.getElementById('profilePictureBtn');
         const profilePictureBtnMobile = document.getElementById('profilePictureBtnMobile');
         const profileDropdown = document.getElementById('profileDropdown');
         const profileDropdownMobile = document.getElementById('profileDropdownMobile');
 
-        // Event Listeners for navigation
-        document.addEventListener('DOMContentLoaded', () => {
-            // Mobile menu toggle
-            if (mobileMenuButton) {
-                mobileMenuButton.addEventListener('click', toggleMobileMenu);
-            }
-            
-            // Profile dropdowns
-            if (profilePictureBtn) {
-                profilePictureBtn.addEventListener('click', toggleProfileDropdown);
-            }
-            
-            if (profilePictureBtnMobile) {
-                profilePictureBtnMobile.addEventListener('click', toggleProfileDropdown);
-            }
-            
-            // Close dropdowns when clicking outside
-            document.addEventListener('click', closeAllDropdowns);
-        });
-
-        // Mobile menu toggle
-        function toggleMobileMenu() {
-            mobileMenu.classList.toggle('hidden');
-        }
-
-        // Profile dropdown
-        function toggleProfileDropdown(event) {
-            event?.stopPropagation();
-            const isMobile = window.innerWidth < 1024;
-            const dropdown = isMobile ? profileDropdownMobile : profileDropdown;
-            
-            const isHidden = dropdown.classList.contains('hidden');
-            
-            if (isHidden) {
-                dropdown.classList.remove('hidden');
-                document.body.classList.add('dropdown-open');
-            } else {
-                dropdown.classList.add('hidden');
-                document.body.classList.remove('dropdown-open');
-            }
-        }
-
-        function closeProfileDropdown() {
-            profileDropdown.classList.add('hidden');
-            profileDropdownMobile.classList.add('hidden');
-            document.body.classList.remove('dropdown-open');
-        }
-
-        // Close all dropdowns when clicking outside
-        function closeAllDropdowns(event) {
-            if (!event.target.closest('#profilePictureBtn') && 
-                !event.target.closest('#profilePictureBtnMobile') && 
-                !event.target.closest('#profileDropdown') && 
-                !event.target.closest('#profileDropdownMobile')) {
-                closeProfileDropdown();
-            }
-        }
-
-        // View profile function
-        window.showViewProfile = function(event) { 
-            if (event) event.preventDefault();
-            alert('Profile view would open here');
-            closeProfileDropdown();
-        };
-
-        // Logout function
-        window.handleLogout = async function(event) {
-            if (event) event.preventDefault();
-            closeProfileDropdown();
-            
-            if (confirm('Are you sure you want to logout?')) {
-                try {
-                    await signOut(auth);
-                    window.location.href = '/login/index.html';
-                } catch (error) {
-                    console.error('Error logging out:', error);
-                    window.location.href = '/login/index.html';
-                }
-            }
-        };
-
-        // Function to update profile picture
-        function updateProfilePicture(photoURL, userName) {
-            const profileBtn = document.getElementById('profilePictureBtn');
-            const profileBtnMobile = document.getElementById('profilePictureBtnMobile');
-            const dropdownPic = document.getElementById('profileDropdownPicture');
-            const dropdownPicMobile = document.getElementById('profileDropdownPictureMobile');
-            
-            const displayName = currentProfessor?.name || currentProfessor?.fullName || userName || 'Professor';
-            const email = currentProfessor?.email || 'professor@umak.edu.ph';
-            
-            // Use provided photo URL or create initial avatar
-            const photoUrlToUse = photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=3b82f6&color=fff&size=128`;
-            
-            // Update all profile pictures
-            if (profileBtn) profileBtn.src = photoUrlToUse;
-            if (profileBtnMobile) profileBtnMobile.src = photoUrlToUse;
-            if (dropdownPic) dropdownPic.src = photoUrlToUse;
-            if (dropdownPicMobile) dropdownPicMobile.src = photoUrlToUse;
-            
-            // Update names
-            const dropdownName = document.getElementById('profileDropdownName');
-            const dropdownNameMobile = document.getElementById('profileDropdownNameMobile');
-            if (dropdownName) dropdownName.textContent = displayName;
-            if (dropdownNameMobile) dropdownNameMobile.textContent = displayName;
-            
-            // Update emails
-            const dropdownEmail = document.getElementById('profileDropdownEmail');
-            const dropdownEmailMobile = document.getElementById('profileDropdownEmailMobile');
-            if (dropdownEmail) dropdownEmail.textContent = email;
-            if (dropdownEmailMobile) dropdownEmailMobile.textContent = email;
-        }
-
-        onAuthStateChanged(auth, async (user) => {
-            const loadingScreen = document.getElementById('loadingScreen');
-            const mainContent = document.getElementById('mainContent');
-
-            if (user) {
-                try {
-                    console.log('User authenticated:', user.email);
-                    
-                    // Load professor data
-                    await loadProfessorData(user);
-                    
-                    // Update profile picture with Google photo
-                    updateProfilePicture(user.photoURL, user.displayName);
-                    
-                    // Load initial data
-                    await loadAssignedSections();
-                    await loadAllData();
-                    
-                    // Hide loading, show main content
-                    loadingScreen.style.display = 'none';
-                    mainContent.classList.remove('hidden');
-                    
-                } catch (error) {
-                    console.error('Error loading grades:', error);
-                    loadingScreen.style.display = 'none';
-                    mainContent.classList.remove('hidden');
-                    alert('Error loading grades data: ' + error.message);
-                }
-            } else {
-                window.location.href = '/login/index.html';
-            }
-        });
-
-        async function loadProfessorData(user) {
-            try {
-                console.log('Loading professor data for:', user.email);
-                
-                const userEmail = user.email.toLowerCase();
-                
-                // First try to find professor by email in professors collection
-                const professorsQuery = query(
-                    collection(db, 'professors'),
-                    where('email', '==', userEmail)
-                );
-                const professorsSnapshot = await getDocs(professorsQuery);
-                
-                if (!professorsSnapshot.empty) {
-                    const professorDoc = professorsSnapshot.docs[0];
-                    currentProfessor = { id: professorDoc.id, ...professorDoc.data() };
-                    console.log('✓ Professor found in professors collection:', currentProfessor);
-                } else {
-                    // Try users collection
-                    const usersQuery = query(
-                        collection(db, 'users'),
-                        where('email', '==', userEmail),
-                        where('role', '==', 'professor')
-                    );
-                    const usersSnapshot = await getDocs(usersQuery);
-                    
-                    if (!usersSnapshot.empty) {
-                        const userDoc = usersSnapshot.docs[0];
-                        currentProfessor = { id: userDoc.id, ...userDoc.data() };
-                        console.log('✓ Professor found in users collection:', currentProfessor);
-                    } else {
-                        currentProfessor = {
-                            name: user.displayName || 'Professor',
-                            email: user.email
-                        };
-                        console.log('⚠️ Using minimal professor data');
-                    }
-                }
-                
-            } catch (error) {
-                console.error('Error loading professor data:', error);
-                currentProfessor = {
-                    name: user.displayName || 'Professor',
-                    email: user.email
-                };
-            }
-        }
-
-        async function loadAssignedSections() {
-            try {
-                assignedSections = [];
-                const sectionSet = new Set();
-                
-                console.log('Loading sections for professor:', currentProfessor.email);
-
-                // Try multiple methods to get sections
-                const methods = [
-                    // Method 1: Check professorProfiles
-                    async () => {
-                        const professorQuery = query(
-                            collection(db, 'professorProfiles'),
-                            where('email', '==', currentProfessor.email)
-                        );
-                        const professorSnapshot = await getDocs(professorQuery);
-                        
-                        if (!professorSnapshot.empty) {
-                            const professorData = professorSnapshot.docs[0].data();
-                            const professorName = professorData.fullName || professorData.name || '';
-                            
-                            // Get sections by professor name
-                            const sectionsQuery = query(
-                                collection(db, 'sections'),
-                                where('professor', '==', professorName)
-                            );
-                            const sectionsSnapshot = await getDocs(sectionsQuery);
-                            
-                            sectionsSnapshot.forEach(doc => {
-                                const data = doc.data();
-                                if (data.name && !sectionSet.has(data.name)) {
-                                    sectionSet.add(data.name);
-                                    assignedSections.push({ 
-                                        section: data.name,
-                                        professorName: professorName 
-                                    });
-                                }
-                            });
-                        }
-                    },
-                    
-                    // Method 2: Check sections by professorEmail
-                    async () => {
-                        const sectionsQuery = query(
-                            collection(db, 'sections'),
-                            where('professorEmail', '==', currentProfessor.email)
-                        );
-                        const sectionsSnapshot = await getDocs(sectionsQuery);
-                        
-                        sectionsSnapshot.forEach(doc => {
-                            const data = doc.data();
-                            if (data.name && !sectionSet.has(data.name)) {
-                                sectionSet.add(data.name);
-                                assignedSections.push({ 
-                                    section: data.name,
-                                    professorName: data.professor || currentProfessor.email 
-                                });
-                            }
-                        });
-                    },
-                    
-                    // Method 3: Check testResults for sections
-                    async () => {
-                        const testResultsQuery = query(
-                            collection(db, 'testResults'),
-                            where('professorEmail', '==', currentProfessor.email)
-                        );
-                        const testResultsSnapshot = await getDocs(testResultsQuery);
-                        
-                        const uniqueSections = new Set();
-                        testResultsSnapshot.forEach(doc => {
-                            const data = doc.data();
-                            if (data.section) {
-                                uniqueSections.add(data.section);
-                            }
-                        });
-                        
-                        uniqueSections.forEach(sectionName => {
-                            if (!sectionSet.has(sectionName)) {
-                                sectionSet.add(sectionName);
-                                assignedSections.push({ 
-                                    section: sectionName,
-                                    professorName: currentProfessor.email 
-                                });
-                            }
-                        });
-                    }
-                ];
-
-                // Execute all methods
-                for (const method of methods) {
-                    try {
-                        await method();
-                    } catch (error) {
-                        console.warn('Method failed:', error.message);
-                    }
-                }
-
-                // Populate dropdowns
-                const sectionSelect = document.getElementById('filterSection');
-                
-                sectionSelect.innerHTML = '<option value="">All Sections</option>';
-
-                if (assignedSections.length === 0) {
-                    console.log('No sections found. Loading all sections for debugging.');
-                    // Load all sections as fallback
-                    const allSectionsQuery = query(collection(db, 'sections'));
-                    const allSectionsSnapshot = await getDocs(allSectionsQuery);
-                    
-                    allSectionsSnapshot.forEach(doc => {
-                        const data = doc.data();
-                        if (data.name && !sectionSet.has(data.name)) {
-                            sectionSet.add(data.name);
-                            assignedSections.push({ 
-                                section: data.name,
-                                professorName: data.professor || 'Unknown' 
-                            });
-                        }
-                    });
-                }
-
-                // Add sections to dropdowns
-                assignedSections.forEach(sec => {
-                    const option = document.createElement('option');
-                    option.value = sec.section;
-                    option.textContent = sec.section;
-                    sectionSelect.appendChild(option.cloneNode(true));
-                });
-
-                console.log('Assigned sections:', assignedSections);
-
-            } catch (error) {
-                console.error('Error in loadAssignedSections:', error);
-            }
-        }
-
-        async function loadAllData() {
-            await loadActivities();
-            await loadStudents();
-            await loadGrades();
-            if (allGrades.length > 0) {
-                setTimeout(() => {
-                    calculateAndDisplayFinalGrades();
-                }, 500);
-            }
-        }
-
-        function calculateAndDisplayFinalGrades() {
-            try {
-                if (allGrades.length === 0) {
-                    console.log('No grades available for final calculation');
-                    return;
-                }
-
-                console.log('Auto-calculating final grades from', allGrades.length, 'grade records');
-
-                // Group grades by student
-                const studentGradesMap = {};
-                
-                allGrades.forEach(grade => {
-                    const studentKey = grade.studentEmail || 
-                                    `${grade.studentName}_${grade.section}`.toLowerCase();
-                    
-                    if (!studentGradesMap[studentKey]) {
-                        studentGradesMap[studentKey] = {
-                            name: grade.studentName,
-                            section: grade.section,
-                            email: grade.studentEmail || '',
-                            studentId: grade.studentId || '',
-                            scores: [],
-                            totalScore: 0,
-                            activityCount: 0,
-                            activityNames: [],
-                            activityInstances: []
-                        };
-                    }
-                    
-                    if (grade.score !== undefined && grade.score !== null) {
-                        studentGradesMap[studentKey].scores.push(grade.score);
-                        studentGradesMap[studentKey].totalScore += grade.score;
-                        studentGradesMap[studentKey].activityCount++;
-                        
-                        const activityInstance = {
-                            name: grade.testName,
-                            date: grade.date,
-                            score: grade.score,
-                            formattedDate: grade.formattedDate,
-                            result: grade.result || '',
-                            gradeStatus: grade.gradeStatus || ''
-                        };
-                        
-                        studentGradesMap[studentKey].activityInstances.push(activityInstance);
-                        
-                        const activityWithDate = `${grade.testName} (${grade.date})`;
-                        if (!studentGradesMap[studentKey].activityNames.includes(activityWithDate)) {
-                            studentGradesMap[studentKey].activityNames.push(activityWithDate);
-                        }
-                    }
-                });
-
-                console.log('Found', Object.keys(studentGradesMap).length, 'unique students');
-
-                // Calculate final grades for each student
-                const finalGrades = [];
-                Object.keys(studentGradesMap).forEach(studentKey => {
-                    const student = studentGradesMap[studentKey];
-                    
-                    const averageScore = student.scores.length > 0 ? 
-                        student.totalScore / student.scores.length : 0;
-                    
-                    const finalGrade = calculateGradeLetter(averageScore);
-                    const gradeStatus = getGradeStatus(averageScore);
-                    const statusText = averageScore >= 70 ? 'Passed' : 'Failed';
-                    
-                    finalGrades.push({
-                        studentKey: studentKey,
-                        name: student.name,
-                        section: student.section,
-                        totalActivities: student.activityCount,
-                        activityNames: student.activityNames,
-                        activityInstances: student.activityInstances,
-                        scores: student.scores,
-                        totalScore: student.totalScore,
-                        averageScore: parseFloat(averageScore.toFixed(2)),
-                        finalGrade: finalGrade,
-                        status: gradeStatus,
-                        statusText: statusText,
-                        email: student.email,
-                        studentId: student.studentId
-                    });
-                });
-
-                // Sort by average score (highest first)
-                finalGrades.sort((a, b) => b.averageScore - a.averageScore);
-
-                console.log('Auto-calculated final grades:', finalGrades.length);
-                
-                // Store the current final grades
-                currentFinalGrades = finalGrades;
-                filteredFinalGrades = [...finalGrades];
-                
-                // Display the final grades
-                displayFinalGrades(filteredFinalGrades);
-                
-                // Calculate and display statistics
-                updateFinalGradesStats(filteredFinalGrades);
-                
-            } catch (error) {
-                console.error('Error auto-calculating final grades:', error);
-            }
-        }
-
-        // ⭐ NEW: Apply Filters Function
-        window.applyFilters = function() {
-            const sectionFilter = document.getElementById('filterSection').value;
-            const sortBy = document.getElementById('sortBy').value;
-            
-            console.log('Applying filters - Section:', sectionFilter, 'Sort:', sortBy);
-            
-            // Start with all final grades
-            let filtered = [...currentFinalGrades];
-            
-            // Apply section filter
-            if (sectionFilter) {
-                filtered = filtered.filter(grade => grade.section === sectionFilter);
-                console.log('After section filter:', filtered.length, 'students');
-            }
-            
-            // Apply sorting
-            if (sortBy === 'highest') {
-                filtered.sort((a, b) => b.averageScore - a.averageScore);
-            } else if (sortBy === 'lowest') {
-                filtered.sort((a, b) => a.averageScore - b.averageScore);
-            } else if (sortBy === 'name-asc') {
-                filtered.sort((a, b) => a.name.localeCompare(b.name));
-            } else if (sortBy === 'name-desc') {
-                filtered.sort((a, b) => b.name.localeCompare(a.name));
-            }
-            
-            console.log('After sorting:', sortBy);
-            
-            // Update filtered grades
-            filteredFinalGrades = filtered;
-            
-            // Display filtered and sorted grades
-            displayFinalGrades(filteredFinalGrades);
-            
-            // Update statistics for filtered data
-            updateFinalGradesStats(filteredFinalGrades);
-        };
-
-        async function loadActivities() {
-            try {
-                allActivities = [];
-                
-                const scheduledQuery = query(
-                    collection(db, 'scheduledTests'),
-                    where('professorEmail', '==', currentProfessor.email)
-                );
-                const scheduledSnapshot = await getDocs(scheduledQuery);
-                
-                scheduledSnapshot.forEach(docSnap => {
-                    const activity = docSnap.data();
-                    if (!allActivities.find(a => a.testName === activity.testName)) {
-                        allActivities.push({
-                            id: docSnap.id,
-                            name: activity.testName,
-                            section: activity.section,
-                            type: 'scheduled'
-                        });
-                    }
-                });
-                
-                if (allGrades.length > 0) {
-                    const uniqueActivities = new Set();
-                    allGrades.forEach(grade => {
-                        if (grade.testName && !uniqueActivities.has(grade.testName)) {
-                            uniqueActivities.add(grade.testName);
-                            allActivities.push({
-                                id: `result_${grade.id}`,
-                                name: grade.testName,
-                                section: grade.section,
-                                type: 'completed'
-                            });
-                        }
-                    });
-                }
-                
-                console.log('Loaded activities:', allActivities.length);
-                
-            } catch (error) {
-                console.error('Error loading activities:', error);
-            }
-        }
-
-        async function loadStudents() {
-            try {
-                allStudents = [];
-                const studentIds = new Set();
-                
-                for (const section of assignedSections) {
-                    const studentsQuery = query(
-                        collection(db, 'students'),
-                        where('section', '==', section.section)
-                    );
-                    const studentsSnapshot = await getDocs(studentsQuery);
-                    
-                    studentsSnapshot.forEach(docSnap => {
-                        const student = docSnap.data();
-                        const uniqueId = student.email || student.umakId || docSnap.id;
-                        
-                        if (!studentIds.has(uniqueId)) {
-                            studentIds.add(uniqueId);
-                            allStudents.push({
-                                id: docSnap.id,
-                                ...student,
-                                section: section.section
-                            });
-                        }
-                    });
-                }
-                
-            } catch (error) {
-                console.error('Error loading students:', error);
-            }
-        }
-
-        async function loadGrades() {
-            try {
-                allGrades = [];
-                console.log('Loading grades for', assignedSections.length, 'sections');
-
-                if (assignedSections.length === 0) {
-                    return;
-                }
-
-                const activityInstances = {};
-
-                // Get all test results for assigned sections
-                for (const section of assignedSections) {
-                    try {
-                        const gradesQuery = query(
-                            collection(db, 'testResults'),
-                            where('section', '==', section.section)
-                        );
-                        
-                        const gradesSnapshot = await getDocs(gradesQuery);
-                        
-                        gradesSnapshot.forEach(docSnap => {
-                            const data = docSnap.data();
-                            
-                            if (data.status !== 'completed') return;
-                            
-                            const isProfessorOverride = data.isProfessorOverride === true;
-                            
-                            let score = 0;
-                            
-                            if (isProfessorOverride && data.score && data.score > 0) {
-                                score = data.score;
-                            }
-                            else if (data.score && data.score > 0) {
-                                score = data.score;
-                            }
-                            else if (data.result || data.resultData) {
-                                score = calculateActivityScore(
-                                    data.testName || 'Unknown Activity',
-                                    data.result || data.resultData,
-                                    data.testTarget || null
-                                );
-                            }
-                            else if (data.repetitions) {
-                                score = calculateActivityScore(
-                                    data.testName || 'Unknown Activity',
-                                    data.repetitions,
-                                    data.testTarget || null
-                                );
-                            }
-                            
-                            if (score === 0 && data.result) {
-                                const numResult = parseFloat(data.result);
-                                if (!isNaN(numResult)) {
-                                    score = numResult;
-                                }
-                            }
-
-                            let submittedDate = new Date();
-                        if (data.submittedAt) {
-                            if (data.submittedAt.toDate) {
-                                submittedDate = data.submittedAt.toDate();
-                            } else if (typeof data.submittedAt === 'string') {
-                                submittedDate = new Date(data.submittedAt);
-                            } else if (data.submittedAt.seconds) {
-                                submittedDate = new Date(data.submittedAt.seconds * 1000);
-                            }
-                        }
-
-                        const dateKey = submittedDate.toISOString().split('T')[0];
-                            
-                            const studentKey = data.studentEmail || data.studentName || '';
-                            const activityKey = data.testName || '';
-                            const uniqueKey = `${studentKey}_${activityKey}_${dateKey}`.toLowerCase();
-                            
-                            if (!activityInstances[uniqueKey] || score > activityInstances[uniqueKey].score) {
-                                const gradeStatus = getGradeStatus(score);
-
-                        
-                            let displayResult = '-';
-                            if (data.result !== undefined && data.result !== null) {
-                                if (typeof data.result === 'number') {
-                                    displayResult = data.result;
-                                } else if (typeof data.result === 'string') {
-                                    const match = data.result.match(/(\d+\.?\d*)/);
-                                    displayResult = match ? parseFloat(match[1]) : data.result;
-                                } else if (typeof data.result === 'object') {
-                                    displayResult = data.result.value || data.result.repetitions || 
-                                                data.result.time || data.result.distance || 0;
-                                }
-                            } else if (data.resultData) {
-                                if (typeof data.resultData === 'object') {
-                                    displayResult = data.resultData.value || data.resultData.repetitions || 
-                                                data.resultData.time || 0;
-                                } else {
-                                    displayResult = data.resultData;
-                                }
-                            } else if (data.repetitions !== undefined) {
-                                displayResult = data.repetitions;
-                            }
-
-                            activityInstances[uniqueKey] = {
-                                id: docSnap.id,
-                                studentName: data.studentName || 'Unknown Student',
-                                section: data.section || section.section,
-                                testName: data.testName || 'Unknown Activity',
-                                result: displayResult,
-                                testUnit: data.testUnit || '',
-                                score: score,
-                                gradeStatus: gradeStatus,
-                                date: submittedDate.toLocaleDateString('en-US', { 
-                                    year: 'numeric', 
-                                    month: 'long', 
-                                    day: 'numeric' 
-                                }),
-                                dateObject: submittedDate,
-                                formattedDate: dateKey,
-                                remarks: data.remarks || '',
-                                studentEmail: data.studentEmail || '',
-                                studentId: data.studentId || '',
-                                professorEmail: data.professorEmail || '',
-                                submittedAt: data.submittedAt || '',
-                                isProfessorOverride: isProfessorOverride || false
-                            };
-                            }
-                        });
-                        
-                    } catch (error) {
-                        console.error(`Error loading grades for ${section.section}:`, error);
-                    }
-                }
-
-                allGrades = Object.values(activityInstances);
-
-                allGrades.sort((a, b) => {
-                    try {
-                        const dateA = a.dateObject;
-                        const dateB = b.dateObject;
-                        
-                        if (dateB.getTime() !== dateA.getTime()) {
-                            return dateB - dateA;
-                        }
-                        
-                        const nameA = a.studentName.toLowerCase();
-                        const nameB = b.studentName.toLowerCase();
-                        return nameA.localeCompare(nameB);
-                    } catch (e) {
-                        return 0;
-                    }
-                });
-
-                console.log(`Total activities loaded: ${allGrades.length}`);
-
-            } catch (error) {
-                console.error('Error in loadGrades:', error);
-            }
-        }
-
+        // ============ ⭐ EXACT SCORING FUNCTION FROM STUDENT GRADES PAGE ============
         function calculateActivityScore(testName, result, testTarget = null) {
             const normalized = testName.toLowerCase().trim();
             
+            // ⭐ CRITICAL: Check if this is a professor override with pre-calculated score
             if (result && typeof result === 'object' && result !== null) {
                 if (result.score !== undefined && result.score !== null) {
                     const score = parseFloat(result.score);
                     if (!isNaN(score) && score >= 0 && score <= 100) {
+                        console.log(`✅ Using stored professor score: ${score} for ${testName}`);
                         return score;
                     }
                 }
             }
             
+            // Extract numeric value from result
             let numericValue = 0;
             
             if (typeof result === 'object' && result !== null) {
@@ -1658,6 +1253,9 @@
                 numericValue = parseFloat(result) || 0;
             }
             
+            console.log(`🎯 Calculating: ${testName} | Value: ${numericValue} | Target: ${testTarget}`);
+            
+            // Use test target if available
             if (testTarget && testTarget > 0) {
                 if (normalized.includes('push-up') || normalized.includes('pushup') || 
                     normalized.includes('sit-up') || normalized.includes('situp') ||
@@ -1759,10 +1357,8 @@
                 }
             }
             
-            return calculateDefaultScore(normalized, numericValue);
-        }
-
-        function calculateDefaultScore(normalized, numericValue) {
+            // ============ FALLBACK DEFAULT SCORING ============
+            
             if (normalized.includes('push-up') || normalized.includes('pushup')) {
                 const reps = numericValue;
                 if (reps >= 40) return 100;
@@ -1774,7 +1370,9 @@
                 if (reps >= 10) return 70;
                 if (reps >= 5) return 65;
                 return 60;
-            } else if (normalized.includes('sit-up') || normalized.includes('situp')) {
+            }
+            
+            if (normalized.includes('sit-up') || normalized.includes('situp')) {
                 const reps = numericValue;
                 if (reps >= 50) return 100;
                 if (reps >= 45) return 95;
@@ -1785,7 +1383,9 @@
                 if (reps >= 20) return 70;
                 if (reps >= 15) return 65;
                 return 60;
-            } else if (normalized.includes('curl-up')) {
+            }
+            
+            if (normalized.includes('curl-up')) {
                 const reps = numericValue;
                 if (reps >= 75) return 100;
                 if (reps >= 60) return 95;
@@ -1795,7 +1395,9 @@
                 if (reps >= 25) return 75;
                 if (reps >= 20) return 70;
                 return 65;
-            } else if (normalized.includes('plank')) {
+            }
+            
+            if (normalized.includes('plank')) {
                 let seconds = 0;
                 if (typeof numericValue === 'string' && numericValue.includes(':')) {
                     const [mins, secs] = numericValue.split(':').map(Number);
@@ -1813,7 +1415,9 @@
                 if (seconds >= 45) return 70;
                 if (seconds >= 30) return 65;
                 return 60;
-            } else if (normalized.includes('step test') || normalized.includes('3-minute')) {
+            }
+            
+            if (normalized.includes('step test') || normalized.includes('3-minute')) {
                 const heartRate = numericValue;
                 if (heartRate <= 70) return 100;
                 if (heartRate <= 80) return 95;
@@ -1823,7 +1427,9 @@
                 if (heartRate <= 120) return 75;
                 if (heartRate <= 130) return 70;
                 return 65;
-            } else if (normalized.includes('mile') || normalized.includes('run')) {
+            }
+            
+            if (normalized.includes('mile') || normalized.includes('run')) {
                 let totalSeconds = 0;
                 if (typeof numericValue === 'string' && numericValue.includes(':')) {
                     const [minutes, seconds] = numericValue.split(':').map(Number);
@@ -1841,7 +1447,9 @@
                 if (totalSeconds <= 720) return 70;
                 if (totalSeconds <= 780) return 65;
                 return 60;
-            } else if (normalized.includes('sit-and-reach')) {
+            }
+            
+            if (normalized.includes('sit-and-reach')) {
                 const distance = numericValue;
                 if (distance >= 25) return 100;
                 if (distance >= 20) return 95;
@@ -1851,7 +1459,9 @@
                 if (distance >= 0) return 75;
                 if (distance >= -5) return 70;
                 return 65;
-            } else if (normalized.includes('grip')) {
+            }
+            
+            if (normalized.includes('grip')) {
                 const strength = numericValue;
                 if (strength >= 60) return 100;
                 if (strength >= 55) return 95;
@@ -1861,7 +1471,9 @@
                 if (strength >= 35) return 75;
                 if (strength >= 30) return 70;
                 return 65;
-            } else if (normalized.includes('bmi')) {
+            }
+            
+            if (normalized.includes('bmi')) {
                 const bmi = numericValue;
                 if (bmi >= 18.5 && bmi <= 24.9) return 100;
                 if (bmi >= 17.5 && bmi < 18.5) return 85;
@@ -1874,8 +1486,657 @@
             return 75;
         }
 
-        function calculateGradeLetter(score) {
-            return score.toFixed(1);
+        // Hamburger Menu Event Listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            if (hamburger && mobileDrawer && drawerOverlay) {
+                hamburger.addEventListener('click', () => {
+                    hamburger.classList.toggle('active');
+                    mobileDrawer.classList.toggle('active');
+                    drawerOverlay.classList.toggle('active');
+                    document.body.style.overflow = mobileDrawer.classList.contains('active') ? 'hidden' : '';
+                });
+
+                drawerOverlay.addEventListener('click', () => {
+                    hamburger.classList.remove('active');
+                    mobileDrawer.classList.remove('active');
+                    drawerOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                });
+
+                mobileNavLinks.forEach(link => {
+                    link.addEventListener('click', () => {
+                        hamburger.classList.remove('active');
+                        mobileDrawer.classList.remove('active');
+                        drawerOverlay.classList.remove('active');
+                        document.body.style.overflow = '';
+                    });
+                });
+            }
+            
+            if (profilePictureBtn) {
+                profilePictureBtn.addEventListener('click', toggleProfileDropdown);
+            }
+            
+            if (profilePictureBtnMobile) {
+                profilePictureBtnMobile.addEventListener('click', toggleProfileDropdown);
+            }
+            
+            document.addEventListener('click', closeAllDropdowns);
+        });
+
+        function toggleProfileDropdown(event) {
+            event?.stopPropagation();
+            const isMobile = window.innerWidth < 768;
+            const dropdown = isMobile ? profileDropdownMobile : profileDropdown;
+            
+            const isHidden = dropdown.classList.contains('hidden');
+            
+            if (isHidden) {
+                dropdown.classList.remove('hidden');
+            } else {
+                dropdown.classList.add('hidden');
+            }
+        }
+
+        function closeProfileDropdown() {
+            if (profileDropdown) profileDropdown.classList.add('hidden');
+            if (profileDropdownMobile) profileDropdownMobile.classList.add('hidden');
+        }
+
+        function closeAllDropdowns(event) {
+            if (!event.target.closest('#profilePictureBtn') && 
+                !event.target.closest('#profilePictureBtnMobile') && 
+                !event.target.closest('#profileDropdown') && 
+                !event.target.closest('#profileDropdownMobile')) {
+                closeProfileDropdown();
+            }
+        }
+
+        window.showViewProfile = function(event) { 
+            if (event) event.preventDefault();
+            alert('Profile view would open here');
+            closeProfileDropdown();
+        };
+
+        window.handleLogout = async function(event) {
+            if (event) event.preventDefault();
+            closeProfileDropdown();
+            
+            if (confirm('Are you sure you want to logout?')) {
+                try {
+                    await signOut(auth);
+                    window.location.href = '/login/index.html';
+                } catch (error) {
+                    console.error('Error logging out:', error);
+                    window.location.href = '/login/index.html';
+                }
+            }
+        };
+
+        function updateProfilePicture(photoURL, userName) {
+            const profileBtn = document.getElementById('profilePictureBtn');
+            const profileBtnMobile = document.getElementById('profilePictureBtnMobile');
+            const dropdownPic = document.getElementById('profileDropdownPicture');
+            const dropdownPicMobile = document.getElementById('profileDropdownPictureMobile');
+            
+            const displayName = currentProfessor?.name || currentProfessor?.fullName || userName || 'Professor';
+            const email = currentProfessor?.email || 'professor@umak.edu.ph';
+            
+            const photoUrlToUse = photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=3b82f6&color=fff&size=128`;
+            
+            if (profileBtn) profileBtn.src = photoUrlToUse;
+            if (profileBtnMobile) profileBtnMobile.src = photoUrlToUse;
+            if (dropdownPic) dropdownPic.src = photoUrlToUse;
+            if (dropdownPicMobile) dropdownPicMobile.src = photoUrlToUse;
+            
+            const dropdownName = document.getElementById('profileDropdownName');
+            const dropdownNameMobile = document.getElementById('profileDropdownNameMobile');
+            if (dropdownName) dropdownName.textContent = displayName;
+            if (dropdownNameMobile) dropdownNameMobile.textContent = displayName;
+            
+            const dropdownEmail = document.getElementById('profileDropdownEmail');
+            const dropdownEmailMobile = document.getElementById('profileDropdownEmailMobile');
+            if (dropdownEmail) dropdownEmail.textContent = email;
+            if (dropdownEmailMobile) dropdownEmailMobile.textContent = email;
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            const loadingScreen = document.getElementById('loadingScreen');
+            const mainContent = document.getElementById('mainContent');
+
+            if (user) {
+                try {
+                    console.log('User authenticated:', user.email);
+                    
+                    await loadProfessorData(user);
+                    updateProfilePicture(user.photoURL, user.displayName);
+                    await loadAssignedSections();
+                    await loadAllData();
+                    
+                    loadingScreen.style.display = 'none';
+                    mainContent.classList.remove('hidden');
+                    
+                } catch (error) {
+                    console.error('Error loading grades:', error);
+                    loadingScreen.style.display = 'none';
+                    mainContent.classList.remove('hidden');
+                    alert('Error loading grades data: ' + error.message);
+                }
+            } else {
+                window.location.href = '/login/index.html';
+            }
+        });
+
+        async function loadProfessorData(user) {
+            try {
+                console.log('Loading professor data for:', user.email);
+                
+                const userEmail = user.email.toLowerCase();
+                
+                const professorsQuery = query(
+                    collection(db, 'professors'),
+                    where('email', '==', userEmail)
+                );
+                const professorsSnapshot = await getDocs(professorsQuery);
+                
+                if (!professorsSnapshot.empty) {
+                    const professorDoc = professorsSnapshot.docs[0];
+                    currentProfessor = { id: professorDoc.id, ...professorDoc.data() };
+                    console.log('✓ Professor found in professors collection:', currentProfessor);
+                } else {
+                    const usersQuery = query(
+                        collection(db, 'users'),
+                        where('email', '==', userEmail),
+                        where('role', '==', 'professor')
+                    );
+                    const usersSnapshot = await getDocs(usersQuery);
+                    
+                    if (!usersSnapshot.empty) {
+                        const userDoc = usersSnapshot.docs[0];
+                        currentProfessor = { id: userDoc.id, ...userDoc.data() };
+                        console.log('✓ Professor found in users collection:', currentProfessor);
+                    } else {
+                        currentProfessor = {
+                            name: user.displayName || 'Professor',
+                            email: user.email
+                        };
+                        console.log('⚠️ Using minimal professor data');
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Error loading professor data:', error);
+                currentProfessor = {
+                    name: user.displayName || 'Professor',
+                    email: user.email
+                };
+            }
+        }
+
+        async function loadAssignedSections() {
+            try {
+                assignedSections = [];
+                const sectionSet = new Set();
+                
+                console.log('Loading sections for professor:', currentProfessor.email);
+
+                const methods = [
+                    async () => {
+                        const professorQuery = query(
+                            collection(db, 'professorProfiles'),
+                            where('email', '==', currentProfessor.email)
+                        );
+                        const professorSnapshot = await getDocs(professorQuery);
+                        
+                        if (!professorSnapshot.empty) {
+                            const professorData = professorSnapshot.docs[0].data();
+                            const professorName = professorData.fullName || professorData.name || '';
+                            
+                            const sectionsQuery = query(
+                                collection(db, 'sections'),
+                                where('professor', '==', professorName)
+                            );
+                            const sectionsSnapshot = await getDocs(sectionsQuery);
+                            
+                            sectionsSnapshot.forEach(doc => {
+                                const data = doc.data();
+                                if (data.name && !sectionSet.has(data.name)) {
+                                    sectionSet.add(data.name);
+                                    assignedSections.push({ 
+                                        section: data.name,
+                                        professorName: professorName 
+                                    });
+                                }
+                            });
+                        }
+                    },
+                    
+                    async () => {
+                        const sectionsQuery = query(
+                            collection(db, 'sections'),
+                            where('professorEmail', '==', currentProfessor.email)
+                        );
+                        const sectionsSnapshot = await getDocs(sectionsQuery);
+                        
+                        sectionsSnapshot.forEach(doc => {
+                            const data = doc.data();
+                            if (data.name && !sectionSet.has(data.name)) {
+                                sectionSet.add(data.name);
+                                assignedSections.push({ 
+                                    section: data.name,
+                                    professorName: data.professor || currentProfessor.email 
+                                });
+                            }
+                        });
+                    },
+                    
+                    async () => {
+                        const testResultsQuery = query(
+                            collection(db, 'testResults'),
+                            where('professorEmail', '==', currentProfessor.email)
+                        );
+                        const testResultsSnapshot = await getDocs(testResultsQuery);
+                        
+                        const uniqueSections = new Set();
+                        testResultsSnapshot.forEach(doc => {
+                            const data = doc.data();
+                            if (data.section) {
+                                uniqueSections.add(data.section);
+                            }
+                        });
+                        
+                        uniqueSections.forEach(sectionName => {
+                            if (!sectionSet.has(sectionName)) {
+                                sectionSet.add(sectionName);
+                                assignedSections.push({ 
+                                    section: sectionName,
+                                    professorName: currentProfessor.email 
+                                });
+                            }
+                        });
+                    }
+                ];
+
+                for (const method of methods) {
+                    try {
+                        await method();
+                    } catch (error) {
+                        console.warn('Method failed:', error.message);
+                    }
+                }
+
+                const sectionSelect = document.getElementById('filterSection');
+                sectionSelect.innerHTML = '<option value="">All Sections</option>';
+
+                if (assignedSections.length === 0) {
+                    console.log('No sections found. Loading all sections for debugging.');
+                    const allSectionsQuery = query(collection(db, 'sections'));
+                    const allSectionsSnapshot = await getDocs(allSectionsQuery);
+                    
+                    allSectionsSnapshot.forEach(doc => {
+                        const data = doc.data();
+                        if (data.name && !sectionSet.has(data.name)) {
+                            sectionSet.add(data.name);
+                            assignedSections.push({ 
+                                section: data.name,
+                                professorName: data.professor || 'Unknown' 
+                            });
+                        }
+                    });
+                }
+
+                assignedSections.forEach(sec => {
+                    const option = document.createElement('option');
+                    option.value = sec.section;
+                    option.textContent = sec.section;
+                    sectionSelect.appendChild(option.cloneNode(true));
+                });
+
+                console.log('Assigned sections:', assignedSections);
+
+            } catch (error) {
+                console.error('Error in loadAssignedSections:', error);
+            }
+        }
+
+        async function loadAllData() {
+            await loadActivities();
+            await loadStudents();
+            await loadGrades();
+            if (allGrades.length > 0) {
+                setTimeout(() => {
+                    calculateAndDisplayFinalGrades();
+                }, 500);
+            }
+        }
+
+        async function loadGrades() {
+            try {
+                allGrades = [];
+                console.log('Loading grades for', assignedSections.length, 'sections');
+
+                if (assignedSections.length === 0) {
+                    return;
+                }
+
+                const bestScoresMap = new Map();
+
+                for (const section of assignedSections) {
+                    try {
+                        const gradesQuery = query(
+                            collection(db, 'testResults'),
+                            where('section', '==', section.section),
+                            where('status', '==', 'completed')
+                        );
+                        
+                        const gradesSnapshot = await getDocs(gradesQuery);
+                        
+                        gradesSnapshot.forEach(docSnap => {
+                            const data = docSnap.data();
+                            
+                            if (data.status !== 'completed') return;
+                            
+                            const studentEmail = data.studentEmail;
+                            const testId = data.testId || docSnap.id;
+                            const testName = data.testName || 'Unknown Activity';
+                            
+                            const testKey = `${studentEmail}_${testId}`;
+                            
+                            const score = calculateActivityScore(
+                                testName,
+                                data.result || data.resultData || data.repetitions || data,
+                                data.testTarget || null
+                            );
+                            
+                            const validScore = Math.max(0, Math.min(100, score));
+                            
+                            let submittedDate = new Date();
+                            if (data.submittedAt) {
+                                if (typeof data.submittedAt.toDate === 'function') {
+                                    submittedDate = data.submittedAt.toDate();
+                                } else if (typeof data.submittedAt === 'string') {
+                                    submittedDate = new Date(data.submittedAt);
+                                } else if (data.submittedAt.seconds) {
+                                    submittedDate = new Date(data.submittedAt.seconds * 1000);
+                                }
+                            }
+
+                            const dateKey = submittedDate.toISOString().split('T')[0];
+                            
+                            if (!bestScoresMap.has(testKey) || validScore > bestScoresMap.get(testKey).score) {
+                                
+                                let displayResult = '-';
+                                if (data.result !== undefined && data.result !== null) {
+                                    if (typeof data.result === 'number') {
+                                        displayResult = data.result;
+                                    } else if (typeof data.result === 'string') {
+                                        const match = data.result.match(/(\d+\.?\d*)/);
+                                        displayResult = match ? parseFloat(match[1]) : data.result;
+                                    } else if (typeof data.result === 'object') {
+                                        displayResult = data.result.value || data.result.repetitions || 
+                                                    data.result.time || data.result.distance || 0;
+                                    }
+                                } else if (data.resultData) {
+                                    if (typeof data.resultData === 'object') {
+                                        displayResult = data.resultData.value || data.resultData.repetitions || 
+                                                    data.resultData.time || 0;
+                                    } else {
+                                        displayResult = data.resultData;
+                                    }
+                                } else if (data.repetitions !== undefined) {
+                                    displayResult = data.repetitions;
+                                }
+
+                                bestScoresMap.set(testKey, {
+                                    id: docSnap.id,
+                                    studentName: data.studentName || 'Unknown Student',
+                                    section: data.section || section.section,
+                                    testName: testName,
+                                    result: displayResult,
+                                    testUnit: data.testUnit || '',
+                                    score: validScore,
+                                    date: submittedDate.toLocaleDateString('en-US', { 
+                                        year: 'numeric', 
+                                        month: 'long', 
+                                        day: 'numeric' 
+                                    }),
+                                    dateObject: submittedDate,
+                                    formattedDate: dateKey,
+                                    remarks: data.remarks || '',
+                                    studentEmail: studentEmail || '',
+                                    studentId: data.studentId || '',
+                                    professorEmail: data.professorEmail || '',
+                                    submittedAt: data.submittedAt || '',
+                                    isProfessorOverride: data.isProfessorOverride || false,
+                                    testTarget: data.testTarget || null
+                                });
+                            }
+                        });
+                        
+                    } catch (error) {
+                        console.error(`Error loading grades for ${section.section}:`, error);
+                    }
+                }
+
+                allGrades = Array.from(bestScoresMap.values());
+
+                allGrades.sort((a, b) => {
+                    try {
+                        const dateA = a.dateObject;
+                        const dateB = b.dateObject;
+                        return dateB - dateA;
+                    } catch (e) {
+                        return 0;
+                    }
+                });
+
+                console.log(`✅ Total unique best scores loaded: ${allGrades.length}`);
+
+            } catch (error) {
+                console.error('Error in loadGrades:', error);
+            }
+        }
+
+        function calculateAndDisplayFinalGrades() {
+            try {
+                if (allGrades.length === 0) {
+                    console.log('No grades available for final calculation');
+                    return;
+                }
+
+                console.log('Auto-calculating final grades from', allGrades.length, 'unique best scores');
+
+                const studentGradesMap = {};
+                
+                allGrades.forEach(grade => {
+                    const studentKey = grade.studentEmail || 
+                                    `${grade.studentName}_${grade.section}`.toLowerCase();
+                    
+                    if (!studentGradesMap[studentKey]) {
+                        studentGradesMap[studentKey] = {
+                            name: grade.studentName,
+                            section: grade.section,
+                            email: grade.studentEmail || '',
+                            studentId: grade.studentId || '',
+                            scores: [],
+                            totalScore: 0,
+                            activityCount: 0,
+                            activityNames: [],
+                            activityInstances: []
+                        };
+                    }
+                    
+                    if (grade.score !== undefined && grade.score !== null) {
+                        studentGradesMap[studentKey].scores.push(grade.score);
+                        studentGradesMap[studentKey].totalScore += grade.score;
+                        studentGradesMap[studentKey].activityCount++;
+                        
+                        studentGradesMap[studentKey].activityInstances.push({
+                            name: grade.testName,
+                            date: grade.date,
+                            formattedDate: grade.formattedDate,
+                            score: grade.score,
+                            result: grade.result || '',
+                            gradeStatus: getGradeStatus(grade.score)
+                        });
+                        
+                        const activityWithDate = `${grade.testName} (${grade.date})`;
+                        if (!studentGradesMap[studentKey].activityNames.includes(activityWithDate)) {
+                            studentGradesMap[studentKey].activityNames.push(activityWithDate);
+                        }
+                    }
+                });
+
+                console.log('✅ Found', Object.keys(studentGradesMap).length, 'unique students');
+
+                const finalGrades = [];
+                Object.keys(studentGradesMap).forEach(studentKey => {
+                    const student = studentGradesMap[studentKey];
+                    
+                    const averageScore = student.scores.length > 0 ? 
+                        student.totalScore / student.scores.length : 0;
+
+                    const finalGrade = averageScore.toFixed(2);
+                    const gradeStatus = getGradeStatus(averageScore);
+                    const statusText = averageScore >= 70 ? 'Passed' : 'Failed';
+                    const badgeClass = getBadgeClass(averageScore);
+                    
+                    finalGrades.push({
+                        studentKey: studentKey,
+                        name: student.name,
+                        section: student.section,
+                        totalActivities: student.activityCount,
+                        activityNames: student.activityNames,
+                        activityInstances: student.activityInstances,
+                        scores: student.scores,
+                        totalScore: student.totalScore,
+                        averageScore: parseFloat(averageScore.toFixed(2)),
+                        finalGrade: finalGrade,
+                        status: gradeStatus,
+                        statusText: statusText,
+                        badgeClass: badgeClass,
+                        email: student.email,
+                        studentId: student.studentId
+                    });
+                });
+
+                finalGrades.sort((a, b) => b.averageScore - a.averageScore);
+
+                console.log('✅ Auto-calculated final grades for', finalGrades.length, 'students');
+                
+                currentFinalGrades = finalGrades;
+                filteredFinalGrades = [...finalGrades];
+                
+                displayFinalGrades(filteredFinalGrades);
+                updateFinalGradesStats(filteredFinalGrades);
+                
+            } catch (error) {
+                console.error('Error auto-calculating final grades:', error);
+            }
+        }
+
+        window.applyFilters = function() {
+            const sectionFilter = document.getElementById('filterSection').value;
+            const sortBy = document.getElementById('sortBy').value;
+            
+            console.log('Applying filters - Section:', sectionFilter, 'Sort:', sortBy);
+            
+            let filtered = [...currentFinalGrades];
+            
+            if (sectionFilter) {
+                filtered = filtered.filter(grade => grade.section === sectionFilter);
+                console.log('After section filter:', filtered.length, 'students');
+            }
+            
+            if (sortBy === 'highest') {
+                filtered.sort((a, b) => b.averageScore - a.averageScore);
+            } else if (sortBy === 'lowest') {
+                filtered.sort((a, b) => a.averageScore - b.averageScore);
+            } else if (sortBy === 'name-asc') {
+                filtered.sort((a, b) => a.name.localeCompare(b.name));
+            } else if (sortBy === 'name-desc') {
+                filtered.sort((a, b) => b.name.localeCompare(a.name));
+            }
+            
+            filteredFinalGrades = filtered;
+            displayFinalGrades(filteredFinalGrades);
+            updateFinalGradesStats(filteredFinalGrades);
+        };
+
+        async function loadActivities() {
+            try {
+                allActivities = [];
+                
+                const scheduledQuery = query(
+                    collection(db, 'scheduledTests'),
+                    where('professorEmail', '==', currentProfessor.email)
+                );
+                const scheduledSnapshot = await getDocs(scheduledQuery);
+                
+                scheduledSnapshot.forEach(docSnap => {
+                    const activity = docSnap.data();
+                    if (!allActivities.find(a => a.testName === activity.testName)) {
+                        allActivities.push({
+                            id: docSnap.id,
+                            name: activity.testName,
+                            section: activity.section,
+                            type: 'scheduled'
+                        });
+                    }
+                });
+                
+                if (allGrades.length > 0) {
+                    const uniqueActivities = new Set();
+                    allGrades.forEach(grade => {
+                        if (grade.testName && !uniqueActivities.has(grade.testName)) {
+                            uniqueActivities.add(grade.testName);
+                            allActivities.push({
+                                id: `result_${grade.id}`,
+                                name: grade.testName,
+                                section: grade.section,
+                                type: 'completed'
+                            });
+                        }
+                    });
+                }
+                
+                console.log('Loaded activities:', allActivities.length);
+                
+            } catch (error) {
+                console.error('Error loading activities:', error);
+            }
+        }
+
+        async function loadStudents() {
+            try {
+                allStudents = [];
+                const studentIds = new Set();
+                
+                for (const section of assignedSections) {
+                    const studentsQuery = query(
+                        collection(db, 'students'),
+                        where('section', '==', section.section)
+                    );
+                    const studentsSnapshot = await getDocs(studentsQuery);
+                    
+                    studentsSnapshot.forEach(docSnap => {
+                        const student = docSnap.data();
+                        const uniqueId = student.email || student.umakId || docSnap.id;
+                        
+                        if (!studentIds.has(uniqueId)) {
+                            studentIds.add(uniqueId);
+                            allStudents.push({
+                                id: docSnap.id,
+                                ...student,
+                                section: section.section
+                            });
+                        }
+                    });
+                }
+                
+            } catch (error) {
+                console.error('Error loading students:', error);
+            }
         }
 
         function getGradeStatus(score) {
@@ -1929,7 +2190,6 @@
                 return;
             }
             
-            // ⭐ UPDATE SUMMARY CARD
             const summaryCard = document.getElementById('resultsSummary');
             if (finalGrades.length > 0) {
                 summaryCard.style.display = 'block';
@@ -1944,7 +2204,9 @@
                 
                 document.getElementById('totalResults').textContent = totalResults;
                 document.getElementById('uniqueStudents').textContent = finalGrades.length;
-                document.getElementById('averageScore').textContent = Math.round(totalScore / finalGrades.length) + '%';
+                
+                const avgScore = totalScore / finalGrades.length;
+                document.getElementById('averageScore').textContent = avgScore.toFixed(2) + '%';
             }
             
             let html = '';
@@ -1963,7 +2225,7 @@
                         <td data-label="Section">${grade.section || 'N/A'}</td>
                         <td data-label="Total Activities"><strong>${grade.totalActivities}</strong></td>
                         <td data-label="Average Score">
-                            <span class="${grade.status}">${grade.averageScore.toFixed(1)}%</span>
+                            <span class="${grade.status}">${grade.averageScore.toFixed(2)}%</span>
                         </td>
                         <td data-label="Status">
                             <span class="badge ${badgeClass}">
@@ -1984,17 +2246,14 @@
             document.getElementById('savePdfBtn').style.display = 'inline-flex';
         }
 
-        // ⭐ NEW: Show Student's Grades Details in Modal
         window.showStudentGrades = function(studentKey) {
             const studentData = currentFinalGrades.find(g => g.studentKey === studentKey);
             if (!studentData) return;
             
             console.log('📋 Opening grades details for:', studentData.name);
             
-            // Update modal header
             document.getElementById('modalStudentName').textContent = `${studentData.name}'s Grades Details (${studentData.totalActivities} activities)`;
             
-            // Update student info header
             const nameParts = studentData.name.split(' ');
             const initials = (nameParts[0]?.charAt(0) || '') + (nameParts[nameParts.length - 1]?.charAt(0) || '');
             
@@ -2003,14 +2262,12 @@
             document.getElementById('studentSectionDetail').textContent = `${studentData.section} • ${studentData.email || ''}`;
             document.getElementById('studentInfoHeader').style.display = 'flex';
             
-            // Sort activities by date (newest first)
             const sortedActivities = studentData.activityInstances.sort((a, b) => {
                 const dateA = new Date(a.date || a.formattedDate || '');
                 const dateB = new Date(b.date || b.formattedDate || '');
                 return dateB - dateA;
             });
             
-            // Populate table
             let html = '';
             sortedActivities.forEach((activity) => {
                 const dateFormatted = activity.date || activity.formattedDate || 'N/A';
@@ -2034,21 +2291,24 @@
             
             document.getElementById('studentGradesTableBody').innerHTML = html;
             
-            // Show modal
             document.getElementById('studentGradesModal').style.display = 'flex';
+            
+            const modalBody = document.getElementById('modalBodyContent');
+            if (modalBody) {
+                modalBody.scrollTop = 0;
+            }
         };
 
-        // ⭐ NEW: Close Student Grades Modal
         window.closeStudentGradesModal = function() {
             document.getElementById('studentGradesModal').style.display = 'none';
         };
-
+        
         function updateFinalGradesStats(finalGrades) {
             if (finalGrades.length === 0) {
                 document.getElementById('totalStudents').textContent = '0';
                 document.getElementById('passedStudents').textContent = '0';
                 document.getElementById('failedStudents').textContent = '0';
-                document.getElementById('overallAverage').textContent = '0.0%';
+                document.getElementById('overallAverage').textContent = '0.00%';
                 return;
             }
             
@@ -2057,13 +2317,67 @@
             const failedStudents = totalStudents - passedStudents;
             
             const totalAverage = finalGrades.reduce((sum, grade) => sum + grade.averageScore, 0);
-            const overallAverage = (totalAverage / totalStudents).toFixed(1);
+            const overallAverage = totalAverage / totalStudents;
             
             document.getElementById('totalStudents').textContent = totalStudents;
             document.getElementById('passedStudents').textContent = passedStudents;
             document.getElementById('failedStudents').textContent = failedStudents;
-            document.getElementById('overallAverage').textContent = overallAverage + '%';
+            document.getElementById('overallAverage').textContent = overallAverage.toFixed(2) + '%';
         }
+
+        window.calculateFinalGrades = function() {
+            try {
+                if (allGrades.length === 0) {
+                    alert('No grades available to calculate final grades.');
+                    return;
+                }
+
+                calculateAndDisplayFinalGrades();
+                alert(`✅ Successfully calculated final grades for ${currentFinalGrades.length} students using BEST scores!`);
+
+            } catch (error) {
+                console.error('Error calculating final grades:', error);
+                alert('Error calculating final grades: ' + error.message);
+            }
+        }
+
+        window.exportGrades = function() {
+            if (filteredFinalGrades.length === 0) {
+                alert('No final grades to export');
+                return;
+            }
+            
+            let csv = 'Student Name,Section,Total Activities,Average Score,Status\n';
+            
+            filteredFinalGrades.forEach(grade => {
+                csv += `"${grade.name || ''}","${grade.section || ''}",${grade.totalActivities || 0},${grade.averageScore || 0},"${grade.statusText || ''}"\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `final_grades_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            alert('✅ Final grades exported successfully!');
+        }
+
+        window.saveFinalGradesToPDF = function() {
+            alert('PDF export feature would be implemented here.\nFor now, you can use the browser\'s Print function (Ctrl+P) and save as PDF.');
+        }
+
+        window.editGrade = editGrade;
+        window.closeEditModal = closeEditModal;
+        window.saveGrade = saveGrade;
+        window.calculateFinalGrades = calculateFinalGrades;
+        window.exportGrades = exportGrades;
+        window.saveFinalGradesToPDF = saveFinalGradesToPDF;
+        window.showStudentGrades = showStudentGrades;
+        window.closeStudentGradesModal = closeStudentGradesModal;
 
         function editGrade(gradeId) {
             const grade = allGrades.find(g => g.id === gradeId);
@@ -2100,10 +2414,11 @@
                 await updateDoc(gradeRef, {
                     score: newScore,
                     remarks: remarks,
+                    isProfessorOverride: true,
                     updatedAt: new Date()
                 });
                 
-                alert('Grade updated successfully!');
+                alert('✅ Grade updated successfully!');
                 closeEditModal();
                 await loadGrades();
                 
@@ -2112,61 +2427,6 @@
                 alert('Error updating grade: ' + error.message);
             }
         }
-
-        window.calculateFinalGrades = function() {
-            try {
-                if (allGrades.length === 0) {
-                    alert('No grades available to calculate final grades.');
-                    return;
-                }
-
-                calculateAndDisplayFinalGrades();
-                alert(`Successfully calculated final grades for ${currentFinalGrades.length} students!`);
-
-            } catch (error) {
-                console.error('Error calculating final grades:', error);
-                alert('Error calculating final grades: ' + error.message);
-            }
-        }
-
-        window.exportGrades = function() {
-            if (filteredFinalGrades.length === 0) {
-                alert('No final grades to export');
-                return;
-            }
-            
-            let csv = 'Student Name,Section,Total Activities,Average Score,Final Grade,Status\n';
-            
-            currentFinalGrades.forEach(grade => {
-                csv += `"${grade.name || ''}","${grade.section || ''}",${grade.totalActivities || 0},${grade.averageScore || 0},"${grade.finalGrade || ''}","${grade.statusText || ''}"\n`;
-            });
-            
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `final_grades_${new Date().toISOString().split('T')[0]}.csv`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
-            
-            alert('Final grades exported successfully!');
-        }
-
-        window.saveFinalGradesToPDF = function() {
-            alert('PDF export feature would be implemented here.\nFor now, you can use the browser\'s Print function (Ctrl+P) and save as PDF.');
-        }
-
-        // Make functions available globally
-        window.editGrade = editGrade;
-        window.closeEditModal = closeEditModal;
-        window.saveGrade = saveGrade;
-        window.calculateFinalGrades = calculateFinalGrades;
-        window.exportGrades = exportGrades;
-        window.saveFinalGradesToPDF = saveFinalGradesToPDF;
-        window.showStudentGrades = showStudentGrades;
-        window.closeStudentGradesModal = closeStudentGradesModal;
     </script>
 </body>
 </html>
