@@ -512,17 +512,12 @@
                         <h1 class="text-2xl md:text-3xl font-bold text-blue-900">Professor Profile</h1>
                     </div>
                     <div class="flex space-x-3">
-                        <button onclick="printProfile()" class="no-print flex items-center px-4 py-2 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-blue-900 font-semibold rounded-lg transition-all hover:-translate-y-0.5 hover:shadow-lg">
-                            <i class="fas fa-print mr-2"></i>
-                            <span class="hidden sm:inline">Print Profile</span>
-                            <span class="sm:hidden">Print</span>
-                        </button>
-                        <button onclick="refreshProfile()" class="no-print flex items-center px-4 py-2 bg-gradient-to-r from-blue-400 to-blue-500 hover:from-blue-500 hover:to-blue-600 text-white font-semibold rounded-lg transition-all hover:-translate-y-0.5 hover:shadow-lg">
-                            <i class="fas fa-sync-alt mr-2"></i>
-                            <span class="hidden sm:inline">Refresh</span>
-                            <span class="sm:hidden">Refresh</span>
-                        </button>
-                    </div>
+                    <button onclick="refreshProfile()" class="no-print flex items-center px-4 py-2 bg-gradient-to-r from-blue-400 to-blue-500 hover:from-blue-500 hover:to-blue-600 text-white font-semibold rounded-lg transition-all hover:-translate-y-0.5 hover:shadow-lg">
+                        <i class="fas fa-sync-alt mr-2"></i>
+                        <span class="hidden sm:inline">Refresh</span>
+                        <span class="sm:hidden">Refresh</span>
+                    </button>
+                </div>
                 </div>
 
                 <!-- Profile Overview -->
@@ -591,18 +586,6 @@
                                 <span class="ml-2 bg-blue-100 text-blue-700 text-sm font-medium px-2.5 py-0.5 rounded-full" id="sectionsCount">0</span>
                             </h3>
                             <div class="flex items-center space-x-3">
-                                <div class="relative">
-                                    <select id="sortSections" class="appearance-none bg-gray-50 border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 pr-8">
-                                        <option value="name-asc">Sort by: Name (A-Z)</option>
-                                        <option value="name-desc">Sort by: Name (Z-A)</option>
-                                        <option value="students-asc">Sort by: Students (Fewest)</option>
-                                        <option value="students-desc">Sort by: Students (Most)</option>
-                                        <option value="course-asc">Sort by: Course Code</option>
-                                    </select>
-                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                                        <i class="fas fa-sort"></i>
-                                    </div>
-                                </div>
                                 <button onclick="openSectionsModal()" class="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center">
                                     <i class="fas fa-expand-alt mr-1"></i>
                                     <span>View All</span>
@@ -658,10 +641,10 @@
                 <div class="bg-white rounded-2xl card-shadow border border-gray-200 p-6 mt-8">
                     <div class="flex items-center justify-between mb-6">
                         <h3 class="text-xl font-bold text-gray-900 flex items-center">
-                            <i class="fas fa-history text-purple-500 mr-2"></i>
+                            <i class="fas fa-history text-blue-500 mr-2"></i>
                             Recent Activity History
                         </h3>
-                        <button onclick="viewFullHistory()" class="text-purple-600 hover:text-purple-800 text-sm font-medium flex items-center">
+                        <button onclick="viewFullHistory()" class="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center">
                             <i class="fas fa-external-link-alt mr-1"></i>
                             View Full History
                         </button>
@@ -677,7 +660,40 @@
                 </div>
             </div>
         </div>
-        
+                    <!-- ============ FULL ACTIVITY HISTORY MODAL ============ -->
+            <div id="activityHistoryModal" class="modal-overlay hidden">
+                <div class="modal-content" style="max-width: 750px;" onclick="event.stopPropagation()">
+                    <div class="modal-header">
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                                <i class="fas fa-history text-purple-500"></i>
+                                Full Activity History
+                            </h3>
+                            <p class="text-gray-500 text-sm mt-1">
+                                All test activities and lessons you have created —
+                                <span id="fullHistoryCount" class="font-semibold text-purple-600">0</span> total
+                            </p>
+                        </div>
+                        <button class="modal-close-btn" onclick="closeActivityHistoryModal()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="fullHistoryList" class="space-y-3">
+                            <div class="text-center py-8 text-gray-500">Loading history...</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <div class="text-gray-500 text-sm">
+                            Showing all activity history
+                        </div>
+                        <button onclick="closeActivityHistoryModal()"
+                            class="px-5 py-2 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-blue-900 font-semibold rounded-lg transition-all hover:-translate-y-0.5 hover:shadow-lg">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
         <!-- ✅ UPDATED FOOTER - MATCHING LANDING PAGE DESIGN -->
         <footer class="bg-gradient-to-r from-blue-900 to-blue-800 text-white py-8 sm:py-12">
             <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
@@ -811,19 +827,7 @@
                     <h3 class="text-2xl font-bold text-gray-900">All Sections</h3>
                     <p class="text-gray-600 mt-1 text-sm">Showing all assigned sections with complete details</p>
                 </div>
-                <div class="flex items-center space-x-3">
-                    <div class="relative">
-                        <select id="modalSortSections" class="appearance-none bg-gray-50 border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 pr-8">
-                            <option value="name-asc">Sort by: Name (A-Z)</option>
-                            <option value="name-desc">Sort by: Name (Z-A)</option>
-                            <option value="students-asc">Sort by: Students (Fewest)</option>
-                            <option value="students-desc">Sort by: Students (Most)</option>
-                            <option value="course-asc">Sort by: Course Code</option>
-                        </select>
-                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                            <i class="fas fa-sort"></i>
-                        </div>
-                    </div>
+               <div class="flex items-center space-x-3">
                     <button class="modal-close-btn" onclick="closeSectionsModal()">
                         <i class="fas fa-times"></i>
                     </button>
@@ -1123,10 +1127,6 @@
             }
         };
 
-        // Print profile function
-        window.printProfile = function() {
-            window.print();
-        };
 
         // Refresh profile function
         window.refreshProfile = async function() {
@@ -1146,9 +1146,83 @@
         };
 
         // View full history function
-        window.viewFullHistory = function() {
-            alert('Redirecting to full activity history page...');
-        };
+window.viewFullHistory = function() {
+    const modal = document.getElementById('activityHistoryModal');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    renderFullHistoryModal();
+};
+
+window.closeActivityHistoryModal = function() {
+    const modal = document.getElementById('activityHistoryModal');
+    if (modal) modal.classList.add('hidden');
+    document.body.style.overflow = 'auto';
+};
+
+function renderFullHistoryModal() {
+    const items = window.allActivityItems || [];
+    const container = document.getElementById('fullHistoryList');
+    const countEl = document.getElementById('fullHistoryCount');
+    
+    if (countEl) countEl.textContent = items.length;
+    
+    if (!container) return;
+    
+    if (items.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-12">
+                <div class="text-5xl mb-3 opacity-40">📝</div>
+                <div class="text-gray-700 font-semibold">No activity history found</div>
+                <div class="text-gray-500 text-sm mt-1">Schedule tests or add lessons to see activity here</div>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '';
+    items.forEach((item, index) => {
+        const isActivity = item.testName !== undefined;
+        const icon = isActivity ? 'fa-dumbbell' : 'fa-book-open';
+        const color = isActivity ? 'text-green-500' : 'text-blue-500';
+        const bgColor = isActivity ? 'bg-green-50' : 'bg-blue-50';
+        const type = isActivity ? 'Test Activity' : 'Lesson';
+        const title = item.testName || item.title || 'Untitled';
+        const date = item.createdAt ? formatDate(item.createdAt) : 'Unknown date';
+        const statusBadge = isActivity ? getStatusBadge(item.status) : '';
+        
+        html += `
+            <div class="flex items-start gap-3 p-4 bg-gray-50 rounded-xl border border-gray-100 hover:bg-white hover:border-gray-200 hover:shadow-sm transition-all duration-200">
+                <div class="w-10 h-10 rounded-full ${bgColor} flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <i class="fas ${icon} ${color}"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="font-semibold text-gray-900">${title}</div>
+                        <div class="flex flex-col items-end gap-1 flex-shrink-0">
+                           <span class="text-xs font-semibold px-2 py-0.5 rounded-full ${isActivity ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}">
+                                ${type}
+                            </span>
+                            ${statusBadge}
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 mt-2">
+                        <span class="flex items-center gap-1">
+                            <i class="fas fa-calendar-alt"></i>
+                            Created: ${date}
+                        </span>
+                        ${item.section ? `<span class="flex items-center gap-1"><i class="fas fa-users"></i>${item.section}</span>` : ''}
+                        ${isActivity && item.date ? `<span class="flex items-center gap-1"><i class="fas fa-calendar-check"></i>Test date: ${item.date}</span>` : ''}
+                        ${isActivity && item.deadline ? `<span class="flex items-center gap-1"><i class="fas fa-clock text-red-400"></i>Deadline: ${item.deadline} ${item.deadlineTime || ''}</span>` : ''}
+                        ${isActivity && item.attemptsAllowed ? `<span class="flex items-center gap-1"><i class="fas fa-redo"></i>${item.attemptsAllowed} attempt(s)</span>` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
 
         // Update profile picture in navigation
         function updateProfilePicture(photoURL, userName) {
@@ -1335,7 +1409,8 @@
                         
                         professorSections.push({
                             id: doc.id,
-                            ...sectionData
+                            ...sectionData,
+                            days: sectionData.day || sectionData.days || ''
                         });
                         
                         // Add students from this section
@@ -1447,7 +1522,7 @@
                                     <ul class="space-y-2 text-sm">
                                         <li class="flex items-center">
                                             <i class="fas fa-calendar-alt text-gray-400 w-5 mr-2"></i>
-                                            <span>Schedule: ${section.schedule || 'Not specified'}</span>
+                                            <span>Schedule: ${section.days || sectionData?.day || 'Not specified'}</span>
                                         </li>
                                         <li class="flex items-center">
                                             <i class="fas fa-clock text-gray-400 w-5 mr-2"></i>
@@ -1588,7 +1663,7 @@
                                     <ul class="space-y-2 text-sm">
                                         <li class="flex items-center">
                                             <i class="fas fa-calendar-alt text-gray-400 w-5 mr-2"></i>
-                                            <span>Schedule: ${section.schedule || 'Not specified'}</span>
+                                            <span>Schedule: ${section.days || section.day || 'Not specified'}</span>
                                         </li>
                                         <li class="flex items-center">
                                             <i class="fas fa-clock text-gray-400 w-5 mr-2"></i>
@@ -1890,114 +1965,138 @@
         }
 
         async function loadProfessorActivities() {
-            try {
-                const activitiesQuery = query(
-                    collection(db, 'scheduledTests'),
-                    where('professorEmail', '==', window.currentProfessor.email),
-                    orderBy('createdAt', 'desc'),
-                    limit(5)
-                );
-                
-                const activitiesSnapshot = await getDocs(activitiesQuery);
-                professorActivities = activitiesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                
-                document.getElementById('statActivitiesCreated').textContent = professorActivities.length;
-                
-            } catch (error) {
-                console.error('Error loading activities:', error);
-                document.getElementById('statActivitiesCreated').textContent = '0';
-            }
+        try {
+            // Query ALL scheduled tests by this professor (no orderBy to avoid index issues)
+            const activitiesQuery = query(
+                collection(db, 'scheduledTests'),
+                where('professorEmail', '==', window.currentProfessor.email)
+            );
+            
+            const activitiesSnapshot = await getDocs(activitiesQuery);
+            professorActivities = activitiesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            
+            // Sort in memory by createdAt descending
+            professorActivities.sort((a, b) => {
+                const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt || 0);
+                const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt || 0);
+                return dateB - dateA;
+            });
+            
+            document.getElementById('statActivitiesCreated').textContent = professorActivities.length;
+            
+        } catch (error) {
+            console.error('Error loading activities:', error);
+            document.getElementById('statActivitiesCreated').textContent = '0';
         }
+    }
 
         async function loadProfessorLessons() {
-            try {
-                const lessonsQuery = query(
-                    collection(db, 'lessons'),
-                    where('professorEmail', '==', window.currentProfessor.email),
-                    orderBy('createdAt', 'desc'),
-                    limit(5)
-                );
-                
-                const lessonsSnapshot = await getDocs(lessonsQuery);
-                professorLessons = lessonsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                
-                document.getElementById('statLessonsCreated').textContent = professorLessons.length;
-                
-            } catch (error) {
-                console.error('Error loading lessons:', error);
-                document.getElementById('statLessonsCreated').textContent = '0';
-            }
+        try {
+            const lessonsQuery = query(
+                collection(db, 'lessons'),
+                where('professorEmail', '==', window.currentProfessor.email)
+            );
+            
+            const lessonsSnapshot = await getDocs(lessonsQuery);
+            professorLessons = lessonsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            
+            // Sort in memory
+            professorLessons.sort((a, b) => {
+                const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt || 0);
+                const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt || 0);
+                return dateB - dateA;
+            });
+            
+            document.getElementById('statLessonsCreated').textContent = professorLessons.length;
+            
+        } catch (error) {
+            console.error('Error loading lessons:', error);
+            document.getElementById('statLessonsCreated').textContent = '0';
         }
+    }
 
-        async function loadActivityHistory() {
-            try {
-                const activityHistory = document.getElementById('activityHistory');
-                
-                const allItems = [...professorActivities, ...professorLessons];
-                
-                allItems.sort((a, b) => {
-                    const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt || 0);
-                    const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt || 0);
-                    return dateB - dateA;
-                });
-                
-                if (allItems.length === 0) {
-                    activityHistory.innerHTML = `
-                        <div class="text-center py-8">
-                            <div class="text-5xl mb-3 opacity-40">📝</div>
-                            <div class="text-gray-700 font-semibold mb-1">No Recent Activity</div>
-                            <div class="text-gray-500 text-sm">Your created activities and lessons will appear here</div>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                let html = '';
-                allItems.slice(0, 5).forEach(item => {
-                    const isActivity = item.testName !== undefined;
-                    const icon = isActivity ? 'fa-dumbbell' : 'fa-book-open';
-                    const color = isActivity ? 'text-green-500' : 'text-purple-500';
-                    const type = isActivity ? 'Activity' : 'Lesson';
-                    const title = item.testName || item.title || 'Untitled';
-                    const date = item.createdAt ? formatDate(item.createdAt) : 'Unknown date';
-                    
-                    html += `
-                        <div class="flex items-center p-3 bg-gray-50 rounded-lg border border-gray-100 hover:bg-white transition-all duration-300">
-                            <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mr-3">
-                                <i class="fas ${icon} ${color}"></i>
-                            </div>
-                            <div class="flex-1">
-                                <div class="font-semibold text-gray-900">${title}</div>
-                                <div class="flex space-x-4 text-xs text-gray-500 mt-1">
-                                    <span class="flex items-center">
-                                        <i class="fas ${icon} mr-1"></i>
-                                        ${type}
-                                    </span>
-                                    <span class="flex items-center">
-                                        <i class="fas fa-calendar mr-1"></i>
-                                        ${date}
-                                    </span>
-                                    ${item.section ? `
-                                        <span class="flex items-center">
-                                            <i class="fas fa-users mr-1"></i>
-                                            ${item.section}
-                                        </span>
-                                    ` : ''}
-                                </div>
-                            </div>
-                            <div class="text-sm ${isActivity ? 'text-green-600' : 'text-purple-600'} font-medium">
-                                ${type}
-                            </div>
-                        </div>
-                    `;
-                });
-                
-                activityHistory.innerHTML = html;
-                
-            } catch (error) {
-                console.error('Error loading activity history:', error);
-            }
+async function loadActivityHistory() {
+    try {
+        const activityHistory = document.getElementById('activityHistory');
+        
+        const allItems = [...professorActivities, ...professorLessons];
+        
+        allItems.sort((a, b) => {
+            const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt || 0);
+            const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt || 0);
+            return dateB - dateA;
+        });
+        
+        // Store all items globally for the full history modal
+        window.allActivityItems = allItems;
+        
+        if (allItems.length === 0) {
+            activityHistory.innerHTML = `
+                <div class="text-center py-8">
+                    <div class="text-5xl mb-3 opacity-40">📝</div>
+                    <div class="text-gray-700 font-semibold mb-1">No Recent Activity</div>
+                    <div class="text-gray-500 text-sm">Your created activities and lessons will appear here</div>
+                </div>
+            `;
+            return;
         }
+        
+        let html = '';
+        allItems.slice(0, 2).forEach(item => {
+            const isActivity = item.testName !== undefined;
+            const icon = isActivity ? 'fa-dumbbell' : 'fa-book-open';
+            const color = isActivity ? 'text-green-500' : 'text-blue-500';
+            const type = isActivity ? 'Test Activity' : 'Lesson';
+            const title = item.testName || item.title || 'Untitled';
+            const date = item.createdAt ? formatDate(item.createdAt) : 'Unknown date';
+            const statusBadge = isActivity ? getStatusBadge(item.status) : '';
+            
+            html += `
+                <div class="flex items-center p-3 bg-gray-50 rounded-lg border border-gray-100 hover:bg-white transition-all duration-300">
+                    <div class="w-10 h-10 rounded-full ${isActivity ? 'bg-green-50' : 'bg-purple-50'} flex items-center justify-center mr-3 flex-shrink-0">
+                        <i class="fas ${icon} ${color}"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="font-semibold text-gray-900 truncate">${title}</div>
+                        <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500 mt-1">
+                            <span class="flex items-center">
+                                <i class="fas fa-tag mr-1"></i>${type}
+                            </span>
+                            <span class="flex items-center">
+                                <i class="fas fa-calendar mr-1"></i>${date}
+                            </span>
+                            ${item.section ? `<span class="flex items-center"><i class="fas fa-users mr-1"></i>${item.section}</span>` : ''}
+                            ${isActivity && item.deadline ? `<span class="flex items-center"><i class="fas fa-clock mr-1"></i>Due: ${item.deadline}</span>` : ''}
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-end gap-1 ml-2 flex-shrink-0">
+                       <span class="text-xs font-semibold px-2 py-0.5 rounded-full ${isActivity ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}">
+                            ${type}
+                        </span>
+                        ${statusBadge}
+                    </div>
+                </div>
+            `;
+        });
+        
+        activityHistory.innerHTML = html;
+        
+    } catch (error) {
+        console.error('Error loading activity history:', error);
+    }
+}
+
+function getStatusBadge(status) {
+    if (!status) return '';
+    const map = {
+        active:    'bg-green-100 text-green-700',
+        scheduled: 'bg-yellow-100 text-yellow-700',
+        completed: 'bg-blue-100 text-blue-700'
+    };
+    const cls = map[status] || 'bg-gray-100 text-gray-600';
+    const label = status.charAt(0).toUpperCase() + status.slice(1);
+    return `<span class="text-xs font-medium px-2 py-0.5 rounded-full ${cls}">${label}</span>`;
+}
 
         // Utility functions
         window.toggleSectionDetails = function(sectionId) {

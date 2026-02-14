@@ -368,7 +368,7 @@
         text-transform: uppercase;
         letter-spacing: 1px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        backdrop-filter: blur(10px);
+        
         border: 2px solid rgba(255, 255, 255, 0.3);
     }
 
@@ -502,7 +502,36 @@
         border-radius: 50%;
         animation: spin 1s linear infinite;
     }
+    /* Recommendation Header */
+.recommendation-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 1rem;
+}
 
+.recommendation-icon {
+    font-size: 24px;
+}
+
+/* Stat Badges */
+.stat-badges {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+}
+
+.stat-badge-label {
+    font-family: "Inter", Helvetica;
+    font-weight: 600;
+    color: #64748b;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
     @keyframes spin {
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
@@ -1444,57 +1473,101 @@
             return { text: 'Needs Improvement', class: 'rating-needs-improvement' };
         }
 
-        async function generateRecommendation(testName, result, score, timerValue) {
-            console.log('🤖 Calling AI API for personalized recommendation...');
-            console.log('Test:', testName, '| Score:', score, '| Result:', result);
+// Add this at the top of your script, after the Firebase config
+const RECOMMENDATION_CACHE = new Map();
+const CACHE_DURATION = 1000 * 60 * 60; // 1 hour
+
+async function generateRecommendation(testName, result, score, timerValue) {
+    if (score >= 100) {
+        return `Congratulations on achieving a perfect score of 100/100 on your ${testName} test! Your hard work and dedication have paid off. Continue maintaining this excellent level of fitness through consistent training, and consider challenging yourself with advanced variations or helping your classmates improve their performance.`;
+    }
+
+    console.log('🤖 Calling Gemini API for recommendation...');
+    
+    const GEMINI_API_KEY = "AIzaSyCA-tOBwfMMZGj-q9jeaYldBGDH2bwpYwA";
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+    
+    const prompt = `You are a fitness coach. A student scored ${score}/100 on ${testName} with result: ${result}.
+
+Write 4-5 complete sentences explaining HOW to improve:
+1. Specific exercises with sets/reps/frequency
+2. Proper technique tips
+3. Progression strategy  
+4. Expected improvement timeline
+
+Write naturally as one paragraph. Be specific and helpful. No markdown.`;
+
+    const maxRetries = 3;
+    const baseDelay = 3000; // Start with 3 seconds
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            console.log(`📤 Attempt ${attempt}/${maxRetries}`);
             
-            try {
-                const prompt = `You are a professional fitness coach with expertise in physical fitness assessments. A student just completed a ${testName} test with the following results:
-- Result: ${result}
-- Score: ${score}/100
-- Timer: ${timerValue}
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }],
+                    generationConfig: {
+                        temperature: 0.7,
+                        maxOutputTokens: 400,
+                    }
+                })
+            });
 
-Based on their performance, provide a unique, personalized recommendation (2-3 sentences) that:
-1. Specifically acknowledges their ${score >= 80 ? 'strong' : score >= 60 ? 'good' : 'initial'} performance
-2. Gives actionable, test-specific advice to improve their score
-3. Is encouraging and motivating
-
-Make each recommendation unique and tailored to their exact score and test type. Be conversational and supportive. Do not use markdown or special formatting.`;
-
-                const response = await fetch("https://api.anthropic.com/v1/messages", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        model: "claude-sonnet-4-20250514",
-                        max_tokens: 1000,
-                        messages: [
-                            { role: "user", content: prompt }
-                        ],
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error(`API Error: ${response.status}`);
-                }
-
-                const data = await response.json();
+            if (response.status === 429) {
+                const retryAfter = response.headers.get('Retry-After');
+                const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : baseDelay * attempt;
                 
-                if (data.content && data.content.length > 0) {
-                    console.log('✅ AI Recommendation generated successfully!');
-                    console.log('Response:', data.content[0].text);
-                    return data.content[0].text;
-                } else {
-                    throw new Error('No recommendation in API response');
-                }
-            } catch (error) {
-                console.error('❌ AI API Failed:', error);
-                console.log('Showing error message to user...');
+                console.log(`⏳ Rate limited. Waiting ${waitTime/1000}s before retry ${attempt}/${maxRetries}...`);
                 
-                return `Your score of ${score}/100 has been recorded successfully. Please check back later for personalized fitness advice, or consult with your instructor for specific guidance on improving your ${testName} performance.`;
+                if (attempt < maxRetries) {
+                    await new Promise(resolve => setTimeout(resolve, waitTime));
+                    continue;
+                }
+                throw new Error('Rate limit exceeded. Please try again in a few moments.');
             }
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error(`❌ Error ${response.status}:`, errorText);
+                throw new Error(`API error: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
+                let recommendation = data.candidates[0].content.parts[0].text
+                    .trim()
+                    .replace(/\*\*/g, '')
+                    .replace(/\*/g, '')
+                    .replace(/#{1,6}\s/g, '');
+                
+                console.log('✅ Success!');
+                return recommendation;
+            }
+
+            throw new Error('Invalid response format');
+
+        } catch (error) {
+            console.error(`❌ Attempt ${attempt} failed:`, error.message);
+            
+            if (attempt === maxRetries) {
+                throw error;
+            }
+            
+            // Exponential backoff
+            const waitTime = baseDelay * Math.pow(2, attempt - 1);
+            console.log(`⏳ Waiting ${waitTime/1000}s before retry...`);
+            await new Promise(resolve => setTimeout(resolve, waitTime));
         }
+    }
+
+    throw new Error('Failed after multiple attempts');
+}
+
+
 
         async function loadStudentData(user) {
             try {
@@ -1565,6 +1638,15 @@ Make each recommendation unique and tailored to their exact score and test type.
                     document.getElementById('loadingScreen').style.display = 'none';
                     document.getElementById('mainContent').style.display = 'block';
                     
+                    if (score < 100) {
+                document.getElementById('recommendationContent').innerHTML = `
+                    <div class="loading-recommendation">
+                        <div class="loading-spinner"></div>
+                        <span>Generating personalized recommendations for you...</span>
+                    </div>
+                `;
+                
+                try {
                     const recommendation = await generateRecommendation(
                         data.testName,
                         data.result,
@@ -1575,6 +1657,26 @@ Make each recommendation unique and tailored to their exact score and test type.
                     document.getElementById('recommendationContent').innerHTML = `
                         <p class="recommendation-text">${recommendation}</p>
                     `;
+                } catch (error) {
+                    console.error('Failed to generate recommendation:', error);
+                    document.getElementById('recommendationContent').innerHTML = `
+                        <div style="color: #dc2626; text-align: center; padding: 1rem;">
+                            <i class="bi bi-exclamation-triangle" style="font-size: 2rem; display: block; margin-bottom: 0.5rem;"></i>
+                            <p style="font-weight: 600;">Unable to generate AI recommendation</p>
+                            <p style="font-size: 0.875rem; margin-top: 0.5rem;">Error: ${error.message}</p>
+                            <button onclick="location.reload()" 
+                                    style="margin-top: 1rem; padding: 0.5rem 1rem; background: #3b82f6; color: white; border: none; border-radius: 0.5rem; cursor: pointer;">
+                                Try Again
+                            </button>
+                        </div>
+                    `;
+                }
+            } else {
+                // Perfect score - hide recommendation section
+                document.getElementById('recommendationSection').style.display = 'none';
+            }
+                    
+                    
 
                     if (testId && score < 100) {
                         const testDoc = await getDoc(doc(db, 'scheduledTests', testId));
