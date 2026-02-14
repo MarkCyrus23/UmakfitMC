@@ -308,10 +308,10 @@
 
                 <!-- Desktop Navigation -->
                 <div class="desktop-nav hidden md:flex items-center gap-8">
-                    <a href="./UmakfitLandingpage.html" class="text-white/80 hover:text-white font-medium transition-colors">Features</a>
-                    <a href="./UmakfitLandingpage.html" class="text-white/80 hover:text-white font-medium transition-colors">Benefits</a>
+                    <a href="./UmakfitLandingpage.html#features" class="text-white/80 hover:text-white font-medium transition-colors">Features</a>
+                    <a href="./UmakfitLandingpage.html#benefits" class="text-white/80 hover:text-white font-medium transition-colors">Benefits</a>
                     <a href="./UmakfitAbout.html" class="text-white/80 hover:text-white font-medium transition-colors">About</a>
-                    <a href="#" class="text-white/80 hover:text-white font-medium transition-colors">Contact</a>
+                     <a href="./UmakfitLandingpage.html#contact" class="text-white/80 hover:text-white font-medium transition-colors">Contact</a>
                 </div>
 
                 <!-- Login Button (Desktop) -->
@@ -344,18 +344,18 @@
                     </span>
                 </div>
 
-                <!-- Navigation Links -->
+               <!-- Navigation Links -->
                 <nav class="space-y-2 mb-8">
-                    <a href="#features" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
+                    <a href="./UmakfitLandingpage.html#features" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
                         Features
                     </a>
-                    <a href="#benefits" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
+                    <a href="./UmakfitLandingpage.html#benefits" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
                         Benefits
                     </a>
                     <a href="./UmakfitAbout.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
                         About
                     </a>
-                    <a href="#contact" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
+                    <a href="./UmakfitLandingpage.html#contact" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
                         Contact
                     </a>
                 </nav>
@@ -598,9 +598,8 @@
             const hamburger = document.getElementById('hamburger');
             const mobileDrawer = document.getElementById('mobileDrawer');
             const drawerOverlay = document.getElementById('drawerOverlay');
-            const mobileNavLinks = document.querySelectorAll('.mobile-drawer nav a');
-            const mobileLoginBtn = document.querySelector('.mobile-drawer button');
-            
+           const mobileNavLinks = document.querySelectorAll('.mobile-drawer a');
+
             // Toggle mobile drawer
             if (hamburger && mobileDrawer && drawerOverlay) {
                 hamburger.addEventListener('click', function(e) {
@@ -610,7 +609,7 @@
                     drawerOverlay.classList.toggle('active');
                     document.body.style.overflow = mobileDrawer.classList.contains('active') ? 'hidden' : '';
                 });
-                
+
                 // Close drawer when overlay is clicked
                 drawerOverlay.addEventListener('click', function() {
                     hamburger.classList.remove('active');
@@ -618,26 +617,17 @@
                     drawerOverlay.classList.remove('active');
                     document.body.style.overflow = '';
                 });
-                
-                // Close drawer when nav link is clicked
+
+                // Close drawer when any nav link is clicked, then allow navigation
                 mobileNavLinks.forEach(link => {
                     link.addEventListener('click', function() {
                         hamburger.classList.remove('active');
                         mobileDrawer.classList.remove('active');
                         drawerOverlay.classList.remove('active');
                         document.body.style.overflow = '';
+                        // Navigation proceeds naturally — no preventDefault()
                     });
                 });
-                
-                // Close drawer when mobile login button is clicked
-                if (mobileLoginBtn) {
-                    mobileLoginBtn.addEventListener('click', function() {
-                        hamburger.classList.remove('active');
-                        mobileDrawer.classList.remove('active');
-                        drawerOverlay.classList.remove('active');
-                        document.body.style.overflow = '';
-                    });
-                }
             }
 
             // LOGO FALLBACK
