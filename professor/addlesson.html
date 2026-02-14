@@ -1003,10 +1003,15 @@
             const dropdownPic = document.getElementById('profileDropdownPicture');
             const dropdownPicMobile = document.getElementById('profileDropdownPictureMobile');
             
-            const displayName = window.currentProfessor?.fullName || window.currentProfessor?.name || userName || 'Professor';
-            const email = window.currentProfessor?.email || window.currentUser?.email || 'professor@umak.edu.ph';
+            // Get user data from currentUser or currentProfessor
+            const user = window.currentUser || {};
+            const professor = window.currentProfessor || {};
             
-            const photoUrlToUse = photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=3b82f6&color=fff&size=128`;
+            const displayName = professor.fullName || professor.name || user.displayName || userName || 'Professor';
+            const email = professor.email || user.email || 'professor@umak.edu.ph';
+            
+            // Use Google photo if available, otherwise use UI Avatars
+            const photoUrlToUse = photoURL || user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=3b82f6&color=fff&size=128`;
             
             if (profileBtn) profileBtn.src = photoUrlToUse;
             if (profileBtnMobile) profileBtnMobile.src = photoUrlToUse;
@@ -1195,7 +1200,7 @@
                     }
                 }
                 
-                updateProfilePicture(null, currentProfessor.name);
+                updateProfilePicture(window.currentUser?.photoURL, currentProfessor.name);
                 
             } catch (error) {
                 console.error('Error loading professor data:', error);
