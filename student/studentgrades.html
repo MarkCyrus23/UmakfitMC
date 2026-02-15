@@ -1441,7 +1441,7 @@
                         }
                     });
                     
-                    const avgScore = testCount > 0 ? (totalScore / testCount).toFixed(1) : '0.0';
+                    const avgScore = testCount > 0 ? (totalScore / testCount).toFixed(2) : '0.00';
                     const finalGrade = document.getElementById('finalGrade');
                     
                     if (hasOverdueWithPenalty) {
@@ -1486,7 +1486,7 @@
             Object.entries(categoryScores).forEach(([category, data]) => {
                 if (data.scores.length > 0) {
                     hasData = true;
-                    const avgScore = (data.scores.reduce((a, b) => a + b, 0) / data.scores.length).toFixed(1);
+                    const avgScore = (data.scores.reduce((a, b) => a + b, 0) / data.scores.length).toFixed(2);
                     
                     const scoreColor = parseFloat(avgScore) >= 85 ? 'text-green-600' : 
                                       parseFloat(avgScore) >= 75 ? 'text-blue-600' : 
@@ -1643,7 +1643,7 @@
                             </div>
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <span class="text-2xl font-bold ${scoreColor}">${result.score.toFixed(1)}</span>
+                                    <span class="text-2xl font-bold ${scoreColor}">${result.score.toFixed(2)}</span>
                                     <span class="text-xs text-gray-400 ml-1">/ 100</span>
                                     ${isOverdue && !isProfessorOverride ? 
                                         '<p class="text-xs text-red-600 mt-1">Penalty applied</p>' : 
@@ -1685,7 +1685,7 @@
                             </div>
                             <div class="col-span-2 text-right">
                                 <div>
-                                    <span class="text-3xl font-bold ${scoreColor}">${result.score.toFixed(1)}</span>
+                                    <span class="text-3xl font-bold ${scoreColor}">${result.score.toFixed(2)}</span>
                                     <span class="text-xs text-gray-400 ml-1">/ 100</span>
                                     ${isOverdue && !isProfessorOverride ? 
                                         '<p class="text-xs text-red-600 mt-1 font-medium">With penalty</p>' : 
