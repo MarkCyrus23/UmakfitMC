@@ -1470,9 +1470,9 @@
                     <input type="time" class="form-control" id="testDeadlineTime" value="23:59" required>
                 </div>
                 
-                <div class="form-group">
+                 <div class="form-group">
                     <label class="form-label">Attempts Allowed</label>
-                    <input type="text" class="form-control" value="2 Attempts" readonly style="background-color: #f3f4f6; cursor: not-allowed;">
+                    <input type="text" class="form-control" id="attemptsDisplay" value="2 Attempts" readonly style="background-color: #f3f4f6; cursor: not-allowed;">
                     <input type="hidden" id="attemptsAllowed" value="2">
                 </div>
                 
@@ -3099,7 +3099,8 @@
             document.getElementById('videoURL').value = '';
             document.getElementById('testInstructions').value = '';
             document.getElementById('testTarget').value = '';
-            document.getElementById('attemptsAllowed').value = '1';
+           document.getElementById('attemptsAllowed').value = '2';
+            document.getElementById('attemptsDisplay').value = '2 Attempts';
             document.getElementById('testTargetGroup').style.display = 'none';
             
             // Clear previous options
@@ -3172,6 +3173,9 @@
                 targetInput.value = '3';
                 targetInput.readOnly = true;
                 targetHint.textContent = 'This test has a fixed duration of 3 minutes';
+                // Force 1 attempt only
+                  document.getElementById('attemptsAllowed').value = 1;
+                document.getElementById('attemptsDisplay').value = '1 Attempt Only';
             }
             else if (normalizedType.includes('curl-up')) {
                 targetGroup.style.display = 'block';
@@ -3180,6 +3184,8 @@
                 targetInput.value = '25';
                 targetInput.readOnly = false;
                 targetHint.textContent = 'Set the target number of abdominal curls (one every 3 seconds)';
+                document.getElementById('attemptsAllowed').value = 2;
+                document.getElementById('attemptsDisplay').value = '2 Attempts';
             }
             else if (normalizedType.includes('push-up') || normalizedType.includes('pushup')) {
                 targetGroup.style.display = 'block';
@@ -3188,6 +3194,8 @@
                 targetInput.value = '20';
                 targetInput.readOnly = false;
                 targetHint.textContent = 'Set the target number of push-ups students should aim to complete';
+                document.getElementById('attemptsAllowed').value = 2;
+                document.getElementById('attemptsDisplay').value = '2 Attempts';
             }
             else if (normalizedType.includes('sit-and-reach')) {
                 targetGroup.style.display = 'block';
@@ -3196,17 +3204,20 @@
                 targetInput.value = '15';
                 targetInput.readOnly = false;
                 targetHint.textContent = 'Set the target reach distance in centimeters';
+                document.getElementById('attemptsAllowed').value = 2;
+                document.getElementById('attemptsDisplay').value = '2 Attempts';
             }
-            else if (normalizedType.includes('skinfold')) {
-                targetGroup.style.display = 'block';
-                targetLabel.textContent = 'Target Body Fat %';
-                targetInput.placeholder = 'Enter target body fat percentage';
-                targetInput.value = '15';
-                targetInput.readOnly = false;
-                targetHint.textContent = 'Set the target body fat percentage (requires trained professional)';
+        else if (normalizedType.includes('skinfold')) {
+                targetGroup.style.display = 'none';
+                // Force 1 attempt only
+                 document.getElementById('attemptsAllowed').value = 1;
+                document.getElementById('attemptsDisplay').value = '1 Attempt Only';
             }
+                
             else {
                 targetGroup.style.display = 'none';
+                document.getElementById('attemptsAllowed').value = 2;
+                document.getElementById('attemptsDisplay').value = '2 Attempts';
             }
         }
 
@@ -3218,7 +3229,11 @@
             const testTime = document.getElementById('testTime').value;
             const testDeadline = document.getElementById('testDeadline').value;
             const testDeadlineTime = document.getElementById('testDeadlineTime').value;
-            const attemptsAllowed = 2;
+             const normalizedTestType = testType.toLowerCase();
+            const isOneAttemptOnly = normalizedTestType.includes('skinfold') || 
+                                     normalizedTestType.includes('step test') || 
+                                     normalizedTestType.includes('3-minute');
+            const attemptsAllowed = isOneAttemptOnly ? 1 : 2;
             const testInstructions = document.getElementById('testInstructions').value;
             const testTarget = document.getElementById('testTarget').value;
             const videoURL = document.getElementById('videoURL').value;
@@ -3310,7 +3325,7 @@
                     deadline: testDeadline,
                     deadlineTime: testDeadlineTime,
                     deadlineDateTime: deadlineDateTime.toISOString(),
-                    attemptsAllowed: 2,
+                    attemptsAllowed: attemptsAllowed,
                     instructions: testInstructions,
                     testTarget: testTarget ? parseInt(testTarget) : null,
                     videoURL: videoURL || null,

@@ -1468,6 +1468,13 @@
         function calculateTestScore(testName, result, testTarget = null) {
             const normalized = testName.toLowerCase().trim();
             
+            // Always 100 for completion-based tests
+            if (normalized.includes('skinfold') || 
+                normalized.includes('step test') || 
+                normalized.includes('3-minute')) {
+                return 100;
+            }
+            
             let numericValue = 0;
             
             if (typeof result === 'object' && result !== null) {

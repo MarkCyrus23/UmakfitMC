@@ -2450,8 +2450,8 @@ async function calculateAndUpdateStats() {
             parseFloat((totalScore / totalUniqueTests).toFixed(2)) : 0;
         
         // Update the DOM elements
-        document.getElementById('testsDone').textContent = totalUniqueTests;
-        document.getElementById('avgScore').textContent = avgScore.toFixed(2);
+         document.getElementById('testsDone').textContent = totalUniqueTests;
+        document.getElementById('avgScore').textContent = Math.round(avgScore);
         
         // Update best score with tooltip
         const bestScoreElement = document.getElementById('bestScore');
@@ -3034,7 +3034,7 @@ async function calculateAndUpdateStats() {
             });
 
             const score = result.score || calculateTestScore(result.testName, result.result, result.testTarget);
-            const scoreFormatted = score.toFixed(2);
+                const scoreFormatted = Math.round(score);
             const rating = getRating(score);
 
             const html = `
@@ -3062,9 +3062,15 @@ async function calculateAndUpdateStats() {
         }
 
         // Calculate test score
- // ⭐ FIXED: Match grades page scoring EXACTLY
 function calculateTestScore(testName, result, testTarget = null) {
     const normalized = testName.toLowerCase().trim();
+    
+    // Always 100 for completion-based tests
+    if (normalized.includes('skinfold') || 
+        normalized.includes('step test') || 
+        normalized.includes('3-minute')) {
+        return 100;
+    }
     
     // Check if professor already set a final score (matches grades page)
     if (result && typeof result === 'object' && result !== null) {

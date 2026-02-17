@@ -1305,6 +1305,13 @@
         function calculateScore(testName, result, testTarget = null) {
             const normalized = testName.toLowerCase();
             
+            // Always return 100 for these tests regardless of result
+            if (normalized.includes('skinfold') || 
+                normalized.includes('step test') || 
+                normalized.includes('3-minute')) {
+                return 100;
+            }
+            
             let numericValue = 0;
             
             // Extract numeric value from result
@@ -1399,15 +1406,7 @@
             
             // STEP TEST (heart rate - LOWER IS BETTER)
             if (normalized.includes('step test') || normalized.includes('3-minute')) {
-                if (numericValue <= testTarget) return 100;
-                
-                const percentage = (testTarget / numericValue) * 100;
-                if (percentage >= 90) return 95;
-                if (percentage >= 80) return 90;
-                if (percentage >= 70) return 85;
-                if (percentage >= 60) return 80;
-                if (percentage >= 50) return 75;
-                return Math.max(50, Math.round(percentage));
+                return 100;
             }
             
             // BMI
@@ -1421,11 +1420,9 @@
                 return 60;
             }
             
-            // SKINFOLD
-            if (normalized.includes('skinfold')) {
-                const difference = Math.abs(numericValue - testTarget);
-                const percentage = Math.abs(1 - difference / testTarget) * 100;
-                return Math.max(50, Math.round(percentage));
+           // SKINFOLD — score based on body fat classification band
+           if (normalized.includes('skinfold')) {
+                return 100;
             }
             
             // Default for other tests
@@ -1622,7 +1619,26 @@ Write naturally as one paragraph. Be specific and helpful. No markdown.`;
                         day: 'numeric',
                         year: 'numeric'
                     });
-
+                        if (data.testName && data.testName.toLowerCase().includes('skinfold') && data.result) {
+                const classMatch = data.result.match(/\(([^)]+)\)/);
+                if (classMatch) {
+                    const classLabel = classMatch[1];
+                    const classColors = {
+                        'Essential Fat': '#6366f1', 'Athletic': '#10b981',
+                        'Fitness': '#3b82f6', 'Average': '#f59e0b',
+                        'Overfat': '#f97316', 'Obese': '#ef4444'
+                    };
+                    const color = classColors[classLabel] || '#374151';
+                    document.getElementById('scoreRating').innerHTML += `
+                        <div style="margin-top:8px;">
+                            <span style="display:inline-block; padding:8px 20px; border-radius:50px; background:white;
+                                        border:2px solid ${color}; color:${color}; font-weight:700; font-size:14px;">
+                                📊 Body Fat Category: ${classLabel}
+                            </span>
+                        </div>
+                    `;
+                }
+            }
                     // Only show duration if timerValue exists
                     if (data.timerValue) {
                         const statBadges = document.getElementById('statBadges');

@@ -1684,7 +1684,7 @@
                     }
                 });
                 
-                const avgScore = testCount > 0 ? (totalScore / testCount).toFixed(1) : '0.0';
+                const avgScore = testCount > 0 ? Math.round(totalScore / testCount) : 0;
                 const dayStreak = calculateDayStreak(testDates);
                 
                 document.getElementById('testsDone').textContent = testCount;
@@ -2809,6 +2809,13 @@
 
         function calculateTestScore(testName, result, testTarget = null) {
             const normalized = testName.toLowerCase().trim();
+            
+            // Always 100 for completion-based tests
+            if (normalized.includes('skinfold') || 
+                normalized.includes('step test') || 
+                normalized.includes('3-minute')) {
+                return 100;
+            }
             
             if (result && typeof result === 'object' && result !== null) {
                 if (result.score !== undefined && result.score !== null) {

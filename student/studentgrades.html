@@ -1009,6 +1009,13 @@
         function calculateScore(testName, result, testTarget = null) {
             const normalized = testName.toLowerCase().trim();
             
+            // Always return 100 for these tests regardless of result
+            if (normalized.includes('skinfold') || 
+                normalized.includes('step test') || 
+                normalized.includes('3-minute')) {
+                return 100;
+            }
+            
             // Check if professor already set a final score
             if (result && typeof result === 'object' && result !== null) {
                 if (result.score !== undefined && result.score !== null) {
@@ -1314,28 +1321,7 @@
                     
                     document.getElementById('totalTests').textContent = `/${totalAssignedTests}`;
                     
-                    const resultsQuery = query(
-                        collection(db, 'testResults'),
-                        where('studentEmail', '==', studentData.email)
-                    );
-                    
-                    const resultsSnapshot = await getDocs(resultsQuery);
-                    
-                    const completedTestIds = new Set();
-                    resultsSnapshot.forEach((doc) => {
-                        const result = doc.data();
-                        completedTestIds.add(result.testId);
-                    });
-                    
-                    completedTests = completedTestIds.size;
-                    
-                    const completionRate = totalAssignedTests > 0 ? 
-                        Math.round((completedTests / totalAssignedTests) * 100) : 0;
-                    
-                    document.getElementById('completedTests').textContent = completedTests;
-                    document.getElementById('completionRate').textContent = completionRate + '%';
-                    
-                    setupRealTimeGradeListener(overdueTests);
+                    setupRealTimeGradeListener(overdueTests, totalAssignedTests);
                 });
                 
             } catch (error) {
@@ -1345,7 +1331,7 @@
             }
         }
 
-        async function setupRealTimeGradeListener(overdueCount) {
+        async function setupRealTimeGradeListener(overdueCount, totalAssignedTests = 0) {
             try {
                 const resultsQuery = query(
                     collection(db, 'testResults'),
@@ -1387,15 +1373,21 @@
                         
                         if (isProfessorOverride && typeof result.score === 'number' && !isNaN(result.score)) {
                             score = result.score;
-                        } else {
+                           } else {
                             score = calculateScore(
                                 result.testName, 
                                 result.result || result.resultData, 
                                 result.testTarget
                             );
                             
+                            // No penalty for skinfold and step test (completion-based)
+                            const testNorm = result.testName.toLowerCase();
+                            const isCompletionBased = testNorm.includes('skinfold') || 
+                                                      testNorm.includes('step test') || 
+                                                      testNorm.includes('3-minute');
+                            
                             const isOverdue = (result.status === 'overdue' || result.status === 'late');
-                            if (isOverdue && !isProfessorOverride) {
+                            if (isOverdue && !isProfessorOverride && !isCompletionBased) {
                                 const penalty = score * OVERDUE_PENALTY;
                                 score = Math.max(0, score - penalty);
                                 hasOverdueWithPenalty = true;
@@ -1441,7 +1433,13 @@
                         }
                     });
                     
-                    const avgScore = testCount > 0 ? (totalScore / testCount).toFixed(2) : '0.00';
+                const avgScore = testCount > 0 ? Math.round(totalScore / testCount) : 0;
+                    
+                    // Update completion stats using the real totalAssigned from the outer listener
+                    const completionRate = totalAssignedTests > 0 
+                        ? Math.round((testCount / totalAssignedTests) * 100) 
+                        : 0;
+                    document.getElementById('completionRate').textContent = completionRate + '%';
                     const finalGrade = document.getElementById('finalGrade');
                     
                     if (hasOverdueWithPenalty) {
@@ -1457,6 +1455,7 @@
                     }
                     
                     document.getElementById('completedTests').textContent = testCount;
+                    document.getElementById('totalTests').textContent = `/${totalAssignedTests}`;
                     
                     renderCategoryGrades(categoryScores);
                     renderTestResults(testResults);
@@ -1486,7 +1485,7 @@
             Object.entries(categoryScores).forEach(([category, data]) => {
                 if (data.scores.length > 0) {
                     hasData = true;
-                    const avgScore = (data.scores.reduce((a, b) => a + b, 0) / data.scores.length).toFixed(2);
+                        const avgScore = Math.round(data.scores.reduce((a, b) => a + b, 0) / data.scores.length);
                     
                     const scoreColor = parseFloat(avgScore) >= 85 ? 'text-green-600' : 
                                       parseFloat(avgScore) >= 75 ? 'text-blue-600' : 
@@ -1643,7 +1642,7 @@
                             </div>
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <span class="text-2xl font-bold ${scoreColor}">${result.score.toFixed(2)}</span>
+                                      <span class="text-2xl font-bold ${scoreColor}">${Math.round(result.score)}</span>
                                     <span class="text-xs text-gray-400 ml-1">/ 100</span>
                                     ${isOverdue && !isProfessorOverride ? 
                                         '<p class="text-xs text-red-600 mt-1">Penalty applied</p>' : 
@@ -1685,7 +1684,7 @@
                             </div>
                             <div class="col-span-2 text-right">
                                 <div>
-                                    <span class="text-3xl font-bold ${scoreColor}">${result.score.toFixed(2)}</span>
+                                        <span class="text-3xl font-bold ${scoreColor}">${Math.round(result.score)}</span>
                                     <span class="text-xs text-gray-400 ml-1">/ 100</span>
                                     ${isOverdue && !isProfessorOverride ? 
                                         '<p class="text-xs text-red-600 mt-1 font-medium">With penalty</p>' : 

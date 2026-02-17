@@ -1938,19 +1938,65 @@
                 document.getElementById('submitBtn').disabled = false;
             }
             else if (normalizedName.includes('skinfold')) {
-                const targetHint = currentTest.testTarget ? ` (Target: ${currentTest.testTarget}% body fat)` : '';
-                html = `
-                    <div class="input-group-custom">
-                        <label class="input-label">📊 Body Fat Percentage (%) <span style="color: #ef4444;">*</span></label>
-                        <input type="number" class="input-field" id="bodyFatInput" placeholder="Enter calculated body fat %${targetHint}" step="0.1" min="3" max="50" required>
-                        <div class="input-hint">
-                            <i class="bi bi-info-circle"></i>
-                            Enter the body fat percentage calculated by trained professional using skinfold measurements${targetHint}
-                        </div>
-                    </div>
-                `;
-                document.getElementById('submitBtn').disabled = false;
-            }
+    html = `
+        <div class="input-group-custom">
+            <label class="input-label">👤 Sex <span style="color: #ef4444;">*</span></label>
+            <select class="input-field" id="sexSelect" onchange="updateSkinfoldSites()" style="cursor:pointer;">
+                <option value="">-- Select Sex --</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+            </select>
+            <div class="input-hint">
+                <i class="bi bi-info-circle"></i>
+                Sex determines which measurement sites are used
+            </div>
+        </div>
+
+        <div id="skinfoldSitesContainer" style="display:none;">
+            <div id="maleSites">
+                <div class="input-group-custom">
+                    <label class="input-label">📏 Chest Skinfold (mm) <span style="color: #ef4444;">*</span></label>
+                    <input type="number" class="input-field" id="site1Input" placeholder="Enter chest skinfold in mm" step="0.1" min="0" max="100">
+                    <div class="input-hint"><i class="bi bi-info-circle"></i> Diagonal fold, midway between anterior axillary line and nipple</div>
+                </div>
+                <div class="input-group-custom">
+                    <label class="input-label">📏 Abdomen Skinfold (mm) <span style="color: #ef4444;">*</span></label>
+                    <input type="number" class="input-field" id="site2Input" placeholder="Enter abdomen skinfold in mm" step="0.1" min="0" max="100">
+                    <div class="input-hint"><i class="bi bi-info-circle"></i> Vertical fold, 2 cm to the right of the umbilicus</div>
+                </div>
+                <div class="input-group-custom">
+                    <label class="input-label">📏 Thigh Skinfold (mm) <span style="color: #ef4444;">*</span></label>
+                    <input type="number" class="input-field" id="site3Input" placeholder="Enter thigh skinfold in mm" step="0.1" min="0" max="100">
+                    <div class="input-hint"><i class="bi bi-info-circle"></i> Vertical fold, anterior midline of thigh, midway between hip and knee</div>
+                </div>
+            </div>
+
+            <div id="femaleSites" style="display:none;">
+                <div class="input-group-custom">
+                    <label class="input-label">📏 Triceps Skinfold (mm) <span style="color: #ef4444;">*</span></label>
+                    <input type="number" class="input-field" id="site1Input" placeholder="Enter triceps skinfold in mm" step="0.1" min="0" max="100">
+                    <div class="input-hint"><i class="bi bi-info-circle"></i> Vertical fold, posterior midline of upper arm, halfway between shoulder and elbow</div>
+                </div>
+                <div class="input-group-custom">
+                    <label class="input-label">📏 Suprailium Skinfold (mm) <span style="color: #ef4444;">*</span></label>
+                    <input type="number" class="input-field" id="site2Input" placeholder="Enter suprailium (hip) skinfold in mm" step="0.1" min="0" max="100">
+                    <div class="input-hint"><i class="bi bi-info-circle"></i> Diagonal fold, just above the iliac crest along the anterior axillary line</div>
+                </div>
+                <div class="input-group-custom">
+                    <label class="input-label">📏 Thigh Skinfold (mm) <span style="color: #ef4444;">*</span></label>
+                    <input type="number" class="input-field" id="site3Input" placeholder="Enter thigh skinfold in mm" step="0.1" min="0" max="100">
+                    <div class="input-hint"><i class="bi bi-info-circle"></i> Vertical fold, anterior midline of thigh, midway between hip and knee</div>
+                </div>
+            </div>
+
+            <div id="bodyFatResult" style="display:none; margin-top:1rem; padding:1rem; background:#eff6ff; border-radius:12px; border:2px solid #93c5fd;">
+                <div style="font-weight:700; color:#1e3a8a; font-size:15px; margin-bottom:6px;">📊 Estimated Body Fat: <span id="calcBodyFat">--</span>%</div>
+                <div style="font-weight:600; color:#374151; font-size:14px;">Classification: <span id="bodyFatClass" style="font-weight:700;">--</span></div>
+            </div>
+        </div>
+    `;
+    document.getElementById('submitBtn').disabled = false;
+}
             else {
                 const targetHint = currentTest.testTarget ? ` (Target: ${currentTest.testTarget})` : '';
                 html = `
@@ -1968,6 +2014,238 @@
 
             inputSection.innerHTML = html;
         }
+            window.updateSkinfoldSites = function() {
+    const sex = document.getElementById('sexSelect').value;
+    const container = document.getElementById('skinfoldSitesContainer');
+    const maleSites = document.getElementById('maleSites');
+    const femaleSites = document.getElementById('femaleSites');
+
+    if (!sex) {
+        container.style.display = 'none';
+        return;
+    }
+
+    container.style.display = 'block';
+
+    if (sex === 'male') {
+        maleSites.style.display = 'block';
+        femaleSites.style.display = 'none';
+    } else {
+        maleSites.style.display = 'none';
+        femaleSites.style.display = 'block';
+    }
+
+    // Attach live calculation listeners
+    ['site1Input', 'site2Input', 'site3Input'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.oninput = calculateBodyFatLive;
+    });
+};
+
+        window.updateSkinfoldSites = function() {
+            const sex = document.getElementById('sexSelect').value;
+            const container = document.getElementById('skinfoldSitesContainer');
+            const maleSites = document.getElementById('maleSites');
+            const femaleSites = document.getElementById('femaleSites');
+
+            if (!sex) {
+                container.style.display = 'none';
+                return;
+            }
+
+            container.style.display = 'block';
+
+            if (sex === 'male') {
+                maleSites.style.display = 'block';
+                femaleSites.style.display = 'none';
+            } else {
+                maleSites.style.display = 'none';
+                femaleSites.style.display = 'block';
+            }
+
+            ['site1Input', 'site2Input', 'site3Input'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.oninput = window.calculateBodyFatLive;
+            });
+        };
+
+        window.calculateBodyFatLive = function() {
+            const sex = document.getElementById('sexSelect')?.value;
+            const s1 = parseFloat(document.getElementById('site1Input')?.value) || 0;
+            const s2 = parseFloat(document.getElementById('site2Input')?.value) || 0;
+            const s3 = parseFloat(document.getElementById('site3Input')?.value) || 0;
+
+            if (!sex || !s1 || !s2 || !s3) return;
+
+            const sumOfSkinfolds = s1 + s2 + s3;
+            const age = (studentData && studentData.age && studentData.age > 0)
+                ? parseInt(studentData.age) : 20;
+
+            const bodyFatPercent = lookupBodyFat(sumOfSkinfolds, age, sex);
+            if (bodyFatPercent === null) {
+                document.getElementById('bodyFatResult').style.display = 'none';
+                return;
+            }
+
+            const classification = window.getBodyFatClassification(bodyFatPercent, sex);
+
+            document.getElementById('bodyFatResult').style.display = 'block';
+            document.getElementById('calcBodyFat').textContent = bodyFatPercent;
+            document.getElementById('bodyFatClass').textContent = classification.label;
+            document.getElementById('bodyFatClass').style.color = classification.color;
+        };
+
+        function lookupBodyFat(sum, age, sex) {
+            // Round sum down to nearest even number for row lookup
+            const rowStart = Math.floor(sum / 3) * 3 - (Math.floor(sum / 3) * 3 % 2 === 0 ? 2 : 1);
+
+            if (sex === 'male') {
+                // MEN table: age columns 19-, 20-22, 23-25, 26-28, 29-31, 32-34, 35-37, 38-40
+                // Rows: sum of 3 skinfolds (8-130)
+                const maleTable = {
+                    // [sum_start]: [19-, 20-22, 23-25, 26-28, 29-31, 32-34, 35-37, 38-40]
+                    8:  [0.9,1.3,1.6,2.0,2.3,2.7,3.0,3.3],
+                    11: [1.9,2.3,2.6,3.0,3.3,3.7,4.0,4.3],
+                    14: [2.9,3.3,3.6,3.9,4.3,4.6,5.0,5.3],
+                    17: [3.9,4.2,4.6,4.9,5.3,5.6,6.0,6.3],
+                    20: [4.8,5.2,5.5,5.9,6.2,6.6,6.9,7.3],
+                    23: [5.8,6.2,6.5,6.8,7.2,7.5,7.9,8.2],
+                    26: [6.8,7.1,7.5,7.8,8.1,8.5,8.8,9.2],
+                    29: [7.7,8.0,8.4,8.7,9.1,9.4,9.8,10.1],
+                    32: [8.6,9.0,9.3,9.7,10.0,10.4,10.7,11.1],
+                    35: [9.5,9.9,10.2,10.6,10.9,11.3,11.6,12.0],
+                    38: [10.5,10.8,11.2,11.5,11.8,12.2,12.5,12.9],
+                    41: [11.4,11.7,12.1,12.4,12.7,13.1,13.4,13.8],
+                    44: [12.2,12.6,12.9,13.3,13.6,14.0,14.3,14.7],
+                    47: [13.1,13.5,13.8,14.2,14.5,14.9,15.2,15.5],
+                    50: [14.0,14.3,14.7,15.0,15.4,15.7,16.1,16.4],
+                    53: [14.8,15.2,15.5,15.9,16.2,16.6,16.9,17.3],
+                    56: [15.7,16.0,16.4,16.7,17.1,17.4,17.8,18.1],
+                    59: [16.5,16.9,17.2,17.6,17.9,18.3,18.6,19.0],
+                    62: [17.4,17.7,18.1,18.4,18.8,19.1,19.4,19.8],
+                    65: [18.2,18.5,18.9,19.2,19.6,19.9,20.3,20.6],
+                    68: [19.0,19.3,19.7,20.0,20.4,20.7,21.1,21.4],
+                    71: [19.8,20.1,20.5,20.8,21.2,21.5,21.9,22.2],
+                    74: [20.6,20.9,21.3,21.6,22.0,22.2,22.7,23.0],
+                    77: [21.4,21.7,22.1,22.4,22.8,23.1,23.4,23.8],
+                    80: [22.1,22.5,22.8,23.2,23.5,23.9,24.2,24.6],
+                    83: [22.9,23.2,23.6,23.9,24.3,24.6,25.0,25.3],
+                    86: [23.6,24.0,24.3,24.7,25.0,25.4,25.7,26.1],
+                    89: [24.4,24.7,25.1,25.4,25.8,26.1,26.5,26.8],
+                    92: [25.1,25.5,25.8,26.2,26.5,26.9,27.2,27.5],
+                    95: [25.8,26.2,26.5,26.9,27.2,27.6,27.9,28.3],
+                    98: [26.6,26.9,27.3,27.6,27.9,28.3,28.6,29.0],
+                    101:[27.3,27.6,28.0,28.3,28.6,29.0,29.3,29.7],
+                    104:[27.9,28.3,28.6,29.0,29.3,29.7,30.0,30.4],
+                    107:[28.6,29.0,29.3,29.7,30.0,30.4,30.7,31.1],
+                    110:[29.3,29.6,30.0,30.3,30.7,31.0,31.4,31.7],
+                    113:[30.0,30.3,30.7,31.0,31.3,31.7,32.0,32.4],
+                    116:[30.6,31.0,31.3,31.6,32.0,32.3,32.7,33.0],
+                    119:[31.3,31.6,32.0,32.3,32.6,33.0,33.3,33.7],
+                    122:[31.9,32.2,32.6,32.9,33.3,33.6,34.0,34.3],
+                    125:[32.5,32.9,33.2,33.5,33.9,34.2,34.6,34.9],
+                    128:[33.1,33.5,33.8,34.2,34.5,34.9,35.2,35.5],
+                };
+
+                // Age column index for men
+                let colIdx;
+                if (age <= 19) colIdx = 0;
+                else if (age <= 22) colIdx = 1;
+                else if (age <= 25) colIdx = 2;
+                else if (age <= 28) colIdx = 3;
+                else if (age <= 31) colIdx = 4;
+                else if (age <= 34) colIdx = 5;
+                else if (age <= 37) colIdx = 6;
+                else colIdx = 7;
+
+                // Find nearest row
+                const keys = Object.keys(maleTable).map(Number).sort((a,b) => a-b);
+                let rowKey = keys[0];
+                for (const k of keys) {
+                    if (sum >= k) rowKey = k;
+                    else break;
+                }
+                return maleTable[rowKey]?.[colIdx] ?? null;
+
+            } else {
+                // WOMEN table: age columns 22-, 23-27, 28-32, 33-37, 38-42, 43-47, 48-52, 53-57, 58+
+                const femaleTable = {
+                    // [sum_start]: [22-, 23-27, 28-32, 33-37, 38-42, 43-47, 48-52, 53-57, 58+]
+                    23: [9.7,9.9,10.2,10.4,10.7,10.9,11.2,11.4,11.7],
+                    26: [11.0,11.2,11.5,11.7,12.0,12.3,12.5,12.7,13.0],
+                    29: [12.3,12.5,12.8,13.0,13.3,13.5,13.8,14.0,14.3],
+                    32: [13.6,13.8,14.0,14.3,14.5,14.8,15.0,15.3,15.5],
+                    35: [14.8,15.0,15.3,15.5,15.8,16.0,16.3,16.5,16.8],
+                    38: [16.0,16.3,16.5,16.7,17.0,17.2,17.5,17.7,18.0],
+                    41: [17.2,17.4,17.7,17.9,18.2,18.4,18.7,18.9,19.2],
+                    44: [18.3,18.6,18.8,19.1,19.3,19.6,19.8,20.1,20.3],
+                    47: [19.5,19.7,20.0,20.2,20.5,20.7,21.0,21.2,21.5],
+                    50: [20.6,20.8,21.1,21.3,21.6,21.8,22.1,22.3,22.6],
+                    53: [21.7,21.9,22.1,22.4,22.6,22.9,23.1,23.4,23.6],
+                    56: [22.7,23.0,23.2,23.4,23.7,23.9,24.2,24.4,24.7],
+                    59: [23.7,24.0,24.2,24.5,24.7,25.0,25.2,25.5,25.7],
+                    62: [24.7,25.0,25.2,25.5,25.7,26.0,26.2,26.4,26.7],
+                    65: [25.7,25.9,26.2,26.4,26.7,26.9,27.2,27.4,27.7],
+                    68: [26.6,26.9,27.1,27.4,27.6,27.9,28.1,28.4,28.6],
+                    71: [27.5,27.8,28.0,28.3,28.5,28.8,29.0,29.3,29.5],
+                    74: [28.4,28.7,28.9,29.2,29.4,29.7,29.9,30.2,30.4],
+                    77: [29.3,29.5,29.8,30.0,30.3,30.5,30.8,31.0,31.3],
+                    80: [30.1,30.4,30.6,30.9,31.1,31.4,31.6,31.9,32.1],
+                    83: [30.9,31.2,31.4,31.7,31.9,32.2,32.4,32.7,32.9],
+                    86: [31.7,32.0,32.2,32.5,32.7,32.9,33.2,33.4,33.7],
+                    89: [32.5,32.7,33.0,33.2,33.5,33.7,33.9,34.2,34.4],
+                    92: [33.2,33.4,33.7,33.9,34.2,34.4,34.7,34.9,35.2],
+                    95: [33.9,34.1,34.4,34.6,34.9,35.1,35.4,35.6,35.9],
+                    98: [34.6,34.8,35.1,35.3,35.5,35.8,36.0,36.3,36.5],
+                    101:[35.3,35.4,35.7,35.9,36.2,36.4,36.7,36.9,37.2],
+                    104:[35.8,36.1,36.3,36.6,36.8,37.1,37.3,37.5,37.8],
+                    107:[36.4,36.7,36.9,37.1,37.4,37.6,37.9,38.1,38.4],
+                    110:[37.0,37.2,37.5,37.7,38.0,38.2,38.5,38.7,38.9],
+                    113:[37.5,37.8,38.0,38.2,38.5,38.7,39.0,39.2,39.5],
+                    116:[38.0,38.3,38.5,38.8,39.0,39.3,39.5,39.7,40.0],
+                    119:[38.5,38.7,39.0,39.2,39.5,39.7,40.0,40.2,40.5],
+                    122:[39.0,39.2,39.4,39.7,39.9,40.2,40.4,40.7,40.9],
+                    125:[39.4,39.6,39.9,40.1,40.4,40.6,40.9,41.1,41.4],
+                    128:[39.8,40.0,40.3,40.5,40.8,41.0,41.3,41.5,41.8],
+                };
+
+                // Age column index for women
+                let colIdx;
+                if (age <= 22) colIdx = 0;
+                else if (age <= 27) colIdx = 1;
+                else if (age <= 32) colIdx = 2;
+                else if (age <= 37) colIdx = 3;
+                else if (age <= 42) colIdx = 4;
+                else if (age <= 47) colIdx = 5;
+                else if (age <= 52) colIdx = 6;
+                else if (age <= 57) colIdx = 7;
+                else colIdx = 8;
+
+                const keys = Object.keys(femaleTable).map(Number).sort((a,b) => a-b);
+                let rowKey = keys[0];
+                for (const k of keys) {
+                    if (sum >= k) rowKey = k;
+                    else break;
+                }
+                return femaleTable[rowKey]?.[colIdx] ?? null;
+            }
+        }
+
+         window.getBodyFatClassification = function(percent, sex) {
+            if (sex === 'male') {
+                if (percent < 12)  return { label: 'V. Lean',  color: '#6366f1' };
+                if (percent < 18)  return { label: 'Lean',     color: '#10b981' };
+                if (percent < 28)  return { label: 'Average',  color: '#f59e0b' };
+                if (percent < 32)  return { label: 'Fat',      color: '#f97316' };
+                return                     { label: 'Obese',   color: '#ef4444' };
+            } else {
+                if (percent < 17)  return { label: 'V. Lean',  color: '#6366f1' };
+                if (percent < 22)  return { label: 'Lean',     color: '#10b981' };
+                if (percent < 29)  return { label: 'Average',  color: '#f59e0b' };
+                if (percent < 32)  return { label: 'Fat',      color: '#f97316' };
+                return                     { label: 'Obese',   color: '#ef4444' };
+            }
+        };
 
         function getTargetLabel(testName) {
             const normalized = testName.toLowerCase();
@@ -2144,11 +2422,12 @@
                 if (!studentsSnapshot.empty) {
                     studentsSnapshot.forEach((doc) => {
                         const data = doc.data();
-                        studentData = { 
-                            ...studentData,
-                            ...data,
-                            studentId: doc.id
-                        };
+                                        studentData = { 
+                    ...studentData,
+                    ...data,
+                    studentId: doc.id,
+                    age: data.age || 20
+                };
                     });
                 }
                 
@@ -2242,13 +2521,25 @@
                 rawResult = bmi;
                 resultValue = `BMI: ${bmi} (H: ${heightCm}cm, W: ${weightKg}kg)`;
             } else if (testName.includes('skinfold')) {
-                const input = document.getElementById('bodyFatInput');
-                if (!input || !input.value) {
-                    alert('Please enter the body fat percentage');
-                    return;
-                }
-                rawResult = input.value;
-                resultValue = input.value + '% body fat';
+            const sex = document.getElementById('sexSelect')?.value;
+            const s1 = document.getElementById('site1Input')?.value;
+            const s2 = document.getElementById('site2Input')?.value;
+            const s3 = document.getElementById('site3Input')?.value;
+            const calcDisplay = document.getElementById('calcBodyFat')?.textContent;
+
+            if (!sex) { alert('Please select sex.'); return; }
+            if (!s1 || !s2 || !s3) { alert('Please enter all 3 skinfold measurements.'); return; }
+            if (!calcDisplay || calcDisplay === '--') { alert('Body fat could not be calculated. Check your measurements.'); return; }
+
+            const siteName = sex === 'male'
+                ? `Chest:${s1}mm, Abdomen:${s2}mm, Thigh:${s3}mm`
+                : `Triceps:${s1}mm, Suprailium:${s2}mm, Thigh:${s3}mm`;
+
+            const classification = getBodyFatClassification(parseFloat(calcDisplay), sex);
+
+            rawResult = calcDisplay;
+            resultValue = `${calcDisplay}% body fat (${classification.label}) | ${sex === 'male' ? 'Male' : 'Female'} | ${siteName}`;
+
             } else {
                 const input = document.getElementById('resultInput');
                 if (!input || !input.value) {
@@ -2332,22 +2623,29 @@
             }
         };
 
-        function calculateScoreWithTarget(testName, rawResult, testTarget) {
+          function calculateScoreWithTarget(testName, rawResult, testTarget) {
             const normalized = testName.toLowerCase();
             const numericValue = parseFloat(rawResult);
-            
+
             console.log(`🎯 Scoring: ${testName} | Result: ${numericValue} | Target: ${testTarget}`);
-            
+
+           if (normalized.includes('skinfold')) {
+                // Based on table classifications
+                if (numericValue < 12) return 100; // V. Lean
+                if (numericValue < 18) return 90;  // Lean
+                if (numericValue < 28) return 75;  // Average
+                if (numericValue < 32) return 60;  // Fat
+                return 50;                          // Obese
+            }
+
             if (!testTarget || testTarget <= 0) {
                 return calculateDefaultScore(normalized, numericValue);
             }
-            
-            if (normalized.includes('push-up') || normalized.includes('pushup') || 
+
+            if (normalized.includes('push-up') || normalized.includes('pushup') ||
                 normalized.includes('sit-up') || normalized.includes('situp') ||
                 normalized.includes('curl-up') || normalized.includes('curl up')) {
-                
                 if (numericValue >= testTarget) return 100;
-                
                 const percentage = (numericValue / testTarget) * 100;
                 if (percentage >= 90) return 95;
                 if (percentage >= 80) return 90;
@@ -2357,10 +2655,9 @@
                 if (percentage >= 40) return 70;
                 return Math.max(50, Math.round(percentage));
             }
-            
+
             if (normalized.includes('plank')) {
                 if (numericValue >= testTarget) return 100;
-                
                 const percentage = (numericValue / testTarget) * 100;
                 if (percentage >= 90) return 95;
                 if (percentage >= 80) return 90;
@@ -2369,10 +2666,9 @@
                 if (percentage >= 50) return 75;
                 return Math.max(50, Math.round(percentage));
             }
-            
+
             if (normalized.includes('grip')) {
                 if (numericValue >= testTarget) return 100;
-                
                 const percentage = (numericValue / testTarget) * 100;
                 if (percentage >= 90) return 95;
                 if (percentage >= 80) return 90;
@@ -2381,10 +2677,9 @@
                 if (percentage >= 50) return 75;
                 return Math.max(50, Math.round(percentage));
             }
-            
+
             if (normalized.includes('sit-and-reach')) {
                 if (numericValue >= testTarget) return 100;
-                
                 const percentage = (numericValue / testTarget) * 100;
                 if (percentage >= 90) return 95;
                 if (percentage >= 80) return 90;
@@ -2393,10 +2688,9 @@
                 if (percentage >= 50) return 75;
                 return Math.max(50, Math.round(percentage));
             }
-            
+
             if (normalized.includes('mile') || normalized.includes('run')) {
                 if (numericValue <= testTarget) return 100;
-                
                 const percentage = (testTarget / numericValue) * 100;
                 if (percentage >= 90) return 95;
                 if (percentage >= 80) return 90;
@@ -2405,19 +2699,16 @@
                 if (percentage >= 50) return 75;
                 return Math.max(50, Math.round(percentage));
             }
-            
-            if (normalized.includes('step test') || normalized.includes('3-minute')) {
-                if (numericValue <= testTarget) return 100;
-                
-                const percentage = (testTarget / numericValue) * 100;
-                if (percentage >= 90) return 95;
-                if (percentage >= 80) return 90;
-                if (percentage >= 70) return 85;
-                if (percentage >= 60) return 80;
-                if (percentage >= 50) return 75;
-                return Math.max(50, Math.round(percentage));
+
+              if (normalized.includes('step test') || normalized.includes('3-minute')) {
+                if (numericValue < 68)  return 100; // Excellent
+                if (numericValue < 80)  return 90;  // Good
+                if (numericValue < 90)  return 80;  // Above Average
+                if (numericValue < 100) return 70;  // Average
+                if (numericValue < 110) return 60;  // Below Average
+                return 50;                          // Poor
             }
-            
+
             return calculateDefaultScore(normalized, numericValue);
         }
 
@@ -2429,7 +2720,7 @@
                 if (numericValue >= 15) return 70;
                 return 60;
             }
-            
+
             if (normalized.includes('curl-up') || normalized.includes('curl up')) {
                 if (numericValue >= 75) return 100;
                 if (numericValue >= 50) return 90;
@@ -2437,15 +2728,15 @@
                 if (numericValue >= 20) return 70;
                 return 60;
             }
-            
+
             if (normalized.includes('plank')) {
                 if (numericValue >= 120) return 100;
-                if (numericValue >= 90) return 90;
-                if (numericValue >= 60) return 80;
-                if (numericValue >= 45) return 70;
+                if (numericValue >= 90)  return 90;
+                if (numericValue >= 60)  return 80;
+                if (numericValue >= 45)  return 70;
                 return 60;
             }
-            
+
             if (normalized.includes('grip')) {
                 if (numericValue >= 60) return 100;
                 if (numericValue >= 50) return 90;
@@ -2453,15 +2744,23 @@
                 if (numericValue >= 30) return 70;
                 return 60;
             }
-            
+
             if (normalized.includes('sit-and-reach')) {
                 if (numericValue >= 20) return 100;
                 if (numericValue >= 15) return 90;
                 if (numericValue >= 10) return 80;
-                if (numericValue >= 5) return 70;
+                if (numericValue >= 5)  return 70;
                 return 60;
             }
-            
+              if (normalized.includes('step test') || normalized.includes('3-minute')) {
+                if (numericValue < 68)  return 100;
+                if (numericValue < 80)  return 90;
+                if (numericValue < 90)  return 80;
+                if (numericValue < 100) return 70;
+                if (numericValue < 110) return 60;
+                return 50;
+            }
+
             return 75;
         }
 
