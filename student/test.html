@@ -900,9 +900,9 @@
                                     </a>
                                     <div class="h-px bg-gray-200 my-1 sm:my-2"></div>
                                     <div onclick="handleLogout()" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-red-500">
-                                        <i class="bi bi-box-arrow-right text-lg sm:text-xl"></i>
-                                        <span class="font-medium text-sm sm:text-base">Logout</span>
-                                    </div>
+                                    <i class="bi bi-box-arrow-right text-lg sm:text-xl"></i>
+                                    <span class="font-medium text-sm sm:text-base">Logout</span>
+                                </div>
                                 </div>
                             </div>
                         </div>
@@ -1441,17 +1441,7 @@
             }
         }
 
-        window.handleLogout = async function() {
-            if (confirm('Are you sure you want to logout?')) {
-                try {
-                    await signOut(auth);
-                    window.location.href = '../login/index.html';
-                } catch (error) {
-                    console.error('Error logging out:', error);
-                    alert('Error logging out. Please try again.');
-                }
-            }
-        };
+
 
         // Setup event listeners
         function setupEventListeners() {
@@ -2740,12 +2730,12 @@
                         hour12: true 
                     });
                     
-                    alert(`❌ This test is not available yet.\n\nIt will be available on ${dateStr} at ${timeStr}.\n\nPlease check back at that time.`);
+                    showInfoPopup('Test Not Available Yet', `This test will be available on <strong>${dateStr}</strong> at <strong>${timeStr}</strong>.<br><br>Please check back at that time.`);
                     return;
                 }
                 
-                if (test.isViewOnly === true) {
-                    alert('❌ You cannot start this test.\n\nYou have not been selected by your professor to take this test.\n\nPlease contact your professor if you believe this is an error.');
+                  if (test.isViewOnly === true) {
+                    showInfoPopup('Not Selected', 'You have not been selected by your professor to take this test.<br><br>Please contact your professor if you believe this is an error.');
                     return;
                 }
                 
@@ -2753,18 +2743,18 @@
                 return;
             }
             
-            const overdueTest = overdueTests.find(t => t.id === testId);
+              const overdueTest = overdueTests.find(t => t.id === testId);
             if (overdueTest) {
                 if (overdueTest.isViewOnly === true) {
-                    alert('❌ You cannot start this test.\n\nYou have not been selected by your professor to take this test.\n\nPlease contact your professor if you believe this is an error.');
+                    showInfoPopup('Not Selected', 'You have not been selected by your professor to take this test.<br><br>Please contact your professor if you believe this is an error.');
                     return;
                 }
                 window.location.href = `./testdetails.html?testId=${testId}&testName=${encodeURIComponent(overdueTest.testName)}&isOverdue=true`;
                 return;
             }
             
-            console.error(`Test not found: ${testId}`);
-            alert('Test not found. Please refresh the page and try again.');
+               console.error(`Test not found: ${testId}`);
+            showInfoPopup('Test Not Found', 'Please refresh the page and try again.', 'error');
         };
 
         window.viewResult = function(resultId) {
@@ -3263,7 +3253,203 @@
                 }
             }, 250);
         });
+            function showInfoPopup(title, message, type = 'info') {
+            const isError = type === 'error';
+            const iconBg = isError ? '#fce8e6' : '#e8f0fe';
+            const iconColor = isError ? '#ea4335' : '#1a73e8';
 
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+                display: flex; align-items: center; justify-content: center;
+                z-index: 99999; padding: 1rem;
+                animation: fadeInInfo 0.2s ease;
+            `;
+
+            overlay.innerHTML = `
+                <style>
+                    @keyframes fadeInInfo { from { opacity: 0; } to { opacity: 1; } }
+                    @keyframes slideUpInfo { from { opacity: 0; transform: translateY(24px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+                </style>
+                <div style="
+                    background: #fff; border-radius: 28px; padding: 2.5rem 2rem 2rem;
+                    max-width: 400px; width: 100%;
+                    box-shadow: 0 8px 40px rgba(60,64,67,0.18), 0 2px 8px rgba(60,64,67,0.10);
+                    animation: slideUpInfo 0.35s cubic-bezier(.4,0,.2,1);
+                    text-align: center; font-family: 'Inter', sans-serif;
+                ">
+                    <div style="
+                        width: 72px; height: 72px; background: ${iconBg};
+                        border-radius: 50%; display: flex; align-items: center;
+                        justify-content: center; margin: 0 auto 1.25rem;
+                    ">
+                        ${isError ? `
+                            <svg width="36" height="36" viewBox="0 0 48 48">
+                                <line x1="14" y1="14" x2="34" y2="34" stroke="${iconColor}" stroke-width="3.5" stroke-linecap="round"/>
+                                <line x1="34" y1="14" x2="14" y2="34" stroke="${iconColor}" stroke-width="3.5" stroke-linecap="round"/>
+                            </svg>
+                        ` : `
+                            <svg width="36" height="36" viewBox="0 0 48 48" fill="none">
+                                <circle cx="24" cy="24" r="16" stroke="${iconColor}" stroke-width="3.5"/>
+                                <line x1="24" y1="16" x2="24" y2="26" stroke="${iconColor}" stroke-width="3.5" stroke-linecap="round"/>
+                                <circle cx="24" cy="32" r="2" fill="${iconColor}"/>
+                            </svg>
+                        `}
+                    </div>
+                    <div style="font-size: 1.25rem; font-weight: 600; color: #202124; margin-bottom: 0.5rem; letter-spacing: -0.01em;">
+                        ${title}
+                    </div>
+                    <div style="font-size: 0.875rem; color: #5f6368; margin-bottom: 1.75rem; line-height: 1.6;">
+                        ${message}
+                    </div>
+                    <div style="height: 1px; background: #e8eaed; margin: 0 -2rem 1.5rem;"></div>
+                    <button id="infoPopupOkBtn" style="
+                        width: 100%; padding: 0.75rem 1.5rem; border-radius: 100px;
+                        border: none; background: ${iconColor}; color: #fff;
+                        font-size: 0.9375rem; font-weight: 500; cursor: pointer;
+                        font-family: 'Inter', sans-serif;
+                        transition: opacity 0.15s;
+                    ">Got it</button>
+                </div>
+            `;
+
+            document.body.appendChild(overlay);
+
+            document.getElementById('infoPopupOkBtn').addEventListener('click', () => overlay.remove());
+            overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+        }
+           window.handleLogout = function() {
+    showLogoutConfirmPopup();
+};
+
+function showLogoutConfirmPopup() {
+    // Remove existing popup if any
+    const existing = document.getElementById('logoutOverlay');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'logoutOverlay';
+    overlay.style.cssText = `
+        position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+        display: flex; align-items: center; justify-content: center;
+        z-index: 99999; padding: 1rem;
+        animation: fadeInLogout 0.2s ease;
+    `;
+
+    overlay.innerHTML = `
+        <style>
+            @keyframes fadeInLogout { from { opacity:0; } to { opacity:1; } }
+            @keyframes slideUpLogout { from { opacity:0; transform:translateY(24px) scale(0.97); } to { opacity:1; transform:translateY(0) scale(1); } }
+        </style>
+        <div style="
+            background:#fff;
+            border-radius:24px;
+            padding:2rem 1.5rem 1.5rem;
+            max-width:360px;
+            width:100%;
+            box-shadow:0 8px 40px rgba(60,64,67,0.18), 0 2px 8px rgba(60,64,67,0.10);
+            animation:slideUpLogout 0.35s cubic-bezier(.4,0,.2,1);
+            text-align:center;
+            font-family:'Inter',sans-serif;
+        ">
+            <!-- Icon -->
+            <div style="
+                width:68px; height:68px;
+                background:#fce8e6;
+                border-radius:50%;
+                display:flex; align-items:center; justify-content:center;
+                margin:0 auto 1.25rem;
+            ">
+                <svg width="34" height="34" viewBox="0 0 48 48" fill="none">
+                    <path d="M20 8H10C8.9 8 8 8.9 8 10V38C8 39.1 8.9 40 10 40H20" stroke="#ea4335" stroke-width="3.5" stroke-linecap="round"/>
+                    <path d="M32 16L40 24L32 32" stroke="#ea4335" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M40 24H20" stroke="#ea4335" stroke-width="3.5" stroke-linecap="round"/>
+                </svg>
+            </div>
+
+            <!-- Title -->
+            <div style="font-size:1.25rem; font-weight:600; color:#202124; margin-bottom:0.35rem; letter-spacing:-0.01em;">
+                Log Out
+            </div>
+
+            <!-- Subtitle -->
+            <div style="font-size:0.875rem; color:#5f6368; margin-bottom:1.5rem; line-height:1.5;">
+                Are you sure you want to log out of your account?
+            </div>
+
+            <!-- Divider -->
+            <div style="height:1px; background:#e8eaed; margin:0 -1.5rem 1.25rem;"></div>
+
+            <!-- Buttons -->
+            <div style="display:flex; gap:0.75rem;">
+                <button id="logoutCancelBtn" style="
+                    flex:1;
+                    padding:0.75rem 0.5rem;
+                    border-radius:100px;
+                    border:1.5px solid #dadce0;
+                    background:#fff;
+                    color:#3c4043;
+                    font-size:0.9375rem;
+                    font-weight:500;
+                    cursor:pointer;
+                    font-family:'Inter',sans-serif;
+                    transition:background 0.15s;
+                    min-height:48px;
+                ">Cancel</button>
+                <button id="logoutConfirmBtn" style="
+                    flex:1;
+                    padding:0.75rem 0.5rem;
+                    border-radius:100px;
+                    border:none;
+                    background:#ea4335;
+                    color:#fff;
+                    font-size:0.9375rem;
+                    font-weight:500;
+                    cursor:pointer;
+                    font-family:'Inter',sans-serif;
+                    transition:background 0.15s, box-shadow 0.15s;
+                    min-height:48px;
+                ">Log Out</button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    // Close profile dropdowns first
+    const profileDropdown = document.getElementById('profileDropdown');
+    const profileDropdownMobile = document.getElementById('profileDropdownMobile');
+    if (profileDropdown) profileDropdown.classList.add('hidden');
+    if (profileDropdownMobile) profileDropdownMobile.classList.add('hidden');
+
+    // Cancel button
+    document.getElementById('logoutCancelBtn').addEventListener('click', () => {
+        overlay.remove();
+    });
+
+    // Click outside to close
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) overlay.remove();
+    });
+
+    // Confirm logout
+    document.getElementById('logoutConfirmBtn').addEventListener('click', async () => {
+        const confirmBtn = document.getElementById('logoutConfirmBtn');
+        confirmBtn.textContent = 'Logging out...';
+        confirmBtn.disabled = true;
+        confirmBtn.style.opacity = '0.7';
+
+        try {
+            await signOut(auth);
+            window.location.href = '../login/index.html';
+        } catch (error) {
+            console.error('Logout error:', error);
+            overlay.remove();
+            alert('Error logging out. Please try again.');
+        }
+    });
+}
+            
         // Make functions globally available
         window.toggleNotificationDropdown = toggleNotificationDropdown;
         window.closeNotificationDropdown = closeNotificationDropdown;
