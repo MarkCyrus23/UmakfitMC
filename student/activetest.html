@@ -1071,10 +1071,12 @@
     </style>
 </head>
 <body>
-    <div id="loadingScreen" class="loading">
-        <div class="spinner"></div>
-        <div class="loading-text">Loading Test...</div>
-    </div>
+     <!-- Loading Screen -->
+<div id="loadingScreen" class="fixed inset-0 bg-white/98 flex flex-col items-center justify-center z-50">
+    <img src="UMakfit Logo (2).png" alt="UMakFit Logo" class="h-40 sm:h-48 w-auto object-contain mb-4 animate-pulse">
+    <div class="spinner"></div>
+    <div class="mt-5 text-gray-600 font-medium text-sm md:text-base">Preparing you test...</div>
+</div>
 
     <div id="mainContent" style="display: none;">
         <!-- Navigation -->
@@ -1165,7 +1167,7 @@
                                         <span class="font-medium text-gray-700 text-sm sm:text-base">View Profile</span>
                                     </a>
                                     <div class="h-px bg-gray-200 my-1 sm:my-2"></div>
-                                    <div onclick="handleLogout()" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-red-500">
+                                   <div onclick="handleLogout()" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-red-500">
                                         <i class="bi bi-box-arrow-right text-lg sm:text-xl"></i>
                                         <span class="font-medium text-sm sm:text-base">Logout</span>
                                     </div>
@@ -2437,12 +2439,189 @@
                 return null;
             }
         }
+            function showSuccessPopup(score, attempt, totalAttempts, resultId, testId) {
+    // Create overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'successOverlay';
+    overlay.style.cssText = `
+        position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+        display: flex; align-items: center; justify-content: center;
+        z-index: 99999; padding: 1rem;
+        animation: fadeIn 0.2s ease;
+    `;
 
+    // Score color
+    let scoreColor = '#ea4335';
+    if (score >= 90) scoreColor = '#34a853';
+    else if (score >= 80) scoreColor = '#1a73e8';
+    else if (score >= 70) scoreColor = '#fbbc04';
+
+    overlay.innerHTML = `
+        <style>
+            @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+            @keyframes slideUp { from { opacity: 0; transform: translateY(24px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+            @keyframes checkDraw {
+                0% { stroke-dashoffset: 100; }
+                100% { stroke-dashoffset: 0; }
+            }
+            .popup-card {
+                background: #fff;
+                border-radius: 28px;
+                padding: 2.5rem 2rem 2rem;
+                max-width: 420px;
+                width: 100%;
+                box-shadow: 0 8px 40px rgba(60,64,67,0.18), 0 2px 8px rgba(60,64,67,0.10);
+                animation: slideUp 0.35s cubic-bezier(.4,0,.2,1);
+                text-align: center;
+                font-family: 'Google Sans', 'Inter', sans-serif;
+            }
+            .check-circle {
+                width: 72px; height: 72px;
+                background: #e6f4ea;
+                border-radius: 50%;
+                display: flex; align-items: center; justify-content: center;
+                margin: 0 auto 1.25rem;
+            }
+            .check-circle svg { width: 40px; height: 40px; }
+            .check-circle svg polyline {
+                stroke: #34a853;
+                stroke-width: 3.5;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+                fill: none;
+                stroke-dasharray: 100;
+                stroke-dashoffset: 0;
+                animation: checkDraw 0.5s ease 0.2s both;
+            }
+            .popup-title {
+                font-size: 1.375rem;
+                font-weight: 600;
+                color: #202124;
+                margin-bottom: 0.4rem;
+                letter-spacing: -0.01em;
+            }
+            .popup-subtitle {
+                font-size: 0.875rem;
+                color: #5f6368;
+                margin-bottom: 1.5rem;
+            }
+            .score-chip {
+                display: inline-block;
+                padding: 0.5rem 1.5rem;
+                border-radius: 50px;
+                font-size: 1.5rem;
+                font-weight: 700;
+                margin-bottom: 1rem;
+                letter-spacing: -0.02em;
+            }
+            .attempt-text {
+                font-size: 0.8125rem;
+                color: #80868b;
+                margin-bottom: 1.75rem;
+            }
+            .popup-divider {
+                height: 1px;
+                background: #e8eaed;
+                margin: 0 -2rem 1.5rem;
+            }
+            .popup-btn {
+                width: 100%;
+                padding: 0.75rem 1.5rem;
+                border-radius: 100px;
+                border: none;
+                font-size: 0.9375rem;
+                font-weight: 500;
+                cursor: pointer;
+                transition: box-shadow 0.15s, background 0.15s;
+                font-family: 'Google Sans', 'Inter', sans-serif;
+                letter-spacing: 0.01em;
+            }
+            .popup-btn-primary {
+                background: #1a73e8;
+                color: #fff;
+            }
+            .popup-btn-primary:hover {
+                background: #1557b0;
+                box-shadow: 0 2px 8px rgba(26,115,232,0.35);
+            }
+        </style>
+        <div class="popup-card">
+            <div class="check-circle">
+                <svg viewBox="0 0 48 48">
+                    <polyline points="10,26 20,36 38,16"/>
+                </svg>
+            </div>
+            <div class="popup-title">Test Submitted</div>
+            <div class="popup-subtitle">Your results have been recorded</div>
+            <div class="score-chip" style="background:${scoreColor}18; color:${scoreColor};">
+                ${score} / 100
+            </div>
+            <div class="attempt-text">Attempt ${attempt} of ${totalAttempts}</div>
+            <div class="popup-divider"></div>
+            <button class="popup-btn popup-btn-primary" id="viewResultBtn">
+                View Results
+            </button>
+        </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    document.getElementById('viewResultBtn').addEventListener('click', () => {
+        window.location.href = `./studentresult.html?resultId=${resultId}&testId=${testId}`;
+    });
+}
+
+function showErrorPopup(message, title = 'Missing Information') {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+        position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+        display: flex; align-items: center; justify-content: center;
+        z-index: 99999; padding: 1rem;
+    `;
+
+    overlay.innerHTML = `
+        <div style="
+            background: #fff; border-radius: 28px; padding: 2.5rem 2rem 2rem;
+            max-width: 380px; width: 100%;
+            box-shadow: 0 8px 40px rgba(60,64,67,0.18);
+            text-align: center; font-family: 'Google Sans','Inter',sans-serif;
+            animation: slideUp 0.3s ease;
+        ">
+            <div style="
+                width:72px; height:72px; background:#fce8e6;
+                border-radius:50%; display:flex; align-items:center;
+                justify-content:center; margin: 0 auto 1.25rem;
+            ">
+                <svg width="36" height="36" viewBox="0 0 48 48">
+                    <line x1="14" y1="14" x2="34" y2="34" stroke="#ea4335" stroke-width="3.5" stroke-linecap="round"/>
+                    <line x1="34" y1="14" x2="14" y2="34" stroke="#ea4335" stroke-width="3.5" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <<div style="font-size:1.25rem; font-weight:600; color:#202124; margin-bottom:0.5rem;">
+                ${title}
+            </div>
+            <div style="font-size:0.875rem; color:#5f6368; margin-bottom:1.75rem;">
+                ${message}
+            </div>
+            <div style="height:1px; background:#e8eaed; margin: 0 -2rem 1.5rem;"></div>
+            <button onclick="this.closest('[style*=fixed]').remove()" style="
+                width:100%; padding:0.75rem 1.5rem; border-radius:100px;
+                border:1px solid #dadce0; background:#fff; color:#3c4043;
+                font-size:0.9375rem; font-weight:500; cursor:pointer;
+                font-family:'Google Sans','Inter',sans-serif;
+            ">
+                Try Again
+            </button>
+        </div>
+    `;
+
+    document.body.appendChild(overlay);
+}
         window.submitTest = async function() {
             if (!currentTest || !studentData) {
-                alert('Missing required data');
-                return;
-            }
+    showErrorPopup('Missing required data. Please try again.');
+    return;
+}
 
             let resultValue = '';
             let rawResult = '';
@@ -2450,59 +2629,59 @@
 
             if (testName.includes('push-up') || testName.includes('pushup') || 
                 testName.includes('sit-up') || testName.includes('situp')) {
-                const input = document.getElementById('repetitionsInput');
+                   const input = document.getElementById('repetitionsInput');
                 if (!input || !input.value) {
-                    alert('Please enter the number of repetitions');
+                    showErrorPopup('Please enter the number of repetitions completed.');
                     return;
                 }
                 rawResult = input.value;
                 resultValue = input.value + ' reps';
             } else if (testName.includes('curl-up') || testName.includes('curl up')) {
-                const input = document.getElementById('repetitionsInput');
+                   const input = document.getElementById('repetitionsInput');
                 if (!input || !input.value) {
-                    alert('Please enter the number of curl-ups');
+                    showErrorPopup('Please enter the number of curl-ups completed.');
                     return;
                 }
                 rawResult = input.value;
                 resultValue = input.value + ' curl-ups';
             } else if (testName.includes('plank')) {
-                const input = document.getElementById('durationInput');
+                  const input = document.getElementById('durationInput');
                 if (!input || !input.value) {
-                    alert('Please complete the timer and stop it');
+                    showErrorPopup('Please start the timer and stop it when done.');
                     return;
                 }
                 const [mins, secs] = input.value.split(':').map(Number);
                 rawResult = (mins * 60 + secs).toString();
                 resultValue = input.value;
             } else if (testName.includes('step test') || testName.includes('3-minute')) {
-                const input = document.getElementById('heartRateInput');
+                  const input = document.getElementById('heartRateInput');
                 if (!input || !input.value) {
-                    alert('Please enter your heart rate');
+                    showErrorPopup('Please enter your recovery heart rate (bpm).');
                     return;
                 }
                 rawResult = input.value;
                 resultValue = input.value + ' bpm';
             } else if (testName.includes('mile') || testName.includes('run') || testName.includes('1-mile')) {
-                const input = document.getElementById('timeInput');
+                   const input = document.getElementById('timeInput');
                 if (!input || !input.value) {
-                    alert('Please complete the timer and stop it');
+                    showErrorPopup('Please start the timer and stop it when done.');
                     return;
                 }
                 const [mins, secs] = input.value.split(':').map(Number);
                 rawResult = (mins * 60 + secs).toString();
                 resultValue = input.value;
             } else if (testName.includes('sit-and-reach') || testName.includes('sit and reach')) {
-                const input = document.getElementById('distanceInput');
+                  const input = document.getElementById('distanceInput');
                 if (!input || !input.value) {
-                    alert('Please enter the distance');
+                    showErrorPopup('Please enter the distance reached (cm).');
                     return;
                 }
                 rawResult = input.value;
                 resultValue = input.value + ' cm';
             } else if (testName.includes('grip')) {
-                const input = document.getElementById('strengthInput');
+                  const input = document.getElementById('strengthInput');
                 if (!input || !input.value) {
-                    alert('Please enter your grip strength');
+                    showErrorPopup('Please enter your grip strength (kg).');
                     return;
                 }
                 rawResult = input.value;
@@ -2510,8 +2689,8 @@
             } else if (testName.includes('bmi')) {
                 const heightInput = document.getElementById('heightInput');
                 const weightInput = document.getElementById('weightInput');
-                if (!heightInput || !heightInput.value || !weightInput || !weightInput.value) {
-                    alert('Please enter both height and weight');
+                   if (!heightInput || !heightInput.value || !weightInput || !weightInput.value) {
+                    showErrorPopup('Please enter both your height (cm) and weight (kg).');
                     return;
                 }
                 const heightCm = parseFloat(heightInput.value);
@@ -2527,9 +2706,9 @@
             const s3 = document.getElementById('site3Input')?.value;
             const calcDisplay = document.getElementById('calcBodyFat')?.textContent;
 
-            if (!sex) { alert('Please select sex.'); return; }
-            if (!s1 || !s2 || !s3) { alert('Please enter all 3 skinfold measurements.'); return; }
-            if (!calcDisplay || calcDisplay === '--') { alert('Body fat could not be calculated. Check your measurements.'); return; }
+            if (!sex) { showErrorPopup('Please select your sex.'); return; }
+            if (!s1 || !s2 || !s3) { showErrorPopup('Please enter all 3 skinfold measurements.'); return; }
+            if (!calcDisplay || calcDisplay === '--') { showErrorPopup('Body fat could not be calculated. Please check your measurements.'); return; }
 
             const siteName = sex === 'male'
                 ? `Chest:${s1}mm, Abdomen:${s2}mm, Thigh:${s3}mm`
@@ -2541,9 +2720,9 @@
             resultValue = `${calcDisplay}% body fat (${classification.label}) | ${sex === 'male' ? 'Male' : 'Female'} | ${siteName}`;
 
             } else {
-                const input = document.getElementById('resultInput');
+                  const input = document.getElementById('resultInput');
                 if (!input || !input.value) {
-                    alert('Please enter your test result');
+                    showErrorPopup('Please enter your test result.');
                     return;
                 }
                 rawResult = input.value;
@@ -2612,12 +2791,12 @@
                     console.log('⚠️ NOT incrementing completedStudents (retry attempt)');
                 }
 
-                alert(`Test submitted successfully! (Attempt ${currentAttempts + 1} of ${currentTest.attemptsAllowed || 1})\nYour Score: ${calculatedScore}/100`);
+                   showSuccessPopup(calculatedScore, currentAttempts + 1, currentTest.attemptsAllowed || 1, docRef.id, currentTest.id);
                 
                 window.location.href = `./studentresult.html?resultId=${docRef.id}&testId=${currentTest.id}`;
             } catch (error) {
                 console.error('Error submitting test:', error);
-                alert('Error submitting test. Please try again.');
+                     showErrorPopup('Error submitting test. Please try again.', 'Submission Failed');
                 document.getElementById('submitBtn').disabled = false;
                 document.getElementById('submitBtn').innerHTML = '<i class="bi bi-check-circle-fill"></i> Submit Test Results';
             }
@@ -2892,16 +3071,7 @@
             if (dropdownEmailMobile) dropdownEmailMobile.textContent = currentUser.email || '';
         }
 
-        async function handleLogout() {
-            if (confirm('Are you sure you want to logout?')) {
-                try {
-                    await signOut(auth);
-                    window.location.href = '../login/index.html';
-                } catch (error) {
-                    console.error('Error logging out:', error);
-                }
-            }
-        }
+
 
         // Auth state change
         onAuthStateChanged(auth, async (user) => {
@@ -2996,7 +3166,137 @@
                 window.location.href = '../login/index.html';
             }
         });
+            window.handleLogout = function() {
+    showLogoutConfirmPopup();
+};
 
+function showLogoutConfirmPopup() {
+    // Remove existing popup if any
+    const existing = document.getElementById('logoutOverlay');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'logoutOverlay';
+    overlay.style.cssText = `
+        position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+        display: flex; align-items: center; justify-content: center;
+        z-index: 99999; padding: 1rem;
+        animation: fadeInLogout 0.2s ease;
+    `;
+
+    overlay.innerHTML = `
+        <style>
+            @keyframes fadeInLogout { from { opacity:0; } to { opacity:1; } }
+            @keyframes slideUpLogout { from { opacity:0; transform:translateY(24px) scale(0.97); } to { opacity:1; transform:translateY(0) scale(1); } }
+        </style>
+        <div style="
+            background:#fff;
+            border-radius:24px;
+            padding:2rem 1.5rem 1.5rem;
+            max-width:360px;
+            width:100%;
+            box-shadow:0 8px 40px rgba(60,64,67,0.18), 0 2px 8px rgba(60,64,67,0.10);
+            animation:slideUpLogout 0.35s cubic-bezier(.4,0,.2,1);
+            text-align:center;
+            font-family:'Inter',sans-serif;
+        ">
+            <!-- Icon -->
+            <div style="
+                width:68px; height:68px;
+                background:#fce8e6;
+                border-radius:50%;
+                display:flex; align-items:center; justify-content:center;
+                margin:0 auto 1.25rem;
+            ">
+                <svg width="34" height="34" viewBox="0 0 48 48" fill="none">
+                    <path d="M20 8H10C8.9 8 8 8.9 8 10V38C8 39.1 8.9 40 10 40H20" stroke="#ea4335" stroke-width="3.5" stroke-linecap="round"/>
+                    <path d="M32 16L40 24L32 32" stroke="#ea4335" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M40 24H20" stroke="#ea4335" stroke-width="3.5" stroke-linecap="round"/>
+                </svg>
+            </div>
+
+            <!-- Title -->
+            <div style="font-size:1.25rem; font-weight:600; color:#202124; margin-bottom:0.35rem; letter-spacing:-0.01em;">
+                Log Out
+            </div>
+
+            <!-- Subtitle -->
+            <div style="font-size:0.875rem; color:#5f6368; margin-bottom:1.5rem; line-height:1.5;">
+                Are you sure you want to log out of your account?
+            </div>
+
+            <!-- Divider -->
+            <div style="height:1px; background:#e8eaed; margin:0 -1.5rem 1.25rem;"></div>
+
+            <!-- Buttons -->
+            <div style="display:flex; gap:0.75rem;">
+                <button id="logoutCancelBtn" style="
+                    flex:1;
+                    padding:0.75rem 0.5rem;
+                    border-radius:100px;
+                    border:1.5px solid #dadce0;
+                    background:#fff;
+                    color:#3c4043;
+                    font-size:0.9375rem;
+                    font-weight:500;
+                    cursor:pointer;
+                    font-family:'Inter',sans-serif;
+                    transition:background 0.15s;
+                    min-height:48px;
+                ">Cancel</button>
+                <button id="logoutConfirmBtn" style="
+                    flex:1;
+                    padding:0.75rem 0.5rem;
+                    border-radius:100px;
+                    border:none;
+                    background:#ea4335;
+                    color:#fff;
+                    font-size:0.9375rem;
+                    font-weight:500;
+                    cursor:pointer;
+                    font-family:'Inter',sans-serif;
+                    transition:background 0.15s, box-shadow 0.15s;
+                    min-height:48px;
+                ">Log Out</button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    // Close profile dropdowns first
+    const profileDropdown = document.getElementById('profileDropdown');
+    const profileDropdownMobile = document.getElementById('profileDropdownMobile');
+    if (profileDropdown) profileDropdown.classList.add('hidden');
+    if (profileDropdownMobile) profileDropdownMobile.classList.add('hidden');
+
+    // Cancel button
+    document.getElementById('logoutCancelBtn').addEventListener('click', () => {
+        overlay.remove();
+    });
+
+    // Click outside to close
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) overlay.remove();
+    });
+
+    // Confirm logout
+    document.getElementById('logoutConfirmBtn').addEventListener('click', async () => {
+        const confirmBtn = document.getElementById('logoutConfirmBtn');
+        confirmBtn.textContent = 'Logging out...';
+        confirmBtn.disabled = true;
+        confirmBtn.style.opacity = '0.7';
+
+        try {
+            await signOut(auth);
+            window.location.href = '../login/index.html';
+        } catch (error) {
+            console.error('Logout error:', error);
+            overlay.remove();
+            alert('Error logging out. Please try again.');
+        }
+    });
+}
         // Make functions globally available
         window.toggleNotificationDropdown = toggleNotificationDropdown;
         window.closeNotificationDropdown = closeNotificationDropdown;
