@@ -59,7 +59,7 @@
         }
 
         .hamburger span {
-            width: 25px;
+            width: 22px;
             height: 3px;
             background: linear-gradient(135deg, #EAD38A 0%, #C5A046 50%, #8B6D2D 100%);
             border-radius: 2px;
@@ -83,7 +83,7 @@
             position: fixed;
             top: 0;
             right: -100%;
-            width: 280px;
+            width: 260px;
             height: 100vh;
             background: linear-gradient(135deg, #0D1B2A 0%, #1A2B3C 50%, #2C4A5E 100%);
             z-index: 55;
@@ -202,6 +202,61 @@
                 font-size: 24px !important;
             }
         }
+        
+        /* Empty state */
+        .empty-state {
+            padding: 60px 40px;
+            text-align: center;
+        }
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.4;
+        }
+        .empty-title {
+            font-weight: 700;
+            color: #1f2937;
+            font-size: 20px;
+            margin-bottom: 12px;
+        }
+        .empty-text {
+            font-weight: 400;
+            color: #64748b;
+            font-size: 14px;
+            line-height: 1.6;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        /* COMPACT NAVIGATION STYLES */
+        header nav .flex {
+            gap: 0.25rem;
+        }
+        
+        .nav-link-compact {
+            padding: 0.35rem 0.6rem;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+        
+        .logo-compact {
+            margin-right: 0.75rem;
+        }
+        
+        .profile-compact {
+            margin-left: 0.75rem;
+        }
+        
+        .nav-group {
+            gap: 0.25rem;
+        }
+        
+        @media (min-width: 1280px) {
+            .nav-link-compact {
+                padding: 0.4rem 0.7rem;
+                font-size: 0.9rem;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-50 overflow-x-hidden">
@@ -213,92 +268,107 @@
     </div>
     
     <div id="dashboardContent" class="hidden overflow-x-hidden">
-        <!-- ✅ UPDATED NAVIGATION BANNER - MATCHING LANDING PAGE DESIGN -->
+        <!-- COMPACT NAVIGATION BANNER -->
         <header class="shadow-lg fixed w-full top-0 z-50" style="background: linear-gradient(135deg, #0D1B2A 0%, #1A2B3C 50%, #2C4A5E 100%);">
-            <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between items-center h-20">
-                    <!-- Logo -->
-                    <div class="flex items-center gap-3">
-                        <div class="w-16 h-16 flex items-center justify-center overflow-visible">
-                            <img src="UMakfit Logo (2).png" alt="UMakFIT Logo" class="w-20 h-20 object-contain">
+            <nav class="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+                <div class="flex justify-between items-center h-14 md:h-16">
+                    
+                    <!-- LOGO - compact -->
+                    <div class="flex items-center logo-compact">
+                        <div class="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center overflow-visible">
+                            <img src="UMakfit Logo (2).png" alt="UMakFIT Logo" class="w-12 h-12 md:w-14 md:h-14 object-contain">
                         </div>
-                        <span class="text-xl sm:text-2xl md:text-3xl font-extrabold font-montserrat gradient-text">
+                        <span class="text-base sm:text-lg md:text-xl lg:text-2xl font-extrabold font-montserrat gradient-text ml-1">
                             UMakFIT
                         </span>
                     </div>
 
-                    <!-- Desktop Navigation -->
-                    <div class="desktop-nav hidden md:flex items-center gap-8">
-                        <a href="professor.html" class="text-white font-medium px-3 py-2 rounded-lg" style="background: linear-gradient(135deg, #EAD38A 0%, #C5A046 50%, #8B6D2D 100%);">
-                            <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                    <!-- DESKTOP NAVIGATION - super compact -->
+                    <div class="hidden md:flex items-center nav-group">
+                        <!-- Dashboard - active -->
+                        <a href="professor.html" class="nav-link-compact text-white font-medium rounded-lg" style="background: linear-gradient(135deg, #EAD38A 0%, #C5A046 50%, #8B6D2D 100%);">
+                            <i class="fas fa-tachometer-alt mr-1"></i>Dashboard
                         </a>
-                        <a href="studentmanagement.html" class="text-white/80 hover:text-white font-medium transition-colors">
-                            <i class="fas fa-users mr-2"></i>Students
+                        
+                        <!-- Students -->
+                        <a href="studentmanagement.html" class="nav-link-compact text-white/80 hover:text-white font-medium rounded-lg transition-colors">
+                            <i class="fas fa-users mr-1"></i>Students
                         </a>
-                        <a href="addactivities.html" class="text-white/80 hover:text-white font-medium transition-colors">
-                            <i class="fas fa-dumbbell mr-2"></i>Activities
+                        
+                        <!-- Activities -->
+                        <a href="addactivities.html" class="nav-link-compact text-white/80 hover:text-white font-medium rounded-lg transition-colors">
+                            <i class="fas fa-dumbbell mr-1"></i>Activities
                         </a>
-                        <a href="addlesson.html" class="text-white/80 hover:text-white font-medium transition-colors">
-                            <i class="fas fa-book-open mr-2"></i>Lessons
+                        
+                        <!-- Lessons -->
+                        <a href="addlesson.html" class="nav-link-compact text-white/80 hover:text-white font-medium rounded-lg transition-colors">
+                            <i class="fas fa-book-open mr-1"></i>Lessons
                         </a>
-                        <a href="monitoringactivities.html" class="text-white/80 hover:text-white font-medium transition-colors">
-                            <i class="fas fa-chart-bar mr-2"></i>Monitoring
+                        
+                        <!-- Monitoring -->
+                        <a href="monitoringactivities.html" class="nav-link-compact text-white/80 hover:text-white font-medium rounded-lg transition-colors">
+                            <i class="fas fa-chart-bar mr-1"></i>Monitoring
                         </a>
-                        <a href="grades.html" class="text-white/80 hover:text-white font-medium transition-colors">
-                            <i class="fas fa-graduation-cap mr-2"></i>Grades
+                        
+                        <!-- Grades -->
+                        <a href="grades.html" class="nav-link-compact text-white/80 hover:text-white font-medium rounded-lg transition-colors">
+                            <i class="fas fa-graduation-cap mr-1"></i>Grades
                         </a>
-                        <a href="sectionranklist.html" class="text-white/80 hover:text-white font-medium transition-colors">
-                            <i class="fas fa-trophy mr-2"></i>Section Rank
+                        
+                        <!-- Section Rank -->
+                        <a href="sectionranklist.html" class="nav-link-compact text-white/80 hover:text-white font-medium rounded-lg transition-colors">
+                            <i class="fas fa-trophy mr-1"></i>Rank
                         </a>
                     </div>
 
-                    <!-- Desktop Profile -->
-                    <div class="hidden md:block relative">
+                    <!-- PROFILE - compact -->
+                    <div class="hidden md:block relative profile-compact">
                         <img src="" alt="Profile" id="profilePictureBtn"
-                             class="w-10 h-10 rounded-full border-2 border-white/30 cursor-pointer hover:border-white/60 hover:scale-105 transition-all object-cover">
+                             class="w-7 h-7 md:w-8 md:h-8 rounded-full border-2 border-white/30 cursor-pointer hover:border-white/60 hover:scale-105 transition-all object-cover">
                         
-                        <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-2xl z-[9999] slide-down">
-                            <div class="p-6 border-b-2 border-gray-200 text-center">
-                                <img src="" alt="Profile" id="profileDropdownPicture" class="w-20 h-20 rounded-full mx-auto mb-3 border-3 border-blue-500 object-cover">
-                                <h6 id="profileDropdownName" class="font-bold text-gray-900 text-lg">Loading...</h6>
-                                <p id="profileDropdownEmail" class="text-sm text-gray-500 mt-1 truncate px-2">Loading...</p>
+                        <!-- Profile Dropdown -->
+                        <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-2xl z-[9999] slide-down">
+                            <div class="p-3 border-b-2 border-gray-200 text-center">
+                                <img src="" alt="Profile" id="profileDropdownPicture" class="w-14 h-14 rounded-full mx-auto mb-2 border-3 border-blue-500 object-cover">
+                                <h6 id="profileDropdownName" class="font-bold text-gray-900 text-sm">Loading...</h6>
+                                <p id="profileDropdownEmail" class="text-xs text-gray-500 mt-1 truncate px-2">Loading...</p>
                             </div>
-                            <div class="p-2">
-                                <a href="professor-profile.html" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 transition-colors">
-                                    <i class="bi bi-person-circle text-blue-500 text-xl"></i>
-                                    <span class="font-medium text-gray-700 text-base">View Profile</span>
+                            <div class="p-1">
+                                <a href="professor-profile.html" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors text-xs">
+                                    <i class="bi bi-person-circle text-blue-500 text-base"></i>
+                                    <span class="font-medium text-gray-700">View Profile</span>
                                 </a>
-                                <div class="h-px bg-gray-200 my-2"></div>
-                                <div onclick="handleLogout(event)" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-red-500">
-                                    <i class="fas fa-sign-out-alt text-xl"></i>
-                                    <span class="font-medium text-base">Logout</span>
+                                <div class="h-px bg-gray-200 my-1"></div>
+                                <div onclick="handleLogout(event)" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-red-500 text-xs">
+                                    <i class="fas fa-sign-out-alt text-base"></i>
+                                    <span class="font-medium">Logout</span>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Mobile Right Icons -->
-                    <div class="flex md:hidden items-center gap-3">
+                    <!-- MOBILE MENU -->
+                    <div class="flex md:hidden items-center gap-2">
                         <!-- Mobile Profile -->
                         <div class="relative">
                             <img src="" alt="Profile" id="profilePictureBtnMobile"
-                                 class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-white/30 cursor-pointer hover:border-white/60 object-cover">
+                                 class="w-7 h-7 rounded-full border-2 border-white/30 cursor-pointer hover:border-white/60 object-cover">
                             
-                            <div id="profileDropdownMobile" class="hidden fixed right-2 top-20 w-64 sm:w-72 bg-white rounded-xl shadow-2xl z-[9999] slide-down">
-                                <div class="p-4 sm:p-6 border-b-2 border-gray-200 text-center">
-                                    <img src="" alt="Profile" id="profileDropdownPictureMobile" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full mx-auto mb-2 sm:mb-3 border-3 border-blue-500 object-cover">
-                                    <h6 id="profileDropdownNameMobile" class="font-bold text-gray-900 text-base sm:text-lg">Loading...</h6>
-                                    <p id="profileDropdownEmailMobile" class="text-xs sm:text-sm text-gray-500 mt-1 truncate px-2">Loading...</p>
+                            <div id="profileDropdownMobile" class="hidden fixed right-2 top-14 w-56 bg-white rounded-xl shadow-2xl z-[9999] slide-down">
+                                <div class="p-3 border-b-2 border-gray-200 text-center">
+                                    <img src="" alt="Profile" id="profileDropdownPictureMobile" class="w-14 h-14 rounded-full mx-auto mb-2 border-3 border-blue-500 object-cover">
+                                    <h6 id="profileDropdownNameMobile" class="font-bold text-gray-900 text-sm">Loading...</h6>
+                                    <p id="profileDropdownEmailMobile" class="text-xs text-gray-500 mt-1 truncate px-2">Loading...</p>
                                 </div>
-                                <div class="p-2">
-                                    <a href="professor-profile.html" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-gray-100 transition-colors">
-                                        <i class="bi bi-person-circle text-blue-500 text-lg sm:text-xl"></i>
-                                        <span class="font-medium text-gray-700 text-sm sm:text-base">View Profile</span>
+                                <div class="p-1">
+                                    <a href="professor-profile.html" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors text-xs">
+                                        <i class="bi bi-person-circle text-blue-500 text-base"></i>
+                                        <span class="font-medium text-gray-700">View Profile</span>
                                     </a>
-                                    <div class="h-px bg-gray-200 my-1 sm:my-2"></div>
-                                    <div onclick="handleLogout(event)" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-red-500">
-                                        <i class="fas fa-sign-out-alt text-lg sm:text-xl"></i>
-                                        <span class="font-medium text-sm sm:text-base">Logout</span>
+                                    <div class="h-px bg-gray-200 my-1"></div>
+                                    <div onclick="handleLogout(event)" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-red-500 text-xs">
+                                        <i class="fas fa-sign-out-alt text-base"></i>
+                                        <span class="font-medium">Logout</span>
                                     </div>
                                 </div>
                             </div>
@@ -319,67 +389,67 @@
 
             <!-- Mobile Drawer -->
             <div class="mobile-drawer" id="mobileDrawer">
-                <div class="p-6 pt-8">
+                <div class="p-5 pt-6">
                     <!-- Drawer Header -->
-                    <div class="flex items-center gap-3 mb-8 pb-6 border-b border-white/20">
-                        <div class="w-12 h-12 flex items-center justify-center overflow-visible">
-                            <img src="UMakfit Logo (2).png" alt="UMakFIT Logo" class="w-14 h-14 object-contain">
+                    <div class="flex items-center gap-2 mb-6 pb-4 border-b border-white/20">
+                        <div class="w-10 h-10 flex items-center justify-center overflow-visible">
+                            <img src="UMakfit Logo (2).png" alt="UMakFIT Logo" class="w-12 h-12 object-contain">
                         </div>
-                        <span class="text-2xl font-extrabold font-montserrat gradient-text">
+                        <span class="text-xl font-extrabold font-montserrat gradient-text">
                             UMakFIT
                         </span>
                     </div>
 
-                    <!-- Navigation Links -->
-                    <nav class="space-y-2 mb-8">
-                        <a href="professor.html" class="mobile-nav-link block text-white font-medium py-3 px-4 rounded-lg" style="background: linear-gradient(135deg, #EAD38A 0%, #C5A046 50%, #8B6D2D 100%);">
-                            <i class="fas fa-tachometer-alt mr-3"></i>Dashboard
+                    <!-- Mobile Navigation Links -->
+                    <nav class="space-y-1 mb-6">
+                        <a href="professor.html" class="mobile-nav-link block text-white font-medium py-2 px-3 rounded-lg text-sm" style="background: linear-gradient(135deg, #EAD38A 0%, #C5A046 50%, #8B6D2D 100%);">
+                            <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
                         </a>
-                        <a href="studentmanagement.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
-                            <i class="fas fa-users mr-3"></i>Student Management
+                        <a href="studentmanagement.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-2 px-3 rounded-lg hover:bg-white/10 transition-all text-sm">
+                            <i class="fas fa-users mr-2"></i>Student Management
                         </a>
-                        <a href="addactivities.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
-                            <i class="fas fa-dumbbell mr-3"></i>Add Activities
+                        <a href="addactivities.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-2 px-3 rounded-lg hover:bg-white/10 transition-all text-sm">
+                            <i class="fas fa-dumbbell mr-2"></i>Add Activities
                         </a>
-                        <a href="addlesson.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
-                            <i class="fas fa-book-open mr-3"></i>Add Lesson
+                        <a href="addlesson.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-2 px-3 rounded-lg hover:bg-white/10 transition-all text-sm">
+                            <i class="fas fa-book-open mr-2"></i>Add Lesson
                         </a>
-                        <a href="monitoringactivities.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
-                            <i class="fas fa-chart-bar mr-3"></i>Monitoring Activities
+                        <a href="monitoringactivities.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-2 px-3 rounded-lg hover:bg-white/10 transition-all text-sm">
+                            <i class="fas fa-chart-bar mr-2"></i>Monitoring
                         </a>
-                        <a href="grades.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
-                            <i class="fas fa-graduation-cap mr-3"></i>Grades
+                        <a href="grades.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-2 px-3 rounded-lg hover:bg-white/10 transition-all text-sm">
+                            <i class="fas fa-graduation-cap mr-2"></i>Grades
                         </a>
-                        <a href="sectionranklist.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
-                            <i class="fas fa-trophy mr-3"></i>Section Rank List
-                            </a>
+                        <a href="sectionranklist.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-2 px-3 rounded-lg hover:bg-white/10 transition-all text-sm">
+                            <i class="fas fa-trophy mr-2"></i>Section Rank
+                        </a>
                     </nav>
                 </div>
             </div>
         </header>
 
         <!-- Main Content - with top padding to account for fixed header -->
-        <div class="bg-gradient-to-b from-gray-50 to-gray-100 min-h-screen pt-32 pb-20">
+        <div class="bg-gradient-to-b from-gray-50 to-gray-100 min-h-screen pt-20 md:pt-24 pb-20">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
                 <!-- Profile Section -->
-                <div class="bg-white rounded-2xl card-shadow border border-gray-200 p-8 mb-10">
-                    <div class="flex items-center mb-5">
-                        <h2 class="text-blue-900 font-bold text-3xl">Professor Profile</h2>
+                <div class="bg-white rounded-2xl card-shadow border border-gray-200 p-6 md:p-8 mb-8">
+                    <div class="flex items-center mb-4">
+                        <h2 class="text-blue-900 font-bold text-2xl md:text-3xl">Professor Profile</h2>
                     </div>
-                    <div class="w-full h-0.5 bg-gradient-to-r from-transparent via-gray-200 to-transparent my-6"></div>
-                    <div class="bg-gray-50 rounded-xl border border-gray-100 p-6 flex items-center space-x-8">
+                    <div class="w-full h-0.5 bg-gradient-to-r from-transparent via-gray-200 to-transparent my-4"></div>
+                    <div class="bg-gray-50 rounded-xl border border-gray-100 p-4 md:p-6 flex flex-col md:flex-row items-center gap-4 md:gap-6">
                         <img class="w-16 h-16 rounded-full object-cover border-3 border-gray-200" id="userPhoto" src="https://c.animaapp.com/tzMzyNnw/img/image-13@2x.png" alt="Profile">
-                        <div class="flex-1 flex flex-wrap gap-x-20 gap-y-6">
-                            <div class="min-w-[150px]">
+                        <div class="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
+                            <div>
                                 <div class="text-gray-500 font-medium text-xs uppercase tracking-wider mb-1">Name</div>
                                 <div class="text-blue-900 font-bold text-base" id="userName">Loading...</div>
                             </div>
-                            <div class="min-w-[150px]">
+                            <div>
                                 <div class="text-gray-500 font-medium text-xs uppercase tracking-wider mb-1">Email</div>
-                                <div class="text-gray-700 font-medium text-base" id="userEmail">Loading...</div>
+                                <div class="text-gray-700 font-medium text-base break-all" id="userEmail">Loading...</div>
                             </div>
-                            <div class="min-w-[150px]">
+                            <div>
                                 <div class="text-gray-500 font-medium text-xs uppercase tracking-wider mb-1">Assigned Sections</div>
                                 <div class="text-blue-900 font-bold text-base" id="assignedSections">0</div>
                             </div>
@@ -388,11 +458,11 @@
                 </div>
                 
                 <!-- ── STAT CARDS ── -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 mb-8">
                     <!-- Card 1: My Sections -->
                     <div class="stat-card bg-gradient-to-br from-purple-500 to-purple-700 rounded-2xl text-white p-4 md:p-6 hover:-translate-y-1 hover:shadow-xl relative overflow-hidden">
                         <div class="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full translate-x-10 -translate-y-10"></div>
-                        <div class="flex items-center gap-2 mb-3">
+                        <div class="flex items-center gap-2 mb-2">
                             <i class="fas fa-layer-group text-sm md:text-base"></i>
                             <span class="font-semibold text-xs md:text-sm">My Sections</span>
                         </div>
@@ -403,7 +473,7 @@
                     <!-- Card 2: My Students -->
                     <div class="stat-card bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl text-white p-4 md:p-6 hover:-translate-y-1 hover:shadow-xl relative overflow-hidden">
                         <div class="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full translate-x-10 -translate-y-10"></div>
-                        <div class="flex items-center gap-2 mb-3">
+                        <div class="flex items-center gap-2 mb-2">
                             <i class="fas fa-user-graduate text-sm md:text-base"></i>
                             <span class="font-semibold text-xs md:text-sm">
                                 My Students
@@ -414,13 +484,13 @@
                         <div id="statStudentsFilterLabel" class="hidden mt-2 text-xs text-white/80 font-medium"></div>
                     </div>
                     
-                    <!-- Card 3: Total Activities Posted - NOW WITH REAL-TIME UPDATES -->
+                    <!-- Card 3: Total Activities Posted -->
                     <div class="stat-card bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl text-white p-4 md:p-6 hover:-translate-y-1 hover:shadow-xl relative overflow-hidden">
                         <div class="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full translate-x-10 -translate-y-10"></div>
-                        <div class="flex items-center gap-2 mb-3">
+                        <div class="flex items-center gap-2 mb-2">
                             <i class="fas fa-clipboard-list text-sm md:text-base"></i>
                             <span class="font-semibold text-xs md:text-sm">
-                                Total Activities Posted
+                                Total Activities
                                 <span id="activitiesFilterBadge" class="hidden ml-1 bg-white/30 rounded-full px-2 py-0.5 text-xs">filtered</span>
                             </span>
                         </div>
@@ -430,11 +500,11 @@
                 </div>
                 
                 <!-- ── MY SECTIONS (clickable filter) ── -->
-                <div id="sectionsContainer" class="hidden bg-white rounded-2xl card-shadow border border-gray-200 p-6 mb-8">
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+                <div id="sectionsContainer" class="hidden bg-white rounded-2xl card-shadow border border-gray-200 p-4 md:p-6 mb-8">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
                         <div class="flex items-center gap-2">
                             <i class="fas fa-chalkboard text-gray-700"></i>
-                            <h3 class="text-gray-900 font-bold text-xl">My Assigned Sections</h3>
+                            <h3 class="text-gray-900 font-bold text-lg md:text-xl">My Assigned Sections</h3>
                         </div>
                         <!-- Active filter badge + clear button -->
                         <div id="activeFilterBadge" class="hidden">
@@ -451,133 +521,59 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="sectionsGrid">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="sectionsGrid">
                         <!-- Sections will be dynamically added here -->
                     </div>
                 </div>
             </div>
         </div>
         
-        <!-- ✅ UPDATED FOOTER - MATCHING LANDING PAGE DESIGN -->
-        <footer class="bg-gradient-to-r from-blue-900 to-blue-800 text-white py-8 sm:py-12">
+        <!-- Footer -->
+        <footer class="bg-gradient-to-r from-blue-900 to-blue-800 text-white py-6 sm:py-8">
             <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 text-center lg:text-left">
-                    <!-- About UmakFit & College of Human Kinetics -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 text-center md:text-left">
+                    <!-- About -->
                     <div>
-                        <div class="flex items-center justify-center lg:justify-start gap-3 mb-4">
-                            <img src="UMakfit Logo (2).png" 
-                                 alt="UMak Logo" class="h-12 w-auto object-contain">
+                        <div class="flex items-center justify-center md:justify-start gap-2 mb-3">
+                            <img src="UMakfit Logo (2).png" alt="UMak Logo" class="h-10 w-auto object-contain">
                             <div>
-                                <h6 class="text-yellow-400 font-bold text-lg lg:text-xl mb-1">UMakFit</h6>
-                                <p class="text-xs lg:text-sm text-blue-200 font-medium">College of Human Kinetics</p>
+                                <h6 class="text-yellow-400 font-bold text-base md:text-lg">UMakFit</h6>
+                                <p class="text-xs text-blue-200">College of Human Kinetics</p>
                             </div>
                         </div>
-                        <p class="text-sm lg:text-base leading-relaxed text-blue-100">
-                            UMakFit is the official fitness assessment and tracking platform of the College of Human Kinetics at University of Makati. 
-                            Our mission is to promote health, wellness, and physical fitness through comprehensive assessment and personalized tracking.
+                        <p class="text-xs md:text-sm leading-relaxed text-blue-100">
+                            Official fitness assessment platform of the College of Human Kinetics at University of Makati.
                         </p>
-                        <div class="mt-4 flex flex-wrap gap-2 justify-center lg:justify-start">
-                            <span class="bg-blue-700/50 px-3 py-1 rounded-full text-xs font-semibold">Fitness Tracking</span>
-                            <span class="bg-blue-700/50 px-3 py-1 rounded-full text-xs font-semibold">Performance Assessment</span>
-                            <span class="bg-blue-700/50 px-3 py-1 rounded-full text-xs font-semibold">Health & Wellness</span>
-                        </div>
                     </div>
 
                     <!-- Quick Links -->
                     <div>
-                        <h6 class="text-yellow-400 font-bold text-lg lg:text-xl mb-4 lg:mb-6">Quick Links</h6>
-                        <div class="grid grid-cols-2 gap-4 lg:gap-6">
-                            <div class="space-y-3">
-                                <a href="professor.html" class="block text-yellow-300 hover:text-yellow-200 hover:translate-x-1 transition-all duration-200 text-sm lg:text-base font-semibold">
-                                    <i class="bi bi-tachometer mr-2"></i>Dashboard
-                                </a>
-                                <a href="studentmanagement.html" class="block text-blue-100 hover:text-yellow-300 hover:translate-x-1 transition-all duration-200 text-sm lg:text-base">
-                                    <i class="bi bi-people mr-2"></i>Students
-                                </a>
-                                <a href="addactivities.html" class="block text-blue-100 hover:text-yellow-300 hover:translate-x-1 transition-all duration-200 text-sm lg:text-base">
-                                    <i class="bi bi-dumbbell mr-2"></i>Activities
-                                </a>
-                            </div>
-                            <div class="space-y-3">
-                                <a href="addlesson.html" class="block text-blue-100 hover:text-yellow-300 hover:translate-x-1 transition-all duration-200 text-sm lg:text-base">
-                                    <i class="bi bi-book mr-2"></i>Lessons
-                                </a>
-                                <a href="monitoringactivities.html" class="block text-blue-100 hover:text-yellow-300 hover:translate-x-1 transition-all duration-200 text-sm lg:text-base">
-                                    <i class="bi bi-graph-up mr-2"></i>Monitoring
-                                </a>
-                                <a href="grades.html" class="block text-blue-100 hover:text-yellow-300 hover:translate-x-1 transition-all duration-200 text-sm lg:text-base">
-                                    <i class="bi bi-mortarboard mr-2"></i>Grades
-                                </a>
-                            </div>
+                        <h6 class="text-yellow-400 font-bold text-base md:text-lg mb-3">Quick Links</h6>
+                        <div class="grid grid-cols-2 gap-2 text-xs md:text-sm">
+                            <a href="professor.html" class="text-blue-100 hover:text-yellow-300">Dashboard</a>
+                            <a href="students.html" class="text-blue-100 hover:text-yellow-300">Students</a>
+                            <a href="activities.html" class="text-blue-100 hover:text-yellow-300">Activities</a>
+                            <a href="lessons.html" class="text-blue-100 hover:text-yellow-300">Lessons</a>
+                            <a href="monitoring.html" class="text-blue-100 hover:text-yellow-300">Monitoring</a>
+                            <a href="grades.html" class="text-blue-100 hover:text-yellow-300">Grades</a>
                         </div>
                     </div>
 
-                    <!-- Contact & Social -->
+                    <!-- Contact -->
                     <div>
-                        <h6 class="text-yellow-400 font-bold text-lg lg:text-xl mb-4 lg:mb-6">Get In Touch</h6>
-                        <div class="space-y-4 lg:space-y-5">
-                            <div class="flex items-start gap-3">
-                                <i class="bi bi-geo-alt-fill text-yellow-400 text-lg lg:text-xl mt-1"></i>
-                                <p class="text-sm lg:text-base text-blue-100">
-                                    College of Human Kinetics<br>
-                                    University of Makati<br>
-                                   3rd floor, Administration Building, University of Makati, 
-                                   JP Rizal Ext., West Rembo, Taguig City
-                                </p>
-                            </div>
-                            <div class="flex items-center gap-3">
-                                <i class="bi bi-envelope-fill text-yellow-400 text-lg lg:text-xl"></i>
-                                <a href="mailto:chk@umak.edu.ph" class="text-blue-100 hover:text-yellow-300 transition-colors text-sm lg:text-base">
-                                    chk@umak.edu.ph
-                                </a>
-                            </div>
-                            <div class="flex items-center gap-3">
-                                <i class="bi bi-telephone-fill text-yellow-400 text-lg lg:text-xl"></i>
-                                <span class="text-blue-100 text-sm lg:text-base">+63 933 189 7230</span>
-                            </div>
-                            <div class="flex items-center gap-4 pt-3 justify-center lg:justify-start">
-                                <a href="https://www.facebook.com/profile.php?id=61577064971920" target="_blank" class="bg-blue-700 hover:bg-blue-600 p-2.5 rounded-lg transition-all duration-200 hover:scale-110">
-                                    <i class="bi bi-facebook text-white text-lg lg:text-xl"></i>
-                                </a>
-                                <a href="#" class="bg-blue-700 hover:bg-blue-600 p-2.5 rounded-lg transition-all duration-200 hover:scale-110">
-                                    <i class="bi bi-twitter text-white text-lg lg:text-xl"></i>
-                                </a>
-                                <a href="#" class="bg-blue-700 hover:bg-blue-600 p-2.5 rounded-lg transition-all duration-200 hover:scale-110">
-                                    <i class="bi bi-instagram text-white text-lg lg:text-xl"></i>
-                                </a>
-                                <a href="#" class="bg-blue-700 hover:bg-blue-600 p-2.5 rounded-lg transition-all duration-200 hover:scale-110">
-                                    <i class="bi bi-youtube text-white text-lg lg:text-xl"></i>
-                                </a>
-                            </div>
-                        </div>
+                        <h6 class="text-yellow-400 font-bold text-base md:text-lg mb-3">Contact</h6>
+                        <p class="text-xs md:text-sm text-blue-100">
+                            College of Human Kinetics<br>
+                            University of Makati<br>
+                            chk@umak.edu.ph
+                        </p>
                     </div>
                 </div>
                 
-                <!-- Divider -->
-                <div class="border-t border-blue-600/50 mt-8 lg:mt-12 pt-6 lg:pt-8">
-                    <div class="flex flex-col lg:flex-row justify-between items-center gap-4">
-                        <!-- Copyright -->
-                        <div class="text-center lg:text-left">
-                            <p class="text-xs lg:text-sm text-blue-200">
-                                © 2025 University of Makati - College of Human Kinetics. All Rights Reserved.
-                            </p>
-                        </div>
-                        
-                        <!-- University Links -->
-                        <div class="flex flex-wrap justify-center gap-3 lg:gap-4">
-                            <a href="https://umak.edu.ph" target="_blank" class="text-xs lg:text-sm text-blue-200 hover:text-yellow-300 transition-colors">
-                                University of Makati
-                            </a>
-                            <span class="text-blue-400">•</span>
-                            <a href="https://library.umak.edu.ph" target="_blank" class="text-xs lg:text-sm text-blue-200 hover:text-yellow-300 transition-colors">
-                                UMak Online Library
-                            </a>
-                            <span class="text-blue-400">•</span>
-                            <a href="https://tbl.umak.edu.ph" target="_blank" class="text-xs lg:text-sm text-blue-200 hover:text-yellow-300 transition-colors">
-                                TBL Hub
-                            </a>
-                        </div>
-                    </div>
+                <div class="border-t border-blue-600/50 mt-6 pt-4">
+                    <p class="text-center text-xs text-blue-200">
+                        © 2025 University of Makati - College of Human Kinetics
+                    </p>
                 </div>
             </div>
         </footer>
@@ -611,8 +607,6 @@
 
         // ── LISTENER UNSUBSCRIBE FUNCTIONS ──
         let unsubscribeActivities = null;
-        let unsubscribeActiveTests = null;
-        let unsubscribeRecentCompletions = null;
 
         // ── SECTION FILTER STATE ──
         let activeSectionFilter = null;
@@ -622,14 +616,6 @@
             if (unsubscribeActivities) {
                 unsubscribeActivities();
                 unsubscribeActivities = null;
-            }
-            if (unsubscribeActiveTests) {
-                unsubscribeActiveTests();
-                unsubscribeActiveTests = null;
-            }
-            if (unsubscribeRecentCompletions) {
-                unsubscribeRecentCompletions();
-                unsubscribeRecentCompletions = null;
             }
         }
 
@@ -653,9 +639,6 @@
             document.getElementById('activeFilterName').textContent = sectionName;
             document.getElementById('filterHint').classList.add('hidden');
 
-            document.getElementById('monitoringFilterBadge').classList.remove('hidden');
-            document.getElementById('monitoringFilterName').textContent = sectionName;
-
             updateStatsForSection(sectionId, sectionName);
         };
 
@@ -668,30 +651,35 @@
 
             document.getElementById('activeFilterBadge').classList.add('hidden');
             document.getElementById('filterHint').classList.remove('hidden');
-            document.getElementById('monitoringFilterBadge').classList.add('hidden');
 
+            // Reset stats to overall totals
             document.getElementById('statSections').textContent = professorSections.length;
             document.getElementById('statStudents').textContent = professorStudents.length;
             document.getElementById('statActivities').textContent = totalActivitiesPosted;
 
-            ['statSectionFilterLabel','statStudentsFilterLabel','statActivitiesFilterLabel'].forEach(id => {
+            // Hide filter labels
+            ['statSectionFilterLabel', 'statStudentsFilterLabel', 'statActivitiesFilterLabel'].forEach(id => {
                 const el = document.getElementById(id);
-                if (el) { el.classList.add('hidden'); el.textContent = ''; }
+                if (el) { 
+                    el.classList.add('hidden'); 
+                    el.textContent = ''; 
+                }
             });
 
             document.getElementById('studentsFilterBadge')?.classList.add('hidden');
             document.getElementById('activitiesFilterBadge')?.classList.add('hidden');
-
-            setupRealtimeMonitoring();
         };
 
         function updateStatsForSection(sectionId, sectionName) {
             const section = professorSections.find(s => s.id === sectionId);
             if (!section) return;
 
+            // Update sections count (still shows total sections)
+            document.getElementById('statSections').textContent = professorSections.length;
+            
+            // Update students count for this section
             const studentsInSection = section.students || [];
             const studentCount = studentsInSection.length;
-
             document.getElementById('statStudents').textContent = studentCount;
             document.getElementById('studentsFilterBadge')?.classList.remove('hidden');
 
@@ -701,10 +689,9 @@
                 labelEl.classList.remove('hidden');
             }
 
+            // Update activities count for this section
             const sectionActivities = allActivitiesData.filter(a => 
-                a.sectionId === sectionId || 
-                a.section === sectionName ||
-                a.sectionName === sectionName
+                a.section === section.name
             );
             document.getElementById('statActivities').textContent = sectionActivities.length;
             document.getElementById('activitiesFilterBadge')?.classList.remove('hidden');
@@ -715,7 +702,12 @@
                 actLabel.classList.remove('hidden');
             }
 
-            setupRealtimeMonitoring(sectionId);
+            // Update section filter label
+            const sectionLabel = document.getElementById('statSectionFilterLabel');
+            if (sectionLabel) {
+                sectionLabel.textContent = `showing ${sectionName}`;
+                sectionLabel.classList.remove('hidden');
+            }
         }
 
         // ── NAV SETUP ──
@@ -773,7 +765,6 @@
             event?.stopPropagation();
             const isMobile = window.innerWidth < 768;
             const dropdown = isMobile ? profileDropdownMobile : profileDropdown;
-            const isHidden = dropdown.classList.contains('hidden');
             dropdown.classList.toggle('hidden');
         }
 
@@ -834,26 +825,19 @@
             document.getElementById('userEmail').textContent = email;
         }
 
-        // ── REAL-TIME ACTIVITIES COUNTER (FIXED) ──
+        // ── REAL-TIME ACTIVITIES COUNTER ──
         async function loadTotalActivitiesPosted() {
             try {
                 allActivitiesData = [];
 
-                // Reference to scheduledTests collection (where tests/activities are stored)
                 const activitiesRef = collection(db, 'scheduledTests');
                 
-                // Build query based on professor's sections
                 let activitiesQuery;
                 
                 if (professorSections.length > 0) {
-                    const sectionNames = professorSections.map(s => s.name);
-                    // Firestore 'in' limit is 10
-                    const limitedSections = sectionNames.slice(0, 10);
-                    
                     activitiesQuery = query(
                         activitiesRef,
-                        where('professorEmail', '==', window.currentProfessor.email),
-                        where('section', 'in', limitedSections)
+                        where('professorEmail', '==', window.currentProfessor.email)
                     );
                 } else {
                     activitiesQuery = query(
@@ -862,31 +846,28 @@
                     );
                 }
 
-                // Remove previous listener if exists
                 if (unsubscribeActivities) {
                     unsubscribeActivities();
                 }
 
-                // Set up REAL-TIME listener
                 unsubscribeActivities = onSnapshot(activitiesQuery, (snapshot) => {
-                    // Clear previous data
                     allActivitiesData = [];
                     
                     snapshot.forEach(doc => {
-                        allActivitiesData.push({ id: doc.id, ...doc.data() });
+                        const data = doc.data();
+                        if (professorSections.some(s => s.name === data.section)) {
+                            allActivitiesData.push({ id: doc.id, ...data });
+                        }
                     });
 
                     totalActivitiesPosted = allActivitiesData.length;
                     
-                    // Update the stat card
                     document.getElementById('statActivities').textContent = totalActivitiesPosted;
                     
-                    // If there's an active section filter, update filtered count
                     if (activeSectionFilter) {
                         const section = professorSections.find(s => s.id === activeSectionFilter);
                         if (section) {
                             const sectionActivities = allActivitiesData.filter(a => 
-                                a.sectionId === activeSectionFilter || 
                                 a.section === section.name
                             );
                             document.getElementById('statActivities').textContent = sectionActivities.length;
@@ -903,7 +884,6 @@
                     console.log(`📊 Real-time activities update: ${totalActivitiesPosted} total activities`);
                 }, (error) => {
                     console.error('Error in real-time activities listener:', error);
-                    // Fallback to getDocs if onSnapshot fails
                     loadActivitiesFallback();
                 });
 
@@ -917,24 +897,15 @@
         async function loadActivitiesFallback() {
             try {
                 const activitiesRef = collection(db, 'scheduledTests');
-                let activitiesSnapshot;
-                
-                if (professorSections.length > 0) {
-                    const sectionNames = professorSections.map(s => s.name).slice(0, 10);
-                    const q = query(
-                        activitiesRef, 
-                        where('professorEmail', '==', window.currentProfessor.email),
-                        where('section', 'in', sectionNames)
-                    );
-                    activitiesSnapshot = await getDocs(q);
-                } else {
-                    const q = query(activitiesRef, where('professorEmail', '==', window.currentProfessor.email));
-                    activitiesSnapshot = await getDocs(q);
-                }
+                const q = query(activitiesRef, where('professorEmail', '==', window.currentProfessor.email));
+                const activitiesSnapshot = await getDocs(q);
 
                 allActivitiesData = [];
                 activitiesSnapshot.forEach(doc => {
-                    allActivitiesData.push({ id: doc.id, ...doc.data() });
+                    const data = doc.data();
+                    if (professorSections.some(s => s.name === data.section)) {
+                        allActivitiesData.push({ id: doc.id, ...data });
+                    }
                 });
 
                 totalActivitiesPosted = allActivitiesData.length;
@@ -944,7 +915,6 @@
                     const section = professorSections.find(s => s.id === activeSectionFilter);
                     if (section) {
                         const sectionActivities = allActivitiesData.filter(a => 
-                            a.sectionId === activeSectionFilter || 
                             a.section === section.name
                         );
                         document.getElementById('statActivities').textContent = sectionActivities.length;
@@ -985,8 +955,7 @@
 
                     updateProfilePicture(user.photoURL, user.displayName);
                     await loadProfessorSections();
-                    await loadTotalActivitiesPosted(); // This now sets up real-time listener
-                    setupRealtimeMonitoring();
+                    await loadTotalActivitiesPosted();
 
                     loadingScreen.style.display = 'none';
                     dashboardContent.classList.remove('hidden');
@@ -1003,7 +972,7 @@
             }
         });
 
-        // ── LOAD SECTIONS ──
+        // ==================== LOAD ONLY PROFESSOR'S SECTIONS ====================
         async function loadProfessorSections() {
             try {
                 professorSections = [];
@@ -1011,22 +980,60 @@
 
                 const professorName = window.currentProfessor.fullName || window.currentProfessor.name || '';
                 const professorEmail = window.currentProfessor.email;
+                
+                console.log('Loading sections for professor:', professorName, professorEmail);
 
                 const sectionsSnapshot = await getDocs(collection(db, 'sections'));
 
                 sectionsSnapshot.forEach((doc) => {
                     const sectionData = doc.data();
-                    const professorMatches =
-                        sectionData.professor === professorName ||
-                        sectionData.professorEmail === professorEmail ||
-                        (sectionData.professor && professorName.includes(sectionData.professor)) ||
-                        (sectionData.professor && sectionData.professor.includes(professorName));
+                    const sectionProfessor = (sectionData.professor || '').toString().trim();
+                    
+                    // EXACT MATCHING LOGIC
+                    let isMatch = false;
+                    
+                    // Check exact match with professorName
+                    if (professorName && sectionProfessor.toUpperCase() === professorName.toUpperCase()) {
+                        isMatch = true;
+                    }
+                    
+                    // Check if professorEmail matches
+                    if (!isMatch && sectionData.professorEmail === professorEmail) {
+                        isMatch = true;
+                    }
+                    
+                    // Check if section professor contains professor's last name
+                    if (!isMatch && professorName) {
+                        const nameParts = professorName.toUpperCase().split(',');
+                        if (nameParts.length > 1) {
+                            const lastName = nameParts[0].trim();
+                            if (sectionProfessor.toUpperCase().includes(lastName)) {
+                                isMatch = true;
+                            }
+                        } else {
+                            if (sectionProfessor.toUpperCase().includes(professorName.toUpperCase())) {
+                                isMatch = true;
+                            }
+                        }
+                    }
 
-                    if (professorMatches) {
-                        professorSections.push({ id: doc.id, ...sectionData });
+                    if (isMatch) {
+                        professorSections.push({ 
+                            id: doc.id, 
+                            name: sectionData.name || 'Unnamed Section',
+                            courseCode: sectionData.courseCode || 'PE 3',
+                            professor: sectionData.professor || professorName,
+                            students: sectionData.students || [],
+                            lastUpdated: sectionData.lastUpdated || sectionData.createdAt
+                        });
+                        
                         if (sectionData.students && Array.isArray(sectionData.students)) {
                             sectionData.students.forEach(student => {
-                                professorStudents.push({ ...student, section: sectionData.name, sectionId: doc.id });
+                                professorStudents.push({ 
+                                    ...student, 
+                                    section: sectionData.name, 
+                                    sectionId: doc.id 
+                                });
                             });
                         }
                     }
@@ -1052,10 +1059,10 @@
 
             if (professorSections.length === 0) {
                 sectionsGrid.innerHTML = `
-                    <div class="col-span-3 py-10 text-center">
-                        <div class="text-5xl mb-3 opacity-40">📚</div>
+                    <div class="col-span-3 py-8 text-center">
+                        <div class="text-4xl mb-2 opacity-40">📚</div>
                         <div class="text-gray-700 font-semibold mb-1">No Sections Assigned</div>
-                        <div class="text-gray-500 text-sm">Sections assigned by the secretary will appear here</div>
+                        <div class="text-gray-500 text-xs">Sections assigned by the secretary will appear here</div>
                     </div>`;
                 return;
             }
@@ -1063,195 +1070,52 @@
             let html = '';
             professorSections.forEach(section => {
                 const students = section.students || [];
-                const firstFew = students.slice(0, 5);
-                const remaining = Math.max(0, students.length - 5);
+                const firstFew = students.slice(0, 3);
+                const remaining = Math.max(0, students.length - 3);
 
                 let studentsHtml = '';
                 firstFew.forEach(student => {
-                    const displayName = student.name || student.email || 'Unknown Student';
-                    studentsHtml += `<span class="inline-flex items-center bg-white border border-gray-200 rounded px-2 py-1 text-xs text-gray-700 m-1">${displayName}</span>`;
+                    const displayName = student.name || student.email || 'Student';
+                    studentsHtml += `<span class="inline-flex items-center bg-white border border-gray-200 rounded px-2 py-0.5 text-xs text-gray-700 m-0.5">${displayName}</span>`;
                 });
                 if (remaining > 0) {
-                    studentsHtml += `<span class="inline-flex items-center bg-white border border-gray-200 rounded px-2 py-1 text-xs text-gray-700 m-1">+${remaining} more</span>`;
+                    studentsHtml += `<span class="inline-flex items-center bg-white border border-gray-200 rounded px-2 py-0.5 text-xs text-gray-700 m-0.5">+${remaining}</span>`;
                 }
 
                 html += `
-                    <div class="section-card bg-gray-50 rounded-xl border border-gray-200 p-5 select-none"
+                    <div class="section-card bg-gray-50 rounded-xl border border-gray-200 p-4 select-none"
                          data-section-id="${section.id}"
                          onclick="selectSectionFilter('${section.id}')">
 
-                        <div class="flex justify-between items-start mb-4">
-                            <div class="section-name text-blue-900 font-bold text-lg">${section.name || 'Unnamed Section'}</div>
-                            <div class="flex items-center gap-2">
-                                <div class="bg-blue-500 text-white text-xs font-semibold py-1 px-3 rounded-full">${students.length} students</div>
-                            </div>
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="section-name text-blue-900 font-bold text-base">${section.name || 'Unnamed Section'}</div>
+                            <div class="bg-blue-500 text-white text-xs font-semibold py-0.5 px-2 rounded-full">${students.length}</div>
                         </div>
 
-                        <div class="mb-4 space-y-2">
-                            <div class="flex items-center text-gray-600 text-sm">
-                                <i class="fas fa-book w-5"></i>
+                        <div class="mb-2 space-y-1">
+                            <div class="flex items-center text-gray-600 text-xs">
+                                <i class="fas fa-book w-4"></i>
                                 <span>${section.courseCode || 'PE 3'}</span>
                             </div>
-                            <div class="flex items-center text-gray-600 text-sm">
-                                <i class="fas fa-user-tie w-5"></i>
-                                <span>${section.professor || 'Professor'}</span>
-                            </div>
-                            <div class="flex items-center text-gray-600 text-sm">
-                                <i class="fas fa-calendar-alt w-5"></i>
-                                <span>Updated: ${formatDate(section.lastUpdated || section.createdAt)}</span>
+                            <div class="flex items-center text-gray-600 text-xs">
+                                <i class="fas fa-user-tie w-4"></i>
+                                <span class="truncate">${section.professor || 'Professor'}</span>
                             </div>
                         </div>
 
                         ${students.length > 0 ? `
-                            <div class="pt-4 border-t border-gray-200">
-                                <div class="flex items-center text-gray-700 font-semibold text-sm mb-3">
-                                    <i class="fas fa-users mr-1"></i>
-                                    <span>Students in this section:</span>
-                                </div>
+                            <div class="pt-2 border-t border-gray-200">
                                 <div class="flex flex-wrap">${studentsHtml}</div>
                             </div>` : ''}
 
-                        <div class="mt-4 pt-3 border-t border-dashed border-gray-200 flex items-center gap-1 text-xs text-gray-400">
-                            <i class="fas fa-filter text-gray-300"></i>
-                            <span>Click to filter dashboard by this section</span>
+                        <div class="mt-2 pt-2 border-t border-dashed border-gray-200 flex items-center gap-1 text-2xs text-gray-400">
+                            <i class="fas fa-filter text-gray-300 text-xs"></i>
+                            <span class="text-xs">Click to filter</span>
                         </div>
                     </div>`;
             });
 
             sectionsGrid.innerHTML = html;
-        }
-
-        // ── REAL-TIME MONITORING ──
-        function setupRealtimeMonitoring(filterSectionId = null) {
-            if (unsubscribeActiveTests) unsubscribeActiveTests();
-            if (unsubscribeRecentCompletions) unsubscribeRecentCompletions();
-
-            let studentsPool = professorStudents;
-            if (filterSectionId) {
-                studentsPool = professorStudents.filter(s => s.sectionId === filterSectionId);
-            }
-
-            const studentIds = studentsPool.map(s => s.studentId || s.uid || s.email).filter(Boolean);
-            if (studentIds.length === 0) return;
-
-            try {
-                const activeTestsQuery = query(
-                    collection(db, 'activeTests'),
-                    where('studentId', 'in', studentIds.slice(0, 10)),
-                    where('status', '==', 'active')
-                );
-                unsubscribeActiveTests = onSnapshot(activeTestsQuery, (snapshot) => {
-                    updateActiveTestsList(snapshot, studentsPool);
-                }, (error) => {
-                    console.error('Error in active tests listener:', error);
-                });
-
-                const recentCompletionsQuery = query(
-                    collection(db, 'activityResults'),
-                    where('studentId', 'in', studentIds.slice(0, 10)),
-                    where('status', '==', 'completed'),
-                    orderBy('submittedAt', 'desc')
-                );
-                unsubscribeRecentCompletions = onSnapshot(recentCompletionsQuery, (snapshot) => {
-                    updateRecentCompletions(snapshot, studentsPool);
-                }, (error) => {
-                    console.error('Error in recent completions listener:', error);
-                });
-            } catch (error) {
-                console.error('Error setting up real-time monitoring:', error);
-            }
-        }
-
-        function updateActiveTestsList(snapshot, studentsPool) {
-            const container = document.getElementById('activeTestsList');
-            if (snapshot.empty) {
-                container.innerHTML = `
-                    <div class="py-10 text-center">
-                        <div class="text-5xl mb-3 opacity-40">👥</div>
-                        <div class="text-gray-700 font-semibold mb-1">No Active Activities</div>
-                        <div class="text-gray-500 text-sm">Students will appear here when they start activities</div>
-                    </div>`;
-                return;
-            }
-
-            let html = '';
-            let count = 0;
-            snapshot.forEach((doc) => {
-                if (count >= 8) return;
-                count++;
-                const activity = doc.data();
-                const progress = activity.progress || 0;
-                const studentName = activity.studentName || 'Unknown Student';
-                const initials = getInitials(studentName);
-                const studentInfo = studentsPool.find(s =>
-                    s.studentId === activity.studentId ||
-                    s.email === activity.studentEmail ||
-                    s.uid === activity.studentId
-                );
-                const section = studentInfo?.section || 'N/A';
-
-                html += `
-                    <div class="flex items-center p-3 bg-white rounded-lg border border-gray-100 mb-2 hover:bg-gray-50 hover:translate-x-1 transition-all duration-300">
-                        <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-semibold mr-3">${initials}</div>
-                        <div class="flex-1">
-                            <div class="font-semibold text-gray-900">${studentName}</div>
-                            <div class="flex space-x-4 text-xs text-gray-500">
-                                <span>${section}</span>
-                                <span>${activity.activityName || 'Unnamed Activity'}</span>
-                            </div>
-                        </div>
-                        <div class="flex items-center space-x-1">
-                            <div class="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
-                            <span class="text-blue-600 font-semibold text-sm">${progress}%</span>
-                        </div>
-                    </div>`;
-            });
-            container.innerHTML = html;
-        }
-
-        function updateRecentCompletions(snapshot, studentsPool) {
-            const container = document.getElementById('recentCompletions');
-            if (snapshot.empty) {
-                container.innerHTML = `
-                    <div class="py-10 text-center">
-                        <div class="text-5xl mb-3 opacity-40">✅</div>
-                        <div class="text-gray-700 font-semibold mb-1">No Recent Activities</div>
-                        <div class="text-gray-500 text-sm">Completed activities will appear here</div>
-                    </div>`;
-                return;
-            }
-
-            let html = '';
-            let count = 0;
-            snapshot.forEach((doc) => {
-                if (count >= 5) return;
-                count++;
-                const result = doc.data();
-                const studentName = result.studentName || 'Unknown Student';
-                const activityName = result.activityName || 'Unknown Activity';
-                const score = result.score || 0;
-                const initials = getInitials(studentName);
-                const studentInfo = studentsPool.find(s =>
-                    s.studentId === result.studentId ||
-                    s.email === result.studentEmail ||
-                    s.uid === result.studentId
-                );
-                const section = studentInfo?.section || 'N/A';
-
-                html += `
-                    <div class="flex items-center p-3 bg-white rounded-lg border border-gray-100 mb-2 hover:bg-gray-50 hover:translate-x-1 transition-all duration-300">
-                        <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-semibold mr-3">${initials}</div>
-                        <div class="flex-1">
-                            <div class="font-semibold text-gray-900">${studentName}</div>
-                            <div class="flex space-x-4 text-xs text-gray-500">
-                                <span>${section}</span>
-                                <span>${activityName}</span>
-                            </div>
-                        </div>
-                        <div class="text-gray-700 font-medium">Score: ${score}</div>
-                    </div>`;
-            });
-            container.innerHTML = html;
         }
 
         function getInitials(name) {

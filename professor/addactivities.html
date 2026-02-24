@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
+  <style>
         * { -webkit-font-smoothing: antialiased; box-sizing: border-box; }
         body { 
             font-family: 'Poppins', sans-serif; 
@@ -133,7 +133,7 @@
         }
 
         .hamburger span {
-            width: 25px;
+            width: 22px;
             height: 3px;
             background: linear-gradient(135deg, #EAD38A 0%, #C5A046 50%, #8B6D2D 100%);
             border-radius: 2px;
@@ -157,7 +157,7 @@
             position: fixed;
             top: 0;
             right: -100%;
-            width: 280px;
+            width: 260px;
             height: 100vh;
             background: linear-gradient(135deg, #0D1B2A 0%, #1A2B3C 50%, #2C4A5E 100%);
             z-index: 55;
@@ -807,7 +807,7 @@
     .action-buttons {
         display: flex !important;
         flex-direction: column !important;
-        gap: 6px !important; /* Reduced from 10px */
+        gap: 6px !important;
         width: 100% !important;
         margin: 0 !important;
         padding: 0 !important;
@@ -817,19 +817,19 @@
         width: 100% !important;
         min-width: 100% !important;
         max-width: 100% !important;
-        padding: 8px 12px !important; /* Reduced from 12px 16px */
-        font-size: 11px !important; /* Reduced from 13px */
+        padding: 8px 12px !important;
+        font-size: 11px !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
         white-space: nowrap !important;
         box-sizing: border-box !important;
-        min-height: 34px !important; /* Reduced from 44px */
-        border-radius: 16px !important; /* Slightly smaller radius */
+        min-height: 34px !important;
+        border-radius: 16px !important;
     }
     
     .btn-action i {
-        font-size: 10px !important; /* Smaller icons */
+        font-size: 10px !important;
         margin-right: 4px !important;
     }
     
@@ -921,92 +921,107 @@
     </div>
     
     <div id="mainContent" class="hidden">
-        <!-- ✅ UPDATED NAVIGATION BANNER - MATCHING LANDING PAGE DESIGN -->
+        <!-- COMPACT NAVIGATION BANNER -->
         <header class="shadow-lg fixed w-full top-0 z-50" style="background: linear-gradient(135deg, #0D1B2A 0%, #1A2B3C 50%, #2C4A5E 100%);">
-            <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between items-center h-20">
-                    <!-- Logo -->
-                    <div class="flex items-center gap-3">
-                        <div class="w-16 h-16 flex items-center justify-center overflow-visible">
-                            <img src="UMakfit Logo (2).png" alt="UMakFIT Logo" class="w-20 h-20 object-contain">
+            <nav class="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+                <div class="flex justify-between items-center h-14 md:h-16">
+                    
+                    <!-- LOGO - compact -->
+                    <div class="flex items-center" style="margin-right: 0.75rem;">
+                        <div class="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center overflow-visible">
+                            <img src="UMakfit Logo (2).png" alt="UMakFIT Logo" class="w-12 h-12 md:w-14 md:h-14 object-contain">
                         </div>
-                        <span class="text-xl sm:text-2xl md:text-3xl font-extrabold font-montserrat gradient-text">
+                        <span class="text-base sm:text-lg md:text-xl lg:text-2xl font-extrabold font-montserrat gradient-text ml-1">
                             UMakFIT
                         </span>
                     </div>
 
-                    <!-- Desktop Navigation -->
-                    <div class="desktop-nav hidden md:flex items-center gap-8">
-                        <a href="professor.html" class="text-white/80 hover:text-white font-medium transition-colors">
-                            <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                    <!-- DESKTOP NAVIGATION - super compact -->
+                    <div class="hidden md:flex items-center" style="gap: 0.25rem;">
+                        <!-- Dashboard -->
+                        <a href="professor.html" class="text-white/80 hover:text-white font-medium px-2 py-1.5 rounded-lg text-sm transition-colors">
+                            <i class="fas fa-tachometer-alt mr-1"></i>Dashboard
                         </a>
-                        <a href="studentmanagement.html" class="text-white/80 hover:text-white font-medium transition-colors">
-                            <i class="fas fa-users mr-2"></i>Students
+                        
+                        <!-- Students -->
+                        <a href="studentmanagement.html" class="text-white/80 hover:text-white font-medium px-2 py-1.5 rounded-lg text-sm transition-colors">
+                            <i class="fas fa-users mr-1"></i>Students
                         </a>
-                        <a href="addactivities.html" class="text-white font-medium px-3 py-2 rounded-lg" style="background: linear-gradient(135deg, #EAD38A 0%, #C5A046 50%, #8B6D2D 100%);">
-                            <i class="fas fa-dumbbell mr-2"></i>Activities
+                        
+                        <!-- Activities - active -->
+                        <a href="addactivities.html" class="text-white font-medium px-2 py-1.5 rounded-lg text-sm" style="background: linear-gradient(135deg, #EAD38A 0%, #C5A046 50%, #8B6D2D 100%);">
+                            <i class="fas fa-dumbbell mr-1"></i>Activities
                         </a>
-                        <a href="addlesson.html" class="text-white/80 hover:text-white font-medium transition-colors">
-                            <i class="fas fa-book-open mr-2"></i>Lessons
+                        
+                        <!-- Lessons -->
+                        <a href="addlesson.html" class="text-white/80 hover:text-white font-medium px-2 py-1.5 rounded-lg text-sm transition-colors">
+                            <i class="fas fa-book-open mr-1"></i>Lessons
                         </a>
-                        <a href="monitoringactivities.html" class="text-white/80 hover:text-white font-medium transition-colors">
-                            <i class="fas fa-chart-bar mr-2"></i>Monitoring
+                        
+                        <!-- Monitoring -->
+                        <a href="monitoringactivities.html" class="text-white/80 hover:text-white font-medium px-2 py-1.5 rounded-lg text-sm transition-colors">
+                            <i class="fas fa-chart-bar mr-1"></i>Monitoring
                         </a>
-                        <a href="grades.html" class="text-white/80 hover:text-white font-medium transition-colors">
-                            <i class="fas fa-graduation-cap mr-2"></i>Grades
+                        
+                        <!-- Grades -->
+                        <a href="grades.html" class="text-white/80 hover:text-white font-medium px-2 py-1.5 rounded-lg text-sm transition-colors">
+                            <i class="fas fa-graduation-cap mr-1"></i>Grades
                         </a>
-                        <a href="sectionranklist.html" class="text-white/80 hover:text-white font-medium transition-colors">
-                            <i class="fas fa-trophy mr-2"></i>Section Rank
+                        
+                        <!-- Section Rank -->
+                        <a href="sectionranklist.html" class="text-white/80 hover:text-white font-medium px-2 py-1.5 rounded-lg text-sm transition-colors">
+                            <i class="fas fa-trophy mr-1"></i>Rank
                         </a>
                     </div>
 
-                    <!-- Desktop Profile -->
-                    <div class="hidden md:block relative">
+                    <!-- PROFILE - compact -->
+                    <div class="hidden md:block relative" style="margin-left: 0.75rem;">
                         <img src="" alt="Profile" id="profilePictureBtn"
-                             class="w-10 h-10 rounded-full border-2 border-white/30 cursor-pointer hover:border-white/60 hover:scale-105 transition-all object-cover">
+                             class="w-7 h-7 md:w-8 md:h-8 rounded-full border-2 border-white/30 cursor-pointer hover:border-white/60 hover:scale-105 transition-all object-cover">
                         
-                        <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-2xl z-[9999] slide-down">
-                            <div class="p-6 border-b-2 border-gray-200 text-center">
-                                <img src="" alt="Profile" id="profileDropdownPicture" class="w-20 h-20 rounded-full mx-auto mb-3 border-3 border-blue-500 object-cover">
-                                <h6 id="profileDropdownName" class="font-bold text-gray-900 text-lg">Loading...</h6>
-                                <p id="profileDropdownEmail" class="text-sm text-gray-500 mt-1 truncate px-2">Loading...</p>
+                        <!-- Profile Dropdown -->
+                        <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-2xl z-[9999] slide-down">
+                            <div class="p-3 border-b-2 border-gray-200 text-center">
+                                <img src="" alt="Profile" id="profileDropdownPicture" class="w-14 h-14 rounded-full mx-auto mb-2 border-3 border-blue-500 object-cover">
+                                <h6 id="profileDropdownName" class="font-bold text-gray-900 text-sm">Loading...</h6>
+                                <p id="profileDropdownEmail" class="text-xs text-gray-500 mt-1 truncate px-2">Loading...</p>
                             </div>
-                            <div class="p-2">
-                                <a href="professor-profile.html" onclick="showViewProfile(event)" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 transition-colors">
-                                    <i class="bi bi-person-circle text-blue-500 text-xl"></i>
-                                    <span class="font-medium text-gray-700 text-base">View Profile</span>
+                            <div class="p-1">
+                                <a href="professor-profile.html" onclick="showViewProfile(event)" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors text-xs">
+                                    <i class="bi bi-person-circle text-blue-500 text-base"></i>
+                                    <span class="font-medium text-gray-700">View Profile</span>
                                 </a>
-                                <div class="h-px bg-gray-200 my-2"></div>
-                                <div onclick="handleLogout(event)" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-red-500">
-                                    <i class="fas fa-sign-out-alt text-xl"></i>
-                                    <span class="font-medium text-base">Logout</span>
+                                <div class="h-px bg-gray-200 my-1"></div>
+                                <div onclick="handleLogout(event)" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-red-500 text-xs">
+                                    <i class="fas fa-sign-out-alt text-base"></i>
+                                    <span class="font-medium">Logout</span>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Mobile Right Icons -->
-                    <div class="flex md:hidden items-center gap-3">
+                    <!-- MOBILE MENU -->
+                    <div class="flex md:hidden items-center gap-2">
                         <!-- Mobile Profile -->
                         <div class="relative">
                             <img src="" alt="Profile" id="profilePictureBtnMobile"
-                                 class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-white/30 cursor-pointer hover:border-white/60 object-cover">
+                                 class="w-7 h-7 rounded-full border-2 border-white/30 cursor-pointer hover:border-white/60 object-cover">
                             
-                            <div id="profileDropdownMobile" class="hidden fixed right-2 top-20 w-64 sm:w-72 bg-white rounded-xl shadow-2xl z-[9999] slide-down">
-                                <div class="p-4 sm:p-6 border-b-2 border-gray-200 text-center">
-                                    <img src="" alt="Profile" id="profileDropdownPictureMobile" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full mx-auto mb-2 sm:mb-3 border-3 border-blue-500 object-cover">
-                                    <h6 id="profileDropdownNameMobile" class="font-bold text-gray-900 text-base sm:text-lg">Loading...</h6>
-                                    <p id="profileDropdownEmailMobile" class="text-xs sm:text-sm text-gray-500 mt-1 truncate px-2">Loading...</p>
+                            <div id="profileDropdownMobile" class="hidden fixed right-2 top-14 w-56 bg-white rounded-xl shadow-2xl z-[9999] slide-down">
+                                <div class="p-3 border-b-2 border-gray-200 text-center">
+                                    <img src="" alt="Profile" id="profileDropdownPictureMobile" class="w-14 h-14 rounded-full mx-auto mb-2 border-3 border-blue-500 object-cover">
+                                    <h6 id="profileDropdownNameMobile" class="font-bold text-gray-900 text-sm">Loading...</h6>
+                                    <p id="profileDropdownEmailMobile" class="text-xs text-gray-500 mt-1 truncate px-2">Loading...</p>
                                 </div>
-                                <div class="p-2">
-                                    <a href="professor-profile.html" onclick="showViewProfile(event)" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-gray-100 transition-colors">
-                                        <i class="bi bi-person-circle text-blue-500 text-lg sm:text-xl"></i>
-                                        <span class="font-medium text-gray-700 text-sm sm:text-base">View Profile</span>
+                                <div class="p-1">
+                                    <a href="professor-profile.html" onclick="showViewProfile(event)" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors text-xs">
+                                        <i class="bi bi-person-circle text-blue-500 text-base"></i>
+                                        <span class="font-medium text-gray-700">View Profile</span>
                                     </a>
-                                    <div class="h-px bg-gray-200 my-1 sm:my-2"></div>
-                                    <div onclick="handleLogout(event)" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-red-500">
-                                        <i class="fas fa-sign-out-alt text-lg sm:text-xl"></i>
-                                        <span class="font-medium text-sm sm:text-base">Logout</span>
+                                    <div class="h-px bg-gray-200 my-1"></div>
+                                    <div onclick="handleLogout(event)" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-red-500 text-xs">
+                                        <i class="fas fa-sign-out-alt text-base"></i>
+                                        <span class="font-medium">Logout</span>
                                     </div>
                                 </div>
                             </div>
@@ -1027,40 +1042,40 @@
 
             <!-- Mobile Drawer -->
             <div class="mobile-drawer" id="mobileDrawer">
-                <div class="p-6 pt-8">
+                <div class="p-5 pt-6">
                     <!-- Drawer Header -->
-                    <div class="flex items-center gap-3 mb-8 pb-6 border-b border-white/20">
-                        <div class="w-12 h-12 flex items-center justify-center overflow-visible">
-                            <img src="UMakfit Logo (2).png" alt="UMakFIT Logo" class="w-14 h-14 object-contain">
+                    <div class="flex items-center gap-2 mb-6 pb-4 border-b border-white/20">
+                        <div class="w-10 h-10 flex items-center justify-center overflow-visible">
+                            <img src="UMakfit Logo (2).png" alt="UMakFIT Logo" class="w-12 h-12 object-contain">
                         </div>
-                        <span class="text-2xl font-extrabold font-montserrat gradient-text">
+                        <span class="text-xl font-extrabold font-montserrat gradient-text">
                             UMakFIT
                         </span>
                     </div>
 
-                    <!-- Navigation Links -->
-                    <nav class="space-y-2 mb-8">
-                        <a href="professor.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
-                            <i class="fas fa-tachometer-alt mr-3"></i>Dashboard
+                    <!-- Mobile Navigation Links -->
+                    <nav class="space-y-1 mb-6">
+                        <a href="professor.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-2 px-3 rounded-lg hover:bg-white/10 transition-all text-sm">
+                            <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
                         </a>
-                        <a href="studentmanagement.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
-                            <i class="fas fa-users mr-3"></i>Student Management
+                        <a href="studentmanagement.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-2 px-3 rounded-lg hover:bg-white/10 transition-all text-sm">
+                            <i class="fas fa-users mr-2"></i>Student Management
                         </a>
-                        <a href="addactivities.html" class="mobile-nav-link block text-white font-medium py-3 px-4 rounded-lg" style="background: linear-gradient(135deg, #EAD38A 0%, #C5A046 50%, #8B6D2D 100%);">
-                            <i class="fas fa-dumbbell mr-3"></i>Add Activities
+                        <a href="addactivities.html" class="mobile-nav-link block text-white font-medium py-2 px-3 rounded-lg text-sm" style="background: linear-gradient(135deg, #EAD38A 0%, #C5A046 50%, #8B6D2D 100%);">
+                            <i class="fas fa-dumbbell mr-2"></i>Add Activities
                         </a>
-                        <a href="addlesson.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
-                            <i class="fas fa-book-open mr-3"></i>Add Lesson
+                        <a href="addlesson.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-2 px-3 rounded-lg hover:bg-white/10 transition-all text-sm">
+                            <i class="fas fa-book-open mr-2"></i>Add Lesson
                         </a>
-                        <a href="monitoringactivities.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
-                            <i class="fas fa-chart-bar mr-3"></i>Monitoring Activities
+                        <a href="monitoringactivities.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-2 px-3 rounded-lg hover:bg-white/10 transition-all text-sm">
+                            <i class="fas fa-chart-bar mr-2"></i>Monitoring
                         </a>
-                        <a href="grades.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
-                            <i class="fas fa-graduation-cap mr-3"></i>Grades
+                        <a href="grades.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-2 px-3 rounded-lg hover:bg-white/10 transition-all text-sm">
+                            <i class="fas fa-graduation-cap mr-2"></i>Grades
                         </a>
-                        <a href="sectionranklist.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
-                            <i class="fas fa-trophy mr-3"></i>Section Rank List
-                            </a>
+                        <a href="sectionranklist.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-2 px-3 rounded-lg hover:bg-white/10 transition-all text-sm">
+                            <i class="fas fa-trophy mr-2"></i>Section Rank
+                        </a>
                     </nav>
                 </div>
             </div>

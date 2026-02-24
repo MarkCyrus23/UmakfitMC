@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
+ <style>
         * { 
             -webkit-font-smoothing: antialiased; 
             box-sizing: border-box; 
@@ -90,7 +90,7 @@
         }
 
         .hamburger span {
-            width: 25px;
+            width: 22px;
             height: 3px;
             background: linear-gradient(135deg, #EAD38A 0%, #C5A046 50%, #8B6D2D 100%);
             border-radius: 2px;
@@ -114,7 +114,7 @@
             position: fixed;
             top: 0;
             right: -100%;
-            width: 280px;
+            width: 260px;
             height: 100vh;
             background: linear-gradient(135deg, #0D1B2A 0%, #1A2B3C 50%, #2C4A5E 100%);
             z-index: 55;
@@ -1064,6 +1064,34 @@
                 word-break: break-all;
             }
         }
+        
+        /* COMPACT NAVIGATION STYLES */
+        .logo-compact {
+            margin-right: 0.75rem;
+        }
+        
+        .nav-group {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        .nav-link-compact {
+            padding: 0.35rem 0.6rem;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+        
+        .profile-compact {
+            margin-left: 0.75rem;
+        }
+        
+        @media (min-width: 1280px) {
+            .nav-link-compact {
+                padding: 0.4rem 0.7rem;
+                font-size: 0.9rem;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-50 overflow-x-hidden">
@@ -1074,93 +1102,107 @@
     </div>
     
     <div id="mainContent" class="hidden overflow-x-hidden">
-        <!-- ✅ UPDATED NAVIGATION BANNER - MATCHING LANDING PAGE DESIGN -->
+        <!-- COMPACT NAVIGATION BANNER -->
         <header class="shadow-lg fixed w-full top-0 z-50" style="background: linear-gradient(135deg, #0D1B2A 0%, #1A2B3C 50%, #2C4A5E 100%);">
-            <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between items-center h-20">
-                    <!-- Logo -->
-                    <div class="flex items-center gap-3">
-                        <div class="w-16 h-16 flex items-center justify-center overflow-visible">
-                            <img src="UMakfit Logo (2).png" alt="UMakFIT Logo" class="w-20 h-20 object-contain">
+            <nav class="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+                <div class="flex justify-between items-center h-14 md:h-16">
+                    
+                    <!-- LOGO - compact -->
+                    <div class="flex items-center logo-compact">
+                        <div class="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center overflow-visible">
+                            <img src="UMakfit Logo (2).png" alt="UMakFIT Logo" class="w-12 h-12 md:w-14 md:h-14 object-contain">
                         </div>
-                        <span class="text-xl sm:text-2xl md:text-3xl font-extrabold font-montserrat gradient-text">
+                        <span class="text-base sm:text-lg md:text-xl lg:text-2xl font-extrabold font-montserrat gradient-text ml-1">
                             UMakFIT
                         </span>
                     </div>
 
-                    <!-- Desktop Navigation -->
-                    <div class="desktop-nav hidden md:flex items-center gap-8">
-                        <a href="professor.html" class="text-white/80 hover:text-white font-medium transition-colors">
-                            <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                    <!-- DESKTOP NAVIGATION - super compact -->
+                    <div class="hidden md:flex items-center nav-group">
+                        <!-- Dashboard -->
+                        <a href="professor.html" class="nav-link-compact text-white/80 hover:text-white font-medium rounded-lg transition-colors">
+                            <i class="fas fa-tachometer-alt mr-1"></i>Dashboard
                         </a>
-                        <a href="studentmanagement.html" class="text-white font-medium px-3 py-2 rounded-lg" style="background: linear-gradient(135deg, #EAD38A 0%, #C5A046 50%, #8B6D2D 100%);">
-                            <i class="fas fa-users mr-2"></i>Students
+                        
+                        <!-- Students - active -->
+                        <a href="studentmanagement.html" class="nav-link-compact text-white font-medium rounded-lg" style="background: linear-gradient(135deg, #EAD38A 0%, #C5A046 50%, #8B6D2D 100%);">
+                            <i class="fas fa-users mr-1"></i>Students
                         </a>
-                        <a href="addactivities.html" class="text-white/80 hover:text-white font-medium transition-colors">
-                            <i class="fas fa-dumbbell mr-2"></i>Activities
+                        
+                        <!-- Activities -->
+                        <a href="addactivities.html" class="nav-link-compact text-white/80 hover:text-white font-medium rounded-lg transition-colors">
+                            <i class="fas fa-dumbbell mr-1"></i>Activities
                         </a>
-                        <a href="addlesson.html" class="text-white/80 hover:text-white font-medium transition-colors">
-                            <i class="fas fa-book-open mr-2"></i>Lessons
+                        
+                        <!-- Lessons -->
+                        <a href="addlesson.html" class="nav-link-compact text-white/80 hover:text-white font-medium rounded-lg transition-colors">
+                            <i class="fas fa-book-open mr-1"></i>Lessons
                         </a>
-                        <a href="monitoringactivities.html" class="text-white/80 hover:text-white font-medium transition-colors">
-                            <i class="fas fa-chart-bar mr-2"></i>Monitoring
+                        
+                        <!-- Monitoring -->
+                        <a href="monitoringactivities.html" class="nav-link-compact text-white/80 hover:text-white font-medium rounded-lg transition-colors">
+                            <i class="fas fa-chart-bar mr-1"></i>Monitoring
                         </a>
-                        <a href="grades.html" class="text-white/80 hover:text-white font-medium transition-colors">
-                            <i class="fas fa-graduation-cap mr-2"></i>Grades
+                        
+                        <!-- Grades -->
+                        <a href="grades.html" class="nav-link-compact text-white/80 hover:text-white font-medium rounded-lg transition-colors">
+                            <i class="fas fa-graduation-cap mr-1"></i>Grades
                         </a>
-                        <a href="sectionranklist.html" class="text-white/80 hover:text-white font-medium transition-colors">
-                            <i class="fas fa-trophy mr-2"></i>Section Rank
+                        
+                        <!-- Section Rank -->
+                        <a href="sectionranklist.html" class="nav-link-compact text-white/80 hover:text-white font-medium rounded-lg transition-colors">
+                            <i class="fas fa-trophy mr-1"></i>Rank
                         </a>
-
                     </div>
 
-                    <!-- Desktop Profile -->
-                    <div class="hidden md:block relative">
+                    <!-- PROFILE - compact -->
+                    <div class="hidden md:block relative profile-compact">
                         <img src="" alt="Profile" id="profilePictureBtn"
-                             class="w-10 h-10 rounded-full border-2 border-white/30 cursor-pointer hover:border-white/60 hover:scale-105 transition-all object-cover">
+                             class="w-7 h-7 md:w-8 md:h-8 rounded-full border-2 border-white/30 cursor-pointer hover:border-white/60 hover:scale-105 transition-all object-cover">
                         
-                        <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-2xl z-[9999] slide-down">
-                            <div class="p-6 border-b-2 border-gray-200 text-center">
-                                <img src="" alt="Profile" id="profileDropdownPicture" class="w-20 h-20 rounded-full mx-auto mb-3 border-3 border-blue-500 object-cover">
-                                <h6 id="profileDropdownName" class="font-bold text-gray-900 text-lg">Loading...</h6>
-                                <p id="profileDropdownEmail" class="text-sm text-gray-500 mt-1 truncate px-2">Loading...</p>
+                        <!-- Profile Dropdown -->
+                        <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-2xl z-[9999] slide-down">
+                            <div class="p-3 border-b-2 border-gray-200 text-center">
+                                <img src="" alt="Profile" id="profileDropdownPicture" class="w-14 h-14 rounded-full mx-auto mb-2 border-3 border-blue-500 object-cover">
+                                <h6 id="profileDropdownName" class="font-bold text-gray-900 text-sm">Loading...</h6>
+                                <p id="profileDropdownEmail" class="text-xs text-gray-500 mt-1 truncate px-2">Loading...</p>
                             </div>
-                            <div class="p-2">
-                                <a href="professor-profile.html" onclick="showViewProfile(event)" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 transition-colors">
-                                    <i class="bi bi-person-circle text-blue-500 text-xl"></i>
-                                    <span class="font-medium text-gray-700 text-base">View Profile</span>
+                            <div class="p-1">
+                                <a href="professor-profile.html" onclick="showViewProfile(event)" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors text-xs">
+                                    <i class="bi bi-person-circle text-blue-500 text-base"></i>
+                                    <span class="font-medium text-gray-700">View Profile</span>
                                 </a>
-                                <div class="h-px bg-gray-200 my-2"></div>
-                                <div onclick="handleLogout(event)" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-red-500">
-                                    <i class="fas fa-sign-out-alt text-xl"></i>
-                                    <span class="font-medium text-base">Logout</span>
+                                <div class="h-px bg-gray-200 my-1"></div>
+                                <div onclick="handleLogout(event)" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-red-500 text-xs">
+                                    <i class="fas fa-sign-out-alt text-base"></i>
+                                    <span class="font-medium">Logout</span>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Mobile Right Icons -->
-                    <div class="flex md:hidden items-center gap-3">
+                    <!-- MOBILE MENU -->
+                    <div class="flex md:hidden items-center gap-2">
                         <!-- Mobile Profile -->
                         <div class="relative">
                             <img src="" alt="Profile" id="profilePictureBtnMobile"
-                                 class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-white/30 cursor-pointer hover:border-white/60 object-cover">
+                                 class="w-7 h-7 rounded-full border-2 border-white/30 cursor-pointer hover:border-white/60 object-cover">
                             
-                            <div id="profileDropdownMobile" class="hidden fixed right-2 top-20 w-64 sm:w-72 bg-white rounded-xl shadow-2xl z-[9999] slide-down">
-                                <div class="p-4 sm:p-6 border-b-2 border-gray-200 text-center">
-                                    <img src="" alt="Profile" id="profileDropdownPictureMobile" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full mx-auto mb-2 sm:mb-3 border-3 border-blue-500 object-cover">
-                                    <h6 id="profileDropdownNameMobile" class="font-bold text-gray-900 text-base sm:text-lg">Loading...</h6>
-                                    <p id="profileDropdownEmailMobile" class="text-xs sm:text-sm text-gray-500 mt-1 truncate px-2">Loading...</p>
+                            <div id="profileDropdownMobile" class="hidden fixed right-2 top-14 w-56 bg-white rounded-xl shadow-2xl z-[9999] slide-down">
+                                <div class="p-3 border-b-2 border-gray-200 text-center">
+                                    <img src="" alt="Profile" id="profileDropdownPictureMobile" class="w-14 h-14 rounded-full mx-auto mb-2 border-3 border-blue-500 object-cover">
+                                    <h6 id="profileDropdownNameMobile" class="font-bold text-gray-900 text-sm">Loading...</h6>
+                                    <p id="profileDropdownEmailMobile" class="text-xs text-gray-500 mt-1 truncate px-2">Loading...</p>
                                 </div>
-                                <div class="p-2">
-                                    <a href="professor-profile.html" onclick="showViewProfile(event)" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-gray-100 transition-colors">
-                                        <i class="bi bi-person-circle text-blue-500 text-lg sm:text-xl"></i>
-                                        <span class="font-medium text-gray-700 text-sm sm:text-base">View Profile</span>
+                                <div class="p-1">
+                                    <a href="professor-profile.html" onclick="showViewProfile(event)" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors text-xs">
+                                        <i class="bi bi-person-circle text-blue-500 text-base"></i>
+                                        <span class="font-medium text-gray-700">View Profile</span>
                                     </a>
-                                    <div class="h-px bg-gray-200 my-1 sm:my-2"></div>
-                                    <div onclick="handleLogout(event)" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-red-500">
-                                        <i class="fas fa-sign-out-alt text-lg sm:text-xl"></i>
-                                        <span class="font-medium text-sm sm:text-base">Logout</span>
+                                    <div class="h-px bg-gray-200 my-1"></div>
+                                    <div onclick="handleLogout(event)" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-red-500 text-xs">
+                                        <i class="fas fa-sign-out-alt text-base"></i>
+                                        <span class="font-medium">Logout</span>
                                     </div>
                                 </div>
                             </div>
@@ -1181,39 +1223,39 @@
 
             <!-- Mobile Drawer -->
             <div class="mobile-drawer" id="mobileDrawer">
-                <div class="p-6 pt-8">
+                <div class="p-5 pt-6">
                     <!-- Drawer Header -->
-                    <div class="flex items-center gap-3 mb-8 pb-6 border-b border-white/20">
-                        <div class="w-12 h-12 flex items-center justify-center overflow-visible">
-                            <img src="UMakfit Logo (2).png" alt="UMakFIT Logo" class="w-14 h-14 object-contain">
+                    <div class="flex items-center gap-2 mb-6 pb-4 border-b border-white/20">
+                        <div class="w-10 h-10 flex items-center justify-center overflow-visible">
+                            <img src="UMakfit Logo (2).png" alt="UMakFIT Logo" class="w-12 h-12 object-contain">
                         </div>
-                        <span class="text-2xl font-extrabold font-montserrat gradient-text">
+                        <span class="text-xl font-extrabold font-montserrat gradient-text">
                             UMakFIT
                         </span>
                     </div>
 
                     <!-- Navigation Links -->
-                    <nav class="space-y-2 mb-8">
-                        <a href="professor.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
-                            <i class="fas fa-tachometer-alt mr-3"></i>Dashboard
+                    <nav class="space-y-1 mb-6">
+                        <a href="professor.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-2 px-3 rounded-lg hover:bg-white/10 transition-all text-sm">
+                            <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
                         </a>
-                        <a href="studentmanagement.html" class="mobile-nav-link block text-white font-medium py-3 px-4 rounded-lg" style="background: linear-gradient(135deg, #EAD38A 0%, #C5A046 50%, #8B6D2D 100%);">
-                            <i class="fas fa-users mr-3"></i>Student Management
+                        <a href="studentmanagement.html" class="mobile-nav-link block text-white font-medium py-2 px-3 rounded-lg text-sm" style="background: linear-gradient(135deg, #EAD38A 0%, #C5A046 50%, #8B6D2D 100%);">
+                            <i class="fas fa-users mr-2"></i>Student Management
                         </a>
-                        <a href="addactivities.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
-                            <i class="fas fa-dumbbell mr-3"></i>Add Activities
+                        <a href="addactivities.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-2 px-3 rounded-lg hover:bg-white/10 transition-all text-sm">
+                            <i class="fas fa-dumbbell mr-2"></i>Add Activities
                         </a>
-                        <a href="addlesson.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
-                            <i class="fas fa-book-open mr-3"></i>Add Lesson
+                        <a href="addlesson.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-2 px-3 rounded-lg hover:bg-white/10 transition-all text-sm">
+                            <i class="fas fa-book-open mr-2"></i>Add Lesson
                         </a>
-                        <a href="monitoringactivities.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
-                            <i class="fas fa-chart-bar mr-3"></i>Monitoring Activities
+                        <a href="monitoringactivities.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-2 px-3 rounded-lg hover:bg-white/10 transition-all text-sm">
+                            <i class="fas fa-chart-bar mr-2"></i>Monitoring Activities
                         </a>
-                        <a href="grades.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
-                            <i class="fas fa-graduation-cap mr-3"></i>Grades
+                        <a href="grades.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-2 px-3 rounded-lg hover:bg-white/10 transition-all text-sm">
+                            <i class="fas fa-graduation-cap mr-2"></i>Grades
                         </a>
-                        <a href="sectionranklist.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-3 px-4 rounded-lg hover:bg-white/10 transition-all">
-                            <i class="fas fa-trophy mr-3"></i>Section Rank List
+                        <a href="sectionranklist.html" class="mobile-nav-link block text-white/80 hover:text-white font-medium py-2 px-3 rounded-lg hover:bg-white/10 transition-all text-sm">
+                            <i class="fas fa-trophy mr-2"></i>Section Rank
                         </a>
                     </nav>
                 </div>
@@ -2265,159 +2307,262 @@
             if (dropdownEmailMobile) dropdownEmailMobile.textContent = email;
         }
 
-        onAuthStateChanged(auth, async (user) => {
-            const loadingScreen = document.getElementById('loadingScreen');
-            const mainContent = document.getElementById('mainContent');
+ onAuthStateChanged(auth, async (user) => {
+    const loadingScreen = document.getElementById('loadingScreen');
+    const mainContent = document.getElementById('mainContent');
 
-            if (user) {
-                try {
-                    console.log('=== STUDENT MANAGEMENT LOADING ===');
-                    console.log('Professor authenticated:', user.email);
-                    
-                    window.currentUser = user;
-                    
-                    const professorsQuery = query(collection(db, 'professors'), where('email', '==', user.email));
-                    const professorsSnapshot = await getDocs(professorsQuery);
-                    
-                    if (!professorsSnapshot.empty) {
-                        window.currentProfessor = { id: professorsSnapshot.docs[0].id, ...professorsSnapshot.docs[0].data() };
-                    } else {
-                        const usersQuery = query(collection(db, 'users'), where('email', '==', user.email), where('role', '==', 'professor'));
-                        const usersSnapshot = await getDocs(usersQuery);
-                        if (!usersSnapshot.empty) {
-                            window.currentProfessor = { id: usersSnapshot.docs[0].id, ...usersSnapshot.docs[0].data() };
-                        }
-                    }
-                    
-                    updateProfilePicture(user.photoURL, user.displayName);
-                    
-                    await loadSections();
-                    await loadStudents();
-                    
-                    setupRealtimeUpdates();
-
-                    loadingScreen.style.display = 'none';
-                    mainContent.classList.remove('hidden');
-                    
-                    console.log('✓ Student management loaded');
-                    
-                } catch (error) {
-                    console.error('Error loading student management:', error);
-                    loadingScreen.style.display = 'none';
-                    mainContent.classList.remove('hidden');
-                    alert('Error loading data: ' + error.message);
-                }
+    if (user) {
+        try {
+            console.log('=== STUDENT MANAGEMENT LOADING ===');
+            console.log('Professor authenticated:', user.email);
+            
+            window.currentUser = user;
+            
+            // Try to get professor data from professors collection
+            const professorsQuery = query(collection(db, 'professors'), where('email', '==', user.email));
+            const professorsSnapshot = await getDocs(professorsQuery);
+            
+            if (!professorsSnapshot.empty) {
+                window.currentProfessor = { 
+                    id: professorsSnapshot.docs[0].id, 
+                    ...professorsSnapshot.docs[0].data() 
+                };
+                console.log('✅ Professor found in professors collection:', window.currentProfessor);
             } else {
-                console.log('No user, redirecting to login...');
-                window.location.href = '/login/index.html';
-            }
-        });
-
-        async function loadSections() {
-            try {
-                console.log('📊 Loading sections...');
+                // Try users collection with professor role
+                const usersQuery = query(
+                    collection(db, 'users'), 
+                    where('email', '==', user.email), 
+                    where('role', '==', 'professor')
+                );
+                const usersSnapshot = await getDocs(usersQuery);
                 
-                window.sections = [];
-                let professorEmail = window.currentUser.email;
-                
-                let professorFullName = null;
-                if (window.currentProfessor) {
-                    professorFullName = window.currentProfessor.fullName || window.currentProfessor.name;
-                }
-                
-                if (!professorFullName) {
-                    const profQuery = query(collection(db, 'professors'), where('email', '==', professorEmail));
-                    const profSnap = await getDocs(profQuery);
-                    if (!profSnap.empty) {
-                        professorFullName = profSnap.docs[0].data().fullName || profSnap.docs[0].data().name;
-                    }
-                }
-                
-                if (!professorFullName) {
-                    professorFullName = window.currentUser.displayName || professorEmail.split('@')[0].toUpperCase();
-                }
-                
-                console.log('👤 Looking for sections of:', professorFullName);
-                
-                const sectionsSnapshot = await getDocs(collection(db, 'sections'));
-                
-                sectionsSnapshot.forEach(sectionDoc => {
-                    const data = sectionDoc.data();
-                    const dbProfessor = (data.professor || '').toString().trim();
-                    
-                    const matches = 
-                        dbProfessor === professorFullName ||
-                        dbProfessor.toUpperCase().includes(professorFullName.toUpperCase()) ||
-                        professorFullName.toUpperCase().includes(dbProfessor.toUpperCase());
-                    
-                    if (matches) {
-                        console.log(`✅ MATCHED! Section: ${data.name}`);
-                        
-                        const studentCount = Array.isArray(data.students) ? data.students.length : 0;
-                        
-                        let schedule = '';
-                        if (data.time && data.day && data.room) {
-                            schedule = `${data.time} / ${data.day} / ${data.room}`;
-                        } else if (data.schedule) {
-                            schedule = data.schedule;
-                        } else {
-                            schedule = 'Not Set';
-                        }
-                        
-                        let academicYear = '';
-                        if (data.academicYear) {
-                            academicYear = data.academicYear;
-                        } else if (data.createdYear) {
-                            academicYear = data.createdYear;
-                        } else {
-                            academicYear = '2025-2026';
-                        }
-                        
-                        window.sections.push({
-                            id: sectionDoc.id,
-                            name: data.name,
-                            yearLevel: data.yearLevel || extractYearLevel(data.name),
-                            studentCount: studentCount,
-                            courseCode: data.courseCode || 'PE 3',
-                            schedule: schedule,
-                            createdYear: academicYear,
-                            timeSlot: data.time || '',
-                            days: data.day || data.days || '',
-                            room: data.room || '',
-                            semester: data.semester || '',
-                            fullSemester: data.fullSemester || '',
-                            status: 'active',
-                            professorName: dbProfessor,
-                            description: data.description || '',
-                            students: data.students || []
-                        });
-                    }
-                });
-                
-                console.log(`📊 Total sections loaded: ${window.sections.length}`);
-                window.filteredSections = [...window.sections];
-                
-                if (window.sections.length === 0) {
-                    document.getElementById('sectionsTableBody').innerHTML = `
-                        <tr>
-                            <td colspan="7">
-                                <div class="empty-state">
-                                    <div class="empty-icon">⚠️</div>
-                                    <div class="empty-title">No Sections Assigned</div>
-                                    <div class="empty-text">You have not been assigned to any sections yet.</div>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
+                if (!usersSnapshot.empty) {
+                    window.currentProfessor = { 
+                        id: usersSnapshot.docs[0].id, 
+                        ...usersSnapshot.docs[0].data() 
+                    };
+                    console.log('✅ Professor found in users collection:', window.currentProfessor);
                 } else {
-                    populateSectionsTable();
-                    populateSectionFilters();
+                    // Create minimal professor data from user
+                    window.currentProfessor = {
+                        email: user.email,
+                        name: user.displayName || user.email.split('@')[0],
+                        fullName: user.displayName || user.email.split('@')[0].toUpperCase()
+                    };
+                    console.log('⚠️ Using minimal professor data:', window.currentProfessor);
                 }
-                
-            } catch (error) {
-                console.error('❌ Error loading sections:', error);
+            }
+            
+            // Update profile picture
+            updateProfilePicture(user.photoURL, user.displayName);
+            
+            // Load sections first
+            await loadSections();
+            
+            // Then load students
+            await loadStudents();
+            
+            // Setup real-time updates
+            setupRealtimeUpdates();
+
+            // Hide loading screen and show main content
+            loadingScreen.style.display = 'none';
+            mainContent.classList.remove('hidden');
+            
+            console.log('✓ Student management loaded successfully');
+            
+        } catch (error) {
+            console.error('❌ Error loading student management:', error);
+            loadingScreen.style.display = 'none';
+            mainContent.classList.remove('hidden');
+            
+            // Show error message in sections table
+            document.getElementById('sectionsTableBody').innerHTML = `
+                <tr>
+                    <td colspan="7">
+                        <div class="empty-state">
+                            <div class="empty-icon">❌</div>
+                            <div class="empty-title">Error Loading Data</div>
+                            <div class="empty-text">${error.message}</div>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+    } else {
+        console.log('No user, redirecting to login...');
+        window.location.href = '/login/index.html';
+    }
+});
+
+ async function loadSections() {
+    try {
+        console.log('📊 Loading sections...');
+        
+        window.sections = [];
+        let professorEmail = window.currentUser.email;
+        
+        // Get professor's full name from multiple sources
+        let professorFullName = '';
+        
+        // Try from currentProfessor first
+        if (window.currentProfessor) {
+            professorFullName = window.currentProfessor.fullName || window.currentProfessor.name || '';
+        }
+        
+        // If not found, try professors collection
+        if (!professorFullName) {
+ const profQuery = query(collection(db, 'professors'), where('email', '==', professorEmail));
+const profSnap = await getDocs(profQuery);
+if (!profSnap.empty) {           // ✅ FIXED
+    const profData = profSnap.docs[0].data();
+                professorFullName = profData.fullName || profData.name || '';
             }
         }
+        
+        // If still not found, try users collection
+        if (!professorFullName) {
+            const usersQuery = query(collection(db, 'users'), where('email', '==', professorEmail));
+            const usersSnap = await getDocs(usersQuery);
+            if (!usersSnap.empty) {
+                const userData = usersSnap.docs[0].data();
+                professorFullName = userData.fullName || userData.name || '';
+            }
+        }
+        
+        // Last resort: use email username
+        if (!professorFullName) {
+            professorFullName = professorEmail.split('@')[0].toUpperCase();
+        }
+        
+        console.log('👤 Looking for sections of professor:', professorFullName);
+        
+        const sectionsSnapshot = await getDocs(collection(db, 'sections'));
+        let matchCount = 0;
+        
+        sectionsSnapshot.forEach(sectionDoc => {
+            const data = sectionDoc.data();
+            const dbProfessor = (data.professor || '').toString().trim().toUpperCase();
+            const professorNameUpper = professorFullName.toUpperCase();
+            
+            // EXACT MATCHING LOGIC
+            let isMatch = false;
+            
+            // Check exact match with professor name
+            if (dbProfessor === professorNameUpper) {
+                isMatch = true;
+                console.log(`✅ Exact match: ${data.name} - Professor: ${data.professor}`);
+            }
+            
+            // Check if professor email matches
+            if (!isMatch && data.professorEmail === professorEmail) {
+                isMatch = true;
+                console.log(`✅ Email match: ${data.name} - Email: ${data.professorEmail}`);
+            }
+            
+            // Check if professor name contains last name (for "LASTNAME, FIRSTNAME" format)
+            if (!isMatch && professorNameUpper) {
+                const nameParts = professorNameUpper.split(',');
+                if (nameParts.length > 1) {
+                    const lastName = nameParts[0].trim();
+                    if (dbProfessor.includes(lastName)) {
+                        isMatch = true;
+                        console.log(`✅ Last name match: ${data.name} - contains ${lastName}`);
+                    }
+                } else {
+                    // Try partial matching as last resort
+                    if (dbProfessor.includes(professorNameUpper) || professorNameUpper.includes(dbProfessor)) {
+                        isMatch = true;
+                        console.log(`✅ Partial match: ${data.name} - ${data.professor} matches ${professorFullName}`);
+                    }
+                }
+            }
+            
+            if (isMatch) {
+                matchCount++;
+                
+                const studentCount = Array.isArray(data.students) ? data.students.length : 0;
+                
+                // Format schedule
+                let schedule = 'Not Set';
+                if (data.time && data.day && data.room) {
+                    schedule = `${data.time} / ${data.day} / ${data.room}`;
+                } else if (data.schedule) {
+                    schedule = data.schedule;
+                }
+                
+                // Get academic year
+                let academicYear = '2025-2026';
+                if (data.academicYear) {
+                    academicYear = data.academicYear;
+                } else if (data.schoolYear) {
+                    academicYear = data.schoolYear;
+                } else if (data.year) {
+                    academicYear = data.year;
+                }
+                
+                window.sections.push({
+                    id: sectionDoc.id,
+                    name: data.name || 'Unnamed Section',
+                    yearLevel: data.yearLevel || extractYearLevel(data.name),
+                    studentCount: studentCount,
+                    courseCode: data.courseCode || 'PE 3',
+                    schedule: schedule,
+                    createdYear: academicYear,
+                    timeSlot: data.time || '',
+                    days: data.day || data.days || '',
+                    room: data.room || '',
+                    semester: data.semester || '',
+                    fullSemester: data.fullSemester || '',
+                    status: 'active',
+                    professorName: data.professor || '',
+                    description: data.description || '',
+                    students: data.students || []
+                });
+            }
+        });
+        
+        console.log(`📊 Total sections loaded: ${window.sections.length} (matched ${matchCount} sections)`);
+        window.filteredSections = [...window.sections];
+        
+        // Update the sections table
+        if (window.sections.length === 0) {
+            document.getElementById('sectionsTableBody').innerHTML = `
+                <tr>
+                    <td colspan="7">
+                        <div class="empty-state">
+                            <div class="empty-icon">⚠️</div>
+                            <div class="empty-title">No Sections Assigned</div>
+                            <div class="empty-text">You have not been assigned to any sections yet.</div>
+                            <div class="empty-text text-xs mt-2">Professor name: ${professorFullName}</div>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        } else {
+            populateSectionsTable();
+            populateSectionFilters();
+        }
+        
+        // Update section count
+        document.getElementById('sectionCount').textContent = window.sections.length;
+        
+    } catch (error) {
+        console.error('❌ Error loading sections:', error);
+        document.getElementById('sectionsTableBody').innerHTML = `
+            <tr>
+                <td colspan="7">
+                    <div class="empty-state">
+                        <div class="empty-icon">❌</div>
+                        <div class="empty-title">Error Loading Sections</div>
+                        <div class="empty-text">${error.message}</div>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }
+}
 
         function extractYearLevel(sectionName) {
             if (!sectionName) return 'N/A';
@@ -3362,10 +3507,6 @@
                                             <div style="font-size: 12px; color: #64748b; margin-bottom: 2px;">
                                                 Attempt ${attemptNumber} • ${formattedDate} at ${formattedTime}
                                             </div>
-                                            ${attempt.timerValue || attempt.duration ? 
-                                                `<div style="font-size: 12px; color: #94a3b8;">Duration: ${attempt.timerValue || attempt.duration}</div>` 
-                                                : ''
-                                            }
                                         </div>
                                         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                                             <span class="score-badge ${statusClass}">${score}%</span>
@@ -3400,37 +3541,209 @@
             }
         };
 
-        window.viewAttemptDetails = async function(attemptId) {
-            try {
-                const attemptRef = doc(db, 'testResults', attemptId);
-                const attemptDoc = await getDoc(attemptRef);
-                
-                if (!attemptDoc.exists()) {
-                    alert('Attempt not found!');
-                    return;
-                }
-                
-                const attempt = attemptDoc.data();
-                const date = attempt.submittedAt?.toDate ? attempt.submittedAt.toDate() : new Date(attempt.createdAt || Date.now());
-                
-                alert(
-                    `Attempt Details:\n\n` +
-                    `Test: ${attempt.testName || 'Unknown'}\n` +
-                    `Score: ${attempt.score || calculateActivityScore(attempt.testName, attempt.result, attempt.testTarget)}%\n` +
-                    `Result: ${attempt.result || 'N/A'}\n` +
-                    `Target: ${attempt.testTarget || 'N/A'} ${attempt.testUnit || ''}\n` +
-                    `Date: ${date.toLocaleDateString()}\n` +
-                    `Time: ${date.toLocaleTimeString()}\n` +
-                    `Duration: ${attempt.timerValue || attempt.duration || 'N/A'}\n` +
-                    (attempt.isProfessorOverride ? `\n✏️ Score edited by professor` : '')
-                );
-                
-            } catch (error) {
-                console.error('Error viewing attempt details:', error);
-                alert('Error: ' + error.message);
-            }
-        };
+ // Replace the existing viewAttemptDetails function with this:
 
+window.viewAttemptDetails = async function(attemptId) {
+    try {
+        const attemptRef = doc(db, 'testResults', attemptId);
+        const attemptDoc = await getDoc(attemptRef);
+        
+        if (!attemptDoc.exists()) {
+            alert('Attempt not found!');
+            return;
+        }
+        
+        const attempt = attemptDoc.data();
+        const date = attempt.submittedAt?.toDate ? attempt.submittedAt.toDate() : new Date(attempt.createdAt || Date.now());
+        
+        // Get student info
+        const student = window.students.find(s => s.email === attempt.studentEmail);
+        const studentName = student ? `${student.firstName} ${student.lastName}` : attempt.studentName || 'Unknown Student';
+        
+        // Calculate score if not present
+        const score = attempt.score || calculateActivityScore(
+            attempt.testName,
+            attempt.result || attempt.resultData || attempt.repetitions || attempt,
+            attempt.testTarget || null
+        );
+        
+        // Format result display
+        let resultDisplay = 'N/A';
+        if (attempt.result) {
+            if (typeof attempt.result === 'object') {
+                const val = attempt.result.repetitions || attempt.result.time || attempt.result.distance || attempt.result.value || 0;
+                resultDisplay = `${val} ${attempt.testUnit || ''}`;
+            } else {
+                resultDisplay = `${attempt.result} ${attempt.testUnit || ''}`;
+            }
+        } else if (attempt.repetitions) {
+            resultDisplay = `${attempt.repetitions} ${attempt.testUnit || ''}`;
+        }
+        
+        // Get attempt number for this test
+        let attemptNumber = 1;
+        try {
+            const attemptsQuery = query(
+                collection(db, 'testResults'),
+                where('studentEmail', '==', attempt.studentEmail),
+                where('testId', '==', attempt.testId),
+                orderBy('submittedAt', 'asc')
+            );
+            const attemptsSnap = await getDocs(attemptsQuery);
+            const attemptList = attemptsSnap.docs.map(d => d.id);
+            attemptNumber = attemptList.indexOf(attemptId) + 1;
+        } catch (e) {
+            console.warn('Could not determine attempt number:', e);
+        }
+        
+        // Get grade letter
+        const gradeLetter = getGradeLetter(score);
+        
+        // Create and show modal
+        const modalHtml = `
+            <div id="attemptDetailsModal" class="modal-overlay" style="display: flex; z-index: 3000;">
+                <div class="modal-content small" onclick="event.stopPropagation()" style="max-width: 500px;">
+                    <div class="modal-header" style="background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%);">
+                        <h3 style="color: white;">
+                            <i class="fas fa-clipboard-check"></i> 
+                            Attempt Details
+                        </h3>
+                        <button class="modal-close-btn" onclick="closeAttemptDetailsModal()" style="background: rgba(255,255,255,0.2); color: white;">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="modal-body" style="padding: 24px;">
+                        <!-- Student Info -->
+                        <div style="background: #f8fafc; border-radius: 10px; padding: 16px; margin-bottom: 20px; border-left: 4px solid #3b82f6;">
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700;">
+                                    ${studentName.charAt(0) || '?'}
+                                </div>
+                                <div>
+                                    <div style="font-weight: 700; color: #1e293b; font-size: 16px;">${studentName}</div>
+                                    <div style="color: #64748b; font-size: 13px;">${attempt.studentEmail}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Test Info Grid -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
+                            <div style="background: #f1f5f9; padding: 12px; border-radius: 8px;">
+                                <div style="color: #475569; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Test Name</div>
+                                <div style="font-weight: 700; color: #1e3a8a; font-size: 14px;">${attempt.testName || 'Unknown'}</div>
+                            </div>
+                            <div style="background: #f1f5f9; padding: 12px; border-radius: 8px;">
+                                <div style="color: #475569; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Attempt #</div>
+                                <div style="font-weight: 700; color: #1e3a8a; font-size: 14px;">${attemptNumber}</div>
+                            </div>
+                            <div style="background: #f1f5f9; padding: 12px; border-radius: 8px;">
+                                <div style="color: #475569; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Score</div>
+                                <div style="font-weight: 700; font-size: 18px; color: ${score >= 70 ? '#10b981' : '#ef4444'};">${score}%</div>
+                                <div style="font-size: 12px; color: #64748b;">Grade: ${gradeLetter}</div>
+                            </div>
+                            <div style="background: #f1f5f9; padding: 12px; border-radius: 8px;">
+                                <div style="color: #475569; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Result</div>
+                                <div style="font-weight: 700; color: #1e293b; font-size: 14px;">${resultDisplay}</div>
+                                ${attempt.testTarget ? `<div style="font-size: 11px; color: #64748b;">Target: ${attempt.testTarget} ${attempt.testUnit || ''}</div>` : ''}
+                            </div>
+                        </div>
+                        
+                        <!-- Date and Time -->
+                        <div style="background: #f8fafc; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                <i class="fas fa-calendar-alt" style="color: #3b82f6;"></i>
+                                <span style="font-weight: 600; color: #475569;">Submission Date & Time</span>
+                            </div>
+                            <div style="font-size: 15px; color: #1e293b; margin-left: 24px;">
+                                ${date.toLocaleDateString('en-US', { 
+                                    weekday: 'long', 
+                                    year: 'numeric', 
+                                    month: 'long', 
+                                    day: 'numeric' 
+                                })}
+                                <br>
+                                <span style="color: #3b82f6; font-weight: 500;">
+                                    ${date.toLocaleTimeString('en-US', { 
+                                        hour: '2-digit', 
+                                        minute: '2-digit',
+                                        second: '2-digit'
+                                    })}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <!-- Additional Details -->
+                        <div style="background: #f8fafc; border-radius: 8px; padding: 16px;">
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                                <i class="fas fa-info-circle" style="color: #3b82f6;"></i>
+                                <span style="font-weight: 600; color: #475569;">Additional Information</span>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-left: 24px;">
+                                ${attempt.heartRate ? `
+                                    <div>
+                                        <div style="color: #64748b; font-size: 11px;">Heart Rate</div>
+                                        <div style="font-weight: 500; color: #1e293b;">${attempt.heartRate} bpm</div>
+                                    </div>
+                                ` : ''}
+                                <div>
+                                    <div style="color: #64748b; font-size: 11px;">Status</div>
+                                    <div><span class="status-badge status-active" style="font-size: 11px;">Completed</span></div>
+                                </div>
+                                ${attempt.isProfessorOverride ? `
+                                    <div style="grid-column: span 2;">
+                                        <div style="color: #64748b; font-size: 11px;">Edited By</div>
+                                        <div style="font-weight: 500; color: #b45309;">✏️ ${attempt.overriddenByName || 'Professor'}</div>
+                                        ${attempt.overriddenAt ? `
+                                            <div style="font-size: 10px; color: #9ca3af;">
+                                                ${new Date(attempt.overriddenAt.seconds * 1000).toLocaleDateString()}
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button class="px-6 py-2.5 bg-gray-700 hover:bg-gray-800 text-white rounded-lg font-semibold transition-all" onclick="closeAttemptDetailsModal()">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Remove any existing attempt modal
+        const existingModal = document.getElementById('attemptDetailsModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+        
+        // Add modal to body
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        
+    } catch (error) {
+        console.error('Error viewing attempt details:', error);
+        alert('Error: ' + error.message);
+    }
+};
+
+// Add close function
+window.closeAttemptDetailsModal = function() {
+    const modal = document.getElementById('attemptDetailsModal');
+    if (modal) {
+        modal.remove();
+    }
+};
+
+// Add click outside to close
+document.addEventListener('click', function(event) {
+    const modal = document.getElementById('attemptDetailsModal');
+    if (modal && event.target === modal) {
+        closeAttemptDetailsModal();
+    }
+});
         window.closeViewStudentModal = function() {
             document.getElementById('viewStudentModal').style.display = 'none';
             window.currentStudentId = null;
