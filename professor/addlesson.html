@@ -91,6 +91,11 @@
         .hamburger-open span:nth-child(2) { opacity: 0; }
         .hamburger-open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
         .sidebar-transition { transition: transform 0.28s cubic-bezier(0.4,0,0.2,1); }
+        @media (max-width: 768px) {
+            #mainSidebar { transform: translateX(-100%); }
+            #mainSidebar.sidebar-open { transform: translateX(0); }
+            main { margin-left: 0 !important; }
+        }
         .modal-overlay { display: none; }
         .modal-overlay.open { display: flex; }
         .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 0.4px; }
@@ -232,7 +237,7 @@
 
     <!-- SIDEBAR — identical to professor.html, Lessons = active -->
     <aside id="mainSidebar"
-        class="sidebar-transition sidebar-scroll fixed top-[70px] left-0 w-[260px] h-[calc(100vh-70px)] bg-navy-mid border-r border-white/[0.06] flex flex-col overflow-y-auto overflow-x-hidden z-[400] py-6 max-[768px]:-translate-x-full">
+        class="sidebar-transition sidebar-scroll fixed top-[70px] left-0 w-[260px] h-[calc(100vh-70px)] bg-navy-mid border-r border-white/[0.06] flex flex-col overflow-y-auto overflow-x-hidden z-[400] py-6">
 
         <div class="text-[10px] font-bold text-white/25 uppercase tracking-[1.5px] px-5 mb-2">Main</div>
         <a href="professor.html" class="flex items-center gap-3 px-5 py-2.5 text-white/55 no-underline text-[13.5px] font-medium hover:text-white/90 hover:bg-white/5 transition-all">
@@ -496,12 +501,20 @@
     updateHeaderDate(); setInterval(updateHeaderDate, 60000);
 
     function toggleSidebar() {
-        const sb = document.getElementById('mainSidebar'), ov = document.getElementById('sidebarOverlay'), hb = document.getElementById('hamburgerBtn');
-        sb.classList.toggle('-translate-x-full'); ov.classList.toggle('hidden'); ov.classList.toggle('block'); hb.classList.toggle('hamburger-open');
+        const sb = document.getElementById('mainSidebar');
+        const ov = document.getElementById('sidebarOverlay');
+        const hb = document.getElementById('hamburgerBtn');
+        sb.classList.toggle('sidebar-open');
+        ov.classList.toggle('hidden');
+        hb.classList.toggle('hamburger-open');
     }
     function closeSidebar() {
-        const sb = document.getElementById('mainSidebar'), ov = document.getElementById('sidebarOverlay'), hb = document.getElementById('hamburgerBtn');
-        sb.classList.add('-translate-x-full'); ov.classList.add('hidden'); ov.classList.remove('block'); hb.classList.remove('hamburger-open');
+        const sb = document.getElementById('mainSidebar');
+        const ov = document.getElementById('sidebarOverlay');
+        const hb = document.getElementById('hamburgerBtn');
+        sb.classList.remove('sidebar-open');
+        ov.classList.add('hidden');
+        hb.classList.remove('hamburger-open');
     }
     window.toggleProfileDropdown = function() { document.getElementById('profileDropdown').classList.toggle('show'); };
     document.addEventListener('click', e => {
