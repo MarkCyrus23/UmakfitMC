@@ -1031,6 +1031,18 @@
             <span>Student Ranking</span>
         </a>
 
+        <div class="sidebar-section-label">Assessments</div>
+
+        <a href="#" class="nav-item-row" onclick="showPreAssessment(); navClick();" id="nav-pre">
+            <div class="nav-icon"><i class="fas fa-clipboard-check"></i></div>
+            <span>Pre-Assessment</span>
+        </a>
+
+        <a href="#" class="nav-item-row" onclick="showPostAssessment(); navClick();" id="nav-post">
+            <div class="nav-icon"><i class="fas fa-chart-line"></i></div>
+            <span>Post-Assessment</span>
+        </a>
+
         <div class="sidebar-section-label">Administration</div>
 
         <a href="#" class="nav-item-row" onclick="showAccountManagement(); navClick();" id="nav-account">
@@ -1126,7 +1138,40 @@
                 </div>
             </div>
 
-          
+            <!-- BMI Overview -->
+            <div class="table-panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <div class="panel-title-icon"><i class="fas fa-weight"></i></div>
+                        BMI Category Distribution
+                    </div>
+                </div>
+                <div class="panel-body" style="padding:24px;">
+                    <div class="bmi-overview-grid">
+                        <div class="bmi-card bmi-card-under">
+                            <div class="bmi-card-label"><i class="fas fa-arrow-down" style="margin-right:5px;"></i>Underweight</div>
+                            <div class="bmi-card-num" id="underweightCount">—</div>
+                            <div class="bmi-card-sub">students</div>
+                        </div>
+                        <div class="bmi-card bmi-card-normal">
+                            <div class="bmi-card-label"><i class="fas fa-check-circle" style="margin-right:5px;"></i>Normal</div>
+                            <div class="bmi-card-num" id="normalCount">—</div>
+                            <div class="bmi-card-sub">students</div>
+                        </div>
+                        <div class="bmi-card bmi-card-over">
+                            <div class="bmi-card-label"><i class="fas fa-exclamation-triangle" style="margin-right:5px;"></i>Overweight</div>
+                            <div class="bmi-card-num" id="overweightCount">—</div>
+                            <div class="bmi-card-sub">students</div>
+                        </div>
+                        <div class="bmi-card bmi-card-obese">
+                            <div class="bmi-card-label"><i class="fas fa-times-circle" style="margin-right:5px;"></i>Obese</div>
+                            <div class="bmi-card-num" id="obeseCount">—</div>
+                            <div class="bmi-card-sub">students</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- ═══════════════════════════════ SECTION RANKING ═══════════════════════════════ -->
         <div id="sectionRankingPage" class="management-page">
@@ -1862,8 +1907,8 @@
     window.showDashboard = function() { hideAllPages(); document.getElementById('dashboardPage').classList.add('active'); setActiveNav('nav-dashboard'); loadDashboardStats(); loadTopSections(); };
     window.showSectionRanking = function() { hideAllPages(); document.getElementById('sectionRankingPage').classList.add('active'); setActiveNav('nav-section'); loadSectionRankings(); };
     window.showStudentRanking = function() { hideAllPages(); document.getElementById('studentRankingPage').classList.add('active'); setActiveNav('nav-student'); loadStudentRankings(); };
-    window.showPreAssessment = function() { hideAllPages(); document.getElementById('preAssessmentPage').classList.add('active'); setActiveNav(''); loadPreAssessments(); };
-    window.showPostAssessment = function() { hideAllPages(); document.getElementById('postAssessmentPage').classList.add('active'); setActiveNav(''); loadPostAssessments(); };
+    window.showPreAssessment = function() { hideAllPages(); document.getElementById('preAssessmentPage').classList.add('active'); setActiveNav('nav-pre'); loadPreAssessments(); };
+    window.showPostAssessment = function() { hideAllPages(); document.getElementById('postAssessmentPage').classList.add('active'); setActiveNav('nav-post'); loadPostAssessments(); };
     window.showAccountManagement = function() { hideAllPages(); document.getElementById('accountPage').classList.add('active'); setActiveNav('nav-account'); loadAllAccounts(); };
 
     function getBMICategory(bmi) { if (bmi < 18.5) return 'underweight'; if (bmi < 25) return 'normal'; if (bmi < 30) return 'overweight'; return 'obese'; }
