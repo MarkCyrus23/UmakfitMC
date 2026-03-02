@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>UMakFit — Dean Portal</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Playfair+Display:wght@600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -381,6 +381,7 @@
         }
         .panel-body { padding: 0; }
         .panel-controls {
+            flex-wrap: wrap;
             display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
         }
 
@@ -829,118 +830,206 @@
         .sidebar-overlay.show { display: block; }
 
         /* ─── RESPONSIVE ─── */
+        /* ── RESPONSIVE UTILITIES ── */
+        .stats-grid-4 { grid-template-columns: repeat(4, 1fr) !important; }
+        .mb-28 { margin-bottom: 28px; }
+
         @media (max-width: 1024px) {
             :root { --sidebar-w: 240px; }
             .main-content { padding: 24px 24px 80px; }
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .stats-grid-4 { grid-template-columns: repeat(2, 1fr) !important; }
         }
 
         @media (max-width: 768px) {
             :root { --sidebar-w: 280px; }
 
             /* Header */
-            .top-header { padding: 0 16px; }
+            .top-header { padding: 0 14px; height: 56px; }
             .header-date { display: none; }
             .header-divider { display: none; }
             .hamburger-btn { display: flex; }
-            .brand-university { font-size: 13px; }
+            .brand-university { font-size: 12px; }
             .brand-system { font-size: 10px; }
             .profile-name-text { display: none; }
             .profile-role-text { display: none; }
             .profile-btn { padding: 4px; border-radius: 50%; }
+            .header-logo-wrap { width: 30px; height: 30px; }
 
-            /* Sidebar slides in over content */
+            /* Sidebar slides over content */
             .sidebar {
                 transform: translateX(-100%);
-                transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+                transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
                 z-index: 600;
                 box-shadow: none;
+                top: 56px;
             }
             .sidebar.mobile-open {
                 transform: translateX(0);
                 box-shadow: 4px 0 30px rgba(0,0,0,0.25);
             }
 
-            /* Main content full width */
-            .main-content {
-                margin-left: 0;
-                padding: 20px 14px 80px;
-            }
+            /* Main content */
+            .main-content { margin-left: 0; padding: 16px 14px 80px; }
 
-            /* Welcome banner */
-            .welcome-banner { padding: 22px 20px; border-radius: 14px; }
-            .welcome-name { font-size: 20px; }
+            /* Welcome */
+            .welcome-banner { padding: 20px 18px; border-radius: 14px; }
+            .welcome-name { font-size: 18px; }
             .welcome-banner::before, .welcome-banner::after { display: none; }
+            .welcome-actions { flex-wrap: wrap; gap: 8px; }
 
-            /* Stats */
-            .stats-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
-            .stat-card { padding: 16px 18px; }
-            .stat-value { font-size: 26px; }
+            /* Stats grids */
+            .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .stats-grid-4 { grid-template-columns: 1fr 1fr !important; }
+            .stat-card { padding: 14px 16px; }
+            .stat-value { font-size: 24px; }
+            .stat-label { font-size: 11px; }
+            .stat-icon { width: 36px; height: 36px; font-size: 14px; }
 
             /* BMI grid */
-            .bmi-overview-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+            .bmi-overview-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .bmi-card-num { font-size: 28px; }
 
             /* Page hero */
-            .page-hero-inner { flex-direction: column; gap: 12px; }
-            .page-hero-title { font-size: 20px; }
+            .page-hero { padding: 18px; }
+            .page-hero-inner { flex-direction: column; gap: 10px; }
+            .page-hero-left { gap: 12px; }
+            .page-hero-title { font-size: 18px; }
+            .page-hero-sub { font-size: 12px; }
+            .page-icon-wrap { width: 44px; height: 44px; font-size: 18px; flex-shrink: 0; }
 
             /* Action bar */
-            .action-bar { gap: 8px; }
+            .action-bar { gap: 8px; flex-wrap: wrap; }
             .btn-gold-action, .btn-primary-action, .btn-outline-action { 
-                font-size: 12px; padding: 9px 14px; 
+                font-size: 12px; padding: 9px 12px; flex: 1; min-width: 120px; justify-content: center;
             }
 
-            /* Panel header */
-            .panel-header { flex-direction: column; align-items: flex-start; gap: 12px; }
-            .panel-controls { width: 100%; }
-            .panel-controls .search-wrap { flex: 1; }
-            .panel-controls .search-input { width: 100%; }
-            .panel-controls .filter-select { flex: 1; min-width: 0; }
+            /* Panel */
+            .table-panel { border-radius: 12px; }
+            .panel-header { flex-direction: column; align-items: flex-start; gap: 10px; padding: 14px 16px; }
+            .panel-title { font-size: 14px; }
+            .panel-controls { width: 100%; flex-wrap: wrap; gap: 8px; }
+            .panel-controls .search-wrap { flex: 1; min-width: 0; }
+            .panel-controls .search-input { width: 100%; font-size: 13px; }
+            .panel-controls .filter-select { flex: 1; min-width: 120px; font-size: 13px; }
 
-            /* Tables - horizontal scroll */
-            .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-            .custom-table th, .custom-table td { padding: 10px 12px; font-size: 12px; }
-            .custom-table th { white-space: nowrap; }
+            /* Tables */
+            .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 0 0 12px 12px; }
+            .custom-table th, .custom-table td { padding: 10px 10px; font-size: 12px; white-space: nowrap; }
+            .tbl-btn { padding: 5px 10px; font-size: 11px; }
 
-            /* Detail grid */
-            .detail-grid { grid-template-columns: 1fr; }
+            /* Detail grid in modals */
+            .detail-grid { grid-template-columns: 1fr 1fr; }
 
-            /* Profile page */
-            .profile-card { padding: 20px; }
-
-            /* Stats grid forced 2-col override on ranking pages */
-            #sectionRankingPage .stats-grid,
-            #studentRankingPage .stats-grid {
-                grid-template-columns: 1fr 1fr;
+            /* Modal - full screen on mobile */
+            .modal-overlay { align-items: flex-end; padding: 0; }
+            .modal-card { 
+                border-radius: 20px 20px 0 0; 
+                max-height: 90vh;
+                width: 100%;
+                max-width: 100%;
+                margin: 0;
             }
-
-            /* Modal */
-            .modal-card { border-radius: 14px; }
+            .modal-card.wide { max-width: 100%; }
             .modal-top { padding: 16px 18px; }
-            .modal-mid { padding: 18px; }
+            .modal-mid { padding: 16px 18px; max-height: 65vh; overflow-y: auto; }
             .modal-bot { padding: 14px 18px; }
+
+            /* Rankings */
+            #sectionRankingPage .stats-grid,
+            #studentRankingPage .stats-grid { grid-template-columns: 1fr 1fr; }
+
+            /* Ranking filter bar */
+            .ranking-filters { flex-wrap: wrap; gap: 8px; }
+            .ranking-filters select, .ranking-filters input { flex: 1; min-width: 140px; font-size: 13px; }
+
+            /* Score pills */
+            .score-pill { font-size: 10px; padding: 3px 8px; }
+            .bmi-pill { font-size: 10px; padding: 3px 7px; }
+
+            /* Manage Accounts */
+            .accounts-form { padding: 16px; }
+            .form-grid, .form-row { grid-template-columns: 1fr; gap: 12px; }
+            .form-group label { font-size: 12px; }
+            .form-group input, .form-group select { font-size: 14px; padding: 10px 12px; }
+
+            /* Empty state */
+            .empty-state { padding: 30px 16px; }
+            .empty-icon { font-size: 36px; }
+            .empty-title { font-size: 14px; }
         }
 
         @media (max-width: 480px) {
-            .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
-            .bmi-overview-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
-            .stat-value { font-size: 22px; }
-            .bmi-card-num { font-size: 28px; }
-            .page-hero-left { flex-direction: column; align-items: flex-start; }
-            .page-icon-wrap { width: 44px; height: 44px; font-size: 18px; }
-            .page-hero-title { font-size: 18px; }
-            .tbl-btn { padding: 4px 8px; font-size: 11px; }
-            .top-header { padding: 0 12px; }
-            .main-content { padding: 16px 12px 80px; }
+            .main-content { padding: 12px 10px 80px; }
+            .top-header { padding: 0 10px; }
 
-            /* Collapse sidebar for very small screens */
-            #sectionRankingPage .stats-grid,
-            #studentRankingPage .stats-grid {
-                grid-template-columns: 1fr 1fr;
+            /* Stats - single column on very small phones */
+            .stats-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+            .stats-grid-4 { grid-template-columns: 1fr 1fr !important; }
+            .stat-value { font-size: 20px; }
+            .stat-card { padding: 12px 14px; }
+
+            /* BMI grid single col */
+            .bmi-overview-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+
+            .page-hero-title { font-size: 16px; }
+            .page-hero-left { flex-direction: row; align-items: center; }
+
+            /* Buttons full width */
+            .action-bar { flex-direction: column; }
+            .btn-gold-action, .btn-primary-action, .btn-outline-action { width: 100%; }
+
+            /* Detail grid single col */
+            .detail-grid { grid-template-columns: 1fr; }
+
+            /* Panel header */
+            .panel-header { padding: 12px 14px; }
+            .panel-body { padding: 0; }
+
+            /* Welcome */
+            .welcome-banner { padding: 16px 14px; }
+            .welcome-name { font-size: 16px; }
+
+            /* Top sections list */
+            .top-sections-list { gap: 8px; }
+
+            /* Rank num smaller */
+            .rank-num { width: 28px; height: 28px; font-size: 11px; }
+        }
+
+        /* ── MOBILE TABLE CARDS ── */
+        @media (max-width: 480px) {
+            /* Hide table header, show cell labels inline */
+            .custom-table thead { display: none; }
+            .custom-table, .custom-table tbody, .custom-table tr, .custom-table td {
+                display: block; width: 100%;
             }
-
-            /* Action bar vertical */
-            .action-bar { flex-direction: row; flex-wrap: wrap; }
+            .custom-table tr {
+                border: 1px solid var(--border);
+                border-radius: 10px;
+                margin-bottom: 10px;
+                padding: 12px 14px;
+                background: white;
+            }
+            .custom-table td {
+                display: flex; justify-content: space-between; align-items: center;
+                padding: 5px 0; border: none; font-size: 13px;
+                border-bottom: 1px solid var(--surface);
+                white-space: normal;
+            }
+            .custom-table td:last-child { border-bottom: none; padding-bottom: 0; }
+            .custom-table td::before {
+                content: attr(data-label);
+                font-size: 11px; font-weight: 700; color: var(--text-muted);
+                text-transform: uppercase; letter-spacing: 0.5px;
+                flex-shrink: 0; margin-right: 10px;
+                min-width: 80px;
+            }
+            /* Empty state row */
+            .custom-table tr:has(.empty-state) {
+                border: none; padding: 0; background: transparent;
+            }
+            .tbl-actions { justify-content: flex-end; }
         }
     </style>
 </head>
@@ -1199,7 +1288,7 @@
             <div id="rankingAlert" class="alert-msg"></div>
 
             <!-- Summary Stats -->
-            <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom:28px;">
+            <div class="stats-grid stats-grid-4 mb-28">
                 <div class="stat-card sc-purple">
                     <div class="stat-icon-wrap"><i class="fas fa-layer-group"></i></div>
                     <div class="stat-label">Total Sections</div>
@@ -1316,7 +1405,7 @@
             <div id="studentRankingAlert" class="alert-msg"></div>
 
             <!-- Summary Stats -->
-            <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom:28px;">
+            <div class="stats-grid stats-grid-4 mb-28">
                 <div class="stat-card sc-purple">
                     <div class="stat-icon-wrap"><i class="fas fa-users"></i></div>
                     <div class="stat-label">Total Students</div>
@@ -1351,7 +1440,7 @@
                         Student Rankings
                     </div>
                     <div class="panel-controls">
-                        <select class="filter-select" id="studentSectionFilter" onchange="filterStudentRankings()" style="width:200px;">
+                        <select class="filter-select" id="studentSectionFilter" onchange="filterStudentRankings()" >
                             <option value="all">All Sections</option>
                         </select>
                         <select class="filter-select" id="studentTestTypeFilter" onchange="filterStudentRankings()">
@@ -1554,12 +1643,12 @@
                         <span class="count-chip" style="margin-left:8px;">Total: <span id="totalAccountsCount">0</span></span>
                     </div>
                     <div class="panel-controls">
-                        <select class="filter-select" id="roleFilter" onchange="filterAccountsByRole()" style="width:150px;">
+                        <select class="filter-select" id="roleFilter" onchange="filterAccountsByRole()" >
                             <option value="all">All Roles</option>
                         </select>
                         <div class="search-wrap">
                             <i class="fas fa-search"></i>
-                            <input type="text" class="search-input" id="searchAccounts" placeholder="Search by name, email, role…" onkeyup="filterAccounts()" style="width:260px;">
+                            <input type="text" class="search-input" id="searchAccounts" placeholder="Search by name, email, role…" onkeyup="filterAccounts()" >
                         </div>
                     </div>
                 </div>
@@ -2287,6 +2376,7 @@
     async function loadStudentRankings() {
         try {
             if (!testResults.length) await loadTestResults();
+            if (!preAssessments.length) await loadPreAssessments();
             const stuData = {}; studentSections.clear();
 
             // ── Step 1: Load ALL students from users collection
@@ -2420,14 +2510,14 @@
             const ii = s.improvement>0?'arrow-up':s.improvement<0?'arrow-down':'minus';
             const rt = getScoreRating(s.avgScore);
             return `<tr style="${!hasData?'opacity:0.65;':''}">
-                <td><div class="rank-num ${rc}" style="${!hasData?'background:var(--surface);color:var(--text-muted);border:1px solid var(--border);':''}">${rankDisplay}</div></td>
-                <td>
+                <td data-label="Rank"><div class="rank-num ${rc}" style="${!hasData?'background:var(--surface);color:var(--text-muted);border:1px solid var(--border);':''}">${rankDisplay}</div></td>
+                <td data-label="Student">
                     <span class="cell-primary">${s.name}</span>
                     ${!hasData ? '<span style="margin-left:6px;font-size:10px;background:#f1f5f9;color:#94a3b8;padding:2px 7px;border-radius:10px;font-weight:600;">No data yet</span>' : ''}
                 </td>
-                <td><span style="font-size:13px;">${s.section}</span></td>
-                <td><span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--text-muted);">${s.id}</span></td>
-                <td>${s.testsTaken || '—'}</td>
+                <td data-label="Section"><span style="font-size:13px;">${s.section}</span></td>
+                <td data-label="Student ID"><span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--text-muted);">${s.id}</span></td>
+                <td data-label="Tests">${s.testsTaken || '—'}</td>
                 <td>
                     ${s.bmiAvg>0 ? `<span style="font-weight:600;font-family:'DM Mono',monospace;">${s.bmiAvg.toFixed(2)}</span>
                     <span class="bmi-pill ${getBMICategoryClass(resolveBMICat(s.bmiCategory, s.bmiAvg))}" style="font-size:9px;padding:2px 5px;margin-left:4px;">${getBMICategoryDisplay(resolveBMICat(s.bmiCategory,s.bmiAvg))}</span>` : '—'}
@@ -2539,7 +2629,7 @@
             showAlert('preAssessmentAlert', 'Loading pre-assessments...', 'success');
             preAssessments = [];
 
-            // Scan entire BMI collection and filter client-side (avoids Firestore index requirement)
+            // Scan entire BMI collection and filter client-side
             const allSnap = await getDocs(collection(db, 'BMI'));
             allSnap.forEach(d => {
                 const data = d.data();
@@ -2547,6 +2637,42 @@
                 if (tt === 'pre') {
                     preAssessments.push({ id: d.id, ...data });
                 }
+            });
+
+            // Build umakId -> full name map from users collection
+            const nameMap = {};
+            try {
+                const usersSnap = await getDocs(collection(db, 'users'));
+                usersSnap.forEach(d => {
+                    const u = d.data();
+                    const umakId = u.umakId || (u.studentId||'').replace(/^student_/i,'');
+                    const fullName = u.name || u.displayName
+                        || (u.firstName || u.lastName ? `${u.firstName||''} ${u.lastName||''}`.trim() : null)
+                        || null;
+                    if (umakId && fullName) nameMap[umakId.toUpperCase()] = fullName;
+                    if (u.email && fullName) nameMap[u.email.toLowerCase()] = fullName;
+                });
+            } catch(e) { console.warn('Could not load user names:', e); }
+
+            // Also try students collection for full formatted names
+            try {
+                const stuSnap = await getDocs(collection(db, 'students'));
+                stuSnap.forEach(d => {
+                    const u = d.data();
+                    const umakId = u.umakId || u.studentId || d.id;
+                    const fullName = u.name || u.displayName || u.fullName
+                        || (u.firstName || u.lastName ? `${u.firstName||''} ${u.lastName||''}`.trim() : null)
+                        || null;
+                    if (umakId && fullName) nameMap[umakId.toString().toUpperCase()] = fullName;
+                });
+            } catch(e) { /* students collection may not exist */ }
+
+            // Enrich BMI records with full name from nameMap
+            preAssessments.forEach(a => {
+                const umakId = (a.umakId || '').toUpperCase();
+                const email = (a.email || '').toLowerCase();
+                const lookedUp = nameMap[umakId] || nameMap[email] || null;
+                if (lookedUp) a._fullName = lookedUp;
             });
 
             // Sort newest first
@@ -2579,21 +2705,18 @@
             const bmi = parseFloat(a.bmi) || 0;
             const cat = resolveBMICategory(a);
             const date = parseBMIDate(a);
-            const name = (a.studentName || a.name || a.displayName || 'Unknown').replace(/\b\w/g, c => c.toUpperCase());
+            const name = a._fullName || (a.studentName || a.name || a.displayName || 'Unknown').replace(/\b\w/g, c => c.toUpperCase());
             const section = a.section || a.assignedSection || 'N/A';
             const umakId = a.umakId || (a.studentId||'').replace(/^student_/i,'') || '';
             return `<tr>
-                <td>
-                    <div style="font-weight:600;color:var(--navy);">${name}</div>
-                    ${umakId ? `<div style="font-size:11px;color:var(--text-muted);font-family:'DM Mono',monospace;">${umakId}</div>` : ''}
-                </td>
-                <td>${section}</td>
-                <td>${a.height || 'N/A'}</td>
-                <td>${a.weight || 'N/A'}</td>
-                <td><strong style="font-family:'DM Mono',monospace;">${bmi > 0 ? bmi.toFixed(2) : 'N/A'}</strong></td>
-                <td><span class="bmi-pill ${getBMICategoryClass(cat)}">${getBMICategoryDisplay(cat)}</span></td>
-                <td style="font-size:12px;">${date}</td>
-                <td><div class="tbl-actions"><button class="tbl-btn tbl-btn-view" onclick="viewBMIDetails('${a.id}','pre')"><i class="fas fa-eye"></i> View</button></div></td>
+                <td data-label="Student"><div style="font-weight:600;color:var(--navy);">${name}</div>${umakId ? `<div style="font-size:11px;color:var(--text-muted);font-family:'DM Mono',monospace;">${umakId}</div>` : ''}</td>
+                <td data-label="Section">${section}</td>
+                <td data-label="Height (cm)">${a.height || 'N/A'}</td>
+                <td data-label="Weight (kg)">${a.weight || 'N/A'}</td>
+                <td data-label="BMI"><strong style="font-family:'DM Mono',monospace;">${bmi > 0 ? bmi.toFixed(2) : 'N/A'}</strong></td>
+                <td data-label="Category"><span class="bmi-pill ${getBMICategoryClass(cat)}">${getBMICategoryDisplay(cat)}</span></td>
+                <td data-label="Date" style="font-size:12px;">${date}</td>
+                <td data-label=""><div class="tbl-actions"><button class="tbl-btn tbl-btn-view" onclick="viewBMIDetails('${a.id}','pre')"><i class="fas fa-eye"></i> View</button></div></td>
             </tr>`;
         }).join('');
     }
@@ -2611,6 +2734,19 @@
                 if (tt === 'post') {
                     postAssessments.push({ id: d.id, ...data });
                 }
+            });
+
+            // Enrich with full names from preAssessments (already have nameMap loaded there)
+            // Re-use _fullName from matching pre record, or look up from users
+            postAssessments.forEach(a => {
+                const umakId = (a.umakId || '').toUpperCase();
+                const email = (a.email || '').toLowerCase();
+                // Try to find matching pre record that already has _fullName
+                const matchedPre = preAssessments.find(p =>
+                    (p.umakId && p.umakId.toUpperCase() === umakId) ||
+                    (p.email && p.email.toLowerCase() === email)
+                );
+                if (matchedPre && matchedPre._fullName) a._fullName = matchedPre._fullName;
             });
 
             // Sort newest first
@@ -2655,7 +2791,7 @@
             const bmi = parseFloat(a.bmi) || 0;
             const cat = resolveBMICategory(a);
             const date = parseBMIDate(a);
-            const name = (a.studentName || a.name || a.displayName || 'Unknown').replace(/\b\w/g, c => c.toUpperCase());
+            const name = a._fullName || (a.studentName || a.name || a.displayName || 'Unknown').replace(/\b\w/g, c => c.toUpperCase());
             const section = a.section || a.assignedSection || 'N/A';
             const umakId = a.umakId || (a.studentId||'').replace(/^student_/i,'') || '';
             let bmiChangeHtml = '<span style="color:var(--text-muted);">—</span>';
