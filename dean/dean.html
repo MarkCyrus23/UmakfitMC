@@ -988,7 +988,7 @@
                     <div class="dropdown-header-grad">
                         <div class="dropdown-avatar-lg" id="profileDropdownAvatar">D</div>
                         <div class="dropdown-uname" id="dropdownName">Dean</div>
-                        <div class="dropdown-email" id="dropdownEmail"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="452120242b053028202e6b2021306b352d">[email&#160;protected]</a></div>
+                        <div class="dropdown-email" id="dropdownEmail"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="452120242b053028242e6b2021306b352d">[email&#160;protected]</a></div>
                         <div class="dropdown-badge"><i class="fas fa-user-tie" style="margin-right:4px;"></i> Dean</div>
                     </div>
                     <div class="dropdown-menu-items">
@@ -1259,7 +1259,7 @@
                                     <th>College</th>
                                     <th>Professor</th>
                                     <th>Students</th>
-                                    <th>Pre-Test Avg</th>
+                                    <th>BMI Avg (Pre)</th>
                                     <th>Post-Test Avg</th>
                                     <th>Improvement</th>
                                     <th>Avg Score</th>
@@ -1375,7 +1375,7 @@
                                     <th>Section</th>
                                     <th>Student ID</th>
                                     <th>Tests Taken</th>
-                                    <th>Pre-Test Avg</th>
+                                    <th>BMI Avg (Pre)</th>
                                     <th>Post-Test Avg</th>
                                     <th>Improvement</th>
                                     <th>Avg Score</th>
@@ -1914,6 +1914,10 @@
     function getBMICategory(bmi) { if (bmi < 18.5) return 'underweight'; if (bmi < 25) return 'normal'; if (bmi < 30) return 'overweight'; return 'obese'; }
     function getBMICategoryDisplay(c) { return { underweight:'Underweight', normal:'Normal', overweight:'Overweight', obese:'Obese' }[c] || 'Unknown'; }
     function getBMICategoryClass(c) { return { underweight:'bmi-underweight', normal:'bmi-normal', overweight:'bmi-overweight', obese:'bmi-obese' }[c] || ''; }
+    function resolveBMICat(cat, bmi) {
+        if (cat) { const c=cat.toLowerCase(); if(c.includes('underweight'))return 'underweight'; if(c.includes('overweight'))return 'overweight'; if(c.includes('obese'))return 'obese'; if(c.includes('normal'))return 'normal'; }
+        return getBMICategory(bmi||0);
+    }
 
     window.handleLogout = async function(e) {
         if (e) { e.preventDefault(); e.stopPropagation(); }
@@ -2013,16 +2017,29 @@
             });
             document.getElementById('totalProfessors').textContent = prof;
             document.getElementById('totalStudents').textContent = stud;
-            const preQ = query(collection(db,'assessments'), where('type','==','pre'));
-            const preS = await getDocs(preQ);
-            document.getElementById('totalPreAssessments').textContent = preS.size;
-            const postS = await getDocs(query(collection(db,'assessments'), where('type','==','post')));
-            document.getElementById('totalPostAssessments').textContent = postS.size;
-            let uw=0,nm=0,ow=0,ob=0;
-            preS.forEach(d => {
-                const bmi = d.data().bmi;
-                if (bmi) { const c=getBMICategory(bmi); if(c==='underweight')uw++; else if(c==='normal')nm++; else if(c==='overweight')ow++; else ob++; }
+            // Count BMI records from users collection
+            const bmiSnap = await getDocs(collection(db, 'BMI'));
+            let preCount = 0, postCount = 0, uw=0, nm=0, ow=0, ob=0;
+            bmiSnap.forEach(d => {
+                const data = d.data();
+                if (!data.bmi) return;
+                const tt = (data.testType || data.type || '').toLowerCase();
+                if (tt === 'pre') {
+                    preCount++;
+                    const cat = (data.category || '').toLowerCase();
+                    if (cat.includes('underweight')) uw++;
+                    else if (cat.includes('overweight')) ow++;
+                    else if (cat.includes('obese')) ob++;
+                    else if (cat.includes('normal')) nm++;
+                    else {
+                        const bmi = parseFloat(data.bmi)||0;
+                        if(bmi>0&&bmi<18.5)uw++; else if(bmi<25)nm++; else if(bmi<30)ow++; else if(bmi>=30)ob++;
+                    }
+                }
+                if (tt === 'post') postCount++;
             });
+            document.getElementById('totalPreAssessments').textContent = preCount;
+            document.getElementById('totalPostAssessments').textContent = postCount;
             document.getElementById('underweightCount').textContent = uw;
             document.getElementById('normalCount').textContent = nm;
             document.getElementById('overweightCount').textContent = ow;
@@ -2182,7 +2199,10 @@
                 <td><span style="font-size:13px;">${s.college}</span></td>
                 <td><span style="font-size:13px;">${s.professor||'Unassigned'}</span></td>
                 <td>${s.studentCount}</td>
-                <td>${s.preTestAvg>0?s.preTestAvg.toFixed(1):'—'}</td>
+                <td>
+                    ${s.bmiAvg>0 ? `<span style="font-weight:600;font-family:'DM Mono',monospace;">${s.bmiAvg.toFixed(2)}</span>
+                    <span class="bmi-pill ${getBMICategoryClass(resolveBMICat(s.bmiCategory, s.bmiAvg))}" style="font-size:9px;padding:2px 5px;margin-left:4px;">${getBMICategoryDisplay(resolveBMICat(s.bmiCategory,s.bmiAvg))}</span>` : '—'}
+                </td>
                 <td>${s.postTestAvg>0?s.postTestAvg.toFixed(1):'—'}</td>
                 <td>${hasData ? `<span class="${impCls}"><i class="fas fa-${impIcon}" style="margin-right:4px;"></i>${s.improvement>0?'+':''}${s.improvement.toFixed(1)}</span>` : '<span style="color:var(--text-muted);">—</span>'}</td>
                 <td><strong>${s.avgScore>0?s.avgScore.toFixed(1):'—'}</strong></td>
@@ -2267,160 +2287,96 @@
     async function loadStudentRankings() {
         try {
             if (!testResults.length) await loadTestResults();
-            
-            // Use a Map with a normalized key to prevent duplicates
-            const stuMap = new Map();
-            studentSections.clear();
+            const stuData = {}; studentSections.clear();
 
             // ── Step 1: Load ALL students from users collection
+            // Key by Firebase doc ID (which = Firebase UID = testResults.studentId)
+            const uidToSid = {}; // Firebase UID -> canonical sid
             try {
                 const stuSnap = await getDocs(query(collection(db,'users'), where('role','==','student')));
                 stuSnap.forEach(d => {
                     const data = d.data();
-                    const studentId = data.studentId || d.id;
-                    const email = data.email || '';
-                    const name = data.name || data.displayName || data.firstName || email.split('@')[0] || 'Unknown Student';
-                    const section = data.section || data.assignedSection || data.class || data.sectionName || 'N/A';
-                    
-                    // Use composite key to prevent duplicates
-                    const key = `${studentId}_${email}`;
-                    
-                    if (!stuMap.has(key)) {
-                        stuMap.set(key, {
-                            id: studentId,
-                            email: email,
-                            name: name,
-                            section: section,
-                            tests: [],
-                            preScores: [],
-                            postScores: [],
-                            allScores: [],
-                            hasData: false,
-                            key: key
-                        });
-                        if (section !== 'N/A') studentSections.add(section);
-                    }
+                    const firebaseUid = d.id; // doc ID = Firebase UID
+                    const umakId = data.umakId || (data.studentId||'').replace(/^student_/i,'') || '';
+                    // Use umakId as canonical key so "BULATAO, JEROME" and "JEROME BULATAO" merge
+                    const sid = umakId || firebaseUid;
+                    const name = data.name || data.displayName || data.firstName || data.email?.split('@')[0] || 'Unknown Student';
+                    const sec  = data.section || data.assignedSection || data.class || data.sectionName || 'N/A';
+                    if (!stuData[sid]) stuData[sid] = { name, id: sid, umakId, firebaseUid, section: sec, email: data.email||'', tests:[], preScores:[], postScores:[], allScores:[], hasData: false };
+                    // Register Firebase UID -> sid so testResults can find this entry
+                    uidToSid[firebaseUid] = sid;
+                    if (data.email) uidToSid[data.email.toLowerCase()] = sid;
+                    if (umakId) uidToSid[umakId.toUpperCase()] = sid;
+                    if (sec !== 'N/A') studentSections.add(sec);
                 });
-            } catch(e) { 
-                console.log('Student load failed:', e); 
-            }
+            } catch(e) { console.log('Student load failed:', e); }
 
-            // ── Step 2: Overlay test results, merging by student ID/email
+            // ── Step 2: Overlay test results - match by Firebase UID, email, or umakId
             testResults.forEach(t => {
-                const studentId = t.studentId || '';
-                const studentEmail = t.studentEmail || '';
-                const studentName = t.studentName || 'Unknown Student';
-                const section = t.section || 'N/A';
+                const rawSid = t.studentId || t.studentEmail || t.studentName;
+                const tEmail = (t.studentEmail || t.email || '').toLowerCase();
+                const tUmak  = (t.umakId || '').toUpperCase();
+                // testResults.studentId IS the Firebase UID - look it up in uidToSid map
+                const sid = uidToSid[rawSid] || uidToSid[tEmail] || uidToSid[tUmak] || rawSid;
+                const name = t.studentName || 'Unknown Student';
+                const sec  = t.section || 'N/A';
                 const score = t.score || 0;
-                const type = t.type || 'unknown';
-                
-                // Try multiple keys to find the student
-                let found = false;
-                
-                // First try by studentId
-                if (studentId) {
-                    for (let [key, value] of stuMap.entries()) {
-                        if (value.id === studentId) {
-                            found = true;
-                            // Update student data with potentially better info
-                            if (!value.hasData) {
-                                value.name = studentName;
-                                value.section = section;
-                            }
-                            value.tests.push({ name: t.testName||'Unknown', type, score, date: t.submittedAt });
-                            value.allScores.push(score);
-                            value.hasData = true;
-                            if (type === 'pre') value.preScores.push(score);
-                            else if (type === 'post') value.postScores.push(score);
-                            if (section !== 'N/A') studentSections.add(section);
-                            break;
-                        }
-                    }
-                }
-                
-                // If not found by ID, try by email
-                if (!found && studentEmail) {
-                    for (let [key, value] of stuMap.entries()) {
-                        if (value.email === studentEmail) {
-                            found = true;
-                            if (!value.hasData) {
-                                value.name = studentName;
-                                value.section = section;
-                            }
-                            value.tests.push({ name: t.testName||'Unknown', type, score, date: t.submittedAt });
-                            value.allScores.push(score);
-                            value.hasData = true;
-                            if (type === 'pre') value.preScores.push(score);
-                            else if (type === 'post') value.postScores.push(score);
-                            if (section !== 'N/A') studentSections.add(section);
-                            break;
-                        }
-                    }
-                }
-                
-                // If still not found, create a new entry (this student exists in test results but not in users collection)
-                if (!found) {
-                    const key = `test_${studentId}_${studentEmail}_${Date.now()}_${Math.random()}`;
-                    stuMap.set(key, {
-                        id: studentId || 'unknown',
-                        email: studentEmail || '',
-                        name: studentName,
-                        section: section,
-                        tests: [{ name: t.testName||'Unknown', type, score, date: t.submittedAt }],
-                        preScores: type === 'pre' ? [score] : [],
-                        postScores: type === 'post' ? [score] : [],
-                        allScores: [score],
-                        hasData: true,
-                        key: key
-                    });
-                    if (section !== 'N/A') studentSections.add(section);
-                }
+                const type  = t.type  || 'unknown';
+                if (!stuData[sid]) stuData[sid] = { name, id:sid, section:sec, email:tEmail, tests:[], preScores:[], postScores:[], allScores:[], hasData:false };
+                stuData[sid].tests.push({ name: t.testName||'Unknown', type, score, date: t.submittedAt });
+                stuData[sid].allScores.push(score);
+                stuData[sid].hasData = true;
+                if (type==='pre')  stuData[sid].preScores.push(score);
+                else if (type==='post') stuData[sid].postScores.push(score);
+                if (sec !== 'N/A') studentSections.add(sec);
             });
 
-            // Convert Map to array for ranking
             studentRankings = [];
-            for (const [key, data] of stuMap.entries()) {
-                const avg = data.allScores.length ? data.allScores.reduce((a,b)=>a+b,0)/data.allScores.length : 0;
-                const preA = data.preScores.length ? data.preScores.reduce((a,b)=>a+b,0)/data.preScores.length : 0;
-                const postA = data.postScores.length ? data.postScores.reduce((a,b)=>a+b,0)/data.postScores.length : 0;
-                
+            for (const [sid, data] of Object.entries(stuData)) {
+                const avg  = data.allScores.length  ? data.allScores.reduce((a,b)=>a+b,0)/data.allScores.length   : 0;
+                const preA = data.preScores.length  ? data.preScores.reduce((a,b)=>a+b,0)/data.preScores.length   : 0;
+                const postA= data.postScores.length ? data.postScores.reduce((a,b)=>a+b,0)/data.postScores.length : 0;
                 studentRankings.push({
-                    id: data.id,
-                    email: data.email,
-                    name: data.name,
-                    section: data.section,
+                    id: sid, name: data.name, section: data.section,
                     testsTaken: data.tests.length,
-                    preTestAvg: parseFloat(preA.toFixed(2)),
+                    preTestAvg:  parseFloat(preA.toFixed(2)),
                     postTestAvg: parseFloat(postA.toFixed(2)),
-                    improvement: parseFloat((postA - preA).toFixed(2)),
-                    avgScore: parseFloat(avg.toFixed(2)),
+                    improvement: parseFloat((postA-preA).toFixed(2)),
+                    avgScore:    parseFloat(avg.toFixed(2)),
                     hasData: data.hasData,
-                    preScores: data.preScores,
-                    postScores: data.postScores,
-                    allScores: data.allScores,
-                    tests: data.tests
+                    preScores: data.preScores, postScores: data.postScores,
+                    allScores: data.allScores, tests: data.tests
                 });
             }
+
+            // ── Inject BMI averages from preAssessments into studentRankings
+            studentRankings.forEach(s => {
+                // Match by umakId, email, or studentId
+                const bmiRecords = preAssessments.filter(a => {
+                    const aUmak = a.umakId || (a.studentId||'').replace(/^student_/i,'');
+                    const sUmak = s.id.replace(/^student_/i,'');
+                    return aUmak && aUmak === sUmak ||
+                           (a.email && a.email === s.email) ||
+                           a.studentId === s.id;
+                });
+                if (bmiRecords.length) {
+                    const bmiVals = bmiRecords.map(a => parseFloat(a.bmi)).filter(v => v > 0);
+                    s.bmiAvg = bmiVals.length ? parseFloat((bmiVals.reduce((a,b)=>a+b,0)/bmiVals.length).toFixed(2)) : 0;
+                    s.bmiCategory = bmiRecords[0].category || '';
+                    s.bmiCount = bmiRecords.length;
+                } else {
+                    s.bmiAvg = 0; s.bmiCategory = ''; s.bmiCount = 0;
+                }
+            });
 
             // Students WITH scores ranked desc, then no-score students alphabetically
-            const withData = studentRankings.filter(s => s.hasData).sort((a, b) => {
-                if (b.avgScore !== a.avgScore) return b.avgScore - a.avgScore;
-                return a.name.localeCompare(b.name);
-            });
-            
-            const withoutData = studentRankings.filter(s => !s.hasData).sort((a, b) => a.name.localeCompare(b.name));
-            
+            const withData    = studentRankings.filter(s=>s.hasData).sort((a,b)=>b.avgScore-a.avgScore);
+            const withoutData = studentRankings.filter(s=>!s.hasData).sort((a,b)=>a.name.localeCompare(b.name));
             studentRankings = [...withData, ...withoutData];
 
             console.log(`✅ Student rankings: ${withData.length} with scores, ${withoutData.length} pending`);
-            updateStudentSectionFilter();
-            filterStudentRankings();
-            updateStudentRankingSummaryStats();
-            
-        } catch(err) { 
-            console.error('Error in loadStudentRankings:', err); 
-            showAlert('studentRankingAlert','Error: '+err.message,'error');
-        }
+            updateStudentSectionFilter(); filterStudentRankings(); updateStudentRankingSummaryStats();
+        } catch(err) { console.error(err); showAlert('studentRankingAlert','Error: '+err.message,'error'); }
     }
 
     function updateStudentSectionFilter() {
@@ -2430,61 +2386,54 @@
         Array.from(studentSections).sort().forEach(sec => {
             const o = document.createElement('option'); o.value=sec; o.textContent=sec; el.appendChild(o);
         });
-        // Try to restore previous selection if it exists
-        if (cur && Array.from(studentSections).includes(cur)) {
-            el.value = cur;
-        }
+        el.value = cur;
     }
 
     window.filterStudentRankings = function() {
         const search = (document.getElementById('searchStudentRankings')?.value||'').toLowerCase();
         const sec = document.getElementById('studentSectionFilter')?.value||'all';
         const type = document.getElementById('studentTestTypeFilter')?.value||'all';
-        
         filteredStudentRankings = studentRankings.filter(s => {
-            const ms = s.name.toLowerCase().includes(search) || 
-                      s.id.toLowerCase().includes(search) ||
-                      (s.email && s.email.toLowerCase().includes(search));
-            const msc = sec === 'all' || s.section === sec;
+            const ms = s.name.toLowerCase().includes(search)||s.id.toLowerCase().includes(search);
+            const msc = sec==='all'||s.section===sec;
             let mt = true;
-            if (type === 'pre') mt = s.preScores.length > 0;
-            else if (type === 'post') mt = s.postScores.length > 0;
+            if (type==='pre') mt = s.preScores.length>0;
+            else if (type==='post') mt = s.postScores.length>0;
             return ms && msc && mt;
         });
-        
-        renderStudentRankingTable();
-        updateStudentRankingSummaryStats();
+        renderStudentRankingTable(); updateStudentRankingSummaryStats();
     };
 
     function renderStudentRankingTable() {
         const tbody = document.getElementById('studentRankingTableBody'); if (!tbody) return;
         if (!filteredStudentRankings.length) {
-            tbody.innerHTML = `<tr><td colspan="11"><div class="empty-state"><div class="empty-icon"><i class="fas fa-user-graduate"></i></div><div class="empty-title">No Students Found</div><div class="empty-sub">No students match your search criteria.</div></div></td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="11"><div class="empty-state"><div class="empty-icon"><i class="fas fa-user-graduate"></i></div><div class="empty-title">No Students Found</div><div class="empty-sub">No students are registered in the system yet.</div></div></td></tr>`;
             return;
         }
-        
         let rankCounter = 0;
         tbody.innerHTML = filteredStudentRankings.map((s) => {
             const hasData = s.hasData;
             if (hasData) rankCounter++;
             const rankDisplay = hasData ? rankCounter : '—';
-            const rc = hasData ? (rankCounter <= 3 ? `rank-${rankCounter}` : 'rank-other') : 'rank-other';
-            const ic = s.improvement > 0 ? 'trend-up' : s.improvement < 0 ? 'trend-down' : 'trend-neutral';
-            const ii = s.improvement > 0 ? 'arrow-up' : s.improvement < 0 ? 'arrow-down' : 'minus';
+            const rc = hasData ? (rankCounter<=3?`rank-${rankCounter}`:'rank-other') : 'rank-other';
+            const ic = s.improvement>0?'trend-up':s.improvement<0?'trend-down':'trend-neutral';
+            const ii = s.improvement>0?'arrow-up':s.improvement<0?'arrow-down':'minus';
             const rt = getScoreRating(s.avgScore);
-            
-            return `<tr style="${!hasData ? 'opacity:0.65;' : ''}">
-                <td><div class="rank-num ${rc}" style="${!hasData ? 'background:var(--surface);color:var(--text-muted);border:1px solid var(--border);' : ''}">${rankDisplay}</div></td>
+            return `<tr style="${!hasData?'opacity:0.65;':''}">
+                <td><div class="rank-num ${rc}" style="${!hasData?'background:var(--surface);color:var(--text-muted);border:1px solid var(--border);':''}">${rankDisplay}</div></td>
                 <td>
                     <span class="cell-primary">${s.name}</span>
                     ${!hasData ? '<span style="margin-left:6px;font-size:10px;background:#f1f5f9;color:#94a3b8;padding:2px 7px;border-radius:10px;font-weight:600;">No data yet</span>' : ''}
                 </td>
                 <td><span style="font-size:13px;">${s.section}</span></td>
-                <td><span style="font-family:\'DM Mono\',monospace;font-size:12px;color:var(--text-muted);">${s.id}</span></td>
+                <td><span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--text-muted);">${s.id}</span></td>
                 <td>${s.testsTaken || '—'}</td>
-                <td>${s.preTestAvg > 0 ? s.preTestAvg.toFixed(1) : '—'}</td>
-                <td>${s.postTestAvg > 0 ? s.postTestAvg.toFixed(1) : '—'}</td>
-                <td>${hasData ? `<span class="${ic}"><i class="fas fa-${ii}" style="margin-right:4px;"></i>${s.improvement > 0 ? '+' : ''}${s.improvement.toFixed(1)}</span>` : '<span style="color:var(--text-muted);">—</span>'}</td>
+                <td>
+                    ${s.bmiAvg>0 ? `<span style="font-weight:600;font-family:'DM Mono',monospace;">${s.bmiAvg.toFixed(2)}</span>
+                    <span class="bmi-pill ${getBMICategoryClass(resolveBMICat(s.bmiCategory, s.bmiAvg))}" style="font-size:9px;padding:2px 5px;margin-left:4px;">${getBMICategoryDisplay(resolveBMICat(s.bmiCategory,s.bmiAvg))}</span>` : '—'}
+                </td>
+                <td>${s.postTestAvg>0?s.postTestAvg.toFixed(1):'—'}</td>
+                <td>${hasData ? `<span class="${ic}"><i class="fas fa-${ii}" style="margin-right:4px;"></i>${s.improvement>0?'+':''}${s.improvement.toFixed(1)}</span>` : '<span style="color:var(--text-muted);">—</span>'}</td>
                 <td><strong>${hasData ? s.avgScore.toFixed(1) : '—'}</strong></td>
                 <td>${hasData ? `<span class="score-pill ${rt.cls}">${rt.text}</span>` : '<span style="color:var(--text-muted);font-size:12px;">Pending</span>'}</td>
                 <td><div class="tbl-actions"><button class="tbl-btn tbl-btn-view" onclick="viewStudentDetails('${s.id.replace(/'/g,"\\'")}')"><i class="fas fa-eye"></i> View</button></div></td>
@@ -2493,73 +2442,56 @@
     }
 
     function updateStudentRankingSummaryStats() {
-        const withData = studentRankings.filter(s => s.hasData);
-        document.getElementById('totalStudentsRanked').textContent = withData.length;
-        
-        const avgs = withData.map(s => s.avgScore).filter(s => s > 0);
-        document.getElementById('studentOverallAvgScore').textContent = avgs.length ? (avgs.reduce((a,b) => a + b, 0) / avgs.length).toFixed(1) : '0.0';
-        
-        if (withData.length > 0) {
-            document.getElementById('topStudentName').textContent = withData[0].name;
-            document.getElementById('topStudentScore').textContent = withData[0].avgScore.toFixed(1) + ' avg score';
-        } else {
-            document.getElementById('topStudentName').textContent = '—';
-            document.getElementById('topStudentScore').textContent = '0.0 avg score';
-        }
-        
+        document.getElementById('totalStudentsRanked').textContent = filteredStudentRankings.length;
+        const avgs = filteredStudentRankings.map(s=>s.avgScore).filter(s=>s>0);
+        document.getElementById('studentOverallAvgScore').textContent = avgs.length ? (avgs.reduce((a,b)=>a+b,0)/avgs.length).toFixed(1) : '0.0';
+        if (filteredStudentRankings.length>0) {
+            document.getElementById('topStudentName').textContent = filteredStudentRankings[0].name;
+            document.getElementById('topStudentScore').textContent = filteredStudentRankings[0].avgScore.toFixed(1)+' avg score';
+        } else { document.getElementById('topStudentName').textContent='—'; }
         document.getElementById('studentSectionsCount').textContent = studentSections.size;
     }
 
     window.refreshStudentRanking = function() {
         showAlert('studentRankingAlert','Refreshing student rankings…','success');
-        loadTestResults().then(() => loadStudentRankings());
+        loadTestResults().then(()=>loadStudentRankings());
     };
 
     window.exportStudentRankingReport = function() {
-        const withData = studentRankings.filter(s => s.hasData);
-        if (!withData.length) { 
-            showAlert('studentRankingAlert','No data to export.','error'); 
-            return; 
-        }
+        if (!filteredStudentRankings.length) { showAlert('studentRankingAlert','No data to export.','error'); return; }
         let csv = "Rank,Student Name,Section,Student ID,Tests Taken,Pre-Test Avg,Post-Test Avg,Improvement,Avg Score,Rating\n";
-        withData.forEach((s, i) => {
-            csv += `${i + 1},${s.name},${s.section},${s.id},${s.testsTaken},${s.preTestAvg},${s.postTestAvg},${s.improvement},${s.avgScore},${getScoreRating(s.avgScore).text}\n`;
-        });
+        filteredStudentRankings.forEach((s,i) => csv += `${i+1},${s.name},${s.section},${s.id},${s.testsTaken},${s.preTestAvg},${s.postTestAvg},${s.improvement},${s.avgScore},${getScoreRating(s.avgScore).text}\n`);
         downloadCSV(csv, `student_rankings_${new Date().toISOString().split('T')[0]}.csv`);
         showAlert('studentRankingAlert','Report exported!','success');
     };
 
     window.viewStudentDetails = async function(studentId) {
-        const s = studentRankings.find(r => r.id === studentId); 
-        if (!s) return;
-        
-        const rank = studentRankings.findIndex(r => r.id === studentId) + 1;
-        const rc = rank <= 3 ? `rank-${rank}` : 'rank-other';
+        const s = studentRankings.find(r=>r.id===studentId); if (!s) return;
+        const rank = studentRankings.findIndex(r=>r.id===studentId)+1;
+        const rc = rank<=3?`rank-${rank}`:'rank-other';
         const rt = getScoreRating(s.avgScore);
-        
-        const sortedTests = [...s.tests].sort((a, b) => {
-            const da = a.date?.toDate?.() || new Date(a.date || 0);
-            const db = b.date?.toDate?.() || new Date(b.date || 0);
-            return db - da;
+        const sortedTests = [...s.tests].sort((a,b)=>{
+            const da = a.date?.toDate?.() || new Date(a.date||0);
+            const db_ = b.date?.toDate?.() || new Date(b.date||0);
+            return db_ - da;
         });
-        
         const testRows = sortedTests.map(t => {
-            const d = t.date?.toDate?.() || new Date(t.date || 0);
-            return `<tr><td>${t.name}</td><td>${t.type || 'N/A'}</td><td><strong>${t.score}</strong></td><td>${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td></tr>`;
-        }).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:16px;">No test history available.</td></tr>';
+            const d = t.date?.toDate?.() || new Date(t.date||0);
+            return `<tr><td>${t.name}</td><td>${t.type||'N/A'}</td><td><strong>${t.score}</strong></td><td>${d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</td></tr>`;
+        }).join('') || `<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:16px;">No test history available.</td></tr>`;
 
         document.getElementById('studentDetailsTitle').textContent = `Student: ${s.name}`;
         document.getElementById('studentDetailsContent').innerHTML = `
             <div class="detail-grid" style="margin-bottom:24px;">
                 <div class="detail-block"><div class="detail-block-label">Full Name</div><div class="detail-block-val">${s.name}</div></div>
-                <div class="detail-block"><div class="detail-block-label">Student ID</div><div class="detail-block-val" style="font-family:\'DM Mono\',monospace;font-size:13px;">${s.id}</div></div>
+                <div class="detail-block"><div class="detail-block-label">Student ID</div><div class="detail-block-val" style="font-family:'DM Mono',monospace;font-size:13px;">${s.id}</div></div>
                 <div class="detail-block"><div class="detail-block-label">Section</div><div class="detail-block-val">${s.section}</div></div>
                 <div class="detail-block"><div class="detail-block-label">Tests Taken</div><div class="detail-block-val">${s.testsTaken}</div></div>
                 <div class="detail-block"><div class="detail-block-label">Average Score</div><div class="detail-block-val big">${s.avgScore.toFixed(1)}</div></div>
                 <div class="detail-block"><div class="detail-block-label">Rating</div><div class="detail-block-val"><span class="score-pill ${rt.cls}" style="font-size:13px;">${rt.text}</span></div></div>
-                <div class="detail-block"><div class="detail-block-label">Pre-Test Average</div><div class="detail-block-val">${s.preTestAvg > 0 ? s.preTestAvg.toFixed(1) : 'N/A'}</div></div>
-                <div class="detail-block"><div class="detail-block-label">Post-Test Average</div><div class="detail-block-val">${s.postTestAvg > 0 ? s.postTestAvg.toFixed(1) : 'N/A'}</div></div>
-                <div class="detail-block"><div class="detail-block-label">Improvement</div><div class="detail-block-val" style="${s.improvement > 0 ? 'color:var(--success)' : s.improvement < 0 ? 'color:var(--danger)' : 'color:var(--text-muted)'}">${s.improvement > 0 ? '+' : ''}${s.improvement.toFixed(1)}</div></div>
+                <div class="detail-block"><div class="detail-block-label">Pre-Test Average</div><div class="detail-block-val">${s.preTestAvg>0?s.preTestAvg.toFixed(1):'N/A'}</div></div>
+                <div class="detail-block"><div class="detail-block-label">Post-Test Average</div><div class="detail-block-val">${s.postTestAvg>0?s.postTestAvg.toFixed(1):'N/A'}</div></div>
+                <div class="detail-block"><div class="detail-block-label">Improvement</div><div class="detail-block-val" style="${s.improvement>0?'color:var(--success)':s.improvement<0?'color:var(--danger)':'color:var(--text-muted)'}">${s.improvement>0?'+':''}${s.improvement.toFixed(1)}</div></div>
                 <div class="detail-block"><div class="detail-block-label">Overall Rank</div><div class="detail-block-val"><div class="rank-num ${rc}" style="width:40px;height:40px;font-size:18px;">${rank}</div></div></div>
             </div>
             <div style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:12px;display:flex;align-items:center;gap:8px;">
@@ -2574,153 +2506,248 @@
         document.getElementById('studentDetailsModal').style.display = 'flex';
     };
 
-    window.closeStudentDetailsModal = function() { 
-        document.getElementById('studentDetailsModal').style.display = 'none'; 
-    };
+    window.closeStudentDetailsModal = function() { document.getElementById('studentDetailsModal').style.display='none'; };
 
     // ── ASSESSMENTS ──
+
+    // Parse date from BMI record - handles ISO strings and Firestore timestamps
+    function parseBMIDate(a) {
+        const raw = a.recordedAt || a.updatedAt || a.assessmentDate || null;
+        if (!raw) return 'N/A';
+        try {
+            if (raw && typeof raw.toDate === 'function') return raw.toDate().toLocaleDateString();
+            const d = new Date(raw);
+            if (!isNaN(d)) return d.toLocaleDateString();
+        } catch(e) {}
+        return 'N/A';
+    }
+
+    // Resolve BMI category from stored string field first, then calculate
+    function resolveBMICategory(a) {
+        if (a.category) {
+            const c = a.category.toLowerCase();
+            if (c.includes('underweight')) return 'underweight';
+            if (c.includes('overweight')) return 'overweight';
+            if (c.includes('obese')) return 'obese';
+            if (c.includes('normal')) return 'normal';
+        }
+        return getBMICategory(parseFloat(a.bmi) || 0);
+    }
+
     async function loadPreAssessments() {
         try {
-            const q = query(collection(db,'assessments'),where('type','==','pre'),orderBy('assessmentDate','desc'));
-            const snap = await getDocs(q);
-            preAssessments = []; 
-            snap.forEach(d => preAssessments.push({id:d.id,...d.data()}));
+            showAlert('preAssessmentAlert', 'Loading pre-assessments...', 'success');
+            preAssessments = [];
+
+            // Scan entire BMI collection and filter client-side (avoids Firestore index requirement)
+            const allSnap = await getDocs(collection(db, 'BMI'));
+            allSnap.forEach(d => {
+                const data = d.data();
+                const tt = (data.testType || data.type || '').toLowerCase();
+                if (tt === 'pre') {
+                    preAssessments.push({ id: d.id, ...data });
+                }
+            });
+
+            // Sort newest first
+            preAssessments.sort((a, b) => {
+                return new Date(b.recordedAt || b.updatedAt || b.assessmentDate || 0) -
+                       new Date(a.recordedAt || a.updatedAt || a.assessmentDate || 0);
+            });
+
+            console.log('Pre-assessments loaded:', preAssessments.length);
+            document.getElementById('totalPreAssessments').textContent = preAssessments.length;
             renderPreAssessmentsTable();
-        } catch(e) { 
-            console.error('Error loading pre-assessments:', e);
-            preAssessments = []; 
-            renderPreAssessmentsTable(); 
+            showAlert('preAssessmentAlert', `Loaded ${preAssessments.length} pre-assessment record(s).`, 'success');
+        } catch(e) {
+            console.error('loadPreAssessments error:', e);
+            preAssessments = [];
+            renderPreAssessmentsTable();
+            showAlert('preAssessmentAlert', 'Error: ' + e.message, 'error');
         }
     }
 
-    function renderPreAssessmentsTable() {
-        const tbody = document.getElementById('preAssessmentsTableBody'); if (!tbody) return;
-        if (!preAssessments.length) {
-            tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="empty-icon"><i class="fas fa-clipboard"></i></div><div class="empty-title">No Records</div><div class="empty-sub">No pre-assessment data found.</div></div></td></tr>`;
+    function renderPreAssessmentsTable(data) {
+        const rows = data !== undefined ? data : preAssessments;
+        const tbody = document.getElementById('preAssessmentsTableBody');
+        if (!tbody) return;
+        if (!rows.length) {
+            tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="empty-icon"><i class="fas fa-clipboard"></i></div><div class="empty-title">No Records</div><div class="empty-sub">No pre-assessment data found in the database.</div></div></td></tr>`;
             return;
         }
-        tbody.innerHTML = preAssessments.map(a => {
-            const bmi = a.bmi || 0; 
-            const cat = getBMICategory(bmi);
-            const date = a.assessmentDate ? (a.assessmentDate.toDate ? a.assessmentDate.toDate().toLocaleDateString() : new Date(a.assessmentDate).toLocaleDateString()) : 'N/A';
-            return `<tr><td><span class="cell-primary">${a.studentName || 'Unknown'}</span></td><td>${a.section || 'N/A'}</td><td>${a.height || 'N/A'}</td><td>${a.weight || 'N/A'}</td><td><strong>${typeof bmi === 'number' ? bmi.toFixed(1) : bmi}</strong></td><td><span class="bmi-pill ${getBMICategoryClass(cat)}">${getBMICategoryDisplay(cat)}</span></td><td>${date}</td><td><div class="tbl-actions"><button class="tbl-btn tbl-btn-view" onclick="viewAssessmentDetails('${a.id}','pre')"><i class="fas fa-eye"></i> View</button></div></td></tr>`;
+        tbody.innerHTML = rows.map(a => {
+            const bmi = parseFloat(a.bmi) || 0;
+            const cat = resolveBMICategory(a);
+            const date = parseBMIDate(a);
+            const name = (a.studentName || a.name || a.displayName || 'Unknown').replace(/\b\w/g, c => c.toUpperCase());
+            const section = a.section || a.assignedSection || 'N/A';
+            const umakId = a.umakId || (a.studentId||'').replace(/^student_/i,'') || '';
+            return `<tr>
+                <td>
+                    <div style="font-weight:600;color:var(--navy);">${name}</div>
+                    ${umakId ? `<div style="font-size:11px;color:var(--text-muted);font-family:'DM Mono',monospace;">${umakId}</div>` : ''}
+                </td>
+                <td>${section}</td>
+                <td>${a.height || 'N/A'}</td>
+                <td>${a.weight || 'N/A'}</td>
+                <td><strong style="font-family:'DM Mono',monospace;">${bmi > 0 ? bmi.toFixed(2) : 'N/A'}</strong></td>
+                <td><span class="bmi-pill ${getBMICategoryClass(cat)}">${getBMICategoryDisplay(cat)}</span></td>
+                <td style="font-size:12px;">${date}</td>
+                <td><div class="tbl-actions"><button class="tbl-btn tbl-btn-view" onclick="viewBMIDetails('${a.id}','pre')"><i class="fas fa-eye"></i> View</button></div></td>
+            </tr>`;
         }).join('');
     }
 
     async function loadPostAssessments() {
         try {
-            const q = query(collection(db,'assessments'),where('type','==','post'),orderBy('assessmentDate','desc'));
-            const snap = await getDocs(q);
-            postAssessments = []; 
-            snap.forEach(d => postAssessments.push({id:d.id,...d.data()}));
+            showAlert('postAssessmentAlert', 'Loading post-assessments...', 'success');
+            postAssessments = [];
+
+            // Scan entire BMI collection and filter client-side (avoids Firestore index requirement)
+            const allSnap = await getDocs(collection(db, 'BMI'));
+            allSnap.forEach(d => {
+                const data = d.data();
+                const tt = (data.testType || data.type || '').toLowerCase();
+                if (tt === 'post') {
+                    postAssessments.push({ id: d.id, ...data });
+                }
+            });
+
+            // Sort newest first
+            postAssessments.sort((a, b) => {
+                return new Date(b.recordedAt || b.updatedAt || b.assessmentDate || 0) -
+                       new Date(a.recordedAt || a.updatedAt || a.assessmentDate || 0);
+            });
+
+            // Compute BMI change vs matching pre-assessment record
+            postAssessments.forEach(post => {
+                const pre = preAssessments.find(p =>
+                    (p.studentId && p.studentId === post.studentId) ||
+                    (p.email && p.email === post.email) ||
+                    (p.umakId && p.umakId === post.umakId)
+                );
+                if (pre && pre.bmi && post.bmi) {
+                    post._bmiChange = parseFloat(post.bmi) - parseFloat(pre.bmi);
+                }
+            });
+
+            console.log('Post-assessments loaded:', postAssessments.length);
+            document.getElementById('totalPostAssessments').textContent = postAssessments.length;
             renderPostAssessmentsTable();
-        } catch(e) { 
-            console.error('Error loading post-assessments:', e);
-            postAssessments = []; 
-            renderPostAssessmentsTable(); 
+            showAlert('postAssessmentAlert', `Loaded ${postAssessments.length} post-assessment record(s).`, 'success');
+        } catch(e) {
+            console.error('loadPostAssessments error:', e);
+            postAssessments = [];
+            renderPostAssessmentsTable();
+            showAlert('postAssessmentAlert', 'Error: ' + e.message, 'error');
         }
     }
 
-    function renderPostAssessmentsTable() {
-        const tbody = document.getElementById('postAssessmentsTableBody'); if (!tbody) return;
-        if (!postAssessments.length) {
-            tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-icon"><i class="fas fa-chart-line"></i></div><div class="empty-title">No Records</div><div class="empty-sub">No post-assessment data found.</div></div></td></tr>`;
+    function renderPostAssessmentsTable(data) {
+        const rows = data !== undefined ? data : postAssessments;
+        const tbody = document.getElementById('postAssessmentsTableBody');
+        if (!tbody) return;
+        if (!rows.length) {
+            tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-icon"><i class="fas fa-chart-line"></i></div><div class="empty-title">No Records</div><div class="empty-sub">No post-assessment data found in the database.</div></div></td></tr>`;
             return;
         }
-        tbody.innerHTML = postAssessments.map(a => {
-            const bmi = a.bmi || 0; 
-            const cat = getBMICategory(bmi);
-            const date = a.assessmentDate ? (a.assessmentDate.toDate ? a.assessmentDate.toDate().toLocaleDateString() : new Date(a.assessmentDate).toLocaleDateString()) : 'N/A';
-            return `<tr><td><span class="cell-primary">${a.studentName || 'Unknown'}</span></td><td>${a.section || 'N/A'}</td><td>${a.height || 'N/A'}</td><td>${a.weight || 'N/A'}</td><td><strong>${typeof bmi === 'number' ? bmi.toFixed(1) : bmi}</strong></td><td><span class="bmi-pill ${getBMICategoryClass(cat)}">${getBMICategoryDisplay(cat)}</span></td><td>${a.improvement || 'No data'}</td><td>${date}</td><td><div class="tbl-actions"><button class="tbl-btn tbl-btn-view" onclick="viewAssessmentDetails('${a.id}','post')"><i class="fas fa-eye"></i> View</button></div></td></tr>`;
+        tbody.innerHTML = rows.map(a => {
+            const bmi = parseFloat(a.bmi) || 0;
+            const cat = resolveBMICategory(a);
+            const date = parseBMIDate(a);
+            const name = (a.studentName || a.name || a.displayName || 'Unknown').replace(/\b\w/g, c => c.toUpperCase());
+            const section = a.section || a.assignedSection || 'N/A';
+            const umakId = a.umakId || (a.studentId||'').replace(/^student_/i,'') || '';
+            let bmiChangeHtml = '<span style="color:var(--text-muted);">—</span>';
+            if (typeof a._bmiChange === 'number') {
+                const ch = a._bmiChange;
+                const icon = ch < 0 ? 'arrow-down' : ch > 0 ? 'arrow-up' : 'minus';
+                const color = ch < 0 ? 'var(--success)' : ch > 0 ? 'var(--danger)' : 'var(--text-muted)';
+                bmiChangeHtml = `<span style="color:${color};font-weight:600;"><i class="fas fa-${icon}" style="margin-right:3px;"></i>${ch > 0 ? '+' : ''}${ch.toFixed(2)}</span>`;
+            }
+            return `<tr>
+                <td>
+                    <div style="font-weight:600;color:var(--navy);">${name}</div>
+                    ${umakId ? `<div style="font-size:11px;color:var(--text-muted);font-family:'DM Mono',monospace;">${umakId}</div>` : ''}
+                </td>
+                <td>${section}</td>
+                <td>${a.height || 'N/A'}</td>
+                <td>${a.weight || 'N/A'}</td>
+                <td><strong style="font-family:'DM Mono',monospace;">${bmi > 0 ? bmi.toFixed(2) : 'N/A'}</strong></td>
+                <td><span class="bmi-pill ${getBMICategoryClass(cat)}">${getBMICategoryDisplay(cat)}</span></td>
+                <td>${bmiChangeHtml}</td>
+                <td style="font-size:12px;">${date}</td>
+                <td><div class="tbl-actions"><button class="tbl-btn tbl-btn-view" onclick="viewBMIDetails('${a.id}','post')"><i class="fas fa-eye"></i> View</button></div></td>
+            </tr>`;
         }).join('');
     }
 
-    window.refreshPreAssessments = function() { 
-        showAlert('preAssessmentAlert','Refreshing pre-assessments…','success'); 
-        loadPreAssessments(); 
-    };
-    
-    window.refreshPostAssessments = function() { 
-        showAlert('postAssessmentAlert','Refreshing post-assessments…','success'); 
-        loadPostAssessments(); 
-    };
+    window.refreshPreAssessments = function() { loadPreAssessments(); };
+    window.refreshPostAssessments = function() { loadPostAssessments(); };
 
-    window.viewAssessmentDetails = async function(id, type) {
-        try {
-            const snap = await getDoc(doc(db,'assessments',id));
-            if (!snap.exists()) return;
-            const a = snap.data(); 
-            const bmi = a.bmi || 0; 
-            const cat = getBMICategory(bmi);
-            const date = a.assessmentDate ? (a.assessmentDate.toDate ? a.assessmentDate.toDate().toLocaleDateString() : new Date(a.assessmentDate).toLocaleDateString()) : 'N/A';
-            let html = `<div class="detail-grid">
-                <div class="detail-block"><div class="detail-block-label">Student Name</div><div class="detail-block-val">${a.studentName || 'Unknown'}</div></div>
-                <div class="detail-block"><div class="detail-block-label">Section</div><div class="detail-block-val">${a.section || 'N/A'}</div></div>
-                <div class="detail-block"><div class="detail-block-label">Assessment Date</div><div class="detail-block-val">${date}</div></div>
-                <div class="detail-block"><div class="detail-block-label">Test Score</div><div class="detail-block-val">${a.testScore || 'N/A'}</div></div>
-                <div class="detail-block"><div class="detail-block-label">Height (cm)</div><div class="detail-block-val">${a.height || 'N/A'}</div></div>
-                <div class="detail-block"><div class="detail-block-label">Weight (kg)</div><div class="detail-block-val">${a.weight || 'N/A'}</div></div>
-                <div class="detail-block"><div class="detail-block-label">BMI</div><div class="detail-block-val big">${typeof bmi === 'number' ? bmi.toFixed(1) : bmi}</div></div>
-                <div class="detail-block"><div class="detail-block-label">Category</div><div class="detail-block-val"><span class="bmi-pill ${getBMICategoryClass(cat)}">${getBMICategoryDisplay(cat)}</span></div></div>`;
-            if (type === 'post' && a.improvement) html += `<div class="detail-block detail-block-full"><div class="detail-block-label">Improvement</div><div class="detail-block-val">${a.improvement}</div></div>`;
-            if (a.notes) html += `<div class="detail-block detail-block-full"><div class="detail-block-label">Notes</div><div class="detail-block-val" style="font-size:14px;line-height:1.6;">${a.notes}</div></div>`;
-            html += '</div>';
-            document.getElementById('assessmentDetailContent').innerHTML = html;
-            document.getElementById('assessmentDetailModal').style.display = 'flex';
-        } catch(e) { 
-            console.error('Error loading assessment details:', e);
-            alert('Error loading assessment details: ' + e.message); 
+    window.viewBMIDetails = function(id, type) {
+        const list = type === 'pre' ? preAssessments : postAssessments;
+        const a = list.find(r => r.id === id);
+        if (!a) return;
+        const bmi = parseFloat(a.bmi) || 0;
+        const cat = resolveBMICategory(a);
+        const date = parseBMIDate(a);
+        const name = a.studentName || a.name || a.displayName || 'Unknown';
+        const section = a.section || a.assignedSection || 'N/A';
+        const umakId = a.umakId || a.studentId || '';
+        const email = a.email || '';
+        let html = `<div class="detail-grid">
+            <div class="detail-block"><div class="detail-block-label">Student Name</div><div class="detail-block-val">${name}</div></div>
+            <div class="detail-block"><div class="detail-block-label">UMAK ID</div><div class="detail-block-val" style="font-family:'DM Mono',monospace;font-size:13px;">${umakId || 'N/A'}</div></div>
+            <div class="detail-block"><div class="detail-block-label">Section</div><div class="detail-block-val">${section}</div></div>
+            <div class="detail-block"><div class="detail-block-label">Email</div><div class="detail-block-val" style="font-size:13px;word-break:break-all;">${email || 'N/A'}</div></div>
+            <div class="detail-block"><div class="detail-block-label">Assessment Date</div><div class="detail-block-val">${date}</div></div>
+            <div class="detail-block"><div class="detail-block-label">Recorded By</div><div class="detail-block-val" style="text-transform:capitalize;">${a.recordedBy || 'N/A'}</div></div>
+            <div class="detail-block"><div class="detail-block-label">Height (cm)</div><div class="detail-block-val">${a.height || 'N/A'}</div></div>
+            <div class="detail-block"><div class="detail-block-label">Weight (kg)</div><div class="detail-block-val">${a.weight || 'N/A'}</div></div>
+            <div class="detail-block"><div class="detail-block-label">BMI</div><div class="detail-block-val big">${bmi > 0 ? bmi.toFixed(2) : 'N/A'}</div></div>
+            <div class="detail-block"><div class="detail-block-label">Category</div><div class="detail-block-val"><span class="bmi-pill ${getBMICategoryClass(cat)}">${getBMICategoryDisplay(cat)}</span></div></div>
+            <div class="detail-block"><div class="detail-block-label">Test Type</div><div class="detail-block-val" style="text-transform:capitalize;">${a.testType || type || 'N/A'}</div></div>`;
+        if (type === 'post' && typeof a._bmiChange === 'number') {
+            const ch = a._bmiChange;
+            const style = ch < 0 ? 'color:var(--success)' : ch > 0 ? 'color:var(--danger)' : 'color:var(--text-muted)';
+            html += `<div class="detail-block"><div class="detail-block-label">BMI Change vs Pre</div><div class="detail-block-val" style="${style};font-weight:700;">${ch > 0 ? '+' : ''}${ch.toFixed(2)}</div></div>`;
         }
+        html += '</div>';
+        document.getElementById('assessmentDetailContent').innerHTML = html;
+        document.getElementById('assessmentDetailModal').style.display = 'flex';
     };
 
-    window.closeAssessmentDetailModal = function() { 
-        document.getElementById('assessmentDetailModal').style.display = 'none'; 
-    };
+    window.viewAssessmentDetails = window.viewBMIDetails; // legacy alias
+
+    window.closeAssessmentDetailModal = function() { document.getElementById('assessmentDetailModal').style.display = 'none'; };
 
     window.filterPreAssessments = function() {
         const search = (document.getElementById('searchPreAssessments')?.value || '').toLowerCase();
         const cat = document.getElementById('preAssessmentFilter')?.value || 'all';
         const filtered = preAssessments.filter(a => {
-            const ms = (a.studentName || '').toLowerCase().includes(search) || 
-                      (a.section || '').toLowerCase().includes(search);
-            const mc = cat === 'all' || getBMICategory(a.bmi || 0) === cat;
+            const name = (a.studentName || a.name || a.displayName || '').toLowerCase();
+            const section = (a.section || a.assignedSection || '').toLowerCase();
+            const id = (a.umakId || a.studentId || '').toLowerCase();
+            const ms = name.includes(search) || section.includes(search) || id.includes(search);
+            const mc = cat === 'all' || resolveBMICategory(a) === cat;
             return ms && mc;
         });
-        const tbody = document.getElementById('preAssessmentsTableBody'); 
-        if (!tbody) return;
-        if (!filtered.length) { 
-            tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="empty-sub">No results match your search.</div></div></td></tr>`; 
-            return; 
-        }
-        tbody.innerHTML = filtered.map(a => {
-            const bmi = a.bmi || 0; 
-            const cat2 = getBMICategory(bmi);
-            const date = a.assessmentDate ? (a.assessmentDate.toDate ? a.assessmentDate.toDate().toLocaleDateString() : new Date(a.assessmentDate).toLocaleDateString()) : 'N/A';
-            return `<tr><td><span class="cell-primary">${a.studentName || 'Unknown'}</span></td><td>${a.section || 'N/A'}</td><td>${a.height || 'N/A'}</td><td>${a.weight || 'N/A'}</td><td><strong>${typeof bmi === 'number' ? bmi.toFixed(1) : bmi}</strong></td><td><span class="bmi-pill ${getBMICategoryClass(cat2)}">${getBMICategoryDisplay(cat2)}</span></td><td>${date}</td><td><div class="tbl-actions"><button class="tbl-btn tbl-btn-view" onclick="viewAssessmentDetails('${a.id}','pre')"><i class="fas fa-eye"></i> View</button></div></td></tr>`;
-        }).join('');
+        renderPreAssessmentsTable(filtered);
     };
 
     window.filterPostAssessments = function() {
         const search = (document.getElementById('searchPostAssessments')?.value || '').toLowerCase();
         const cat = document.getElementById('postAssessmentFilter')?.value || 'all';
         const filtered = postAssessments.filter(a => {
-            const ms = (a.studentName || '').toLowerCase().includes(search) || 
-                      (a.section || '').toLowerCase().includes(search);
-            const mc = cat === 'all' || getBMICategory(a.bmi || 0) === cat;
+            const name = (a.studentName || a.name || a.displayName || '').toLowerCase();
+            const section = (a.section || a.assignedSection || '').toLowerCase();
+            const id = (a.umakId || a.studentId || '').toLowerCase();
+            const ms = name.includes(search) || section.includes(search) || id.includes(search);
+            const mc = cat === 'all' || resolveBMICategory(a) === cat;
             return ms && mc;
         });
-        const tbody = document.getElementById('postAssessmentsTableBody'); 
-        if (!tbody) return;
-        if (!filtered.length) { 
-            tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-sub">No results match your search.</div></div></td></tr>`; 
-            return; 
-        }
-        tbody.innerHTML = filtered.map(a => {
-            const bmi = a.bmi || 0; 
-            const cat2 = getBMICategory(bmi);
-            const date = a.assessmentDate ? (a.assessmentDate.toDate ? a.assessmentDate.toDate().toLocaleDateString() : new Date(a.assessmentDate).toLocaleDateString()) : 'N/A';
-            return `<tr><td><span class="cell-primary">${a.studentName || 'Unknown'}</span></td><td>${a.section || 'N/A'}</td><td>${a.height || 'N/A'}</td><td>${a.weight || 'N/A'}</td><td><strong>${typeof bmi === 'number' ? bmi.toFixed(1) : bmi}</strong></td><td><span class="bmi-pill ${getBMICategoryClass(cat2)}">${getBMICategoryDisplay(cat2)}</span></td><td>${a.improvement || 'No data'}</td><td>${date}</td><td><div class="tbl-actions"><button class="tbl-btn tbl-btn-view" onclick="viewAssessmentDetails('${a.id}','post')"><i class="fas fa-eye"></i> View</button></div></td></tr>`;
-        }).join('');
+        renderPostAssessmentsTable(filtered);
     };
 
     // ── ACCOUNTS ──
@@ -2730,77 +2757,49 @@
             allAccounts = [];
             snap.forEach(d => {
                 const data = d.data();
-                const role = (data.role || '').toLowerCase();
-                if (role === 'head_admin') return;
+                const role = (data.role||'').toLowerCase();
+                if (role==='head_admin') return;
                 const uid = data.uid || d.id;
                 let name = data.name
-                    || (data.firstName || data.lastName ? `${data.firstName || ''} ${data.lastName || ''}`.trim() : null)
+                    || (data.firstName||data.lastName ? `${data.firstName||''} ${data.lastName||''}`.trim() : null)
                     || data.displayName
-                    || (data.email ? data.email.split('@')[0] : 'Unknown');
+                    || data.email?.split('@')[0]
+                    || 'Unknown';
 
                 // Determine college/section to display
                 let college;
                 if (role === 'professor') {
+                    // Professors are always College of Human Kinetics
                     college = 'College of Human Kinetics';
                 } else {
                     college = data.college || data.section || data.assignedClass || data.assignedSection || 'N/A';
                 }
 
-                allAccounts.push({ 
-                    id: uid, 
-                    docId: d.id, 
-                    name, 
-                    email: data.email || 'N/A', 
-                    role, 
-                    college, 
-                    status: data.status || 'active', 
-                    userData: data 
-                });
+                allAccounts.push({ id:uid, docId:d.id, name, email:data.email||'N/A', role, college, status:data.status||'active', userData:data });
             });
-            updateRoleFilterOptions(); 
-            filteredAccounts = [...allAccounts]; 
-            renderAccountsTable(); 
-            updateTotalAccountsCount();
-        } catch(e) { 
-            console.error('Error loading accounts:', e); 
-            allAccounts = []; 
-            filteredAccounts = []; 
-            renderAccountsTable(); 
-            showAlert('accountAlert','Error loading accounts: ' + e.message,'error'); 
-        }
+            updateRoleFilterOptions(); filteredAccounts = [...allAccounts]; renderAccountsTable(); updateTotalAccountsCount();
+        } catch(e) { console.error(e); allAccounts=[]; filteredAccounts=[]; renderAccountsTable(); showAlert('accountAlert','Error: '+e.message,'error'); }
     }
 
     function updateRoleFilterOptions() {
-        const el = document.getElementById('roleFilter'); 
-        if (!el) return;
+        const el = document.getElementById('roleFilter'); if (!el) return;
         const cur = el.value;
-        const roles = new Set(allAccounts.map(a => a.role).filter(Boolean));
+        const roles = new Set(allAccounts.map(a=>a.role).filter(Boolean));
         el.innerHTML = '<option value="all">All Roles</option>';
-        Array.from(roles).sort().forEach(r => { 
-            const o = document.createElement('option'); 
-            o.value = r; 
-            o.textContent = r.charAt(0).toUpperCase() + r.slice(1); 
-            el.appendChild(o); 
-        });
+        Array.from(roles).sort().forEach(r => { const o=document.createElement('option'); o.value=r; o.textContent=r.charAt(0).toUpperCase()+r.slice(1); el.appendChild(o); });
         el.value = cur;
     }
 
     function renderAccountsTable() {
-        const tbody = document.getElementById('accountsTableBody'); 
-        if (!tbody) return;
+        const tbody = document.getElementById('accountsTableBody'); if (!tbody) return;
         if (!filteredAccounts.length) {
             tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon"><i class="fas fa-users"></i></div><div class="empty-title">No Accounts Found</div><div class="empty-sub">No user accounts match your search.</div></div></td></tr>`;
             return;
         }
         tbody.innerHTML = filteredAccounts.map(a => {
-            const display = a.name || a.email?.split('@')[0] || 'Unknown';
-            const roleDisplay = a.role ? a.role.charAt(0).toUpperCase() + a.role.slice(1) : 'Unknown';
-            const roleCls = { 
-                dean: 'badge-dean', 
-                professor: 'badge-professor', 
-                secretary: 'badge-secretary', 
-                student: 'badge-student' 
-            }[a.role] || 'badge-default';
+            const display = a.name||a.email?.split('@')[0]||'Unknown';
+            const roleDisplay = a.role ? a.role.charAt(0).toUpperCase()+a.role.slice(1) : 'Unknown';
+            const roleCls = { dean:'badge-dean', professor:'badge-professor', secretary:'badge-secretary', student:'badge-student' }[a.role] || 'badge-default';
             return `<tr>
                 <td>
                     <div style="display:flex;align-items:center;gap:12px;">
@@ -2814,11 +2813,11 @@
                 <td><span style="font-size:13px;">${a.email}</span></td>
                 <td><span class="badge-pill ${roleCls}">${roleDisplay}</span></td>
                 <td><span style="font-size:13px;">${a.college}</span></td>
-                <td><span class="badge-pill ${a.status === 'active' ? 'badge-active' : 'badge-inactive'}"><i class="fas fa-circle" style="font-size:7px;margin-right:4px;"></i>${a.status}</span></td>
+                <td><span class="badge-pill ${a.status==='active'?'badge-active':'badge-inactive'}"><i class="fas fa-circle" style="font-size:7px;margin-right:4px;"></i>${a.status}</span></td>
                 <td>
                     <div class="tbl-actions">
                         <button class="tbl-btn tbl-btn-edit" onclick="showEditRoleModal('${a.id}','${a.docId}','${display.replace(/'/g,"\\'")}','${a.email.replace(/'/g,"\\'")}','${a.role}')"><i class="fas fa-pen"></i> Role</button>
-                        ${a.status === 'active'
+                        ${a.status==='active'
                             ? `<button class="tbl-btn tbl-btn-deact" onclick="toggleAccountStatus('${a.docId}','inactive')"><i class="fas fa-ban"></i> Deactivate</button>`
                             : `<button class="tbl-btn tbl-btn-act" onclick="toggleAccountStatus('${a.docId}','active')"><i class="fas fa-check"></i> Activate</button>`}
                     </div>
@@ -2827,142 +2826,95 @@
         }).join('');
     }
 
-    function updateTotalAccountsCount() { 
-        document.getElementById('totalAccountsCount').textContent = allAccounts.length; 
-    }
+    function updateTotalAccountsCount() { document.getElementById('totalAccountsCount').textContent = allAccounts.length; }
 
-    window.refreshAccounts = function() { 
-        showAlert('accountAlert','Refreshing accounts…','success'); 
-        loadAllAccounts(); 
-    };
+    window.refreshAccounts = function() { showAlert('accountAlert','Refreshing…','success'); loadAllAccounts(); };
 
     window.filterAccounts = function() {
-        const search = (document.getElementById('searchAccounts')?.value || '').toLowerCase();
-        const role = document.getElementById('roleFilter')?.value || 'all';
+        const search = (document.getElementById('searchAccounts')?.value||'').toLowerCase();
+        const role = document.getElementById('roleFilter')?.value||'all';
         filteredAccounts = allAccounts.filter(a => {
-            const ms = a.name.toLowerCase().includes(search) || 
-                      a.email.toLowerCase().includes(search) || 
-                      a.college.toLowerCase().includes(search);
-            return ms && (role === 'all' || a.role === role);
+            const ms = a.name.toLowerCase().includes(search)||a.email.toLowerCase().includes(search)||a.college.toLowerCase().includes(search);
+            return ms && (role==='all'||a.role===role);
         });
         renderAccountsTable();
     };
 
-    window.filterAccountsByRole = function() { 
-        filterAccounts(); 
-    };
+    window.filterAccountsByRole = function() { filterAccounts(); };
 
     window.showEditRoleModal = function(uid, docId, name, email, role) {
-        currentUserToEdit = { id: uid, docId, name, email, currentRole: role };
+        currentUserToEdit = { id:uid, docId, name, email, currentRole:role };
         document.getElementById('editRoleUserName').textContent = name;
         document.getElementById('editRoleUserEmail').textContent = email;
-        document.getElementById('editRoleCurrentRole').textContent = role.charAt(0).toUpperCase() + role.slice(1);
+        document.getElementById('editRoleCurrentRole').textContent = role.charAt(0).toUpperCase()+role.slice(1);
         const sel = document.getElementById('editRoleSelect');
         sel.innerHTML = `<option value="">— Choose Role —</option>
-            <option value="dean" ${role === 'dean' ? 'selected' : ''}>Dean</option>
-            <option value="professor" ${role === 'professor' ? 'selected' : ''}>Professor</option>
-            <option value="secretary" ${role === 'secretary' ? 'selected' : ''}>Secretary</option>
-            <option value="student" ${role === 'student' ? 'selected' : ''}>Student</option>`;
+            <option value="dean" ${role==='dean'?'selected':''}>Dean</option>
+            <option value="professor" ${role==='professor'?'selected':''}>Professor</option>
+            <option value="secretary" ${role==='secretary'?'selected':''}>Secretary</option>
+            <option value="student" ${role==='student'?'selected':''}>Student</option>`;
         document.getElementById('editRoleModal').style.display = 'flex';
     };
 
-    window.closeEditRoleModal = function() { 
-        document.getElementById('editRoleModal').style.display = 'none'; 
-        currentUserToEdit = null; 
-    };
+    window.closeEditRoleModal = function() { document.getElementById('editRoleModal').style.display='none'; currentUserToEdit=null; };
 
     window.updateUserRole = async function() {
         if (!currentUserToEdit) return;
         const newRole = document.getElementById('editRoleSelect')?.value;
-        if (!newRole) { 
-            alert('Please select a role.'); 
-            return; 
-        }
-        if (newRole === currentUserToEdit.currentRole) { 
-            alert('This is already the current role.'); 
-            return; 
-        }
-        if (!confirm(`Change ${currentUserToEdit.name}'s role to ${newRole.charAt(0).toUpperCase() + newRole.slice(1)}?`)) return;
+        if (!newRole) { alert('Please select a role.'); return; }
+        if (newRole===currentUserToEdit.currentRole) { alert('This is already the current role.'); return; }
+        if (!confirm(`Change ${currentUserToEdit.name}'s role to ${newRole.charAt(0).toUpperCase()+newRole.slice(1)}?`)) return;
         try {
             let ref = doc(db,'users',currentUserToEdit.docId);
             let d = await getDoc(ref);
-            if (!d.exists()) { 
-                ref = doc(db,'users',currentUserToEdit.id); 
-            }
-            await updateDoc(ref, { 
-                role: newRole, 
-                updatedAt: serverTimestamp() 
-            });
-            showAlert('accountAlert',`✅ ${currentUserToEdit.name}'s role updated to ${newRole.charAt(0).toUpperCase() + newRole.slice(1)}.`,'success');
-            closeEditRoleModal(); 
-            await loadAllAccounts(); 
-            await loadDashboardStats();
-        } catch(e) { 
-            console.error('Error updating role:', e);
-            showAlert('accountAlert','❌ Error: ' + e.message,'error'); 
-        }
+            if (!d.exists()) { ref = doc(db,'users',currentUserToEdit.id); }
+            await updateDoc(ref, { role:newRole, updatedAt:serverTimestamp() });
+            showAlert('accountAlert',`✅ ${currentUserToEdit.name}'s role updated to ${newRole.charAt(0).toUpperCase()+newRole.slice(1)}.`,'success');
+            closeEditRoleModal(); await loadAllAccounts(); await loadDashboardStats();
+        } catch(e) { showAlert('accountAlert','❌ Error: '+e.message,'error'); }
     };
 
     window.toggleAccountStatus = async function(docId, newStatus) {
-        const a = allAccounts.find(ac => ac.docId === docId); 
-        if (!a) return;
-        const action = newStatus === 'active' ? 'activate' : 'deactivate';
-        if (!confirm(`Are you sure you want to ${action} ${a.name || a.email}?`)) return;
+        const a = allAccounts.find(ac=>ac.docId===docId); if (!a) return;
+        const action = newStatus==='active'?'activate':'deactivate';
+        if (!confirm(`Are you sure you want to ${action} ${a.name||a.email}?`)) return;
         try {
             let ref = doc(db,'users',docId);
             const d = await getDoc(ref);
-            if (!d.exists()) { 
-                ref = doc(db,'users',a.id); 
-            }
-            await updateDoc(ref, { 
-                status: newStatus, 
-                updatedAt: serverTimestamp() 
-            });
+            if (!d.exists()) ref = doc(db,'users',a.id);
+            await updateDoc(ref, { status:newStatus, updatedAt:serverTimestamp() });
             showAlert('accountAlert',`✅ Account ${action}d successfully.`,'success');
-            await loadAllAccounts(); 
-            await loadDashboardStats();
-        } catch(e) { 
-            console.error('Error toggling account status:', e);
-            showAlert('accountAlert','❌ Error: ' + e.message,'error'); 
-        }
+            await loadAllAccounts(); await loadDashboardStats();
+        } catch(e) { showAlert('accountAlert','❌ Error: '+e.message,'error'); }
     };
 
     // ── HELPERS ──
     function showAlert(id, msg, type) {
-        const el = document.getElementById(id); 
-        if (!el) return;
+        const el = document.getElementById(id); if (!el) return;
         el.className = `alert-msg alert-${type} show`;
-        el.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i><span>${msg}</span>`;
+        el.innerHTML = `<i class="fas fa-${type==='success'?'check-circle':'exclamation-circle'}"></i><span>${msg}</span>`;
         setTimeout(() => el.classList.remove('show'), 5000);
     }
 
     function downloadCSV(content, filename) {
-        const blob = new Blob([content], {type:'text/csv'});
+        const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
-        const a = document.createElement('a'); 
-        a.href = url; 
-        a.download = filename; 
-        a.click();
+        const a = document.createElement('a');
+        a.href = url; a.download = filename;
+        document.body.appendChild(a); a.click();
+        document.body.removeChild(a);
         URL.revokeObjectURL(url);
     }
 
-    // Make functions available globally
-    window.viewAssessmentDetails = viewAssessmentDetails;
-    window.closeAssessmentDetailModal = closeAssessmentDetailModal;
-    window.filterPreAssessments = filterPreAssessments;
-    window.filterPostAssessments = filterPostAssessments;
-    window.refreshPreAssessments = refreshPreAssessments;
-    window.refreshPostAssessments = refreshPostAssessments;
-    window.showEditRoleModal = showEditRoleModal;
-    window.closeEditRoleModal = closeEditRoleModal;
-    window.updateUserRole = updateUserRole;
-    window.toggleAccountStatus = toggleAccountStatus;
-    window.filterAccounts = filterAccounts;
-    window.filterAccountsByRole = filterAccountsByRole;
-    window.refreshAccounts = refreshAccounts;
-    window.exportStudentRankingReport = exportStudentRankingReport;
-    window.viewStudentDetails = viewStudentDetails;
-    window.closeStudentDetailsModal = closeStudentDetailsModal;
+
+        const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = filename;
+        document.body.appendChild(a); a.click();
+        document.body.removeChild(a); URL.revokeObjectURL(url);
+    
+
 </script>
 </body>
 </html>
