@@ -983,6 +983,7 @@
         var mobileDrawer = document.getElementById('mobileDrawer');
         var drawerOverlay = document.getElementById('drawerOverlay');
         var drawerCloseBtn = document.getElementById('drawerClose');
+        var __umakfitAuthHandled = false;
 
        function openDrawer() {
     mobileDrawer.classList.add('open');
@@ -1029,6 +1030,7 @@ if (drawerOverlay) drawerOverlay.addEventListener('click', closeDrawer);
             const result = await window.getRedirectResult(window.auth);
 
             if (result && result.user) {
+                __umakfitAuthHandled = true;
 
                 showLoading('Checking your account...');
 
@@ -1040,6 +1042,7 @@ if (drawerOverlay) drawerOverlay.addEventListener('click', closeDrawer);
                 }
 
                 await checkUserStatus(result.user);
+                return;
             }
 
         } catch (error) {
@@ -1048,6 +1051,26 @@ if (drawerOverlay) drawerOverlay.addEventListener('click', closeDrawer);
             showError('Login failed. Please try again.');
         }
     })();
+
+    // If redirect result is empty but user is already signed in, proceed anyway.
+    if (window.auth && window.onAuthStateChanged) {
+        window.onAuthStateChanged(window.auth, async (user) => {
+            if (!user) return;
+            if (__umakfitAuthHandled) return;
+            __umakfitAuthHandled = true;
+
+            showLoading('Checking your account...');
+            const email = (user.email || '').toLowerCase();
+            if (!email.endsWith('@umak.edu.ph')) {
+                try { await window.signOut(window.auth); } catch (e) {}
+                hideLoading();
+                showError('Please use your UMak Gmail account (@umak.edu.ph)');
+                return;
+            }
+
+            await checkUserStatus(user);
+        });
+    }
 
 });
 
@@ -1079,7 +1102,7 @@ if (drawerOverlay) drawerOverlay.addEventListener('click', closeDrawer);
     <!-- ─── FIREBASE (module — completely unchanged) ─── -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence, browserSessionPersistence, inMemoryPersistence } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
         import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
         import { getDatabase, ref, set, onDisconnect, serverTimestamp, onValue } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
 
@@ -1098,6 +1121,12 @@ if (drawerOverlay) drawerOverlay.addEventListener('click', closeDrawer);
         const database = getDatabase(app);
         const googleProvider = new GoogleAuthProvider();
 
+        // Auth persistence fallback for iOS/Safari and strict environments.
+        setPersistence(auth, browserLocalPersistence)
+            .catch(() => setPersistence(auth, browserSessionPersistence))
+            .catch(() => setPersistence(auth, inMemoryPersistence))
+            .catch(() => {});
+
         googleProvider.setCustomParameters({
             prompt: 'select_account',
             hd: 'umak.edu.ph'
@@ -1110,6 +1139,7 @@ if (drawerOverlay) drawerOverlay.addEventListener('click', closeDrawer);
         window.signInWithRedirect = signInWithRedirect;
         window.getRedirectResult = getRedirectResult;
         window.signOut = signOut;
+        window.onAuthStateChanged = onAuthStateChanged;
         window.doc = doc;
         window.setDoc = setDoc;
         window.getDoc = getDoc;
@@ -1339,7 +1369,7 @@ if (studentData) {
     } else if (studentData.emailVerified && !studentData.privacyAccepted) {
         showLoading('Please accept the privacy policy...');
         setTimeout(() => {
-            window.location.href = 'privacy-policy.html';
+            window.location.href = 'dataprivacy.html';
         }, 1000);
     }
 
