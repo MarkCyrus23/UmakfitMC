@@ -1369,8 +1369,20 @@ if (studentData) {
             try {
                 if (!window.getRedirectResult || !window.auth) return;
 
-                const result = await window.getRedirectResult(window.auth);
-                if (!result || !result.user) {
+                let userFromResult = null;
+
+                try {
+                    const result = await window.getRedirectResult(window.auth);
+                    if (result && result.user) {
+                        userFromResult = result.user;
+                    }
+                } catch (innerError) {
+                    console.warn('getRedirectResult error, will check currentUser instead:', innerError);
+                }
+
+                // Fallback: if no redirect result but Firebase already restored the session
+                const firebaseUser = userFromResult || window.auth.currentUser || null;
+                if (!firebaseUser) {
                     try {
                         if (sessionStorage.getItem('umakfit_pending_redirect') === '1') {
                             sessionStorage.removeItem('umakfit_pending_redirect');
@@ -1383,18 +1395,32 @@ if (studentData) {
 
                 showLoading('Login successful! Checking your account...');
 
-                if (!result.user.email.endsWith('@umak.edu.ph')) {
+                if (!firebaseUser.email || !firebaseUser.email.endsWith('@umak.edu.ph')) {
                     await window.signOut(window.auth);
                     hideLoading();
                     showError('Please use your UMak Gmail account (@umak.edu.ph)');
                     return;
                 }
 
-                await debugUserLogin(result.user);
-                await checkUserStatus(result.user);
+                await debugUserLogin(firebaseUser);
+                await checkUserStatus(firebaseUser);
             } catch (error) {
                 console.error('Redirect sign-in error:', error);
                 try { sessionStorage.removeItem('umakfit_pending_redirect'); } catch (e) {}
+
+                // If there is already a logged-in user, still try to continue
+                const fallbackUser = window.auth && window.auth.currentUser;
+                if (fallbackUser && fallbackUser.email && fallbackUser.email.endsWith('@umak.edu.ph')) {
+                    showLoading('Login successful! Checking your account...');
+                    try {
+                        await debugUserLogin(fallbackUser);
+                        await checkUserStatus(fallbackUser);
+                        return;
+                    } catch (inner) {
+                        console.error('Error while handling fallbackUser after redirect error:', inner);
+                    }
+                }
+
                 hideLoading();
             }
         }
