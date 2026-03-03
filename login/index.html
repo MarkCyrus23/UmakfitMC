@@ -1359,184 +1359,160 @@ if (studentData) {
         }
 
         async function processRedirectSignInResult() {
-    try {
-        if (!window.getRedirectResult || !window.auth) return;
-
-        // Check both storage types since iOS may block one
-        let hasPendingRedirect = false;
-        try { hasPendingRedirect = hasPendingRedirect || sessionStorage.getItem('umakfit_pending_redirect') === '1'; } catch (e) {}
-        try { hasPendingRedirect = hasPendingRedirect || localStorage.getItem('umakfit_pending_redirect') === '1'; } catch (e) {}
-
-        let userFromResult = null;
-
-        // Show loading early if we know a redirect was pending
-        if (hasPendingRedirect) {
-            showLoading('Completing sign in...');
-        }
-
-        try {
-            const result = await window.getRedirectResult(window.auth);
-            if (result && result.user) {
-                userFromResult = result.user;
-            }
-        } catch (innerError) {
-            console.warn('getRedirectResult error, will check currentUser instead:', innerError);
-
-            // On iOS, getRedirectResult sometimes throws but the user IS signed in
-            // Wait briefly for Firebase auth state to restore
-            await new Promise(resolve => setTimeout(resolve, 1500));
-        }
-
-        // Fallback: check if Firebase already restored the auth session
-        const firebaseUser = userFromResult || (window.auth.currentUser) || null;
-
-        // Clean up pending flags
-        try { sessionStorage.removeItem('umakfit_pending_redirect'); } catch (e) {}
-        try { localStorage.removeItem('umakfit_pending_redirect'); } catch (e) {}
-
-        if (!firebaseUser) {
-            hideLoading();
-            return;
-        }
-
-        showLoading('Login successful! Checking your account...');
-
-        if (!firebaseUser.email || !firebaseUser.email.endsWith('@umak.edu.ph')) {
-            await window.signOut(window.auth);
-            hideLoading();
-            showError('Please use your UMak Gmail account (@umak.edu.ph)');
-            return;
-        }
-
-        await debugUserLogin(firebaseUser);
-        await checkUserStatus(firebaseUser);
-
-    } catch (error) {
-        console.error('Redirect sign-in error:', error);
-        try { sessionStorage.removeItem('umakfit_pending_redirect'); } catch (e) {}
-        try { localStorage.removeItem('umakfit_pending_redirect'); } catch (e) {}
-
-        // Final fallback: if a user is already signed in, proceed
-        const fallbackUser = window.auth && window.auth.currentUser;
-        if (fallbackUser && fallbackUser.email && fallbackUser.email.endsWith('@umak.edu.ph')) {
-            showLoading('Login successful! Checking your account...');
             try {
-                await debugUserLogin(fallbackUser);
-                await checkUserStatus(fallbackUser);
-                return;
-            } catch (inner) {
-                console.error('Error handling fallback user:', inner);
+                if (!window.getRedirectResult || !window.auth) return;
+
+                let result = null;
+                try {
+                    result = await window.getRedirectResult(window.auth);
+                } catch (innerError) {
+                    console.warn('getRedirectResult threw, ignoring and waiting for onAuthStateChanged:', innerError);
+                    return;
+                }
+
+                if (!result || !result.user) return;
+
+                const user = result.user;
+                try { sessionStorage.removeItem('umakfit_pending_redirect'); } catch (e) {}
+                try { localStorage.removeItem('umakfit_pending_redirect'); } catch (e) {}
+
+                showLoading('Login successful! Checking your account...');
+
+                if (!user.email || !user.email.endsWith('@umak.edu.ph')) {
+                    await window.signOut(window.auth);
+                    hideLoading();
+                    showError('Please use your UMak Gmail account (@umak.edu.ph)');
+                    return;
+                }
+
+                await debugUserLogin(user);
+                await checkUserStatus(user);
+
+            } catch (error) {
+                console.error('processRedirectSignInResult outer error:', error);
+                hideLoading();
             }
         }
-
-        hideLoading();
-    }
-}
 
         async function handleGoogleSignIn() {
-    showLoading('Connecting to Google...');
-    try {
-        window.googleProvider.setCustomParameters({
-            prompt: 'select_account',
-            hd: 'umak.edu.ph'
-        });
-
-        // Detect iOS Safari
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-        const isIOSSafari = isIOS || isSafari;
-
-        if (isIOSSafari) {
-            // On iOS Safari, redirect is more reliable than popup
-            // but we need to handle the ITP (Intelligent Tracking Prevention) issue
+            showLoading('Connecting to Google...');
             try {
-                try { localStorage.setItem('umakfit_pending_redirect', '1'); } catch (e) {}
-                try { sessionStorage.setItem('umakfit_pending_redirect', '1'); } catch (e) {}
-                showLoading('Redirecting to Google...');
-                await window.signInWithRedirect(window.auth, window.googleProvider);
-                return;
-            } catch (redirectError) {
-                console.warn('Redirect failed on iOS, trying popup:', redirectError);
-                // Try popup as last resort on iOS
+                window.googleProvider.setCustomParameters({
+                    prompt: 'select_account',
+                    hd: 'umak.edu.ph'
+                });
+
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+                const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+                const useRedirect = isIOS || isSafari;
+
+                if (useRedirect) {
+                    try {
+                        try { sessionStorage.setItem('umakfit_pending_redirect', '1'); } catch (e) {}
+                        try { localStorage.setItem('umakfit_pending_redirect', '1'); } catch (e) {}
+                        showLoading('Redirecting to Google...');
+                        await window.signInWithRedirect(window.auth, window.googleProvider);
+                        return;
+                    } catch (redirectError) {
+                        console.warn('Redirect failed on iOS/Safari, trying popup:', redirectError);
+                    }
+                }
+
+                // Non-iOS or redirect failed: try popup first
                 try {
-                    hideLoading();
                     showLoading('Opening Google sign-in...');
                     const result = await window.signInWithPopup(window.auth, window.googleProvider);
+
                     if (!result.user.email.endsWith('@umak.edu.ph')) {
                         await window.signOut(window.auth);
                         hideLoading();
                         showError('Please use your UMak Gmail account (@umak.edu.ph)');
                         return;
                     }
+
                     await debugUserLogin(result.user);
                     await checkUserStatus(result.user);
-                    return;
-                } catch (popupError) {
-                    console.warn('Popup also failed on iOS:', popupError);
-                    hideLoading();
-                    showError('Please open this site in Safari and allow pop-ups, or try on a different browser.');
-                    return;
-                }
-            }
-        }
 
-        // Non-iOS: use redirect as primary
-        try {
-            try { sessionStorage.setItem('umakfit_pending_redirect', '1'); } catch (e) {}
-            showLoading('Redirecting to Google...');
-            await window.signInWithRedirect(window.auth, window.googleProvider);
-            return;
-        } catch (redirectError) {
-            console.warn('signInWithRedirect not supported, falling back to popup:', redirectError);
-            if (window.signInWithPopup) {
-                hideLoading();
-                showLoading('Opening Google sign-in...');
-                const result = await window.signInWithPopup(window.auth, window.googleProvider);
-                if (!result.user.email.endsWith('@umak.edu.ph')) {
-                    await window.signOut(window.auth);
+                } catch (popupError) {
+                    console.warn('Popup failed, falling back to redirect:', popupError);
+
+                    if (
+                        popupError.code === 'auth/popup-blocked' ||
+                        popupError.code === 'auth/popup-closed-by-user' ||
+                        popupError.code === 'auth/cancelled-popup-request' ||
+                        popupError.code === 'auth/operation-not-supported-in-this-environment'
+                    ) {
+                        try {
+                            try { sessionStorage.setItem('umakfit_pending_redirect', '1'); } catch (e) {}
+                            try { localStorage.setItem('umakfit_pending_redirect', '1'); } catch (e) {}
+                            showLoading('Redirecting to Google...');
+                            await window.signInWithRedirect(window.auth, window.googleProvider);
+                            return;
+                        } catch (redirectFallbackError) {
+                            console.error('Redirect fallback also failed:', redirectFallbackError);
+                            hideLoading();
+                            showError('Sign in failed. Please try again or use a different browser.');
+                            return;
+                        }
+                    }
+
                     hideLoading();
-                    showError('Please use your UMak Gmail account (@umak.edu.ph)');
-                    return;
+                    let errorMessage = 'Failed to sign in. Please try again.';
+                    if (popupError.code === 'auth/invalid-domain') {
+                        errorMessage = 'Please use your UMak Gmail account (@umak.edu.ph)';
+                    } else if (popupError.code === 'auth/account-exists-with-different-credential') {
+                        errorMessage = 'Account already exists with different credentials.';
+                    }
+                    showError(errorMessage);
                 }
-                await debugUserLogin(result.user);
-                await checkUserStatus(result.user);
-                return;
+
+            } catch (error) {
+                console.error('handleGoogleSignIn outer error:', error);
+                hideLoading();
+                showError('Failed to sign in. Please try again.');
             }
-            throw redirectError;
         }
-    } catch (error) {
-        console.error('Sign in error:', error);
-        hideLoading();
-        let errorMessage = 'Failed to sign in with Google. Please try again.';
-        if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
-            errorMessage = 'Sign in was cancelled. Please try again.';
-        } else if (error.code === 'auth/popup-blocked') {
-            errorMessage = 'Popup was blocked. Trying redirect sign-in instead...';
-            // Auto-fallback to redirect when popup is blocked
-            try {
-                try { sessionStorage.setItem('umakfit_pending_redirect', '1'); } catch (e) {}
-                try { localStorage.setItem('umakfit_pending_redirect', '1'); } catch (e) {}
-                await window.signInWithRedirect(window.auth, window.googleProvider);
-                return;
-            } catch (e) {
-                errorMessage = 'Sign in failed. Please try again.';
-            }
-        } else if (error.code === 'auth/account-exists-with-different-credential') {
-            errorMessage = 'An account already exists with the same email but different sign-in credentials.';
-        } else if (error.code === 'auth/invalid-domain') {
-            errorMessage = 'Please use your UMak Gmail account (@umak.edu.ph)';
-        }
-        showError(errorMessage);
-    }
-}
 
         window.handleGoogleSignIn = handleGoogleSignIn;
+        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
         window.debugUserLogin = debugUserLogin;
+        window.checkUserStatus = checkUserStatus;
+
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', processRedirectSignInResult, { once: true });
         } else {
             processRedirectSignInResult();
         }
+        // Handles iOS Safari where getRedirectResult fails but auth state IS restored
+let hasPendingRedirect = false;
+try { hasPendingRedirect = hasPendingRedirect || sessionStorage.getItem('umakfit_pending_redirect') === '1'; } catch(e) {}
+try { hasPendingRedirect = hasPendingRedirect || localStorage.getItem('umakfit_pending_redirect') === '1'; } catch(e) {}
+
+if (hasPendingRedirect) {
+    showLoading('Completing sign in...');
+    const { onAuthStateChanged } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+        unsubscribe(); // only fire once
+        try { sessionStorage.removeItem('umakfit_pending_redirect'); } catch(e) {}
+        try { localStorage.removeItem('umakfit_pending_redirect'); } catch(e) {}
+
+        if (!user) {
+            hideLoading();
+            return;
+        }
+
+        if (!user.email || !user.email.endsWith('@umak.edu.ph')) {
+            await signOut(auth);
+            hideLoading();
+            showError('Please use your UMak Gmail account (@umak.edu.ph)');
+            return;
+        }
+
+        showLoading('Login successful! Checking your account...');
+        await window.debugUserLogin(user);
+        await window.checkUserStatus(user);
+    });
+}
     </script>
 
 </body>
