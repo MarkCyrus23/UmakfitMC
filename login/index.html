@@ -938,7 +938,7 @@
                     <div id="errorMessage" class="hidden"></div>
 
                     <!-- Google Sign In Button (dynamic text based on device) -->
-                    <button class="google-btn" onclick="handleGoogleSignIn()">
+                    <button class="google-btn" onclick="handlePlatformAwareSignIn()">
                         <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
                         <span class="google-btn-text" id="googleButtonText">Continue with UMak Gmail</span>
                     </button>
@@ -973,7 +973,7 @@
         </div>
     </div>
 
-    <!-- ─── SCRIPTS ─── -->
+    <!-- ─── SCRIPTS (non-module) ─── -->
     <script>
         // Mobile Drawer
         var hamburger = document.getElementById('hamburger');
@@ -1050,10 +1050,10 @@ if (drawerOverlay) drawerOverlay.addEventListener('click', closeDrawer);
         }
     </script>
 
-    <!-- ─── FIREBASE (module — completely unchanged) ─── -->
+    <!-- ─── FIREBASE (module) ─── -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
         import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
         import { getDatabase, ref, set, onDisconnect, serverTimestamp, onValue } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
 
@@ -1077,11 +1077,14 @@ if (drawerOverlay) drawerOverlay.addEventListener('click', closeDrawer);
             hd: 'umak.edu.ph'
         });
 
+        // Expose necessary functions globally
         window.auth = auth;
         window.db = db;
         window.database = database;
         window.googleProvider = googleProvider;
         window.signInWithPopup = signInWithPopup;
+        window.signInWithRedirect = signInWithRedirect;
+        window.getRedirectResult = getRedirectResult;
         window.signOut = signOut;
         window.doc = doc;
         window.setDoc = setDoc;
@@ -1097,8 +1100,38 @@ if (drawerOverlay) drawerOverlay.addEventListener('click', closeDrawer);
         window.onValue = onValue;
     </script>
 
-    <!-- ─── ALL AUTH LOGIC (completely unchanged from original) ─── -->
+    <!-- ─── ALL AUTH LOGIC (plus device detection & platform-aware sign-in) ─── -->
     <script>
+        // ========== DEVICE DETECTION ==========
+        function getDevicePlatform() {
+            const ua = navigator.userAgent || navigator.vendor || window.opera;
+            // iPhone / iPad / iPod
+            if (/iPhone|iPod|iPad/.test(ua) && !window.MSStream) {
+                return 'ios';
+            }
+            // Android
+            if (/android/i.test(ua)) {
+                return 'android';
+            }
+            // Desktop / other
+            return 'desktop';
+        }
+
+        // Set button text based on platform
+        (function setGoogleButtonText() {
+            const buttonSpan = document.getElementById('googleButtonText');
+            if (!buttonSpan) return;
+            const platform = getDevicePlatform();
+            if (platform === 'ios') {
+                buttonSpan.textContent = 'Continue with UMak Gmail (iPhone)';
+            } else if (platform === 'android') {
+                buttonSpan.textContent = 'Continue with UMak Gmail (Android)';
+            } else {
+                buttonSpan.textContent = 'Continue with UMak Gmail';
+            }
+        })();
+
+        // ========== EXISTING AUTH FUNCTIONS (unchanged) ==========
         async function setupUserPresence(user) {
             try {
                 let userRole = 'student';
@@ -1358,28 +1391,30 @@ if (studentData) {
             } catch (error) { console.error('Debug error:', error); }
         }
 
-        async function handleGoogleSignIn() {
-            showLoading('Connecting to Google...');
+        // ========== PLATFORM-AWARE SIGN-IN ==========
+        async function handlePlatformAwareSignIn() {
+            const platform = getDevicePlatform();
+            showLoading(`Connecting with Google (${platform})...`);
+
             try {
+                // Sign out first to ensure clean state
                 try { await window.signOut(window.auth); } catch (e) {}
 
+                // Always set domain restriction
                 window.googleProvider.setCustomParameters({
                     prompt: 'select_account',
                     hd: 'umak.edu.ph'
                 });
 
-                const result = await window.signInWithPopup(window.auth, window.googleProvider);
-                
-                if (!result.user.email.endsWith('@umak.edu.ph')) {
-                    await window.signOut(window.auth);
-                    hideLoading();
-                    showError('Please use your UMak Gmail account (@umak.edu.ph)');
-                    return;
+                if (platform === 'ios') {
+                    // iPhone/iPad: use redirect
+                    await window.signInWithRedirect(window.auth, window.googleProvider);
+                    // Note: after redirect, we'll handle result in getRedirectResult below
+                } else {
+                    // Android or desktop: use popup
+                    const result = await window.signInWithPopup(window.auth, window.googleProvider);
+                    await handleSignInResult(result);
                 }
-                
-                await debugUserLogin(result.user);
-                await checkUserStatus(result.user);
-
             } catch (error) {
                 console.error('Sign in error:', error);
                 hideLoading();
@@ -1392,32 +1427,46 @@ if (studentData) {
             }
         }
 
-        window.handleGoogleSignIn = handleGoogleSignIn;
-        window.debugUserLogin = debugUserLogin;
-    </script>
-
-    <!-- ─── DEVICE DETECTION SCRIPT (ADDED: changes button text) ─── -->
-    <script>
-        (function setGoogleButtonText() {
-            const buttonSpan = document.getElementById('googleButtonText');
-            if (!buttonSpan) return;
-
-            const ua = navigator.userAgent || navigator.vendor || window.opera;
-
-            // iPhone detection
-            if (/iPhone|iPod|iPad/.test(ua) && !window.MSStream) {
-                buttonSpan.textContent = 'Continue with UMak Gmail (iPhone)';
+        // Helper to process sign-in result (for both popup and redirect)
+        async function handleSignInResult(result) {
+            if (!result || !result.user) {
+                hideLoading();
+                return;
             }
-            // Android detection
-            else if (/android/i.test(ua)) {
-                buttonSpan.textContent = 'Continue with UMak Gmail (Android)';
+
+            const user = result.user;
+            
+            // Domain check (redundant but safe)
+            if (!user.email.endsWith('@umak.edu.ph')) {
+                await window.signOut(window.auth);
+                hideLoading();
+                showError('Please use your UMak Gmail account (@umak.edu.ph)');
+                return;
             }
-            // Desktop / others
-            else {
-                // Keep default text or optionally set a generic one
-                buttonSpan.textContent = 'Continue with UMak Gmail';
+
+            await debugUserLogin(user);
+            await checkUserStatus(user);
+        }
+
+        // Handle redirect result on page load
+        (async function handleRedirectResult() {
+            try {
+                const result = await window.getRedirectResult(window.auth);
+                if (result) {
+                    // We have a redirect result
+                    await handleSignInResult(result);
+                }
+            } catch (error) {
+                console.error('Redirect result error:', error);
+                hideLoading();
+                let errorMessage = 'Failed to complete sign-in.';
+                if (error.code === 'auth/invalid-domain') errorMessage = 'Please use your UMak Gmail account (@umak.edu.ph)';
+                showError(errorMessage);
             }
         })();
+
+        window.handlePlatformAwareSignIn = handlePlatformAwareSignIn;
+        window.debugUserLogin = debugUserLogin;
     </script>
 
 </body>
