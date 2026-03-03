@@ -937,10 +937,10 @@
                     <!-- Error Message (id preserved for JS) -->
                     <div id="errorMessage" class="hidden"></div>
 
-                    <!-- Google Sign In Button (onclick preserved exactly) -->
+                    <!-- Google Sign In Button (dynamic text based on device) -->
                     <button class="google-btn" onclick="handleGoogleSignIn()">
                         <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
-                        <span class="google-btn-text">Continue with UMak Gmail</span>
+                        <span class="google-btn-text" id="googleButtonText">Continue with UMak Gmail</span>
                     </button>
 
                     <div class="card-divider">
@@ -972,9 +972,6 @@
 
         </div>
     </div>
-
-
-
 
     <!-- ─── SCRIPTS ─── -->
     <script>
@@ -1399,6 +1396,29 @@ if (studentData) {
         window.debugUserLogin = debugUserLogin;
     </script>
 
+    <!-- ─── DEVICE DETECTION SCRIPT (ADDED: changes button text) ─── -->
+    <script>
+        (function setGoogleButtonText() {
+            const buttonSpan = document.getElementById('googleButtonText');
+            if (!buttonSpan) return;
+
+            const ua = navigator.userAgent || navigator.vendor || window.opera;
+
+            // iPhone detection
+            if (/iPhone|iPod|iPad/.test(ua) && !window.MSStream) {
+                buttonSpan.textContent = 'Continue with UMak Gmail (iPhone)';
+            }
+            // Android detection
+            else if (/android/i.test(ua)) {
+                buttonSpan.textContent = 'Continue with UMak Gmail (Android)';
+            }
+            // Desktop / others
+            else {
+                // Keep default text or optionally set a generic one
+                buttonSpan.textContent = 'Continue with UMak Gmail';
+            }
+        })();
+    </script>
+
 </body>
 </html>
-
