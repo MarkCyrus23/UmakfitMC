@@ -656,8 +656,9 @@
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import {
             getAuth, GoogleAuthProvider,
-            signInWithPopup,   /* ← ONLY popup, no redirect — fixes iOS white screen */
-            signOut
+            signInWithPopup,
+            signOut,
+            onAuthStateChanged
         } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
         import {
             getFirestore, doc, setDoc, getDoc,
@@ -685,14 +686,54 @@
         const googleProvider = new GoogleAuthProvider();
         googleProvider.setCustomParameters({
             prompt: 'select_account',
-            hd:     'umak.edu.ph'   // shows ONLY @umak.edu.ph accounts in picker
+            hd:     'umak.edu.ph'
         });
 
-        hideLoading();
+        // ════════════════════════════════════════════════════════════
+        //  iOS LOOP FIX — session flag prevents onAuthStateChanged
+        //  from re-running checkUserStatus after a redirect/reload.
+        //
+        //  Root cause: On iOS Safari, after signInWithPopup resolves,
+        //  onAuthStateChanged fires AGAIN as the popup closes and the
+        //  page regains focus — triggering a second checkUserStatus
+        //  call that sees the loading state and loops.
+        //
+        //  Fix: Use sessionStorage to mark that we are already
+        //  handling the login flow. onAuthStateChanged only acts
+        //  on initial page load (no flag set), not after the button
+        //  flow has already taken over.
+        // ════════════════════════════════════════════════════════════
 
-        // ════════════════════════════════════════════════════════════
-        //  ORIGINAL AUTH LOGIC — untouched from the working version
-        // ════════════════════════════════════════════════════════════
+        const SESSION_HANDLING_KEY = 'umakfit_handling_login';
+
+        // On page load, check if user is already signed in (handles
+        // iOS Safari returning to the page with a live session).
+        // But ONLY if we're not already in the middle of a button-
+        // triggered sign-in flow.
+        onAuthStateChanged(auth, async (user) => {
+            // If the button flow is active, let it handle everything.
+            if (sessionStorage.getItem(SESSION_HANDLING_KEY)) return;
+
+            if (user) {
+                // User is already logged in (e.g. returning to the login page
+                // while still authenticated). Redirect them automatically.
+                if (user.email && user.email.endsWith('@umak.edu.ph')) {
+                    showLoading('Restoring your session...');
+                    try {
+                        await checkUserStatus(user);
+                    } catch(e) {
+                        hideLoading();
+                    }
+                } else {
+                    // Signed in with a non-umak account, sign them out silently
+                    await signOut(auth);
+                    hideLoading();
+                }
+            } else {
+                // No user — show the login page normally
+                hideLoading();
+            }
+        });
 
         async function setupUserPresence(user) {
             try {
@@ -934,65 +975,70 @@
             }
         }
 
-        // ════════════════════════════════════════════════════════════
-        //  ONLY CHANGE FROM ORIGINAL:
-        //  signInWithPopup for BOTH iOS and Android.
-        //  Removed signInWithRedirect entirely — that caused the
-        //  blank white screen at firebaseapp.com/__/auth/handler.
-        //
-        //  popup works on iOS because:
-        //   • button is type="button" (not in a form)
-        //   • touchend fires synchronously → signInWithPopup is
-        //     called in the same gesture → iOS allows the popup
-        // ════════════════════════════════════════════════════════════
-        async function handleGoogleSignIn() {
-            showLoading('Connecting to Google...');
-            try {
-                try { await signOut(auth); } catch (e) {}
-
-                const result = await signInWithPopup(auth, googleProvider);
-
-                if (!result.user.email.endsWith('@umak.edu.ph')) {
-                    await signOut(auth);
-                    hideLoading();
-                    showError('Please use your UMak Gmail account (@umak.edu.ph)');
-                    return;
-                }
-
-                await checkUserStatus(result.user);
-
-            } catch (error) {
-                console.error('Sign in error:', error);
-                hideLoading();
-
-                let errorMessage = 'Failed to sign in with Google';
-                if (error.code === 'auth/popup-closed-by-user')                     errorMessage = 'Sign in was cancelled. Please try again.';
-                else if (error.code === 'auth/cancelled-popup-request')             errorMessage = 'Sign in was cancelled. Please try again.';
-                else if (error.code === 'auth/popup-blocked')                       errorMessage = 'Popup blocked. Please allow popups for this site.';
-                else if (error.code === 'auth/account-exists-with-different-credential') errorMessage = 'An account already exists with the same email but different sign-in credentials.';
-                else if (error.code === 'auth/invalid-domain')                      errorMessage = 'Please use your UMak Gmail account (@umak.edu.ph)';
-                else if (error.code === 'auth/network-request-failed')              errorMessage = 'Network error. Check your connection and try again.';
-
-                showError(errorMessage);
-            }
-        }
-
-        // Wire button — touchend fires synchronously so iOS allows the popup
+        // Wire button
         const btn = document.getElementById('googleSignInBtn');
         let busy = false;
+
+        function triggerSignIn() {
+            if (busy) return;
+            busy = true;
+
+            // ── iOS POPUP FIX ──────────────────────────────────────────────────
+            // iOS Safari only allows window.open (popups) when called in the
+            // SAME synchronous call stack as the user gesture.
+            // Any await/async before signInWithPopup breaks that chain and Safari
+            // silently blocks the popup, forcing users to disable popup blocking.
+            //
+            // Solution: call signInWithPopup() IMMEDIATELY — no awaits before it.
+            // Then handle all logic (.then/.catch) after the popup is already open.
+            // ──────────────────────────────────────────────────────────────────
+
+            sessionStorage.setItem(SESSION_HANDLING_KEY, '1');
+            showLoading('Connecting to Google...');
+
+            // signInWithPopup called synchronously — popup opens before any async work
+            signInWithPopup(auth, googleProvider)
+                .then(async (result) => {
+                    if (!result.user.email.endsWith('@umak.edu.ph')) {
+                        await signOut(auth);
+                        sessionStorage.removeItem(SESSION_HANDLING_KEY);
+                        hideLoading();
+                        showError('Please use your UMak Gmail account (@umak.edu.ph)');
+                        busy = false;
+                        return;
+                    }
+                    await checkUserStatus(result.user);
+                    // on success checkUserStatus navigates away; no need to clear flag
+                })
+                .catch((error) => {
+                    console.error('Sign in error:', error);
+                    sessionStorage.removeItem(SESSION_HANDLING_KEY);
+                    hideLoading();
+                    busy = false;
+
+                    let errorMessage = 'Failed to sign in with Google';
+                    if (error.code === 'auth/popup-closed-by-user')                          errorMessage = 'Sign in was cancelled. Please try again.';
+                    else if (error.code === 'auth/cancelled-popup-request')                  errorMessage = 'Sign in was cancelled. Please try again.';
+                    else if (error.code === 'auth/popup-blocked')                            errorMessage = 'Popup blocked. Please allow popups for this site and try again.';
+                    else if (error.code === 'auth/account-exists-with-different-credential') errorMessage = 'An account already exists with the same email but different sign-in credentials.';
+                    else if (error.code === 'auth/invalid-domain')                           errorMessage = 'Please use your UMak Gmail account (@umak.edu.ph)';
+                    else if (error.code === 'auth/network-request-failed')                   errorMessage = 'Network error. Check your connection and try again.';
+
+                    showError(errorMessage);
+                });
+        }
 
         btn.addEventListener('touchend', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            if (busy) return;
-            busy = true;
-            handleGoogleSignIn().finally(function() { busy = false; });
+            triggerSignIn();
         });
 
-        btn.addEventListener('click', function() {
-            if (busy) return;
-            busy = true;
-            handleGoogleSignIn().finally(function() { busy = false; });
+        btn.addEventListener('click', function(e) {
+            // On desktop and Android this fires normally.
+            // On iOS, touchend already handled it — skip to avoid double-trigger.
+            if (e.detail === 0) return; // synthetic click, skip
+            triggerSignIn();
         });
     </script>
 

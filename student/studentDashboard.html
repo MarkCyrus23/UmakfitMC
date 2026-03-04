@@ -3494,50 +3494,107 @@ function calculateTestScore(testName, result, testTarget = null) {
         
         // Auth state change listener - UPDATED VERSION
         onAuthStateChanged(auth, async (user) => {
-            if (user) {
+    if (user) {
+        try {
+            console.log('=== DASHBOARD: Checking access ===');
+            console.log('User:', user.email);
+            currentUser = user;
+            
+            // ✅ FIXED: Properly check user role with multiple fallbacks
+            const userEmail = user.email.toLowerCase();
+            let isStudent = false;
+            let userRole = null;
+            
+            // Method 1: Check students collection (PRIMARY - matches login flow)
+            try {
+                const studentsQuery = query(
+                    collection(db, 'students'),
+                    where('email', '==', userEmail)
+                );
+                const studentsSnapshot = await getDocs(studentsQuery);
+                
+                if (!studentsSnapshot.empty) {
+                    const studentData = studentsSnapshot.docs[0].data();
+                    userRole = studentData.role || 'student';
+                    isStudent = (userRole === 'student');
+                    console.log('✅ Found in students collection, role:', userRole);
+                }
+            } catch (error) {
+                console.log('⚠️ Error querying students collection:', error.message);
+            }
+            
+            // Method 2: Check users collection (BACKUP - email with dot replacement)
+            if (!isStudent && userRole === null) {
                 try {
-                    console.log('=== DASHBOARD: Checking access ===');
-                    console.log('User:', user.email);
-                    currentUser = user;
+                    const userEmailKey = userEmail.replace(/\./g, '_');
+                    const userRef = doc(db, 'users', userEmailKey);
+                    const userDoc = await getDoc(userRef);
                     
-                    // Check user role
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data();
+                        userRole = userData.role;
+                        isStudent = (userData.role === 'student');
+                        console.log('✅ Found in users collection (by email key), role:', userRole);
+                    }
+                } catch (error) {
+                    console.log('⚠️ Error checking users collection (email key):', error.message);
+                }
+            }
+            
+            // Method 3: Check users collection by UID (LEGACY FALLBACK)
+            if (!isStudent && userRole === null) {
+                try {
                     const userRef = doc(db, 'users', user.uid);
                     const userDoc = await getDoc(userRef);
                     
                     if (userDoc.exists()) {
                         const userData = userDoc.data();
-                        
-                        if (userData.role !== 'student') {
-                            alert('Access Denied: This dashboard is for students only');
-                            await signOut(auth);
-                            window.location.href = '../login/index.html';
-                            return;
-                        }
+                        userRole = userData.role;
+                        isStudent = (userData.role === 'student');
+                        console.log('✅ Found in users collection (by UID), role:', userRole);
                     }
-                    
-                    // Initialize charts first
-                    initializeCharts();
-                    
-                    // Load student data from students collection
-                    await loadStudentData(user);
-                    
-                    // Show the main content
-                    loadingScreen.classList.add('hidden');
-                    mainContent.classList.remove('hidden');
-                    generateMiniCalendar();
-                    console.log('✓ Dashboard loaded successfully');
-                    
                 } catch (error) {
-                    console.error('Error loading dashboard:', error);
-                    alert('Error loading dashboard. Please try again.');
-                    loadingScreen.classList.add('hidden');
-                    mainContent.classList.remove('hidden');
+                    console.log('⚠️ Error checking users collection (by UID):', error.message);
                 }
-            } else {    
-                console.log('No user, redirecting to login');
-                window.location.href = '../login/index.html';
             }
-        });
+            
+            // ✅ FIXED: Proper role validation with detailed error message
+            if (!isStudent) {
+                console.error('❌ Access Denied - User role:', userRole || 'not found');
+                const errorMsg = userRole 
+                    ? `Access Denied: This dashboard is for students only.\nYour role: ${userRole}`
+                    : 'Access Denied: This dashboard is for students only.\nYour account is not properly configured.';
+                alert(errorMsg);
+                await signOut(auth);
+                window.location.href = '../login/index.html';
+                return;
+            }
+            
+            console.log('✅ Access Granted - User is a student');
+            
+            // Initialize charts first
+            initializeCharts();
+            
+            // Load student data from students collection
+            await loadStudentData(user);
+            
+            // Show the main content
+            loadingScreen.classList.add('hidden');
+            mainContent.classList.remove('hidden');
+            generateMiniCalendar();
+            console.log('✓ Dashboard loaded successfully');
+            
+        } catch (error) {
+            console.error('Error loading dashboard:', error);
+            alert('Error loading dashboard. Please try again.');
+            loadingScreen.classList.add('hidden');
+            mainContent.classList.remove('hidden');
+        }
+    } else {    
+        console.log('No user, redirecting to login');
+        window.location.href = '../login/index.html';
+    }
+});
         
         // Generate Calendar
         function generateMiniCalendar() {
