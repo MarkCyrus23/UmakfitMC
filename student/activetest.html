@@ -2260,121 +2260,88 @@
         }
 
         async function loadTestData() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const testId = urlParams.get('testId');
-            const testName = urlParams.get('testName');
+    const urlParams = new URLSearchParams(window.location.search);
+    const testId = urlParams.get('testId');
+    const testName = urlParams.get('testName');
 
-            if (!testId || !testName) {
-                alert('Invalid test parameters');
-                window.location.href = './test.html';
-                return;
-            }
+    if (!testId || !testName) {
+        showErrorOnLoad('Invalid test parameters. Please go back and select a test.');
+        return;
+    }
 
-            try {
-                console.log('🔄 Loading test data:', testId);
-                
-                document.getElementById('testName').textContent = 'Loading Test...';
-                document.getElementById('testSubtitle').textContent = 'Please wait while we load your test';
-                
-                const testDoc = await getDoc(doc(db, 'scheduledTests', testId));
-                
-                if (testDoc.exists()) {
-                    const testData = testDoc.data();
-                    currentTest = { 
-                        id: testDoc.id, 
-                        ...testData
-                    };
-                    
-                    console.log('📋 Test data loaded:', currentTest);
-                    
-                    if (!currentTest.professorId || !currentTest.professorEmail) {
-                        console.warn('⚠️ Professor data missing from test, attempting to find professor...');
-                        
-                        let professorFound = false;
-                        
-                        try {
-                            const professorQuery = query(
-                                collection(db, 'professorProfiles'),
-                                where('assignedClass', '==', currentTest.section)
-                            );
-                            const professorSnapshot = await getDocs(professorQuery);
-                            
-                            if (!professorSnapshot.empty) {
-                                professorSnapshot.forEach((profDoc) => {
-                                    const profData = profDoc.data();
-                                    currentTest.professorId = profData.uid || profDoc.id;
-                                    currentTest.professorEmail = profData.email || 'professor@umak.edu.ph';
-                                    professorFound = true;
-                                    console.log('✅ Found professor by section:', profData.email);
-                                });
-                            }
-                        } catch (profError) {
-                            console.error('Error finding professor by section:', profError);
-                        }
-                        
-                        if (!professorFound) {
-                            try {
-                                const allProfessorsQuery = query(
-                                    collection(db, 'professorProfiles'),
-                                    where('role', '==', 'professor')
-                                );
-                                const allProfessorsSnapshot = await getDocs(allProfessorsQuery);
-                                
-                                if (!allProfessorsSnapshot.empty) {
-                                    const firstProf = allProfessorsSnapshot.docs[0];
-                                    const profData = firstProf.data();
-                                    currentTest.professorId = profData.uid || firstProf.id;
-                                    currentTest.professorEmail = profData.email || 'professor@umak.edu.ph';
-                                    professorFound = true;
-                                    console.log('✅ Using first available professor:', profData.email);
-                                }
-                            } catch (fallbackError) {
-                                console.error('Error finding any professor:', fallbackError);
-                            }
-                        }
-                        
-                        if (!professorFound) {
-                            currentTest.professorId = 'default-professor-id';
-                            currentTest.professorEmail = 'professor@umak.edu.ph';
-                            console.log('⚠️ Using default professor data');
-                        }
-                        
-                        try {
-                            await updateDoc(doc(db, 'scheduledTests', currentTest.id), {
-                                professorId: currentTest.professorId,
-                                professorEmail: currentTest.professorEmail
-                            });
-                            console.log('✅ Updated test with professor data');
-                        } catch (updateError) {
-                            console.error('Error updating test with professor data:', updateError);
-                        }
-                    }
-                    
-                    console.log('✅ Test data loaded successfully:', currentTest.testName);
-                    console.log('👨‍🏫 Professor assigned:', currentTest.professorEmail);
-                    
-                    let subtitleText = `Section: ${currentTest.section} • Deadline: ${new Date(currentTest.deadline).toLocaleDateString()}`;
-                    if (currentTest.testTarget) {
-                        const targetLabel = getTargetLabel(currentTest.testName);
-                        subtitleText += ` • 🎯 Target: ${currentTest.testTarget} ${targetLabel}`;
-                    }
-                    document.getElementById('testName').textContent = currentTest.testName;
-                    document.getElementById('testSubtitle').textContent = subtitleText;
-                    
-                    setupTestInputs(currentTest.testName);
-                    updateInstructions(currentTest.testName);
-                    
-                } else {
-                    console.error('❌ Test not found:', testId);
-                    alert('Test not found or has been removed');
-                    window.location.href = './test.html';
-                }
-            } catch (error) {
-                console.error('❌ Error loading test:', error);
-                alert('Error loading test data. Please try again.');
-                window.location.href = './test.html';
-            }
+    try {
+        console.log('🔄 Loading test data:', testId);
+        
+        document.getElementById('testName').textContent = 'Loading Test...';
+        document.getElementById('testSubtitle').textContent = 'Please wait while we load your test';
+        
+        const testDocRef = doc(db, 'scheduledTests', testId);
+        const testDocSnapshot = await getDoc(testDocRef);
+        
+        if (!testDocSnapshot.exists()) {
+            console.error('❌ Test document not found in Firestore:', testId);
+            showErrorOnLoad('Test not found. It may have been deleted or expired.');
+            return;
         }
+
+        const testData = testDocSnapshot.data();
+        currentTest = { 
+            id: testDocSnapshot.id, 
+            ...testData
+        };
+        
+        console.log('📋 Test data loaded:', currentTest);
+        
+        // Ensure professor data exists
+        if (!currentTest.professorId || !currentTest.professorEmail) {
+            console.warn('⚠️ Professor data missing, using defaults');
+            currentTest.professorId = 'default-professor-id';
+            currentTest.professorEmail = 'professor@umak.edu.ph';
+        }
+        
+        console.log('✅ Test data loaded successfully:', currentTest.testName);
+        
+        let subtitleText = `Section: ${currentTest.section} • Deadline: ${new Date(currentTest.deadline).toLocaleDateString()}`;
+        if (currentTest.testTarget) {
+            const targetLabel = getTargetLabel(currentTest.testName);
+            subtitleText += ` • 🎯 Target: ${currentTest.testTarget} ${targetLabel}`;
+        }
+        document.getElementById('testName').textContent = currentTest.testName;
+        document.getElementById('testSubtitle').textContent = subtitleText;
+        
+        setupTestInputs(currentTest.testName);
+        updateInstructions(currentTest.testName);
+        
+    } catch (error) {
+        console.error('❌ Error loading test:', error);
+        showErrorOnLoad('Error loading test data: ' + error.message);
+    }
+}
+function showErrorOnLoad(message) {
+    const loadingScreen = document.getElementById('loadingScreen');
+    const mainContent = document.getElementById('mainContent');
+    
+    loadingScreen.style.display = 'flex';
+    loadingScreen.innerHTML = `
+        <div style="text-align: center;">
+            <div style="font-size: 48px; margin-bottom: 20px;">❌</div>
+            <div class="loading-text" style="color: #ef4444; margin-bottom: 15px;">Failed to Load Test</div>
+            <p style="color: #64748b; margin: 15px 0; max-width: 400px;">${message}</p>
+            <button onclick="window.location.href='./test.html'" style="
+                background: #3b82f6;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-family: 'Inter', sans-serif;
+                margin-top: 10px;
+            ">Return to Tests</button>
+        </div>
+    `;
+    mainContent.style.display = 'none';
+}
+
 
         function updateInstructions(testName) {
             const instructionsText = document.getElementById('quickInstructions');
@@ -2618,10 +2585,10 @@ function showErrorPopup(message, title = 'Missing Information') {
     document.body.appendChild(overlay);
 }
         window.submitTest = async function() {
-            if (!currentTest || !studentData) {
-    showErrorPopup('Missing required data. Please try again.');
-    return;
-}
+    if (!currentTest || !studentData) {
+        showErrorPopup('Missing required data. Please reload the page and try again.');
+        return;
+    }
 
             let resultValue = '';
             let rawResult = '';
@@ -3075,38 +3042,39 @@ function showErrorPopup(message, title = 'Missing Information') {
 
         // Auth state change
         onAuthStateChanged(auth, async (user) => {
-            const loadingScreen = document.getElementById('loadingScreen');
-            const mainContent = document.getElementById('mainContent');
+    const loadingScreen = document.getElementById('loadingScreen');
+    const mainContent = document.getElementById('mainContent');
 
-            if (user) {
-                try {
-                    console.log('👤 User authenticated:', user.email);
-                    currentUser = user;
-                    
-                    updateProfileUI();
-                    
-                    document.querySelector('.loading-text').textContent = 'Loading your test...';
-                    
-                    await loadStudentData(user);
-                    
-                    // Setup notification listener
-                    setupNotificationListener();
-                    await checkUnreadNotifications();
-                    
-                    await loadTestData();
-                    
-                    console.log('✅ All data loaded successfully');
-                    
-                    loadingScreen.style.opacity = '0';
-                    setTimeout(() => {
-                        loadingScreen.style.display = 'none';
-                        mainContent.style.display = 'block';
-                        mainContent.style.transition = 'opacity 0.4s ease';
-                        mainContent.style.opacity = '0';
-                        setTimeout(() => {
-                            mainContent.style.opacity = '1';
-                        }, 50);
-                    }, 300);
+    if (user) {
+        try {
+            console.log('👤 User authenticated:', user.email);
+            currentUser = user;
+            
+            updateProfileUI();
+            
+            const loadingText = document.querySelector('.loading-text');
+            if (loadingText) loadingText.textContent = 'Loading your test...';
+            
+            await loadStudentData(user);
+            
+            // Setup notification listener
+            setupNotificationListener();
+            await checkUnreadNotifications();
+            
+            await loadTestData();
+            
+            console.log('✅ All data loaded successfully');
+            
+            loadingScreen.style.opacity = '0';
+            setTimeout(() => {
+                loadingScreen.style.display = 'none';
+                mainContent.style.display = 'block';
+                mainContent.style.transition = 'opacity 0.4s ease';
+                mainContent.style.opacity = '0';
+                setTimeout(() => {
+                    mainContent.style.opacity = '1';
+                }, 50);
+            }, 300);
                     
                     // Setup notification event listeners
                     const notificationBtn = document.getElementById('notificationBellBtn');
@@ -3144,22 +3112,7 @@ function showErrorPopup(message, title = 'Missing Information') {
                     
                 } catch (error) {
                     console.error('❌ Error loading page:', error);
-                    loadingScreen.innerHTML = `
-                        <div style="text-align: center;">
-                            <div style="font-size: 48px; margin-bottom: 20px;">⚠️</div>
-                            <div class="loading-text" style="color: #ef4444;">Failed to Load Test</div>
-                            <p style="color: #64748b; margin: 15px 0;">There was an error loading your test.</p>
-                            <button onclick="window.location.reload()" style="
-                                background: #3b82f6;
-                                color: white;
-                                border: none;
-                                padding: 10px 20px;
-                                border-radius: 8px;
-                                cursor: pointer;
-                                font-family: 'Inter', sans-serif;
-                            ">Try Again</button>
-                        </div>
-                    `;
+                    showErrorOnLoad('Error: ' + (error.message || 'Unknown error occurred'));
                 }
             } else {
                 console.log('🚫 No user authenticated, redirecting to login');
