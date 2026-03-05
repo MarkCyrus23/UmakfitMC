@@ -1927,7 +1927,7 @@
             }
 
             if (normalizedName.includes('curl-up') || normalizedName.includes('curl up')) {
-                const targetHint = currentTest.testTarget ? ` (Target: ${currentTest.testTarget} curl-ups)` : '';
+                const targetHint = '';
                 html = `
                     <div class="input-group-custom">
                         <label class="input-label">💪 Number of Curl-Ups Completed <span style="color: #ef4444;">*</span></label>
@@ -1941,7 +1941,7 @@
                 document.getElementById('submitBtn').disabled = false;
             }
             else if (normalizedName.includes('push-up') || normalizedName.includes('pushup')) {
-                const targetHint = currentTest.testTarget ? ` (Target: ${currentTest.testTarget} push-ups)` : '';
+                const targetHint = '';
                 html = `
                     <div class="input-group-custom">
                         <label class="input-label">💪 Number of Push-ups Completed <span style="color: #ef4444;">*</span></label>
@@ -1955,7 +1955,7 @@
                 document.getElementById('submitBtn').disabled = false;
             }
             else if (normalizedName.includes('grip strength') || normalizedName.includes('grip')) {
-                const targetHint = currentTest.testTarget ? ` (Target: ${currentTest.testTarget} kg)` : '';
+                const targetHint = '';
                 html = `
                     <div class="input-group-custom">
                         <label class="input-label">💪 Grip Strength (kg) <span style="color: #ef4444;">*</span></label>
@@ -1969,7 +1969,7 @@
                 document.getElementById('submitBtn').disabled = false;
             }
             else if (normalizedName.includes('plank')) {
-                const targetHint = currentTest.testTarget ? ` (Target: ${currentTest.testTarget} seconds)` : '';
+                const targetHint = '';
                 html = `
                     <div class="input-group-custom">
                         <label class="input-label">⏱️ Plank Hold Duration <span style="color: #ef4444;">*</span></label>
@@ -1982,20 +1982,20 @@
                 `;
             }
             else if (normalizedName.includes('step test') || normalizedName.includes('3-minute')) {
-                const targetHint = currentTest.testTarget ? ` (Target duration: ${currentTest.testTarget} minutes)` : '';
+                const targetHint = '';
                 html = `
                     <div class="input-group-custom">
                         <label class="input-label">❤️ Recovery Heart Rate (bpm) <span style="color: #ef4444;">*</span></label>
                         <input type="number" class="input-field" id="heartRateInput" placeholder="Enter 60-second heart rate after test" min="40" max="220" required>
                         <div class="input-hint">
                             <i class="bi bi-info-circle"></i>
-                            Complete ${currentTest.testTarget || '3'} minutes stepping, rest 5 seconds, then count pulse for 60 seconds
+                            Complete 3 minutes stepping, rest 5 seconds, then count pulse for 60 seconds
                         </div>
                     </div>
                 `;
             }
             else if (normalizedName.includes('mile') || normalizedName.includes('run') || normalizedName.includes('1-mile')) {
-                const targetHint = currentTest.testTarget ? ` (Target: ${currentTest.testTarget} minutes)` : '';
+                const targetHint = '';
                 html = `
                     <div class="input-group-custom">
                         <label class="input-label">⏱️ Completion Time <span style="color: #ef4444;">*</span></label>
@@ -2008,7 +2008,7 @@
                 `;
             }
             else if (normalizedName.includes('sit-and-reach') || normalizedName.includes('sit and reach')) {
-                const targetHint = currentTest.testTarget ? ` (Target: ${currentTest.testTarget} cm)` : '';
+                const targetHint = '';
                 html = `
                     <div class="input-group-custom">
                         <label class="input-label">📏 Distance Reached (cm) <span style="color: #ef4444;">*</span></label>
@@ -2401,10 +2401,6 @@
         console.log('✅ Test data loaded successfully:', currentTest.testName);
         
         let subtitleText = `Section: ${currentTest.section} • Deadline: ${new Date(currentTest.deadline).toLocaleDateString()}`;
-        if (currentTest.testTarget) {
-            const targetLabel = getTargetLabel(currentTest.testName);
-            subtitleText += ` • 🎯 Target: ${currentTest.testTarget} ${targetLabel}`;
-        }
         document.getElementById('testName').textContent = currentTest.testName;
         document.getElementById('testSubtitle').textContent = subtitleText;
         
@@ -2883,6 +2879,7 @@ function showErrorPopup(message, title = 'Missing Information') {
                 return 50;                          // Obese
             }
 
+            // Targets are no longer used; rely on default/norm-based scoring
             if (!testTarget || testTarget <= 0) {
                 return calculateDefaultScore(normalized, numericValue);
             }

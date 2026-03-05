@@ -21,7 +21,9 @@
           "-webkit-overflow-scrolling",
           "scrollbar-gutter",
           "scrollbar-gutter: stable",
-          "mask-image"
+          "mask-image",
+          "scrollbar-width",
+          "scrollbar-width: none"
         ]
       }
     ],

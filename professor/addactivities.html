@@ -824,11 +824,7 @@
                     <input type="text" class="form-control" id="attemptsDisplay" value="2 Attempts" readonly style="background-color: #f4f6fa; cursor: not-allowed;">
                     <input type="hidden" id="attemptsAllowed" value="2">
                 </div>
-                <div class="form-group" id="testTargetGroup" style="display: none;">
-                    <label class="form-label" id="testTargetLabel">Test Target</label>
-                    <input type="number" class="form-control" id="testTarget" min="1">
-                    <small class="text-text-muted text-xs mt-1 block" id="testTargetHint"></small>
-                </div>
+                <!-- Target-based scoring removed: tests now use norm tables -->
                 <div class="form-group">
                     <label class="form-label">Additional Instructions (Optional)</label>
                     <textarea class="form-control" id="testInstructions" rows="3" placeholder="Add any specific instructions for this test..."></textarea>
@@ -1558,50 +1554,8 @@
                 numericValue = parseFloat(result) || 0;
             }
 
-            if (testTarget && testTarget > 0) {
-                if (normalized.includes('push-up') || normalized.includes('pushup') || normalized.includes('sit-up') || normalized.includes('situp') || normalized.includes('curl-up')) {
-                    if (numericValue >= testTarget) return 100;
-                    const pct = (numericValue / testTarget) * 100;
-                    let score = Math.min(100, Math.max(50, pct));
-                    if (pct >= 90) score = 95; else if (pct >= 80) score = 90; else if (pct >= 70) score = 85; else if (pct >= 60) score = 80; else if (pct >= 50) score = 75;
-                    return score;
-                }
-                if (normalized.includes('plank')) {
-                    if (numericValue >= testTarget) return 100;
-                    const pct = (numericValue / testTarget) * 100;
-                    let score = Math.min(100, Math.max(50, pct));
-                    if (pct >= 90) score = 95; else if (pct >= 80) score = 90; else if (pct >= 70) score = 85; else if (pct >= 60) score = 80; else if (pct >= 50) score = 75;
-                    return score;
-                }
-                if (normalized.includes('sit-and-reach')) {
-                    if (numericValue >= testTarget) return 100;
-                    const pct = (numericValue / testTarget) * 100;
-                    let score = Math.min(100, Math.max(50, pct));
-                    if (pct >= 90) score = 95; else if (pct >= 80) score = 90; else if (pct >= 70) score = 85; else if (pct >= 60) score = 80; else if (pct >= 50) score = 75;
-                    return score;
-                }
-                if (normalized.includes('grip')) {
-                    if (numericValue >= testTarget) return 100;
-                    const pct = (numericValue / testTarget) * 100;
-                    let score = Math.min(100, Math.max(50, pct));
-                    if (pct >= 90) score = 95; else if (pct >= 80) score = 90; else if (pct >= 70) score = 85; else if (pct >= 60) score = 80; else if (pct >= 50) score = 75;
-                    return score;
-                }
-                if (normalized.includes('mile') || normalized.includes('run')) {
-                    if (numericValue <= testTarget) return 100;
-                    const pct = (testTarget / numericValue) * 100;
-                    let score = Math.min(100, Math.max(50, pct));
-                    if (pct >= 90) score = 95; else if (pct >= 80) score = 90; else if (pct >= 70) score = 85; else if (pct >= 60) score = 80; else if (pct >= 50) score = 75;
-                    return score;
-                }
-                if (normalized.includes('step test') || normalized.includes('3-minute')) {
-                    if (numericValue <= testTarget) return 100;
-                    const pct = (testTarget / numericValue) * 100;
-                    let score = Math.min(100, Math.max(50, pct));
-                    if (pct >= 90) score = 95; else if (pct >= 80) score = 90; else if (pct >= 70) score = 85; else if (pct >= 60) score = 80; else if (pct >= 50) score = 75;
-                    return score;
-                }
-            }
+            // Per-test numeric targets are no longer used when creating activities;
+            // this function now relies only on the raw performance value.
 
             if (normalized.includes('push-up') || normalized.includes('pushup')) {
                 const r = numericValue;
@@ -1840,10 +1794,8 @@
             document.getElementById('testType').value = '';
             document.getElementById('videoURL').value = '';
             document.getElementById('testInstructions').value = '';
-            document.getElementById('testTarget').value = '';
             document.getElementById('attemptsAllowed').value = '2';
             document.getElementById('attemptsDisplay').value = '2 Attempts';
-            document.getElementById('testTargetGroup').style.display = 'none';
             sectionSelect.innerHTML = '<option value="">Select Section</option>';
             if (window.assignedSections && window.assignedSections.length > 0) {
                 const seenSections = new Set();
@@ -1873,10 +1825,7 @@
 
         function handleTestTypeChange(event) {
             const testType = event.target.value;
-            const targetGroup = document.getElementById('testTargetGroup');
-            const targetLabel = document.getElementById('testTargetLabel');
-            const targetInput = document.getElementById('testTarget');
-            const targetHint = document.getElementById('testTargetHint');
+            // Target inputs removed – norms are used instead
             if (!testType) { targetGroup.style.display = 'none'; return; }
             const normalizedType = testType.toLowerCase();
             if (normalizedType.includes('3-minute') || normalizedType.includes('step test')) {
@@ -1909,7 +1858,7 @@
             const isOneAttemptOnly = normalizedTestType.includes('skinfold') || normalizedTestType.includes('step test') || normalizedTestType.includes('3-minute');
             const attemptsAllowed = isOneAttemptOnly ? 1 : 2;
             const testInstructions = document.getElementById('testInstructions').value;
-            const testTarget = document.getElementById('testTarget').value;
+            const testTarget = null;
             const videoURL = document.getElementById('videoURL').value;
 
             if (!testType || !testSection || !testDate || !testTime || !testDeadline || !testDeadlineTime) {
@@ -1944,7 +1893,7 @@
                     testName: testType, section: testSection, date: testDate, time: testTime,
                     dateTime: testDateTime.toISOString(), deadline: testDeadline, deadlineTime: testDeadlineTime,
                     deadlineDateTime: deadlineDateTime.toISOString(), attemptsAllowed, instructions: testInstructions,
-                    testTarget: testTarget ? parseInt(testTarget) : null, videoURL: videoURL || null,
+                    testTarget: null, videoURL: videoURL || null,
                     professorEmail: window.currentUser.email, professorId: window.currentUser.uid,
                     professorName: window.currentUser.displayName || window.currentUser.email, status,
                     totalStudents: allStudentEmails.length, completedStudents: 0, selectedStudents: allStudentEmails,
@@ -2011,16 +1960,8 @@
                 const targetInput = document.getElementById('editTestTarget');
                 const targetHint = document.getElementById('editTestTargetHint');
                 const normalized = testData.testName.toLowerCase();
-                if (normalized.includes('push-up') || normalized.includes('pushup')) { targetGroup.style.display = 'block'; targetLabel.textContent = 'Target Push-ups'; targetInput.value = testData.testTarget || 20; targetInput.readOnly = false; targetHint.textContent = 'Target number of push-ups'; }
-                else if (normalized.includes('sit-up') || normalized.includes('situp')) { targetGroup.style.display = 'block'; targetLabel.textContent = 'Target Sit-ups'; targetInput.value = testData.testTarget || 30; targetInput.readOnly = false; targetHint.textContent = 'Target number of sit-ups'; }
-                else if (normalized.includes('curl-up')) { targetGroup.style.display = 'block'; targetLabel.textContent = 'Target Curl-Ups'; targetInput.value = testData.testTarget || 25; targetInput.readOnly = false; targetHint.textContent = 'Target number of curl-ups'; }
-                else if (normalized.includes('plank')) { targetGroup.style.display = 'block'; targetLabel.textContent = 'Target Duration (seconds)'; targetInput.value = testData.testTarget || 60; targetInput.readOnly = false; targetHint.textContent = 'Target plank duration in seconds'; }
-                else if (normalized.includes('grip')) { targetGroup.style.display = 'block'; targetLabel.textContent = 'Target Grip Strength (kg)'; targetInput.value = testData.testTarget || 40; targetInput.readOnly = false; targetHint.textContent = 'Target grip strength in kg'; }
-                else if (normalized.includes('sit-and-reach')) { targetGroup.style.display = 'block'; targetLabel.textContent = 'Target Distance (cm)'; targetInput.value = testData.testTarget || 15; targetInput.readOnly = false; targetHint.textContent = 'Target reach distance in cm'; }
-                else if (normalized.includes('mile') || normalized.includes('run')) { targetGroup.style.display = 'block'; targetLabel.textContent = 'Target Time (minutes)'; targetInput.value = testData.testTarget || 8; targetInput.readOnly = false; targetHint.textContent = 'Target completion time in minutes'; }
-                else if (normalized.includes('step test') || normalized.includes('3-minute')) { targetGroup.style.display = 'block'; targetLabel.textContent = 'Target Duration (minutes)'; targetInput.value = testData.testTarget || 3; targetInput.readOnly = true; targetHint.textContent = 'Fixed duration of 3 minutes'; }
-                else if (normalized.includes('skinfold')) { targetGroup.style.display = 'block'; targetLabel.textContent = 'Target Body Fat %'; targetInput.value = testData.testTarget || 15; targetInput.readOnly = false; targetHint.textContent = 'Target body fat percentage'; }
-                else { targetGroup.style.display = 'none'; }
+                // No more per-test numeric targets; norms are shown on student side
+           targetGroup.style.display = 'none';
                 const saveBtn = document.querySelector('#editTestModal .modal-footer button:last-child');
                 const cancelBtn = document.querySelector('#editTestModal .modal-footer button:first-child');
                 if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save Changes'; }
@@ -2050,7 +1991,7 @@
             try {
                 if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Saving...'; }
                 if (cancelBtn) cancelBtn.disabled = true;
-                const updateData = { date: newDate, time: newTime, dateTime: testDateTime.toISOString(), deadline: newDeadline, deadlineTime: newDeadlineTime, deadlineDateTime: deadlineDateTime.toISOString(), testTarget: newTarget ? parseInt(newTarget) : null, updatedAt: serverTimestamp() };
+                const updateData = { date: newDate, time: newTime, dateTime: testDateTime.toISOString(), deadline: newDeadline, deadlineTime: newDeadlineTime, deadlineDateTime: deadlineDateTime.toISOString(), testTarget: null, updatedAt: serverTimestamp() };
                 const now = new Date();
                 if (testDateTime <= now && deadlineDateTime >= now) updateData.status = 'active';
                 else if (deadlineDateTime < now) updateData.status = 'completed';
@@ -2113,9 +2054,8 @@
             document.getElementById('testTime').value = '00:00';
             document.getElementById('attemptsAllowed').value = '1';
             document.getElementById('testInstructions').value = '';
-            document.getElementById('testTarget').value = '';
             document.getElementById('videoURL').value = '';
-            document.getElementById('testTargetGroup').style.display = 'none';
+            // Target group no longer used
             if (window.currentUser) loadScheduledTests(window.currentUser.email, window.currentUser.uid);
         };
 

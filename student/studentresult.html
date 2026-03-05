@@ -1403,60 +1403,394 @@
 
         // ========== END NOTIFICATION SYSTEM ==========
 
+        // ===== NORM-BASED CLASSIFICATION HELPERS (PUSH-UP, CURL-UP, SIT-AND-REACH, STEP TEST) =====
+
+        function getStudentAgeForNorms() {
+            if (!studentData) return null;
+            if (studentData.birthday) {
+                try {
+                    let birthDate;
+                    if (studentData.birthday.toDate) {
+                        birthDate = studentData.birthday.toDate();
+                    } else {
+                        birthDate = new Date(studentData.birthday);
+                    }
+                    const today = new Date();
+                    let age = today.getFullYear() - birthDate.getFullYear();
+                    const m = today.getMonth() - birthDate.getMonth();
+                    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                        age--;
+                    }
+                    if (!isNaN(age)) return age;
+                } catch (e) {
+                    console.warn('Unable to compute age from birthday:', e);
+                }
+            }
+            if (typeof studentData.age === 'number') return studentData.age;
+            if (typeof studentData.age === 'string') {
+                const m = studentData.age.match(/(\d+)/);
+                if (m) return parseInt(m[1], 10);
+            }
+            return null;
+        }
+
+        function getAgeGroup(age) {
+            if (age == null) return null;
+            if (age <= 18) return '15-18';
+            if (age <= 22) return '19-22';
+            if (age <= 26) return '23-26';
+            if (age <= 30) return '27-30';
+            // Clamp to closest available group if out of range
+            if (age < 15) return '15-18';
+            return '27-30';
+        }
+
+        function getGenderKey() {
+            const g = (studentData?.gender || '').toString().toLowerCase();
+            if (g.startsWith('m')) return 'male';
+            if (g.startsWith('f')) return 'female';
+            return 'male';
+        }
+
+        function extractNumericResult(result) {
+            if (typeof result === 'object' && result !== null) {
+                return result.value || result.result || result.score || result.count || 0;
+            }
+            if (typeof result === 'string') {
+                const match = result.match(/(\d+\.?\d*)/);
+                if (match) return parseFloat(match[1]);
+                const parsed = parseFloat(result);
+                return isNaN(parsed) ? 0 : parsed;
+            }
+            const parsed = parseFloat(result);
+            return isNaN(parsed) ? 0 : parsed;
+        }
+
+        function mapNormCategoryToScore(category) {
+            switch (category) {
+                case 'Excellent': return 100;
+                case 'Good': return 90;
+                case 'Average': return 80;
+                case 'Below Average': return 70;
+                case 'Poor': return 60;
+                default: return 75;
+            }
+        }
+
+        function getPushUpNormCategory(ageGroup, genderKey, reps) {
+            if (genderKey === 'male') {
+                if (ageGroup === '15-18') {
+                    if (reps >= 40) return 'Excellent';
+                    if (reps >= 31) return 'Good';
+                    if (reps >= 21) return 'Average';
+                    if (reps >= 11) return 'Below Average';
+                    return 'Poor';
+                }
+                if (ageGroup === '19-22') {
+                    if (reps >= 38) return 'Excellent';
+                    if (reps >= 28) return 'Good';
+                    if (reps >= 18) return 'Average';
+                    if (reps >= 9) return 'Below Average';
+                    return 'Poor';
+                }
+                if (ageGroup === '23-26') {
+                    if (reps >= 35) return 'Excellent';
+                    if (reps >= 25) return 'Good';
+                    if (reps >= 16) return 'Average';
+                    if (reps >= 8) return 'Below Average';
+                    return 'Poor';
+                }
+                // 27-30
+                if (reps >= 32) return 'Excellent';
+                if (reps >= 23) return 'Good';
+                if (reps >= 14) return 'Average';
+                if (reps >= 6) return 'Below Average';
+                return 'Poor';
+            } else {
+                if (ageGroup === '15-18') {
+                    if (reps >= 25) return 'Excellent';
+                    if (reps >= 19) return 'Good';
+                    if (reps >= 13) return 'Average';
+                    if (reps >= 7) return 'Below Average';
+                    return 'Poor';
+                }
+                if (ageGroup === '19-22') {
+                    if (reps >= 23) return 'Excellent';
+                    if (reps >= 17) return 'Good';
+                    if (reps >= 11) return 'Average';
+                    if (reps >= 6) return 'Below Average';
+                    return 'Poor';
+                }
+                if (ageGroup === '23-26') {
+                    if (reps >= 20) return 'Excellent';
+                    if (reps >= 15) return 'Good';
+                    if (reps >= 9) return 'Average';
+                    if (reps >= 5) return 'Below Average';
+                    return 'Poor';
+                }
+                // 27-30
+                if (reps >= 18) return 'Excellent';
+                if (reps >= 13) return 'Good';
+                if (reps >= 8) return 'Average';
+                if (reps >= 4) return 'Below Average';
+                return 'Poor';
+            }
+        }
+
+        function getCurlUpNormCategory(ageGroup, genderKey, reps) {
+            if (genderKey === 'male') {
+                if (ageGroup === '15-18') {
+                    if (reps >= 50) return 'Excellent';
+                    if (reps >= 41) return 'Good';
+                    if (reps >= 31) return 'Average';
+                    if (reps >= 21) return 'Below Average';
+                    return 'Poor';
+                }
+                if (ageGroup === '19-22') {
+                    if (reps >= 47) return 'Excellent';
+                    if (reps >= 38) return 'Good';
+                    if (reps >= 28) return 'Average';
+                    if (reps >= 19) return 'Below Average';
+                    return 'Poor';
+                }
+                if (ageGroup === '23-26') {
+                    if (reps >= 44) return 'Excellent';
+                    if (reps >= 35) return 'Good';
+                    if (reps >= 25) return 'Average';
+                    if (reps >= 17) return 'Below Average';
+                    return 'Poor';
+                }
+                // 27-30
+                if (reps >= 40) return 'Excellent';
+                if (reps >= 32) return 'Good';
+                if (reps >= 22) return 'Average';
+                if (reps >= 15) return 'Below Average';
+                return 'Poor';
+            } else {
+                if (ageGroup === '15-18') {
+                    if (reps >= 45) return 'Excellent';
+                    if (reps >= 36) return 'Good';
+                    if (reps >= 26) return 'Average';
+                    if (reps >= 16) return 'Below Average';
+                    return 'Poor';
+                }
+                if (ageGroup === '19-22') {
+                    if (reps >= 42) return 'Excellent';
+                    if (reps >= 34) return 'Good';
+                    if (reps >= 24) return 'Average';
+                    if (reps >= 15) return 'Below Average';
+                    return 'Poor';
+                }
+                if (ageGroup === '23-26') {
+                    if (reps >= 39) return 'Excellent';
+                    if (reps >= 31) return 'Good';
+                    if (reps >= 21) return 'Average';
+                    if (reps >= 13) return 'Below Average';
+                    return 'Poor';
+                }
+                // 27-30
+                if (reps >= 36) return 'Excellent';
+                if (reps >= 28) return 'Good';
+                if (reps >= 19) return 'Average';
+                if (reps >= 11) return 'Below Average';
+                return 'Poor';
+            }
+        }
+
+        function getSitAndReachNormCategory(ageGroup, genderKey, distanceCm) {
+            const v = distanceCm;
+            if (genderKey === 'male') {
+                if (ageGroup === '15-18') {
+                    if (v >= 38.0) return 'Excellent';
+                    if (v >= 33.0) return 'Good';
+                    if (v >= 26.0) return 'Average';
+                    if (v >= 18.0) return 'Below Average';
+                    return 'Poor';
+                }
+                if (ageGroup === '19-22') {
+                    if (v >= 37.0) return 'Excellent';
+                    if (v >= 32.0) return 'Good';
+                    if (v >= 25.0) return 'Average';
+                    if (v >= 17.0) return 'Below Average';
+                    return 'Poor';
+                }
+                if (ageGroup === '23-26') {
+                    if (v >= 35.5) return 'Excellent';
+                    if (v >= 30.5) return 'Good';
+                    if (v >= 23.5) return 'Average';
+                    if (v >= 15.5) return 'Below Average';
+                    return 'Poor';
+                }
+                // 27-30
+                if (v >= 34.0) return 'Excellent';
+                if (v >= 29.0) return 'Good';
+                if (v >= 22.0) return 'Average';
+                if (v >= 14.0) return 'Below Average';
+                return 'Poor';
+            } else {
+                if (ageGroup === '15-18') {
+                    if (v >= 39.0) return 'Excellent';
+                    if (v >= 34.0) return 'Good';
+                    if (v >= 27.0) return 'Average';
+                    if (v >= 19.0) return 'Below Average';
+                    return 'Poor';
+                }
+                if (ageGroup === '19-22') {
+                    if (v >= 38.0) return 'Excellent';
+                    if (v >= 33.0) return 'Good';
+                    if (v >= 26.0) return 'Average';
+                    if (v >= 18.0) return 'Below Average';
+                    return 'Poor';
+                }
+                if (ageGroup === '23-26') {
+                    if (v >= 37.0) return 'Excellent';
+                    if (v >= 32.0) return 'Good';
+                    if (v >= 25.0) return 'Average';
+                    if (v >= 17.0) return 'Below Average';
+                    return 'Poor';
+                }
+                // 27-30
+                if (v >= 36.0) return 'Excellent';
+                if (v >= 31.0) return 'Good';
+                if (v >= 24.0) return 'Average';
+                if (v >= 16.0) return 'Below Average';
+                return 'Poor';
+            }
+        }
+
+        function getStepTestNormCategory(ageGroup, genderKey, heartRate) {
+            const hr = heartRate;
+            if (genderKey === 'male') {
+                if (ageGroup === '15-18') {
+                    if (hr <= 84) return 'Excellent';
+                    if (hr <= 97) return 'Good';
+                    if (hr <= 108) return 'Average';
+                    if (hr <= 118) return 'Below Average';
+                    return 'Poor';
+                }
+                if (ageGroup === '19-22') {
+                    if (hr <= 79) return 'Excellent';
+                    if (hr <= 89) return 'Good';
+                    if (hr <= 105) return 'Average';
+                    if (hr <= 116) return 'Below Average';
+                    return 'Poor';
+                }
+                if (ageGroup === '23-26') {
+                    if (hr <= 80) return 'Excellent';
+                    if (hr <= 90) return 'Good';
+                    if (hr <= 106) return 'Average';
+                    if (hr <= 117) return 'Below Average';
+                    return 'Poor';
+                }
+                // 27-30
+                if (hr <= 81) return 'Excellent';
+                if (hr <= 91) return 'Good';
+                if (hr <= 107) return 'Average';
+                if (hr <= 118) return 'Below Average';
+                return 'Poor';
+            } else {
+                if (ageGroup === '15-18') {
+                    if (hr <= 89) return 'Excellent';
+                    if (hr <= 103) return 'Good';
+                    if (hr <= 113) return 'Average';
+                    if (hr <= 124) return 'Below Average';
+                    return 'Poor';
+                }
+                if (ageGroup === '19-22') {
+                    if (hr <= 85) return 'Excellent';
+                    if (hr <= 98) return 'Good';
+                    if (hr <= 109) return 'Average';
+                    if (hr <= 118) return 'Below Average';
+                    return 'Poor';
+                }
+                if (ageGroup === '23-26') {
+                    if (hr <= 86) return 'Excellent';
+                    if (hr <= 99) return 'Good';
+                    if (hr <= 110) return 'Average';
+                    if (hr <= 119) return 'Below Average';
+                    return 'Poor';
+                }
+                // 27-30
+                if (hr <= 88) return 'Excellent';
+                if (hr <= 101) return 'Good';
+                if (hr <= 112) return 'Average';
+                if (hr <= 121) return 'Below Average';
+                return 'Poor';
+            }
+        }
+
+        function isNormBasedTest(testName) {
+            const n = testName.toLowerCase();
+            return n.includes('push-up') ||
+                   n.includes('pushup') ||
+                   n.includes('curl-up') ||
+                   n.includes('curl up') ||
+                   n.includes('sit-and-reach') ||
+                   n.includes('sit and reach') ||
+                   n.includes('step test') ||
+                   n.includes('3-minute');
+        }
+
+        function getNormCategoryForResult(testName, result) {
+            if (!studentData || !testName) return null;
+            if (!isNormBasedTest(testName)) return null;
+
+            const age = getStudentAgeForNorms();
+            const ageGroup = getAgeGroup(age);
+            const genderKey = getGenderKey();
+            if (!ageGroup) return null;
+
+            const numericValue = extractNumericResult(result);
+            const normalized = testName.toLowerCase();
+
+            if (normalized.includes('push-up') || normalized.includes('pushup')) {
+                return getPushUpNormCategory(ageGroup, genderKey, numericValue);
+            }
+            if (normalized.includes('curl-up') || normalized.includes('curl up')) {
+                return getCurlUpNormCategory(ageGroup, genderKey, numericValue);
+            }
+            if (normalized.includes('sit-and-reach') || normalized.includes('sit and reach')) {
+                return getSitAndReachNormCategory(ageGroup, genderKey, numericValue);
+            }
+            if (normalized.includes('step test') || normalized.includes('3-minute')) {
+                return getStepTestNormCategory(ageGroup, genderKey, numericValue);
+            }
+            return null;
+        }
+
         function calculateScore(testName, result, testTarget = null) {
             const normalized = testName.toLowerCase();
-            
-            // Always return 100 for these tests regardless of result
-            if (normalized.includes('skinfold') || 
-                normalized.includes('step test') || 
-                normalized.includes('3-minute')) {
+
+            // Skinfold test is handled separately and already categorical
+            if (normalized.includes('skinfold')) {
                 return 100;
             }
-            
-            let numericValue = 0;
-            
-            // Extract numeric value from result
-            if (typeof result === 'object' && result !== null) {
-                numericValue = result.value || result.result || result.score || result.count || 0;
-            } else if (typeof result === 'string') {
-                const match = result.match(/(\d+\.?\d*)/);
-                if (match) {
-                    numericValue = parseFloat(match[1]);
-                } else {
-                    numericValue = parseFloat(result) || 0;
-                }
-            } else {
-                numericValue = parseFloat(result) || 0;
+
+            // Use norm tables for the four main tests and convert to a 0–100 score
+            const normCategory = getNormCategoryForResult(testName, result);
+            if (normCategory) {
+                return mapNormCategoryToScore(normCategory);
             }
-            
-            console.log(`🎯 Score Calculation: ${testName} | Value: ${numericValue} | Target: ${testTarget}`);
-            
-            // If no target set, use default scoring
+
+            // Fallback: keep existing percentage-based logic for other tests
+            let numericValue = extractNumericResult(result);
+
+            console.log(`🎯 Score Calculation (fallback): ${testName} | Value: ${numericValue} | Target: ${testTarget}`);
+
             if (!testTarget || testTarget <= 0) {
-                return calculateDefaultScore(normalized, numericValue);
+                return 75;
             }
-            
-            // REPETITION TESTS (push-ups, sit-ups, curl-ups)
+
+            // REPETITION / DURATION / DISTANCE tests with explicit target
             if (normalized.includes('push-up') || normalized.includes('pushup') || 
                 normalized.includes('sit-up') || normalized.includes('situp') ||
-                normalized.includes('curl-up') || normalized.includes('curl up')) {
+                normalized.includes('curl-up') || normalized.includes('curl up') ||
+                normalized.includes('plank') ||
+                normalized.includes('grip') ||
+                normalized.includes('sit-and-reach') ||
+                normalized.includes('sit and reach')) {
                 
                 if (numericValue >= testTarget) return 100;
-                
-                const percentage = (numericValue / testTarget) * 100;
-                if (percentage >= 90) return 95;
-                if (percentage >= 80) return 90;
-                if (percentage >= 70) return 85;
-                if (percentage >= 60) return 80;
-                if (percentage >= 50) return 75;
-                if (percentage >= 40) return 70;
-                return Math.max(50, Math.round(percentage));
-            }
-            
-            // PLANK (seconds)
-            if (normalized.includes('plank')) {
-                if (numericValue >= testTarget) return 100;
-                
                 const percentage = (numericValue / testTarget) * 100;
                 if (percentage >= 90) return 95;
                 if (percentage >= 80) return 90;
@@ -1465,37 +1799,10 @@
                 if (percentage >= 50) return 75;
                 return Math.max(50, Math.round(percentage));
             }
-            
-            // GRIP STRENGTH (kg)
-            if (normalized.includes('grip')) {
-                if (numericValue >= testTarget) return 100;
-                
-                const percentage = (numericValue / testTarget) * 100;
-                if (percentage >= 90) return 95;
-                if (percentage >= 80) return 90;
-                if (percentage >= 70) return 85;
-                if (percentage >= 60) return 80;
-                if (percentage >= 50) return 75;
-                return Math.max(50, Math.round(percentage));
-            }
-            
-            // SIT-AND-REACH (cm)
-            if (normalized.includes('sit-and-reach')) {
-                if (numericValue >= testTarget) return 100;
-                
-                const percentage = (numericValue / testTarget) * 100;
-                if (percentage >= 90) return 95;
-                if (percentage >= 80) return 90;
-                if (percentage >= 70) return 85;
-                if (percentage >= 60) return 80;
-                if (percentage >= 50) return 75;
-                return Math.max(50, Math.round(percentage));
-            }
-            
+
             // 1-MILE RUN (seconds - LOWER IS BETTER)
             if (normalized.includes('mile') || normalized.includes('run')) {
                 if (numericValue <= testTarget) return 100;
-                
                 const percentage = (testTarget / numericValue) * 100;
                 if (percentage >= 90) return 95;
                 if (percentage >= 80) return 90;
@@ -1504,13 +1811,20 @@
                 if (percentage >= 50) return 75;
                 return Math.max(50, Math.round(percentage));
             }
-            
-            // STEP TEST (heart rate - LOWER IS BETTER)
+
+            // STEP TEST (heart rate - LOWER IS BETTER) – when no norms available
             if (normalized.includes('step test') || normalized.includes('3-minute')) {
-                return 100;
+                if (numericValue <= testTarget) return 100;
+                const percentage = (testTarget / numericValue) * 100;
+                if (percentage >= 90) return 95;
+                if (percentage >= 80) return 90;
+                if (percentage >= 70) return 85;
+                if (percentage >= 60) return 80;
+                if (percentage >= 50) return 75;
+                return Math.max(50, Math.round(percentage));
             }
-            
-            // BMI
+
+            // BMI (kept as score-based)
             if (normalized.includes('bmi')) {
                 const bmi = numericValue;
                 if (bmi >= 18.5 && bmi <= 24.9) return 100;
@@ -1520,55 +1834,19 @@
                 if (bmi >= 27.0 && bmi < 30.0) return 70;
                 return 60;
             }
-            
-           // SKINFOLD — score based on body fat classification band
-           if (normalized.includes('skinfold')) {
-                return 100;
-            }
-            
-            // Default for other tests
-            return calculateDefaultScore(normalized, numericValue);
-        }
 
-        function calculateDefaultScore(normalized, numericValue) {
-            if (normalized.includes('push-up') || normalized.includes('pushup')) {
-                if (numericValue >= 40) return 100;
-                if (numericValue >= 30) return 90;
-                if (numericValue >= 20) return 80;
-                return 70;
-            }
-            if (normalized.includes('curl-up')) {
-                if (numericValue >= 75) return 100;
-                if (numericValue >= 50) return 90;
-                if (numericValue >= 30) return 80;
-                return 70;
-            }
-            if (normalized.includes('grip')) {
-                if (numericValue >= 60) return 100;
-                if (numericValue >= 50) return 90;
-                if (numericValue >= 40) return 80;
-                return 70;
-            }
-            if (normalized.includes('plank')) {
-                if (numericValue >= 120) return 100;
-                if (numericValue >= 90) return 90;
-                if (numericValue >= 60) return 80;
-                return 70;
-            }
-            if (normalized.includes('sit-and-reach')) {
-                if (numericValue >= 20) return 100;
-                if (numericValue >= 15) return 90;
-                if (numericValue >= 10) return 80;
-                return 70;
-            }
             return 75;
         }
 
-        function getRating(score) {
-            if (score >= 90) return { text: 'Excellent', class: 'rating-excellent' };
-            if (score >= 80) return { text: 'Good', class: 'rating-good' };
-            if (score >= 70) return { text: 'Fair', class: 'rating-fair' };
-            return { text: 'Needs Improvement', class: 'rating-needs-improvement' };
+        function getRatingFromCategory(category) {
+            switch (category) {
+                case 'Excellent': return { text: 'Excellent', class: 'rating-excellent' };
+                case 'Good': return { text: 'Good', class: 'rating-good' };
+                case 'Average': return { text: 'Average', class: 'rating-fair' };
+                case 'Below Average': return { text: 'Below Average', class: 'rating-needs-improvement' };
+                case 'Poor': return { text: 'Poor', class: 'rating-needs-improvement' };
+                default: return { text: 'Needs Improvement', class: 'rating-needs-improvement' };
+            }
         }
 
 // Add this at the top of your script, after the Firebase config
@@ -1831,15 +2109,46 @@ function showErrorPopup(message, onClose) {
                 if (resultDoc.exists()) {
                     const data = resultDoc.data();
                     
+                    // Determine norm-based category for main fitness tests
+                    const normCategory = data.testName ? getNormCategoryForResult(data.testName, data.result) : null;
                     const score = calculateScore(data.testName, data.result, data.testTarget);
-                    const rating = getRating(score);
                     
-                    // Update score with animation
                     const scoreProgress = document.getElementById('scoreProgress');
-                    scoreProgress.style.setProperty('--score', score);
-                    
-                    document.getElementById('scoreValue').textContent = score;
-                    document.getElementById('scoreRating').innerHTML = `<span class="score-rating ${rating.class}"><i class="bi bi-star-fill"></i> ${rating.text}</span>`;
+                    const scoreLabelEl = document.querySelector('.score-label');
+                    const scoreValueEl = document.getElementById('scoreValue');
+
+                    if (normCategory) {
+                        const rating = getRatingFromCategory(normCategory);
+                        
+                        // For norm-based tests, show the category instead of a numeric score
+                        if (scoreProgress) {
+                            scoreProgress.style.strokeDashoffset = 565;
+                        }
+                        if (scoreLabelEl) {
+                            scoreLabelEl.textContent = 'CATEGORY';
+                        }
+                        if (scoreValueEl) {
+                            scoreValueEl.textContent = normCategory;
+                        }
+                        document.getElementById('scoreRating').innerHTML = `<span class="score-rating ${rating.class}"><i class="bi bi-star-fill"></i> ${rating.text}</span>`;
+                    } else {
+                        // Fallback for any non-norm tests: retain numeric score display
+                        if (scoreProgress) {
+                            scoreProgress.style.setProperty('--score', score);
+                        }
+                        if (scoreLabelEl) {
+                            scoreLabelEl.textContent = 'SCORE';
+                        }
+                        if (scoreValueEl) {
+                            scoreValueEl.textContent = score;
+                        }
+                        const numericRating = score >= 90 ? 'Excellent' :
+                                              score >= 80 ? 'Good' :
+                                              score >= 70 ? 'Fair' : 'Needs Improvement';
+                        const ratingMeta = getRatingFromCategory(numericRating);
+                        document.getElementById('scoreRating').innerHTML = `<span class="score-rating ${ratingMeta.class}"><i class="bi bi-star-fill"></i> ${ratingMeta.text}</span>`;
+                    }
+
                     document.getElementById('testName').textContent = data.testName;
                     document.getElementById('testResult').textContent = data.result;
                     document.getElementById('completedDate').textContent = new Date(data.submittedAt).toLocaleDateString('en-US', { 

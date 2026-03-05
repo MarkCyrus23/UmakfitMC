@@ -1701,7 +1701,7 @@
             document.getElementById('testTitle').textContent = test.testName;
             
             const duration = typeof testInfo.getDuration === 'function' 
-                ? testInfo.getDuration(test.testTarget) 
+                ? testInfo.getDuration(null) 
                 : testInfo.duration;
 
             document.getElementById('testMeta').textContent = `⏱️ Duration: ${duration} | 🎯 Difficulty: ${testInfo.difficulty}`;
@@ -1717,10 +1717,6 @@
             document.getElementById('requirementsIconNew').src = categoryIcon;
 
             let requirementsText = testInfo.requirements;
-            if (test.testTarget) {
-                const targetLabel = getTargetLabel(test.testName);
-                requirementsText += ` | Target: ${test.testTarget} ${targetLabel}`;
-            }
             document.getElementById('requirementsTextNew').textContent = requirementsText;
 
             const videoPlaceholder = document.querySelector('.video-placeholder');
