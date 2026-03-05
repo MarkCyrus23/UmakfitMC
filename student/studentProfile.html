@@ -1078,10 +1078,18 @@
                                     <div class="modal-body">
                                         <form id="editProfileForm">
                                             <div class="row g-3">
-                                                <div class="col-md-6">
-                                                    <label class="form-label fw-bold">Age</label>
-                                                    <input type="number" class="form-control" id="editAge" min="15" max="100" required>
-                                                </div>
+  <div class="col-md-6">
+    <label class="form-label fw-bold">Birthday</label>
+    <input type="date" class="form-control" id="editBirthday" required onchange="autoFillAge()">
+</div>
+<div class="col-md-6">
+    <label class="form-label fw-bold">Age</label>
+    <input type="text" class="form-control" id="editAge" 
+        readonly 
+        disabled
+        placeholder="Auto-calculated from birthday"
+        style="background:#f1f5f9; color:#64748b; cursor:not-allowed; font-weight:600;">
+</div>
                                                 <div class="col-md-6">
                                                     <label class="form-label fw-bold">Gender</label>
                                                     <select class="form-select" id="editGender" required>
@@ -1741,9 +1749,22 @@
                 }
                 document.getElementById('profileSection').textContent = sectionInfo;
                 
-                document.getElementById('profileAgeGender').textContent = 
-                    `${studentData.age || 0} years - ${studentData.gender || 'Not Specified'}`;
-                document.getElementById('profileEmail').textContent = 
+const displayAge = studentData.birthday 
+    ? calculateAge(studentData.birthday) 
+    : (studentData.age || 0);
+document.getElementById('profileAgeGender').textContent = 
+    `${displayAge} years - ${studentData.gender || 'Not Specified'}`;
+    window.autoFillAge = function() {
+    const birthday = document.getElementById('editBirthday').value;
+    const ageField = document.getElementById('editAge');
+    if (birthday) {
+        const age = calculateAge(birthday);
+        ageField.value = age + ' years old';
+    } else {
+        ageField.value = '';
+    }
+};
+                    document.getElementById('profileEmail').textContent = 
                     studentData.email || user.email;
                 document.getElementById('profileContact').textContent = 
                     studentData.contactNumber || 'Not Provided';
@@ -1929,7 +1950,12 @@
         const modal = new bootstrap.Modal(document.getElementById('editProfileModal'));
         
         const data = window.currentStudentData || {};
-        document.getElementById('editAge').value = data.age || '';
+document.getElementById('editBirthday').value = data.birthday || '';
+if (data.birthday) {
+    document.getElementById('editAge').value = calculateAge(data.birthday) + ' years old';
+} else {
+    document.getElementById('editAge').value = '';
+}
         document.getElementById('editGender').value = data.gender || '';
         document.getElementById('editEmail').value = data.email || '';
         document.getElementById('editContact').value = data.contactNumber || '';
@@ -1975,7 +2001,8 @@
             const updatedData = {
                 firstName: firstName,
                 lastName: lastName,
-                age: parseInt(document.getElementById('editAge').value) || 0,
+birthday: document.getElementById('editBirthday').value,
+age: calculateAge(document.getElementById('editBirthday').value),
                 gender: document.getElementById('editGender').value,
                 email: email,
                 contactNumber: document.getElementById('editContact').value,
@@ -2162,7 +2189,15 @@
         if (dropdownEmail) dropdownEmail.textContent = window.currentStudentData?.email || auth.currentUser?.email || '';
         if (dropdownEmailMobile) dropdownEmailMobile.textContent = window.currentStudentData?.email || auth.currentUser?.email || '';
     }
-
+function calculateAge(birthday) {
+    if (!birthday) return 0;
+    const today = new Date();
+    const birth = new Date(birthday);
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+    return age;
+}
     // Update profile avatar image
     function updateProfileAvatar() {
         if (!auth.currentUser) return;

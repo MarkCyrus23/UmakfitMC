@@ -1880,7 +1880,7 @@
                     <div class="page-hero-left">
                         <div class="page-icon-wrap icon-profile"><i class="fas fa-user-shield"></i></div>
                         <div>
-                            <h1 class="page-hero-title">My Profile</h1>
+                            <h1 class="page-hero-title">Dean Profile</h1>
                             <p class="page-hero-sub">Your account information and administrator details</p>
                         </div>
                     </div>
@@ -2180,40 +2180,85 @@
         loadProfileData();
     };
 
-    function loadProfileData() {
-        if (deanData && currentUser) {
-            const email = deanData.email || currentUser.email;
-            const name = deanData.name || 'Dean';
-            const createdAt = deanData.createdAt;
-            document.getElementById('profileInfoName').textContent = name;
-            document.getElementById('profileInfoEmail').textContent = email;
-            document.getElementById('profileInfoRole').textContent = 'Dean';
-            let dateStr = 'N/A';
-            try {
-                if (createdAt?.toDate) dateStr = createdAt.toDate().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
-                else if (createdAt instanceof Date) dateStr = createdAt.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
-                else if (typeof createdAt === 'string') dateStr = new Date(createdAt).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
-            } catch(err){}
-            document.getElementById('profileInfoCreated').textContent = dateStr;
+   function loadProfileData() {
+    if (deanData && currentUser) {
+        const email = deanData.email || currentUser.email;
+        const createdAt = deanData.createdAt;
+        const photoURL = currentUser.photoURL || deanData.photoURL || null;
+        const initial = getInitial(email);
+
+        // Get display name from Google account (UMak Gmail)
+        const googleName = currentUser.displayName || deanData.name || email.split('@')[0];
+
+        document.getElementById('profileInfoName').textContent = googleName;
+        document.getElementById('profileInfoEmail').textContent = email;
+        document.getElementById('profileInfoRole').textContent = 'Dean';
+
+        // Update the name shown on the profile card too
+        const profileFullNameEl = document.getElementById('profileFullName');
+        if (profileFullNameEl) profileFullNameEl.textContent = googleName;
+
+        // Re-apply photo to profile avatar
+        const avatarEl = document.getElementById('profileAvatarLarge');
+        if (avatarEl) {
+            if (photoURL) {
+                avatarEl.innerHTML = `<img src="${photoURL}" alt="Profile" onerror="this.parentElement.textContent='${initial}'">`;
+            } else {
+                avatarEl.textContent = initial;
+            }
         }
+
+        // Member Since — from Google account creation or Firestore createdAt
+        let dateStr = 'N/A';
+        try {
+            // Try Firestore createdAt first
+            if (createdAt?.toDate) {
+                dateStr = createdAt.toDate().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+            } else if (createdAt instanceof Date) {
+                dateStr = createdAt.toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+            } else if (typeof createdAt === 'string') {
+                dateStr = new Date(createdAt).toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+            }
+            // Fallback: use Firebase Auth account creation time
+            else if (currentUser.metadata?.creationTime) {
+                dateStr = new Date(currentUser.metadata.creationTime).toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+            }
+        } catch(err) {}
+
+        document.getElementById('profileInfoCreated').textContent = dateStr;
     }
+}
 
     function getInitial(email) { return email ? email.charAt(0).toUpperCase() : 'D'; }
 
     async function updateProfileDisplay(userData) {
-        deanData = userData;
-        const email = userData.email || currentUser.email;
-        const name = userData.name || 'Dean';
-        const initial = getInitial(email);
-        document.getElementById('profileAvatarSmall').textContent = initial;
-        document.getElementById('profileDropdownAvatar').textContent = initial;
-        document.getElementById('profileAvatarLarge').textContent = initial;
-        document.getElementById('headerName').textContent = name;
-        document.getElementById('dropdownName').textContent = name;
-        document.getElementById('dropdownEmail').textContent = email;
-        document.getElementById('profileFullName').textContent = name;
-        document.getElementById('deanWelcome').textContent = name;
+    deanData = userData;
+    const email = userData.email || currentUser.email;
+    const name = userData.name || 'Dean';
+    const initial = getInitial(email);
+    
+    // Get photo URL from Firebase Auth (Google Sign-In profile picture)
+    const photoURL = currentUser.photoURL || userData.photoURL || null;
+    
+    function setAvatar(el, photo, fallbackInitial) {
+        if (!el) return;
+        if (photo) {
+            el.innerHTML = `<img src="${photo}" alt="Profile" onerror="this.parentElement.textContent='${fallbackInitial}'">`;
+        } else {
+            el.textContent = fallbackInitial;
+        }
     }
+    
+    setAvatar(document.getElementById('profileAvatarSmall'), photoURL, initial);
+    setAvatar(document.getElementById('profileDropdownAvatar'), photoURL, initial);
+    setAvatar(document.getElementById('profileAvatarLarge'), photoURL, initial);
+    
+    document.getElementById('headerName').textContent = name;
+    document.getElementById('dropdownName').textContent = name;
+    document.getElementById('dropdownEmail').textContent = email;
+    document.getElementById('profileFullName').textContent = name;
+    document.getElementById('deanWelcome').textContent = name;
+}
 
     function hideAllPages() {
         document.querySelectorAll('.management-page').forEach(p => p.classList.remove('active'));
