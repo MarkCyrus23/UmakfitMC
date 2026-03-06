@@ -1796,64 +1796,6 @@
                 
                 console.log(`📊 Found ${testsSnapshot.size} total tests for section ${studentData.section}`);
                 
-                const completedTestsQuery = query(
-    collection(db, 'testResults'),
-    where('studentEmail', '==', (studentData.email || '').trim().toLowerCase())
-        );
-        const completedTestsSnapshot = await getDocs(completedTestsQuery);
-
-        const testStatus = new Map();
-
-        completedTestsSnapshot.forEach(doc => {
-            const result = doc.data();
-            const testId = result.testId;
-            if (!testId) return;
-            
-            if (!testStatus.has(testId)) {
-                testStatus.set(testId, { attempts: 0 });
-            }
-            testStatus.get(testId).attempts++;
-        });
-
-        // Also check by normalized email in case of casing mismatch
-        const completedTestsQueryAlt = query(
-            collection(db, 'testResults'),
-            where('studentEmail', '==', studentData.email)
-        );
-        const completedTestsSnapshotAlt = await getDocs(completedTestsQueryAlt);
-        completedTestsSnapshotAlt.forEach(doc => {
-            const result = doc.data();
-            const testId = result.testId;
-            if (!testId) return;
-            if (!testStatus.has(testId)) {
-                testStatus.set(testId, { attempts: 0 });
-            }
-            testStatus.get(testId).attempts++;
-        });
-                
-                const permissionsQuery = query(
-            collection(db, 'testPermissions'),
-            where('studentEmail', '==', (studentData.email || '').trim().toLowerCase())
-            );
-            const permissionsQueryAlt = query(
-                collection(db, 'testPermissions'),
-                where('studentEmail', '==', studentData.email)
-            );
-            const [permissionsSnapshot, permissionsSnapshotAlt] = await Promise.all([
-                getDocs(permissionsQuery),
-                getDocs(permissionsQueryAlt)
-            ]);
-            const enabledTests = new Set();
-
-            permissionsSnapshot.forEach(doc => {
-                const permission = doc.data();
-                enabledTests.add(permission.testId);
-            });
-            permissionsSnapshotAlt.forEach(doc => {
-                const permission = doc.data();
-                enabledTests.add(permission.testId);
-            });
-                
                 // If there are no tests found strictly by section, fall back to all visible tests
                 // and do a more flexible section match on the client side.
                 let scheduledTestDocs = testsSnapshot.docs;
@@ -1891,18 +1833,19 @@
                         
                         let isStudentSelected = false;
                         
-                       if (test.selectedStudents && Array.isArray(test.selectedStudents) && test.selectedStudents.length > 0) {
-                        isStudentSelected = test.selectedStudents.some(email =>
-                            (email || '').trim().toLowerCase() === (studentData.email || '').trim().toLowerCase()
-                        );
-                        console.log(`📋 Test: ${test.testName} - Student ${isStudentSelected ? 'IS' : 'NOT'} selected`);
-                    } else {
-                        isStudentSelected = true;
-                        console.log(`📋 Test: ${test.testName} - No student filter (visible to all)`);
-                    }
+                        if (test.selectedStudents && Array.isArray(test.selectedStudents) && test.selectedStudents.length > 0) {
+                            isStudentSelected = test.selectedStudents.some(email =>
+                                (email || '').trim().toLowerCase() === (studentData.email || '').trim().toLowerCase()
+                            );
+                            console.log(`📋 Test: ${test.testName} - Student ${isStudentSelected ? 'IS' : 'NOT'} selected`);
+                        } else {
+                            isStudentSelected = true;
+                            console.log(`📋 Test: ${test.testName} - No student filter (visible to all)`);
+                        }
                         
-                        // Always show scheduled tests for the student's section;
-                        // visibility is controlled by professor via section/permissions.
+                        // Mark view-only but still show the card even if not selected.
+                        test.isViewOnly = !isStudentSelected;
+                        
                         console.log(`🔍 Processing test: ${test.testName}`, {
                             isVisible: test.isVisible,
                             isActive: test.isActive,
@@ -1910,6 +1853,7 @@
                             isStudentSelected: isStudentSelected
                         });
                         
+                        // Classify purely by deadline: upcoming/active vs overdue.
                         let deadlineDateTime;
                         if (test.deadlineDateTime) {
                             deadlineDateTime = new Date(test.deadlineDateTime);
@@ -1925,36 +1869,10 @@
                         
                         console.log(`⏰ Test deadline: ${deadlineDateTime}, Now: ${now}`);
                         
-                        const status = testStatus.get(test.id);
-                        const isUnlimited = test.attemptsAllowed === 0;
-                        const hasAttemptsLeft = status ? status.attempts < test.attemptsAllowed : true;
-                        
-                        test.isViewOnly = !isStudentSelected;
-                        
                         if (deadlineDateTime < now) {
-                            if (enabledTests.has(test.id) && isStudentSelected) {
-                                console.log(`⚠️✅ Test ${test.testName}: Overdue but ENABLED by professor`);
-                                test.professorEnabled = true;
-                                overdueTests.push(test);
-                            } else if (!status || status.attempts === 0) {
-                                console.log(`⚠️ Test ${test.testName}: Overdue${!isStudentSelected ? ' (VIEW ONLY - Not Selected)' : ''}`);
-                                overdueTests.push(test);
-                            } else {
-                                console.log(`✅ Test ${test.testName}: Overdue but already completed`);
-                            }
-                            
+                            overdueTests.push(test);
                         } else {
-                            if (!status) {
-                                console.log(`✅ Adding test ${test.testName}: Never attempted${!isStudentSelected ? ' (VIEW ONLY)' : ''}`);
-                                availableTests.push(test);
-                            } else {
-                                if (isUnlimited || hasAttemptsLeft) {
-                                    console.log(`✅ Adding test ${test.testName}: Can retry${!isStudentSelected ? ' (VIEW ONLY)' : ''}`);
-                                    availableTests.push(test);
-                                } else {
-                                    console.log(`❌ Skipping test ${test.testName}: No attempts left`);
-                                }
-                            }
+                            availableTests.push(test);
                         }
                     }
                 } else {
@@ -2083,29 +2001,44 @@
             let html = '';
             
             const attemptPromises = uniqueTests.map(async (test) => {
-                try {
-                    const attemptQuery = query(
-                        collection(db, 'testResults'),
-                        where('testId', '==', test.id),
-                        where('studentEmail', '==', studentData.email)
-                    );
-                    const attemptSnapshot = await getDocs(attemptQuery);
-                    const currentAttempts = attemptSnapshot.size;
-                    
-                    return {
-                        testId: test.id,
-                        attempts: currentAttempts,
-                        testData: test
-                    };
-                } catch (error) {
-                    console.error(`Error fetching attempts for test ${test.id}:`, error);
-                    return {
-                        testId: test.id,
-                        attempts: 0,
-                        testData: test
-                    };
-                }
-            });
+            try {
+                const attemptQuery = query(
+                    collection(db, 'testResults'),
+                    where('testId', '==', test.id),
+                    where('studentEmail', '==', (studentData.email || '').trim().toLowerCase())
+                );
+                const attemptQueryAlt = query(
+                    collection(db, 'testResults'),
+                    where('testId', '==', test.id),
+                    where('studentEmail', '==', studentData.email)
+                );
+                const [attemptSnapshot, attemptSnapshotAlt] = await Promise.all([
+                    getDocs(attemptQuery),
+                    getDocs(attemptQueryAlt)
+                ]);
+                const seenDocs = new Set();
+                let currentAttempts = 0;
+                [...attemptSnapshot.docs, ...attemptSnapshotAlt.docs].forEach(doc => {
+                    if (!seenDocs.has(doc.id)) {
+                        seenDocs.add(doc.id);
+                        currentAttempts++;
+                    }
+                });
+                
+                return {
+                    testId: test.id,
+                    attempts: currentAttempts,
+                    testData: test
+                };
+            } catch (error) {
+                console.error(`Error fetching attempts for test ${test.id}:`, error);
+                return {
+                    testId: test.id,
+                    attempts: 0,
+                    testData: test
+                };
+            }
+        });
             
             const attemptsData = await Promise.all(attemptPromises);
             const attemptsMap = new Map();
@@ -2119,13 +2052,16 @@
                 if (!categoryData) continue;
                 
                 const categoryId = category.replace(/\s+/g, '-').toLowerCase();
-                
+                const remainingTests = tests.filter(t => {
+                const a = attemptsMap.get(t.id) || { attempts: 0 };
+                const isUnlimited = t.attemptsAllowed === 0;
+                return isUnlimited || a.attempts < t.attemptsAllowed;
+            }).length;
+
                 html += `
                     <div class="fitness-category-card group category-collapsed" id="category-${categoryId}">
                         <!-- Category Header - CLICKABLE -->
-                        <div class="category-header relative overflow-hidden bg-white rounded-t-2xl p-5 sm:p-6 border-2 border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer z-10" onclick="toggleCategory('${categoryId}')">
-                            <!-- Diagonal stripe pattern -->
-                            <div class="absolute inset-0 opacity-5 pointer-events-none">
+                            <div class="category-header relative overflow-hidden bg-white rounded-t-2xl p-5 sm:p-6 border-2 border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors z-10" onclick="toggleCategory('${categoryId}')">                            <div class="absolute inset-0 opacity-5 pointer-events-none">
                                 <div class="absolute inset-0" style="background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.05) 10px, rgba(0,0,0,0.05) 20px);"></div>
                             </div>
                             
@@ -2140,43 +2076,53 @@
                                     <p class="text-xs sm:text-sm text-gray-600 font-medium">${categoryData.subtitle}</p>
                                     <div class="mt-2 flex items-center gap-2 text-xs text-gray-500">
                                         <i class="bi bi-lightning-charge-fill"></i>
-                                        <span>${tests.length} Test${tests.length !== 1 ? 's' : ''} Available</span>
+                                        <span>${remainingTests} Test${remainingTests !== 1 ? 's' : ''} Available</span>
                                     </div>
                                 </div>
                                 
                                 <!-- Chevron Icon -->
                                 <div class="flex-shrink-0">
-                                    <i class="bi bi-chevron-down text-2xl text-gray-400 chevron-icon"></i>
-                                </div>
+                        <i class="bi bi-chevron-down text-2xl text-gray-400 chevron-icon"></i>
+                    </div>
                             </div>
                         </div>
                         
-                        <!-- Tests Grid - COLLAPSIBLE -->
-                        <div class="category-tests ${tests.length > 2 ? 'scrollable' : ''} bg-white rounded-b-2xl border-x-2 border-b-2 border-gray-200">
-                            <div class="p-4 sm:p-5">
-                `;
+                            <!-- Tests Grid - COLLAPSIBLE -->
+                            <div class="category-tests ${tests.length > 2 ? 'scrollable' : ''} bg-white rounded-b-2xl border-x-2 border-b-2 border-gray-200">                `;
                 
-                if (tests.length === 0) {
-                    html += `
-                        <div class="text-center py-12">
-                            <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gray-100 flex items-center justify-center">
-                                <i class="bi bi-inbox text-3xl text-gray-300"></i>
-                            </div>
-                            <p class="text-sm font-semibold text-gray-400">No tests in this category</p>
+               if (tests.length === 0) {
+                html += `
+                    <div class="text-center py-12">
+                        <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gray-100 flex items-center justify-center">
+                            <i class="bi bi-inbox text-3xl text-gray-300"></i>
                         </div>
-                    `;
+                        <p class="text-sm font-semibold text-gray-400">No tests in this category</p>
+                    </div>
+                `;
+            } else if (remainingTests === 0) {
+            html += `
+                <div class="text-center py-12">
+                    <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gray-100 flex items-center justify-center">
+                        <i class="bi bi-inbox text-3xl text-gray-300"></i>
+                    </div>
+                    <p class="text-sm font-semibold text-gray-400">No tests in this category</p>
+                </div>
+            `;
                 } else {
                     html += `
                         <div class="relative">
                             <div class="grid grid-cols-1 gap-3 sm:gap-4">
                     `;
                     
-                    tests.forEach(test => {
-                        const attemptData = attemptsMap.get(test.id) || { attempts: 0 };
-                        const currentAttempts = attemptData.attempts;
-                        const isUnlimited = test.attemptsAllowed === 0;
-                        const hasAttempts = currentAttempts > 0;
-                        const canRetry = isUnlimited ? true : (currentAttempts < test.attemptsAllowed);
+                   tests.forEach(test => {
+                    const attemptData = attemptsMap.get(test.id) || { attempts: 0 };
+                    const currentAttempts = attemptData.attempts;
+                    const isUnlimited = test.attemptsAllowed === 0;
+                    const hasAttempts = currentAttempts > 0;
+                    const canRetry = isUnlimited ? true : (currentAttempts < test.attemptsAllowed);
+
+                    // Skip fully completed tests (all attempts used)
+                    if (!isUnlimited && hasAttempts && currentAttempts >= test.attemptsAllowed) return;
 
                         const isViewOnly = test.isViewOnly === true;
 
@@ -2187,26 +2133,28 @@
                         const isFutureTest = testDateTime > now;
 
                         if (isFutureTest) {
-                            statusIcon = 'calendar-event';
-                            const dateStr = testDateTime.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-                            const timeStr = testDateTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-                            statusText = `Available on ${dateStr} at ${timeStr}`;
-
-                        } else if (isViewOnly) {
-                            statusIcon = 'eye';
-                            statusText = 'View Only';
-                        } else if (hasAttempts) {
-                            statusIcon = 'arrow-clockwise';
-                            statusText = `${currentAttempts} completed attempt${currentAttempts !== 1 ? 's' : ''}`;
-                        } else {
-                            statusIcon = 'play-circle';
-                            statusText = 'Ready to Start';
-                        }
+                        statusIcon = 'calendar-event';
+                        const dateStr = testDateTime.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                        const timeStr = testDateTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+                        statusText = `Available on ${dateStr} at ${timeStr}`;
+                    } else if (isViewOnly) {
+                        statusIcon = 'eye';
+                        statusText = 'View Only';
+                    } else if (!isUnlimited && currentAttempts >= test.attemptsAllowed) {
+                        statusIcon = 'check-circle-fill';
+                        statusText = `All ${currentAttempts} attempt${currentAttempts !== 1 ? 's' : ''} completed`;
+                    } else if (hasAttempts) {
+                        statusIcon = 'arrow-clockwise';
+                        statusText = `${currentAttempts} completed attempt${currentAttempts !== 1 ? 's' : ''}`;
+                    } else {
+                        statusIcon = 'play-circle';
+                        statusText = 'Ready to Start';
+                    }
                         
                         html += `
-                            <div class="test-workout-card group/test relative bg-gray-50 rounded-xl border-2 border-gray-200 overflow-hidden hover:border-gray-400 hover:shadow-md transition-all duration-300">
+                            <div class="test-workout-card group/test relative bg-gray-50 rounded-xl border-2 ${(!isUnlimited && currentAttempts >= test.attemptsAllowed) ? 'border-green-200 hover:border-green-400' : 'border-gray-200 hover:border-gray-400'} overflow-hidden hover:shadow-md transition-all duration-300">
                                 <!-- Status indicator strip -->
-                                <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-gray-900"></div>
+                                <div class="absolute left-0 top-0 bottom-0 w-1.5 ${(!isUnlimited && currentAttempts >= test.attemptsAllowed) ? 'bg-green-500' : 'bg-gray-900'}"></div>
                                 
                                 <div class="pl-4 pr-3 sm:pr-4 py-4">
                                     <div class="flex flex-col sm:flex-row gap-4">
@@ -2274,9 +2222,9 @@
                                                     <span>Start</span>
                                                 </button>
                                             ` : `
-                                                <div class="flex-1 sm:flex-initial px-5 py-3 bg-gray-200 text-gray-500 rounded-xl font-bold text-sm uppercase tracking-wide flex items-center justify-center gap-2 border-2 border-gray-300">
-                                                    <i class="bi bi-x-circle"></i>
-                                                    <span>Locked</span>
+                                                <div class="flex-1 sm:flex-initial px-5 py-3 bg-green-100 text-green-700 rounded-xl font-bold text-sm uppercase tracking-wide flex items-center justify-center gap-2 border-2 border-green-300">
+                                                    <i class="bi bi-check-circle-fill"></i>
+                                                    <span>Completed</span>
                                                 </div>
                                             `}
                                         </div>
@@ -2323,13 +2271,13 @@
             const container = document.getElementById('overdueTestsContent');
             const countBadge = document.getElementById('overdueCount');
             
-            const uniqueOverdueTests = [];
+            const uniqueTests = [];
             const seenIds = new Set();
-            
-            overdueTestsArray.forEach(test => {
+
+            availableTests.forEach(test => {
                 if (!seenIds.has(test.id)) {
                     seenIds.add(test.id);
-                    uniqueOverdueTests.push(test);
+                    uniqueTests.push(test);
                 }
             });
             
@@ -2362,6 +2310,7 @@
                     
                     let bestScore = 0;
                     let attempts = 0;
+                    const attemptsAllowed = test.attemptsAllowed || 1;
                     
                     resultsSnapshot.forEach(doc => {
                         const result = doc.data();
@@ -2372,16 +2321,19 @@
                     
                     return {
                         testId: test.id,
-                        completed: attempts > 0,
+                        completed: attempts >= attemptsAllowed,
                         bestScore: bestScore,
-                        attempts: attempts
+                        attempts: attempts,
+                        attemptsAllowed: attemptsAllowed
                     };
                 } catch (error) {
+                    const attemptsAllowed = test.attemptsAllowed || 1;
                     return {
                         testId: test.id,
                         completed: false,
                         bestScore: 0,
-                        attempts: 0
+                        attempts: 0,
+                        attemptsAllowed: attemptsAllowed
                     };
                 }
             });
@@ -2396,7 +2348,7 @@
             
             uniqueOverdueTests.forEach((test) => {
                 const isProfessorEnabled = test.professorEnabled === true;
-                const completion = completionMap.get(test.id) || { completed: false, bestScore: 0, attempts: 0 };
+                const completion = completionMap.get(test.id) || { completed: false, bestScore: 0, attempts: 0, attemptsAllowed: test.attemptsAllowed || 1 };
                 const isCompleted = completion.completed;
                 const isViewOnly = test.isViewOnly === true;
                 
@@ -2529,9 +2481,17 @@
                                     <h3 class="text-lg sm:text-xl font-black text-gray-900 mb-1 uppercase tracking-tight leading-tight">${category}</h3>
                                     <p class="text-xs sm:text-sm text-gray-600 font-medium">${categoryData.subtitle}</p>
                                     <div class="mt-2 flex items-center gap-2 text-xs text-gray-500">
-                                        <i class="bi bi-lightning-charge-fill"></i>
-                                        <span>0 Tests Available</span>
-                                    </div>
+                                    <i class="bi bi-lightning-charge-fill"></i>
+                                    <span>${tests.filter(t => {
+                                        const a = attemptsMap.get(t.id) || { attempts: 0 };
+                                        const isUnlimited = t.attemptsAllowed === 0;
+                                        return isUnlimited || a.attempts < t.attemptsAllowed;
+                                    }).length} Test${tests.filter(t => {
+                                        const a = attemptsMap.get(t.id) || { attempts: 0 };
+                                        const isUnlimited = t.attemptsAllowed === 0;
+                                        return isUnlimited || a.attempts < t.attemptsAllowed;
+                                    }).length !== 1 ? 's' : ''} Available</span>
+                                </div>
                                 </div>
                             </div>
                         </div>
@@ -2550,129 +2510,170 @@
         }
 
         async function loadRecentTestHistory() {
-            try {
-                if (!studentData) return;
+    try {
+        if (!studentData) return;
 
-                const historyQuery = query(
-                    collection(db, 'testResults'),
-                    where('studentEmail', '==', studentData.email)
-                );
-                
-                onSnapshot(historyQuery, (snapshot) => {
-                    console.log('🔄 Real-time test results update detected!');
-                    
-                    const testGroups = {};
-                    
-                    snapshot.forEach((doc) => {
-                        const result = { id: doc.id, ...doc.data() };
-                        const score = calculateTestScore(result.testName, result.result, result.testTarget);
-                        const testId = result.testId || doc.id;
-                        
-                        if (!testGroups[testId] || score > testGroups[testId].score) {
-                            testGroups[testId] = {
-                                ...result,
-                                score: score
-                            };
-                        }
-                    });
-                    
-                    allTestHistory = Object.values(testGroups);
-                    
-                    allTestHistory.sort((a, b) => {
-                        const dateA = a.submittedAt?.toDate ? a.submittedAt.toDate() : (a.submittedAt ? new Date(a.submittedAt) : new Date(0));
-                        const dateB = b.submittedAt?.toDate ? b.submittedAt.toDate() : (b.submittedAt ? new Date(b.submittedAt) : new Date(0));
-                        return dateB - dateA;
-                    });
-                    
-                    renderTestHistory();
-                    calculateAndUpdateStats();
-                    
-                    loadAvailableTests();
-                    
-                }, (error) => {
-                    console.error('❌ Error in test results listener:', error);
-                    const container = document.getElementById('testHistoryContainer');
-                    container.innerHTML = `
-                        <div class="text-center py-8 sm:py-12">
-                            <div class="text-5xl sm:text-6xl mb-3 sm:mb-4">⚠️</div>
-                            <p class="text-base sm:text-lg font-semibold text-gray-600 mb-1 sm:mb-2">Error Loading History</p>
-                            <small class="text-sm text-gray-400">Please refresh the page to try again</small>
-                        </div>
-                    `;
-                });
-                
-            } catch (error) {
-                console.error('Error setting up test history listener:', error);
-                const container = document.getElementById('testHistoryContainer');
-                container.innerHTML = `
-                    <div class="text-center py-8 sm:py-12">
-                        <div class="text-5xl sm:text-6xl mb-3 sm:mb-4">⚠️</div>
-                        <p class="text-base sm:text-lg font-semibold text-gray-600 mb-1 sm:mb-2">Error Loading History</p>
-                        <small class="text-sm text-gray-400">Please refresh the page to try again</small>
-                    </div>
-                `;
-            }
-        }
+        const emailNorm = (studentData.email || '').trim().toLowerCase();
+        const emailOrig = studentData.email;
+
+        const processSnapshot = (snapshot1, snapshot2) => {
+        const seenDocs = new Set();
+        const allResults = [];
+
+        [...snapshot1.docs, ...snapshot2.docs].forEach((doc) => {
+            if (seenDocs.has(doc.id)) return;
+            seenDocs.add(doc.id);
+            const result = { id: doc.id, ...doc.data() };
+            allResults.push(result);
+        });
+
+        // Sort all results by date descending
+        allResults.sort((a, b) => {
+            const dateA = a.submittedAt?.toDate ? a.submittedAt.toDate() : (a.submittedAt ? new Date(a.submittedAt) : new Date(0));
+            const dateB = b.submittedAt?.toDate ? b.submittedAt.toDate() : (b.submittedAt ? new Date(b.submittedAt) : new Date(0));
+            return dateB - dateA;
+        });
+
+        // Count attempts per testId in chronological order (oldest first = attempt 1)
+        const chronological = [...allResults].sort((a, b) => {
+            const dateA = a.submittedAt?.toDate ? a.submittedAt.toDate() : (a.submittedAt ? new Date(a.submittedAt) : new Date(0));
+            const dateB = b.submittedAt?.toDate ? b.submittedAt.toDate() : (b.submittedAt ? new Date(b.submittedAt) : new Date(0));
+            return dateA - dateB;
+        });
+
+        const attemptCounters = {};
+        const attemptMap = {};
+        chronological.forEach((result) => {
+            const testId = result.testId || result.id;
+            if (!attemptCounters[testId]) attemptCounters[testId] = 0;
+            attemptCounters[testId]++;
+            attemptMap[result.id] = attemptCounters[testId];
+        });
+
+        // Attach attempt number to each result
+        allResults.forEach(result => {
+            result.attemptNumber = attemptMap[result.id] || 1;
+        });
+
+        allTestHistory = allResults;
+
+        renderTestHistory();
+        calculateAndUpdateStats();
+        loadAvailableTests();
+    };
+
+        const historyQuery = query(
+            collection(db, 'testResults'),
+            where('studentEmail', '==', emailNorm)
+        );
+        const historyQueryAlt = query(
+            collection(db, 'testResults'),
+            where('studentEmail', '==', emailOrig)
+        );
+
+        // Initial load with both
+        const [snap1, snap2] = await Promise.all([getDocs(historyQuery), getDocs(historyQueryAlt)]);
+        processSnapshot(snap1, snap2);
+
+        // Real-time listener
+        onSnapshot(historyQuery, async (snapshot1) => {
+            const snapshot2 = await getDocs(historyQueryAlt);
+            processSnapshot(snapshot1, snapshot2);
+        }, (error) => {
+            console.error('❌ Error in test results listener:', error);
+            const container = document.getElementById('testHistoryContainer');
+            container.innerHTML = `
+                <div class="text-center py-8 sm:py-12">
+                    <div class="text-5xl sm:text-6xl mb-3 sm:mb-4">⚠️</div>
+                    <p class="text-base sm:text-lg font-semibold text-gray-600 mb-1 sm:mb-2">Error Loading History</p>
+                    <small class="text-sm text-gray-400">Please refresh the page to try again</small>
+                </div>
+            `;
+        });
+
+    } catch (error) {
+        console.error('Error setting up test history listener:', error);
+    }
+}
 
         function renderTestHistory() {
-            const container = document.getElementById('testHistoryContainer');
-            
-            if (allTestHistory.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-8 sm:py-12">
-                        <div class="text-5xl sm:text-6xl mb-3 sm:mb-4">📋</div>
-                        <p class="text-base sm:text-lg font-semibold text-gray-600 mb-1 sm:mb-2">No Test History Yet</p>
-                        <small class="text-sm text-gray-400">Your completed tests will appear here</small>
-                    </div>
-                `;
-                return;
-            }
-
-            const visibleHistory = showAllHistory ? allTestHistory : allTestHistory.slice(0, VISIBLE_HISTORY_COUNT);
-            const hiddenCount = allTestHistory.length - visibleHistory.length;
-
-            let html = `
-                <div class="mb-3 sm:mb-4">
-                    <small class="text-xs sm:text-sm text-gray-500">
-                        Showing ${visibleHistory.length} of ${allTestHistory.length} test results
-                    </small>
+        const container = document.getElementById('testHistoryContainer');
+        
+        if (allTestHistory.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-8 sm:py-12">
+                    <div class="text-5xl sm:text-6xl mb-3 sm:mb-4">📋</div>
+                    <p class="text-base sm:text-lg font-semibold text-gray-600 mb-1 sm:mb-2">No Test History Yet</p>
+                    <small class="text-sm text-gray-400">Your completed tests will appear here</small>
                 </div>
-                <div class="space-y-2 sm:space-y-3">
             `;
+            return;
+        }
 
-            visibleHistory.forEach((result) => {
-                const date = result.submittedAt?.toDate 
-                    ? result.submittedAt.toDate().toLocaleDateString() 
-                    : new Date().toLocaleDateString();
-                
-                html += `
-                    <div class="bg-gray-50 rounded-lg sm:rounded-xl p-3 sm:p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 hover:bg-gray-100 transition-colors">
-                        <div class="flex-1 min-w-0 w-full sm:w-auto">
-                            <h4 class="font-semibold text-gray-900 text-sm sm:text-base mb-1">${result.testName}</h4>
-                            <small class="text-gray-500 text-xs">Completed: ${date}</small>
-                        </div>
-                        <button onclick="viewResult('${result.id}')" class="w-full sm:w-auto px-4 sm:px-5 py-2 sm:py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-semibold text-sm hover:from-blue-600 hover:to-blue-700 hover:-translate-y-0.5 hover:shadow-lg transition-all whitespace-nowrap">
-                            View Result
-                        </button>
-                    </div>
-                `;
+        const visibleHistory = showAllHistory ? allTestHistory : allTestHistory.slice(0, VISIBLE_HISTORY_COUNT);
+        const hiddenCount = allTestHistory.length - visibleHistory.length;
+
+        let html = `
+            <div class="mb-3 sm:mb-4">
+                <small class="text-xs sm:text-sm text-gray-500">
+                    Showing ${visibleHistory.length} of ${allTestHistory.length} test result${allTestHistory.length !== 1 ? 's' : ''}
+                </small>
+            </div>
+            <div class="space-y-2 sm:space-y-3">
+        `;
+
+        visibleHistory.forEach((result) => {
+            const dateObj = result.submittedAt?.toDate 
+                ? result.submittedAt.toDate()
+                : (result.submittedAt ? new Date(result.submittedAt) : new Date());
+            
+            const date = dateObj.toLocaleDateString('en-US', { 
+                month: 'long', 
+                day: 'numeric', 
+                year: 'numeric' 
             });
 
-            html += `</div>`;
+            const attemptNum = result.attemptNumber || 1;
+            const attemptLabel = `Attempt ${attemptNum}`;
+            
+            // Attempt badge color: attempt 1 = blue, 2 = purple, 3+ = orange
+            const badgeColor = attemptNum === 1 
+                ? 'bg-blue-100 text-blue-700' 
+                : attemptNum === 2 
+                    ? 'bg-purple-100 text-purple-700' 
+                    : 'bg-orange-100 text-orange-700';
 
-            if (allTestHistory.length > VISIBLE_HISTORY_COUNT) {
-                html += `
-                    <div class="text-center mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-200">
-                        <button onclick="toggleHistoryViewMoreLess()" class="inline-flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-semibold text-sm hover:from-blue-600 hover:to-blue-700 hover:-translate-y-0.5 hover:shadow-lg transition-all">
-                            <i class="bi bi-${showAllHistory ? 'chevron-up' : 'chevron-down'}"></i>
-                            ${showAllHistory ? 'View Less' : `View More (${hiddenCount} more)`}
-                        </button>
+            html += `
+                <div class="bg-gray-50 rounded-lg sm:rounded-xl p-3 sm:p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 hover:bg-gray-100 transition-colors border border-gray-200">
+                    <div class="flex-1 min-w-0 w-full sm:w-auto">
+                        <div class="flex items-center gap-2 flex-wrap mb-1">
+                            <h4 class="font-semibold text-gray-900 text-sm sm:text-base">${result.testName}</h4>
+                            <span class="text-xs font-bold px-2 py-0.5 rounded-full ${badgeColor}">${attemptLabel}</span>
+                        </div>
+                        <small class="text-gray-500 text-xs">Completed: ${date}</small>
                     </div>
-                `;
-            }
+                    <button onclick="viewResult('${result.id}')" class="w-full sm:w-auto px-4 sm:px-5 py-2 sm:py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-semibold text-sm hover:from-blue-600 hover:to-blue-700 hover:-translate-y-0.5 hover:shadow-lg transition-all whitespace-nowrap">
+                        View Result
+                    </button>
+                </div>
+            `;
+        });
 
-            container.innerHTML = html;
+        html += `</div>`;
+
+        if (allTestHistory.length > VISIBLE_HISTORY_COUNT) {
+            html += `
+                <div class="text-center mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-200">
+                    <button onclick="toggleHistoryViewMoreLess()" class="inline-flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-semibold text-sm hover:from-blue-600 hover:to-blue-700 hover:-translate-y-0.5 hover:shadow-lg transition-all">
+                        <i class="bi bi-${showAllHistory ? 'chevron-up' : 'chevron-down'}"></i>
+                        ${showAllHistory ? 'View Less' : `View More (${hiddenCount} more)`}
+                    </button>
+                </div>
+            `;
         }
+
+        container.innerHTML = html;
+    }
 
         window.toggleHistoryViewMoreLess = function() {
             showAllHistory = !showAllHistory;
