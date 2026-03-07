@@ -874,7 +874,7 @@
                                     </div>
                                 </div>
                                 <div class="notification-dropdown-footer">
-                                    <button onclick="window.location.href='./notifications.html'" class="btn-view-all-dropdown">
+                                    <button onclick="window.location.href='./notification.html'" class="btn-view-all-dropdown">
                                         View All Notifications
                                     </button>
                                 </div>
@@ -1525,32 +1525,46 @@
         }
     }
 
-    function toggleNotificationDropdown(event) {
-        event?.stopPropagation();
-        const isMobile = window.innerWidth < 1024;
-        const dropdown = isMobile ? 
-            document.getElementById('notificationDropdownMobile') : 
-            document.getElementById('notificationDropdown');
-        
-        if (dropdown.classList.contains('hidden')) {
-            dropdown.classList.remove('hidden');
-            loadNotificationDropdown(isMobile);
-            
-            const profileDropdown = document.getElementById('profileDropdown');
-            const profileDropdownMobile = document.getElementById('profileDropdownMobile');
-            if (profileDropdown) profileDropdown.classList.add('hidden');
-            if (profileDropdownMobile) profileDropdownMobile.classList.add('hidden');
-        } else {
-            dropdown.classList.add('hidden');
-        }
-    }
+ function toggleNotificationDropdown(event) {
+    event?.stopPropagation();
+    const isMobile = window.innerWidth < 1024;
+    const dropdown = isMobile ? 
+        document.getElementById('notificationDropdownMobile') : 
+        document.getElementById('notificationDropdown');
+    
+    if (!dropdown) return;
 
-    function closeNotificationDropdown() {
-        const notificationDropdown = document.getElementById('notificationDropdown');
-        const notificationDropdownMobile = document.getElementById('notificationDropdownMobile');
-        if (notificationDropdown) notificationDropdown.classList.add('hidden');
-        if (notificationDropdownMobile) notificationDropdownMobile.classList.add('hidden');
+    // Support both Tailwind `hidden` class AND CSS `display:none` style
+    const isHidden = dropdown.classList.contains('hidden') || 
+                     window.getComputedStyle(dropdown).display === 'none';
+    
+    if (isHidden) {
+        // Close the other dropdown first
+        const other = isMobile ? 
+            document.getElementById('notificationDropdown') : 
+            document.getElementById('notificationDropdownMobile');
+        if (other) { other.classList.add('hidden'); other.style.display = ''; }
+
+        dropdown.classList.remove('hidden');
+        dropdown.style.display = 'block';
+        loadNotificationDropdown(isMobile);
+        
+        const profileDropdown = document.getElementById('profileDropdown');
+        const profileDropdownMobile = document.getElementById('profileDropdownMobile');
+        if (profileDropdown) profileDropdown.classList.add('hidden');
+        if (profileDropdownMobile) profileDropdownMobile.classList.add('hidden');
+    } else {
+        dropdown.classList.add('hidden');
+        dropdown.style.display = '';
     }
+}
+
+function closeNotificationDropdown() {
+    const notificationDropdown = document.getElementById('notificationDropdown');
+    const notificationDropdownMobile = document.getElementById('notificationDropdownMobile');
+    if (notificationDropdown) { notificationDropdown.classList.add('hidden'); notificationDropdown.style.display = ''; }
+    if (notificationDropdownMobile) { notificationDropdownMobile.classList.add('hidden'); notificationDropdownMobile.style.display = ''; }
+}
 
     function setupNotificationListener() {
         try {

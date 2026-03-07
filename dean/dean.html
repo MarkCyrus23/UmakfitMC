@@ -960,51 +960,113 @@
     let studentRankings = [], filteredStudentRankings = [];
     let studentSections = new Set();
 
-    // ─── SCORE HELPERS ───
-    function calculateTestScore(testName, result, testTarget) {
-        const normalized = (testName || '').toLowerCase();
-        let numericValue = 0;
+// ─── NORM-BASED SCORE HELPERS (matches grades.html) ───
+    const CATEGORY_ORDER = { 'Excellent': 5, 'Good': 4, 'Average': 3, 'Below Average': 2, 'Poor': 1 };
+
+    function extractNumericResult(result) {
         if (typeof result === 'object' && result !== null) {
-            numericValue = result.value || result.result || result.score || result.count || 0;
-        } else if (typeof result === 'string') {
-            const match = result.match(/(\d+\.?\d*)/);
-            numericValue = match ? parseFloat(match[1]) : 0;
-        } else { numericValue = parseFloat(result) || 0; }
-        if (!testTarget || testTarget <= 0) return calculateDefaultScore(normalized, numericValue);
-        if (normalized.includes('push-up')||normalized.includes('pushup')||normalized.includes('sit-up')||normalized.includes('situp')||normalized.includes('curl-up')||normalized.includes('curl up')||normalized.includes('plank')||normalized.includes('grip')||normalized.includes('sit-and-reach')) {
-            if (numericValue >= testTarget) return 100;
-            const p = (numericValue / testTarget) * 100;
-            if (p>=90) return 95; if (p>=80) return 90; if (p>=70) return 85; if (p>=60) return 80; if (p>=50) return 75;
-            return Math.max(50, Math.round(p));
+            return parseFloat(result.value || result.result || result.score || result.count || result.repetitions || result.time || 0) || 0;
         }
-        if (normalized.includes('mile')||normalized.includes('run')||normalized.includes('step test')||normalized.includes('3-minute')) {
-            if (numericValue <= testTarget) return 100;
-            const p = (testTarget / numericValue) * 100;
-            if (p>=90) return 95; if (p>=80) return 90; if (p>=70) return 85; if (p>=60) return 80; if (p>=50) return 75;
-            return Math.max(50, Math.round(p));
+        if (typeof result === 'string') {
+            const match = result.match(/(\d+\.?\d*)/);
+            if (match) return parseFloat(match[1]);
+        }
+        return parseFloat(result) || 0;
+    }
+
+    function getPushUpCategory(genderKey, ageGroup, reps) {
+        if (genderKey === 'male') {
+            const norms = { '15-18': [40,31,21,11], '19-22': [38,28,18,9], '23-26': [35,25,16,8], '27-30': [32,23,14,6] };
+            const t = norms[ageGroup] || norms['19-22'];
+            if (reps>=t[0]) return 'Excellent'; if (reps>=t[1]) return 'Good'; if (reps>=t[2]) return 'Average'; if (reps>=t[3]) return 'Below Average'; return 'Poor';
+        } else {
+            const norms = { '15-18': [25,19,13,7], '19-22': [23,17,11,6], '23-26': [20,15,9,5], '27-30': [18,13,8,4] };
+            const t = norms[ageGroup] || norms['19-22'];
+            if (reps>=t[0]) return 'Excellent'; if (reps>=t[1]) return 'Good'; if (reps>=t[2]) return 'Average'; if (reps>=t[3]) return 'Below Average'; return 'Poor';
+        }
+    }
+
+    function getCurlUpCategory(genderKey, ageGroup, reps) {
+        if (genderKey === 'male') {
+            const norms = { '15-18': [50,41,31,21], '19-22': [47,38,28,19], '23-26': [44,35,25,17], '27-30': [40,32,22,15] };
+            const t = norms[ageGroup] || norms['19-22'];
+            if (reps>=t[0]) return 'Excellent'; if (reps>=t[1]) return 'Good'; if (reps>=t[2]) return 'Average'; if (reps>=t[3]) return 'Below Average'; return 'Poor';
+        } else {
+            const norms = { '15-18': [45,36,26,16], '19-22': [42,34,24,15], '23-26': [39,31,21,13], '27-30': [36,28,19,11] };
+            const t = norms[ageGroup] || norms['19-22'];
+            if (reps>=t[0]) return 'Excellent'; if (reps>=t[1]) return 'Good'; if (reps>=t[2]) return 'Average'; if (reps>=t[3]) return 'Below Average'; return 'Poor';
+        }
+    }
+
+    function getSitReachCategory(genderKey, ageGroup, cm) {
+        if (genderKey === 'male') {
+            const norms = { '15-18': [38,33,26,18], '19-22': [37,32,25,17], '23-26': [35.5,30.5,23.5,15.5], '27-30': [34,29,22,14] };
+            const t = norms[ageGroup] || norms['19-22'];
+            if (cm>=t[0]) return 'Excellent'; if (cm>=t[1]) return 'Good'; if (cm>=t[2]) return 'Average'; if (cm>=t[3]) return 'Below Average'; return 'Poor';
+        } else {
+            const norms = { '15-18': [39,34,27,19], '19-22': [38,33,26,18], '23-26': [37,32,25,17], '27-30': [36,31,24,16] };
+            const t = norms[ageGroup] || norms['19-22'];
+            if (cm>=t[0]) return 'Excellent'; if (cm>=t[1]) return 'Good'; if (cm>=t[2]) return 'Average'; if (cm>=t[3]) return 'Below Average'; return 'Poor';
+        }
+    }
+
+    function getStepTestCategory(genderKey, ageGroup, hr) {
+        if (genderKey === 'male') {
+            const norms = { '15-18': [84,97,108,118], '19-22': [79,89,105,116], '23-26': [80,90,106,117], '27-30': [81,91,107,118] };
+            const t = norms[ageGroup] || norms['19-22'];
+            if (hr<=t[0]) return 'Excellent'; if (hr<=t[1]) return 'Good'; if (hr<=t[2]) return 'Average'; if (hr<=t[3]) return 'Below Average'; return 'Poor';
+        } else {
+            const norms = { '15-18': [89,103,113,124], '19-22': [85,98,109,118], '23-26': [86,99,110,119], '27-30': [88,101,112,121] };
+            const t = norms[ageGroup] || norms['19-22'];
+            if (hr<=t[0]) return 'Excellent'; if (hr<=t[1]) return 'Good'; if (hr<=t[2]) return 'Average'; if (hr<=t[3]) return 'Below Average'; return 'Poor';
+        }
+    }
+
+    function getNormCategory(testName, result, genderKey='male', ageGroup='19-22') {
+        const normalized = (testName || '').toLowerCase();
+        const value = extractNumericResult(result);
+        if (normalized.includes('push-up') || normalized.includes('pushup')) return getPushUpCategory(genderKey, ageGroup, value);
+        if (normalized.includes('curl-up') || normalized.includes('curl up')) return getCurlUpCategory(genderKey, ageGroup, value);
+        if (normalized.includes('sit-and-reach') || normalized.includes('sit and reach')) return getSitReachCategory(genderKey, ageGroup, value);
+        if (normalized.includes('step test') || normalized.includes('3-minute')) return getStepTestCategory(genderKey, ageGroup, value);
+        if (normalized.includes('skinfold') || normalized.includes('skin fold')) {
+            if (typeof result === 'string') {
+                const m = result.match(/\(([^)]+)\)/);
+                if (m) { const cls=m[1]; if(cls==='Athletic'||cls==='Fitness') return 'Excellent'; if(cls==='Essential Fat') return 'Good'; if(cls==='Average') return 'Average'; if(cls==='Overfat') return 'Below Average'; if(cls==='Obese') return 'Poor'; }
+            }
+            return 'Average';
         }
         if (normalized.includes('bmi')) {
-            const bmi = numericValue;
-            if (bmi>=18.5&&bmi<=24.9) return 100;
-            if ((bmi>=17.0&&bmi<18.5)||(bmi>=25.0&&bmi<27.0)) return 85;
-            if ((bmi>=16.0&&bmi<17.0)||(bmi>=27.0&&bmi<30.0)) return 70;
-            return 60;
+            const bmi = value;
+            if (bmi>=18.5&&bmi<=24.9) return 'Excellent';
+            if ((bmi>=17.0&&bmi<18.5)||(bmi>=25.0&&bmi<27.0)) return 'Good';
+            if ((bmi>=16.0&&bmi<17.0)||(bmi>=27.0&&bmi<30.0)) return 'Average';
+            return 'Below Average';
         }
-        return calculateDefaultScore(normalized, numericValue);
+        return 'Average';
     }
-    function calculateDefaultScore(n, v) {
-        if (n.includes('push-up')||n.includes('pushup')) { if (v>=40) return 100; if (v>=30) return 90; if (v>=20) return 80; return 70; }
-        if (n.includes('curl-up')) { if (v>=75) return 100; if (v>=50) return 90; if (v>=30) return 80; return 70; }
-        if (n.includes('grip')) { if (v>=60) return 100; if (v>=50) return 90; if (v>=40) return 80; return 70; }
-        if (n.includes('plank')) { if (v>=120) return 100; if (v>=90) return 90; if (v>=60) return 80; return 70; }
-        if (n.includes('sit-and-reach')) { if (v>=20) return 100; if (v>=15) return 90; if (v>=10) return 80; return 70; }
-        return 75;
+
+    function getOverallCategory(categories) {
+        if (!categories || !categories.length) return 'Average';
+        const scores = categories.map(c => CATEGORY_ORDER[c] || 3);
+        const avg = scores.reduce((a,b)=>a+b,0) / scores.length;
+        if (avg>=4.5) return 'Excellent'; if (avg>=3.5) return 'Good'; if (avg>=2.5) return 'Average'; if (avg>=1.5) return 'Below Average'; return 'Poor';
     }
-    function getScoreRating(score) {
-        if (score>=90) return {text:'Excellent',cls:'score-excellent'};
-        if (score>=80) return {text:'Good',cls:'score-good'};
-        if (score>=70) return {text:'Fair',cls:'score-fair'};
-        return {text:'Needs Improvement',cls:'score-poor'};
+
+    function getCategoryClass(cat) {
+        return { 'Excellent':'score-excellent', 'Good':'score-good', 'Average':'score-fair', 'Below Average':'score-poor', 'Poor':'score-poor' }[cat] || 'score-fair';
+    }
+
+    // Legacy alias so existing rendering code still works
+    function getScoreRating(avgScore) {
+        // avgScore here is a CATEGORY_ORDER number (1-5) when called from new code,
+        // or a string category — handle both
+        if (typeof avgScore === 'string') return { text: avgScore, cls: getCategoryClass(avgScore) };
+        if (avgScore >= 4.5) return { text:'Excellent', cls:'score-excellent' };
+        if (avgScore >= 3.5) return { text:'Good', cls:'score-good' };
+        if (avgScore >= 2.5) return { text:'Average', cls:'score-fair' };
+        if (avgScore >= 1.5) return { text:'Below Average', cls:'score-poor' };
+        return { text:'Poor', cls:'score-poor' };
     }
 
     // ─── BMI HELPERS ───
@@ -1223,9 +1285,12 @@
             testResults = [];
             q.forEach(doc => {
                 const data = doc.data();
-                let score = data.score;
-                if (!score&&score!==0) score = calculateTestScore(data.testName,data.result,data.testTarget);
-                testResults.push({id:doc.id,...data,score:score||0});
+              const gender = (data.gender || '').toLowerCase();
+                const genderKey = gender.startsWith('f') ? 'female' : 'male';
+                const ageGroup = data.ageGroup || '19-22';
+                const category = getNormCategory(data.testName, data.result, genderKey, ageGroup);
+                const normScore = CATEGORY_ORDER[category] || 3;
+                testResults.push({id:doc.id,...data,score:normScore,category,genderKey,ageGroup});
             });
             return testResults;
         } catch(e) { testResults=[]; return []; }
@@ -1268,54 +1333,149 @@
         try { const snap=await db.collection('sections').get(); sections=[]; snap.forEach(d=>sections.push({id:d.id,...d.data()})); } catch(e) { sections=[]; }
     }
 
-    async function loadSectionRankings() {
-        try {
-            await loadSections();
-            const secData={}, secStudents={}, secMeta={};
-            sections.forEach(s => {
-                const n=s.name; if(!n) return;
-                const prof=s.professorName||s.professor||s.assignedProfessor||'Unassigned';
-                secData[n]={pre:[],post:[],preScores:[],postScores:[],allScores:[]};
-                secStudents[n]=new Set();
-                secMeta[n]={college:s.college||'College of Human Kinetics',professor:prof,studentCount:s.studentCount||0,professorEmail:s.professorEmail||'',professorId:s.professorId||''};
-            });
-            try {
-                const stuSnap=await db.collection('users').where('role','==','student').get();
-                stuSnap.forEach(d => {
-                    const data=d.data();
-                    const sec=data.section||data.assignedSection||data.class||data.sectionName;
-                    if(!sec) return;
-                    if(!secStudents[sec]) { secData[sec]={pre:[],post:[],preScores:[],postScores:[],allScores:[]}; secStudents[sec]=new Set(); secMeta[sec]={college:'College of Human Kinetics',professor:'Unassigned',studentCount:0,professorEmail:'',professorId:''}; }
-                    secStudents[sec].add(d.id);
-                });
-            } catch(e) {}
-            testResults.forEach(t => {
-                const sec=t.section; if(!sec) return;
-                const score=t.score||0; const type=t.type||'unknown';
-                if(!secData[sec]) { secData[sec]={pre:[],post:[],preScores:[],postScores:[],allScores:[]}; secStudents[sec]=new Set(); secMeta[sec]={college:'College of Human Kinetics',professor:'Unassigned',studentCount:0,professorEmail:'',professorId:''}; }
-                if(type==='pre'){secData[sec].pre.push(t);if(score>0){secData[sec].preScores.push(score);secData[sec].allScores.push(score);}}
-                else if(type==='post'){secData[sec].post.push(t);if(score>0){secData[sec].postScores.push(score);secData[sec].allScores.push(score);}}
-                else if(score>0){secData[sec].allScores.push(score);}
-                const sk=t.studentId||t.studentEmail; if(sk) secStudents[sec].add(sk);
-            });
-            sectionRankings=[]; allColleges.clear();
-            for (const [name,data] of Object.entries(secData)) {
-                const preAvg=data.preScores.length?data.preScores.reduce((a,b)=>a+b,0)/data.preScores.length:0;
-                const postAvg=data.postScores.length?data.postScores.reduce((a,b)=>a+b,0)/data.postScores.length:0;
-                const avgScore=data.allScores.length?data.allScores.reduce((a,b)=>a+b,0)/data.allScores.length:0;
-                const meta=secMeta[name]||{college:'College of Human Kinetics',professor:'Unassigned',studentCount:0};
-                const college=meta.college||'College of Human Kinetics';
-                allColleges.add(college);
-                const stuCount=(secStudents[name] instanceof Set?secStudents[name].size:secStudents[name])||0;
-                sectionRankings.push({name,college,professor:meta.professor,professorEmail:meta.professorEmail||'',professorId:meta.professorId||'',studentCount:Math.max(stuCount,meta.studentCount||0),preTestCount:data.pre.length,postTestCount:data.post.length,preTestAvg:parseFloat(preAvg.toFixed(2)),postTestAvg:parseFloat(postAvg.toFixed(2)),improvement:parseFloat((postAvg-preAvg).toFixed(2)),avgScore:parseFloat(avgScore.toFixed(2)),totalTests:data.allScores.length,hasData:data.allScores.length>0,preScores:data.preScores,postScores:data.postScores,allScores:data.allScores});
-            }
-            const withData=sectionRankings.filter(s=>s.hasData).sort((a,b)=>b.avgScore-a.avgScore);
-            const withoutData=sectionRankings.filter(s=>!s.hasData).sort((a,b)=>a.name.localeCompare(b.name));
-            sectionRankings=[...withData,...withoutData];
-            updateCollegeFilter(); filterRankings(); updateRankingSummaryStats();
-        } catch(e) { console.error(e); /* silent fail on background load */ }
-    }
+ async function loadSectionRankings() {
+    try {
+        await loadSections();
 
+        const secData = {}, secStudents = {}, secMeta = {};
+
+        sections.forEach(s => {
+            const n = s.name; if (!n) return;
+            const prof = s.professorName || s.professor || s.assignedProfessor || 'Unassigned';
+            secData[n] = {
+                pre: [], post: [], preScores: [], postScores: [], allScores: [],
+                bmiPreValues: [],   // ← collect raw BMI pre values
+                bmiPostValues: []   // ← collect raw BMI post values
+            };
+            secStudents[n] = new Set();
+            secMeta[n] = {
+                college: s.college || 'College of Human Kinetics',
+                professor: prof,
+                studentCount: s.studentCount || 0,
+                professorEmail: s.professorEmail || '',
+                professorId: s.professorId || ''
+            };
+        });
+
+        // Load students into sections
+        try {
+            const stuSnap = await db.collection('users').where('role', '==', 'student').get();
+            stuSnap.forEach(d => {
+                const data = d.data();
+                const sec = data.section || data.assignedSection || data.class || data.sectionName;
+                if (!sec) return;
+                if (!secStudents[sec]) {
+                    secData[sec] = { pre: [], post: [], preScores: [], postScores: [], allScores: [], bmiPreValues: [], bmiPostValues: [] };
+                    secStudents[sec] = new Set();
+                    secMeta[sec] = { college: 'College of Human Kinetics', professor: 'Unassigned', studentCount: 0, professorEmail: '', professorId: '' };
+                }
+                secStudents[sec].add(d.id);
+            });
+        } catch (e) {}
+
+        // ─── Fetch BMI collection — group pre AND post BMI values by section ───
+        try {
+            const bmiSnap = await db.collection('BMI').get();
+            bmiSnap.forEach(d => {
+                const a = d.data();
+                const tt = (a.testType || a.type || '').toLowerCase();
+                const bmi = parseFloat(a.bmi);
+                if (isNaN(bmi) || bmi <= 0) return;
+                const sec = a.section || a.assignedSection;
+                if (!sec) return;
+                if (!secData[sec]) {
+                    secData[sec] = { pre: [], post: [], preScores: [], postScores: [], allScores: [], bmiPreValues: [], bmiPostValues: [] };
+                    secStudents[sec] = new Set();
+                    secMeta[sec] = { college: 'College of Human Kinetics', professor: 'Unassigned', studentCount: 0, professorEmail: '', professorId: '' };
+                }
+                if (tt === 'pre')  secData[sec].bmiPreValues.push(bmi);
+                if (tt === 'post') secData[sec].bmiPostValues.push(bmi);
+            });
+        } catch (e) { console.error('BMI fetch error:', e); }
+
+        // Map testResults to sections
+        testResults.forEach(t => {
+            const sec = t.section; if (!sec) return;
+            const score = t.score || 0;
+            const type = t.type || 'unknown';
+            if (!secData[sec]) {
+                secData[sec] = { pre: [], post: [], preScores: [], postScores: [], allScores: [], bmiPreValues: [], bmiPostValues: [] };
+                secStudents[sec] = new Set();
+                secMeta[sec] = { college: 'College of Human Kinetics', professor: 'Unassigned', studentCount: 0, professorEmail: '', professorId: '' };
+            }
+            if (type === 'pre') { secData[sec].pre.push(t); if (score > 0) { secData[sec].preScores.push(score); secData[sec].allScores.push(score); } }
+            else if (type === 'post') { secData[sec].post.push(t); if (score > 0) { secData[sec].postScores.push(score); secData[sec].allScores.push(score); } }
+            else if (score > 0) { secData[sec].allScores.push(score); }
+            const sk = t.studentId || t.studentEmail; if (sk) secStudents[sec].add(sk);
+        });
+
+        sectionRankings = []; allColleges.clear();
+
+        for (const [name, data] of Object.entries(secData)) {
+            const preAvg  = data.preScores.length  ? data.preScores.reduce((a, b) => a + b, 0)  / data.preScores.length  : 0;
+            const postAvg = data.postScores.length ? data.postScores.reduce((a, b) => a + b, 0) / data.postScores.length : 0;
+            const avgScore = data.allScores.length ? data.allScores.reduce((a, b) => a + b, 0)  / data.allScores.length  : 0;
+
+            // ─── BMI averages from BMI collection ───
+            const bmiPreAvg = data.bmiPreValues.length
+                ? data.bmiPreValues.reduce((a, b) => a + b, 0) / data.bmiPreValues.length
+                : null;
+            const bmiPostAvg = data.bmiPostValues.length
+                ? data.bmiPostValues.reduce((a, b) => a + b, 0) / data.bmiPostValues.length
+                : null;
+            const bmiPreCategory  = bmiPreAvg  !== null ? getBMICategory(bmiPreAvg)  : '';
+            const bmiPostCategory = bmiPostAvg !== null ? getBMICategory(bmiPostAvg) : '';
+
+            // BMI improvement = post minus pre (negative = good, lost weight toward normal)
+            const bmiImprovement = (bmiPreAvg !== null && bmiPostAvg !== null)
+                ? parseFloat((bmiPostAvg - bmiPreAvg).toFixed(2))
+                : null;
+
+            const meta = secMeta[name] || { college: 'College of Human Kinetics', professor: 'Unassigned', studentCount: 0 };
+            const college = meta.college || 'College of Human Kinetics';
+            allColleges.add(college);
+
+            const stuCount = (secStudents[name] instanceof Set ? secStudents[name].size : secStudents[name]) || 0;
+
+            sectionRankings.push({
+                name,
+                college,
+                professor: meta.professor,
+                professorEmail: meta.professorEmail || '',
+                professorId: meta.professorId || '',
+                studentCount: Math.max(stuCount, meta.studentCount || 0),
+                preTestCount: data.pre.length,
+                postTestCount: data.post.length,
+                preTestAvg: parseFloat(preAvg.toFixed(2)),
+                postTestAvg: parseFloat(postAvg.toFixed(2)),
+                improvement: parseFloat((postAvg - preAvg).toFixed(2)),
+                avgScore: parseFloat(avgScore.toFixed(2)),
+                totalTests: data.allScores.length,
+                hasData: data.allScores.length > 0,
+                preScores: data.preScores,
+                postScores: data.postScores,
+                allScores: data.allScores,
+                // ─── BMI fields ───
+                bmiPreAvg:      bmiPreAvg  !== null ? parseFloat(bmiPreAvg.toFixed(2))  : null,
+                bmiPreCategory,
+                bmiPreCount:    data.bmiPreValues.length,
+                bmiPostAvg:     bmiPostAvg !== null ? parseFloat(bmiPostAvg.toFixed(2)) : null,
+                bmiPostCategory,
+                bmiPostCount:   data.bmiPostValues.length,
+                bmiImprovement
+            });
+        }
+
+        const withData    = sectionRankings.filter(s => s.hasData).sort((a, b) => b.avgScore - a.avgScore);
+        const withoutData = sectionRankings.filter(s => !s.hasData).sort((a, b) => a.name.localeCompare(b.name));
+        sectionRankings   = [...withData, ...withoutData];
+
+        updateCollegeFilter();
+        filterRankings();
+        updateRankingSummaryStats();
+
+    } catch (e) { console.error(e); }
+}
     function updateCollegeFilter() {
         const el=document.getElementById('collegeFilter'); if(!el) return;
         const cur=el.value; el.innerHTML='<option value="all">All Colleges</option>';
@@ -1342,39 +1502,115 @@
         else filteredRankings.sort((a,b)=>b.avgScore-a.avgScore);
         renderSectionRankingTable();
     };
-
-    function renderSectionRankingTable() {
-        const tbody=document.getElementById('sectionRankingTableBody'); if(!tbody) return;
-        if(!filteredRankings.length) { tbody.innerHTML=`<tr><td colspan="11"><div class="empty-state"><div style="font-size:48px;color:#c5cfe0;margin-bottom:16px;"><i class="fas fa-layer-group"></i></div><div style="font-size:17px;font-weight:600;color:#0a1628;margin-bottom:8px;">No Sections Found</div><div style="font-size:14px;color:#8a98ae;">No sections are registered in the system yet.</div></div></td></tr>`; return; }
-        let rankCounter=0;
-        tbody.innerHTML=filteredRankings.map(s => {
-            const hasData=s.hasData; if(hasData) rankCounter++;
-            const rankDisplay=hasData?rankCounter:'—';
-            const rankCls=hasData?(rankCounter<=3?`rank-${rankCounter}`:'rank-other'):'rank-other';
-            const impCls=s.improvement>0?'trend-up':s.improvement<0?'trend-down':'trend-neutral';
-            const impIcon=s.improvement>0?'arrow-up':s.improvement<0?'arrow-down':'minus';
-            const perf=Math.min(Math.max(s.avgScore,0),100);
-            return `<tr style="${!hasData?'opacity:0.65;':''}">
-                <td data-label="Rank"><div class="rank-num ${rankCls}">${rankDisplay}</div></td>
-                <td data-label="Section"><span style="font-weight:600;color:#0a1628;">${s.name}</span>${!hasData?'<span style="margin-left:6px;font-size:10px;background:#f1f5f9;color:#94a3b8;padding:2px 7px;border-radius:10px;font-weight:600;">No data yet</span>':''}</td>
-                <td data-label="College"><span style="font-size:13px;">${s.college}</span></td>
-                <td data-label="Professor"><span style="font-size:13px;">${s.professor||'Unassigned'}</span></td>
-                <td data-label="Students">${s.studentCount}</td>
-                <td data-label="BMI Avg (Pre)">—</td>
-                <td data-label="Post-Test Avg">${s.postTestAvg>0?s.postTestAvg.toFixed(1):'—'}</td>
-                <td data-label="Improvement">${hasData?`<span class="${impCls}"><i class="fas fa-${impIcon}" style="margin-right:4px;"></i>${s.improvement>0?'+':''}${s.improvement.toFixed(1)}</span>`:'<span style="color:#8a98ae;">—</span>'}</td>
-                <td data-label="Avg Score"><strong>${s.avgScore>0?s.avgScore.toFixed(1):'—'}</strong></td>
-                <td data-label="Performance">${hasData?`<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:12px;font-weight:600;color:#0a1628;width:34px;">${perf.toFixed(0)}%</span><div class="prog-track"><div class="prog-fill" style="width:${perf}%;"></div></div></div>`:'<span style="color:#8a98ae;font-size:12px;">Pending</span>'}</td>
-                <td data-label="Actions"><div class="tbl-actions"><button class="tbl-btn tbl-btn-view" onclick="viewSectionDetails('${s.name.replace(/'/g,"\\'")}')"><i class="fas fa-eye"></i> View</button></div></td>
-            </tr>`;
-        }).join('');
+function renderSectionRankingTable() {
+    const tbody = document.getElementById('sectionRankingTableBody'); if (!tbody) return;
+    if (!filteredRankings.length) {
+        tbody.innerHTML = `<tr><td colspan="11"><div class="empty-state"><div style="font-size:48px;color:#c5cfe0;margin-bottom:16px;"><i class="fas fa-layer-group"></i></div><div style="font-size:17px;font-weight:600;color:#0a1628;margin-bottom:8px;">No Sections Found</div><div style="font-size:14px;color:#8a98ae;">No sections are registered in the system yet.</div></div></td></tr>`;
+        return;
     }
+
+    let rankCounter = 0;
+
+    tbody.innerHTML = filteredRankings.map(s => {
+        const hasData = s.hasData;
+        if (hasData) rankCounter++;
+
+        const rankDisplay = hasData ? rankCounter : '—';
+        const rankCls = hasData ? (rankCounter <= 3 ? `rank-${rankCounter}` : 'rank-other') : 'rank-other';
+
+        // ─── BMI AVG (PRE) cell ───
+        let bmiCell = '<span style="color:#8a98ae;">—</span>';
+        if (s.bmiPreAvg !== null && s.bmiPreAvg > 0) {
+            const catClass   = getBMICategoryClass(s.bmiPreCategory);
+            const catDisplay = getBMICategoryDisplay(s.bmiPreCategory);
+            bmiCell = `
+                <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                    <span style="font-weight:600;font-family:'DM Mono',monospace;">${s.bmiPreAvg.toFixed(2)}</span>
+                    <span class="bmi-pill ${catClass}" style="font-size:9px;padding:2px 5px;">${catDisplay}</span>
+                    ${s.bmiPreCount > 1 ? `<span style="font-size:9px;color:#8a98ae;">(${s.bmiPreCount})</span>` : ''}
+                </div>`;
+        }
+
+        // ─── POST-TEST AVG cell — use bmiPostAvg from BMI collection ───
+        let postCell = '<span style="color:#8a98ae;">—</span>';
+        if (s.bmiPostAvg !== null && s.bmiPostAvg > 0) {
+            const catClass   = getBMICategoryClass(s.bmiPostCategory);
+            const catDisplay = getBMICategoryDisplay(s.bmiPostCategory);
+            postCell = `
+                <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                    <span style="font-weight:600;font-family:'DM Mono',monospace;">${s.bmiPostAvg.toFixed(2)}</span>
+                    <span class="bmi-pill ${catClass}" style="font-size:9px;padding:2px 5px;">${catDisplay}</span>
+                    ${s.bmiPostCount > 1 ? `<span style="font-size:9px;color:#8a98ae;">(${s.bmiPostCount})</span>` : ''}
+                </div>`;
+        } else if (s.postTestAvg > 0) {
+            // fallback: norm-based score from testResults
+            const rt = getScoreRating(s.postTestAvg);
+            postCell = `<span class="score-pill ${rt.cls}">${rt.text}</span>
+                        <span style="font-size:11px;color:#8a98ae;margin-left:4px;">(${s.postTestAvg.toFixed(1)})</span>`;
+        }
+
+        // ─── IMPROVEMENT cell — prefer BMI-based, fallback to score-based ───
+        let impCell = '<span style="color:#8a98ae;">—</span>';
+        if (s.bmiImprovement !== null) {
+            // For BMI: going DOWN is good (toward normal), going UP is bad
+            const ch = s.bmiImprovement;
+            const impCls  = ch < 0 ? 'trend-up' : ch > 0 ? 'trend-down' : 'trend-neutral';
+            const impIcon = ch < 0 ? 'arrow-down' : ch > 0 ? 'arrow-up' : 'minus';
+            const label   = ch < 0 ? 'BMI ↓' : ch > 0 ? 'BMI ↑' : 'No change';
+            impCell = `<span class="${impCls}" title="${label}">
+                           <i class="fas fa-${impIcon}" style="margin-right:4px;"></i>${ch > 0 ? '+' : ''}${ch.toFixed(2)} BMI
+                       </span>`;
+        } else if (hasData && s.improvement !== 0) {
+            const impCls  = s.improvement > 0 ? 'trend-up' : s.improvement < 0 ? 'trend-down' : 'trend-neutral';
+            const impIcon = s.improvement > 0 ? 'arrow-up' : s.improvement < 0 ? 'arrow-down' : 'minus';
+            impCell = `<span class="${impCls}"><i class="fas fa-${impIcon}" style="margin-right:4px;"></i>${s.improvement > 0 ? '+' : ''}${s.improvement.toFixed(1)}</span>`;
+        } else if (hasData) {
+            impCell = `<span class="trend-neutral"><i class="fas fa-minus" style="margin-right:4px;"></i>0.0</span>`;
+        }
+
+        // ─── AVG SCORE cell ───
+        const avgCell = s.avgScore > 0 ? `<strong>${getScoreRating(s.avgScore).text}</strong>` : '—';
+
+        // ─── PERFORMANCE bar (0-100 mapped from 1-5 scale) ───
+        const perf = Math.min(Math.max(((s.avgScore - 1) / 4) * 100, 0), 100);
+
+        return `<tr style="${!hasData ? 'opacity:0.65;' : ''}">
+            <td data-label="Rank"><div class="rank-num ${rankCls}">${rankDisplay}</div></td>
+            <td data-label="Section">
+                <span style="font-weight:600;color:#0a1628;">${s.name}</span>
+                ${!hasData ? '<span style="margin-left:6px;font-size:10px;background:#f1f5f9;color:#94a3b8;padding:2px 7px;border-radius:10px;font-weight:600;">No data yet</span>' : ''}
+            </td>
+            <td data-label="College"><span style="font-size:13px;">${s.college}</span></td>
+            <td data-label="Professor"><span style="font-size:13px;">${s.professor || 'Unassigned'}</span></td>
+            <td data-label="Students">${s.studentCount}</td>
+            <td data-label="BMI Avg (Pre)">${bmiCell}</td>
+            <td data-label="Post-Test Avg">${postCell}</td>
+            <td data-label="Improvement">${impCell}</td>
+            <td data-label="Avg Score">${avgCell}</td>
+            <td data-label="Performance">
+                ${hasData
+                    ? `<div style="display:flex;align-items:center;gap:8px;">
+                           <span style="font-size:12px;font-weight:600;color:#0a1628;width:34px;">${perf.toFixed(0)}%</span>
+                           <div class="prog-track"><div class="prog-fill" style="width:${perf}%;"></div></div>
+                       </div>`
+                    : '<span style="color:#8a98ae;font-size:12px;">Pending</span>'}
+            </td>
+            <td data-label="Actions">
+                <div class="tbl-actions">
+                    <button class="tbl-btn tbl-btn-view" onclick="viewSectionDetails('${s.name.replace(/'/g, "\\'")}')">
+                        <i class="fas fa-eye"></i> View
+                    </button>
+                </div>
+            </td>
+        </tr>`;
+    }).join('');
+}
 
     function updateRankingSummaryStats() {
         document.getElementById('totalSectionsRanked').textContent=sectionRankings.length;
         const avgs=sectionRankings.map(s=>s.avgScore).filter(s=>s>0);
-        document.getElementById('overallAvgScore').textContent=avgs.length?(avgs.reduce((a,b)=>a+b,0)/avgs.length).toFixed(1):'0.0';
-        if(sectionRankings.length>0) { document.getElementById('topSectionName').textContent=sectionRankings[0].name; document.getElementById('topSectionScore').textContent=sectionRankings[0].avgScore.toFixed(1)+' avg score'; }
+const overallAvg = avgs.length ? avgs.reduce((a,b)=>a+b,0)/avgs.length : 0;
+        document.getElementById('overallAvgScore').textContent = overallAvg > 0 ? getScoreRating(overallAvg).text : '—';        if(sectionRankings.length>0) { document.getElementById('topSectionName').textContent=sectionRankings[0].name; document.getElementById('topSectionScore').textContent=getScoreRating(sectionRankings[0].avgScore).text+' overall';}
         document.getElementById('totalStudentsAssessed').textContent=sectionRankings.reduce((s,r)=>s+r.studentCount,0);
     }
 
@@ -1387,7 +1623,9 @@
             const rank=i+1; const rc=rank<=3?`rank-${rank}`:'rank-other';
             const ic=s.improvement>0?'trend-up':s.improvement<0?'trend-down':'trend-neutral';
             const ii=s.improvement>0?'arrow-up':s.improvement<0?'arrow-down':'minus';
-            return `<tr><td data-label="Rank"><div class="rank-num ${rc}">${rank}</div></td><td data-label="Section"><span style="font-weight:600;color:#0a1628;">${s.name}</span></td><td data-label="Professor">${s.professor||'Unassigned'}</td><td data-label="College">${s.college}</td><td data-label="Students">${s.studentCount}</td><td data-label="Avg Score"><strong>${s.avgScore.toFixed(1)}</strong></td><td data-label="Improvement"><span class="${ic}"><i class="fas fa-${ii}" style="margin-right:3px;"></i>${s.improvement>0?'+':''}${s.improvement.toFixed(1)}</span></td></tr>`;
+            return `<tr><td data-label="Rank"><div class="rank-num ${rc}">${rank}</div></td><td data-label="Section"><span style="font-weight:600;color:#0a1628;">${s.name}</span></td><td data-label="Professor">${s.professor||'Unassigned'}</td><td data-label="College">${s.college}</td><td data-label="Students">${s.studentCount}</td>
+<td data-label="Avg Score"><strong>${getScoreRating(s.avgScore).text}</strong></td>
+                <td data-label="Improvement"><span class="${ic}"><i class="fas fa-${ii}" style="margin-right:3px;"></i>${s.improvement>0?'+':''}${s.improvement.toFixed(1)}</span></td></tr>`;
         }).join('');
     }
 
@@ -1399,71 +1637,261 @@
         downloadCSV(csv,`section_rankings_${new Date().toISOString().split('T')[0]}.csv`);
         showAlert('rankingAlert','Report exported successfully!','success');
     };
+window.viewSectionDetails = async function(sectionName) {
+    const s = sectionRankings.find(r => r.name === sectionName); if (!s) return;
+    const rank = sectionRankings.findIndex(r => r.name === sectionName) + 1;
+    const rc = rank <= 3 ? `rank-${rank}` : 'rank-other';
 
-    window.viewSectionDetails = async function(sectionName) {
-        const s=sectionRankings.find(r=>r.name===sectionName); if(!s) return;
-        const rank=sectionRankings.findIndex(r=>r.name===sectionName)+1;
-        const rc=rank<=3?`rank-${rank}`:'rank-other';
-        document.getElementById('sectionDetailsTitle').textContent=`Section: ${sectionName}`;
-        document.getElementById('sectionDetailsContent').innerHTML=`<div class="detail-grid"><div class="detail-block"><div class="detail-block-label">Section Name</div><div class="detail-block-val">${s.name}</div></div><div class="detail-block"><div class="detail-block-label">College</div><div class="detail-block-val">${s.college}</div></div><div class="detail-block"><div class="detail-block-label">Professor</div><div class="detail-block-val">${s.professor||'Unassigned'}</div></div><div class="detail-block"><div class="detail-block-label">Professor Email</div><div class="detail-block-val" style="font-size:13px;">${s.professorEmail||'Not assigned'}</div></div><div class="detail-block"><div class="detail-block-label">Total Students</div><div class="detail-block-val">${s.studentCount}</div></div><div class="detail-block"><div class="detail-block-label">Total Test Results</div><div class="detail-block-val">${s.totalTests||0}</div></div><div class="detail-block"><div class="detail-block-label">Average Score</div><div class="detail-block-val big">${s.avgScore.toFixed(1)}</div></div><div class="detail-block"><div class="detail-block-label">Overall Rank</div><div class="detail-block-val"><div class="rank-num ${rc}" style="width:40px;height:40px;font-size:18px;">${rank}</div></div></div><div class="detail-block"><div class="detail-block-label">Pre-Test Average</div><div class="detail-block-val">${s.preTestAvg>0?s.preTestAvg.toFixed(1):'N/A'}</div></div><div class="detail-block"><div class="detail-block-label">Post-Test Average</div><div class="detail-block-val">${s.postTestAvg>0?s.postTestAvg.toFixed(1):'N/A'}</div></div><div class="detail-block detail-block-full"><div class="detail-block-label">Improvement Score</div><div class="detail-block-val" style="${s.improvement>0?'color:#0e8a5f':s.improvement<0?'color:#c0392b':'color:#8a98ae'}">${s.improvement>0?'+':''}${s.improvement.toFixed(1)} points</div></div></div>`;
-        document.getElementById('sectionDetailsModal').style.display='flex';
-    };
+    const bmiBlock = s.bmiPreAvg !== null && s.bmiPreAvg > 0
+        ? `<div class="detail-block">
+               <div class="detail-block-label">BMI Avg (Pre)</div>
+               <div class="detail-block-val">
+                   ${s.bmiPreAvg.toFixed(2)}
+                   <span class="bmi-pill ${getBMICategoryClass(s.bmiPreCategory)}" style="font-size:11px;margin-left:6px;">${getBMICategoryDisplay(s.bmiPreCategory)}</span>
+               </div>
+           </div>`
+        : `<div class="detail-block">
+               <div class="detail-block-label">BMI Avg (Pre)</div>
+               <div class="detail-block-val" style="color:#8a98ae;">No BMI data</div>
+           </div>`;
+
+    const bmiPostBlock = s.bmiPostAvg !== null && s.bmiPostAvg > 0
+        ? `<div class="detail-block">
+               <div class="detail-block-label">BMI Avg (Post)</div>
+               <div class="detail-block-val">
+                   ${s.bmiPostAvg.toFixed(2)}
+                   <span class="bmi-pill ${getBMICategoryClass(s.bmiPostCategory)}" style="font-size:11px;margin-left:6px;">${getBMICategoryDisplay(s.bmiPostCategory)}</span>
+               </div>
+           </div>`
+        : `<div class="detail-block">
+               <div class="detail-block-label">BMI Avg (Post)</div>
+               <div class="detail-block-val" style="color:#8a98ae;">No post-BMI data</div>
+           </div>`;
+
+    const bmiImprovBlock = s.bmiImprovement !== null
+        ? (() => {
+            const ch = s.bmiImprovement;
+            const color = ch < 0 ? '#0e8a5f' : ch > 0 ? '#c0392b' : '#8a98ae';
+            const note  = ch < 0 ? '(improved — BMI decreased)' : ch > 0 ? '(increased — monitor)' : '(no change)';
+            return `<div class="detail-block">
+                        <div class="detail-block-label">BMI Change (Pre→Post)</div>
+                        <div class="detail-block-val" style="color:${color};">
+                            ${ch > 0 ? '+' : ''}${ch.toFixed(2)}
+                            <span style="font-size:11px;color:#8a98ae;margin-left:6px;">${note}</span>
+                        </div>
+                    </div>`;
+          })()
+        : `<div class="detail-block">
+               <div class="detail-block-label">BMI Change (Pre→Post)</div>
+               <div class="detail-block-val" style="color:#8a98ae;">Insufficient data</div>
+           </div>`;
+
+    document.getElementById('sectionDetailsTitle').textContent = `Section: ${sectionName}`;
+    document.getElementById('sectionDetailsContent').innerHTML = `
+        <div class="detail-grid">
+            <div class="detail-block"><div class="detail-block-label">Section Name</div><div class="detail-block-val">${s.name}</div></div>
+            <div class="detail-block"><div class="detail-block-label">College</div><div class="detail-block-val">${s.college}</div></div>
+            <div class="detail-block"><div class="detail-block-label">Professor</div><div class="detail-block-val">${s.professor || 'Unassigned'}</div></div>
+            <div class="detail-block"><div class="detail-block-label">Professor Email</div><div class="detail-block-val" style="font-size:13px;">${s.professorEmail || 'Not assigned'}</div></div>
+            <div class="detail-block"><div class="detail-block-label">Total Students</div><div class="detail-block-val">${s.studentCount}</div></div>
+            <div class="detail-block"><div class="detail-block-label">Total Test Results</div><div class="detail-block-val">${s.totalTests || 0}</div></div>
+            ${bmiBlock}
+            ${bmiPostBlock}
+            ${bmiImprovBlock}
+            <div class="detail-block">
+                <div class="detail-block-label">Pre-Test Avg Score</div>
+                <div class="detail-block-val">
+                    ${s.preTestAvg > 0
+                        ? `${getScoreRating(s.preTestAvg).text} <span style="font-size:12px;color:#8a98ae;">(${s.preTestAvg.toFixed(1)})</span>`
+                        : 'N/A'}
+                </div>
+            </div>
+            <div class="detail-block">
+                <div class="detail-block-label">Post-Test Avg Score</div>
+                <div class="detail-block-val">
+                    ${s.postTestAvg > 0
+                        ? `${getScoreRating(s.postTestAvg).text} <span style="font-size:12px;color:#8a98ae;">(${s.postTestAvg.toFixed(1)})</span>`
+                        : 'N/A'}
+                </div>
+            </div>
+            <div class="detail-block">
+                <div class="detail-block-label">Avg Score (Overall)</div>
+                <div class="detail-block-val big">${s.avgScore > 0 ? getScoreRating(s.avgScore).text : '—'}</div>
+            </div>
+            <div class="detail-block">
+                <div class="detail-block-label">Overall Rank</div>
+                <div class="detail-block-val">
+                    <div class="rank-num ${rc}" style="width:40px;height:40px;font-size:18px;">${rank}</div>
+                </div>
+            </div>
+        </div>`;
+    document.getElementById('sectionDetailsModal').style.display = 'flex';
+};
+
+
+
     window.closeSectionDetailsModal = function() { document.getElementById('sectionDetailsModal').style.display='none'; };
 
-    // ─── STUDENT RANKINGS ───
-    async function loadStudentRankings() {
+ async function loadStudentRankings() {
+    try {
+        if(!testResults.length) await loadTestResults();
+
+        const stuData={};
+        studentSections.clear();
+        const uidToSid={};
+
+        // 1. Build student base records from users collection
         try {
-            if(!testResults.length) await loadTestResults();
-            if(!preAssessments.length) await loadPreAssessments();
-            const stuData={}; studentSections.clear(); const uidToSid={};
-            try {
-                const stuSnap=await db.collection('users').where('role','==','student').get();
-                stuSnap.forEach(d => {
-                    const data=d.data(); const firebaseUid=d.id;
-                    const umakId=data.umakId||(data.studentId||'').replace(/^student_/i,'')||'';
-                    const sid=umakId||firebaseUid;
-                    const name=data.name||data.displayName||data.firstName||data.email?.split('@')[0]||'Unknown Student';
-                    const sec=data.section||data.assignedSection||data.class||data.sectionName||'N/A';
-                    stuData[sid]={name,id:sid,umakId,firebaseUid,section:sec,email:data.email||'',tests:[],preScores:[],postScores:[],allScores:[],hasData:false,bmiAvg:null,bmiCategory:'',bmiCount:0,bmiRecords:[]};
-                    uidToSid[firebaseUid]=sid; if(data.email) uidToSid[data.email.toLowerCase()]=sid;
-                    if(umakId) uidToSid[umakId.toUpperCase()]=sid; if(sid) uidToSid[sid.toUpperCase()]=sid;
-                    if(sec!=='N/A') studentSections.add(sec);
+            const stuSnap = await db.collection('users').where('role','==','student').get();
+            stuSnap.forEach(d => {
+                const data = d.data();
+                const firebaseUid = d.id;
+                const umakId = (data.umakId || (data.studentId||'').replace(/^student_/i,'')||'').trim();
+                const sid = umakId || firebaseUid;
+                const name = data.name || data.displayName || data.firstName || data.email?.split('@')[0] || 'Unknown Student';
+                const sec = data.section || data.assignedSection || data.class || data.sectionName || 'N/A';
+                stuData[sid] = {name, id:sid, umakId, firebaseUid, section:sec, email:data.email||'', tests:[], preScores:[], postScores:[], allScores:[], hasData:false, bmiAvg:null, bmiCategory:'', bmiCount:0, bmiRecords:[]};
+                // Register ALL possible lookup keys
+                uidToSid[firebaseUid] = sid;
+                uidToSid[firebaseUid.toUpperCase()] = sid;
+                if(data.email) uidToSid[data.email.toLowerCase()] = sid;
+                if(umakId) { uidToSid[umakId] = sid; uidToSid[umakId.toUpperCase()] = sid; }
+                if(sec !== 'N/A') studentSections.add(sec);
+            });
+        } catch(e) { console.error('Error loading students:', e); }
+
+        // 2. Directly query BMI collection for pre-assessments (fresh, no dependency on preAssessments array)
+        try {
+            const bmiSnap = await db.collection('BMI').get();
+            bmiSnap.forEach(d => {
+                const a = d.data();
+                const tt = (a.testType || a.type || '').toLowerCase();
+                if(tt !== 'pre') return;
+
+                const bmi = parseFloat(a.bmi);
+                if(isNaN(bmi) || bmi <= 0) return;
+
+                // Collect every possible identifier in the BMI doc
+                const rawIds = [
+                    (a.umakId || '').trim(),
+                    (a.studentId || '').replace(/^student_/i,'').trim(),
+                    (a.email || '').toLowerCase().trim(),
+                    (a.studentEmail || '').toLowerCase().trim(),
+                    (a.uid || '').trim(),
+                    (a.userId || '').trim(),
+                    d.id  // document ID itself
+                ].filter(Boolean);
+
+                // Try lookup map first
+                let sid = null;
+                for(const raw of rawIds) {
+                    if(uidToSid[raw]) { sid = uidToSid[raw]; break; }
+                    if(uidToSid[raw.toUpperCase()]) { sid = uidToSid[raw.toUpperCase()]; break; }
+                }
+
+                // Brute-force scan stuData if lookup failed
+                if(!sid) {
+                    const umakIdRaw = rawIds[0] || rawIds[1] || '';
+                    const emailRaw = rawIds[2] || rawIds[3] || '';
+                    for(const [k, v] of Object.entries(stuData)) {
+                        const matchUmak = umakIdRaw && v.umakId && v.umakId.toUpperCase() === umakIdRaw.toUpperCase();
+                        const matchEmail = emailRaw && v.email && v.email.toLowerCase() === emailRaw;
+                        const matchUid = v.firebaseUid && rawIds.includes(v.firebaseUid);
+                        if(matchUmak || matchEmail || matchUid) { sid = k; break; }
+                    }
+                }
+
+                // Create a new entry if still not found
+                if(!sid) {
+                    sid = rawIds[0] || rawIds[2] || null;
+                    if(!sid) return;
+                    if(!stuData[sid]) {
+                        const name = a.studentName || a.name || a.displayName || 'Unknown Student';
+                        const sec = a.section || a.assignedSection || 'N/A';
+                        stuData[sid] = {name, id:sid, umakId:rawIds[0]||'', firebaseUid:'', section:sec, email:rawIds[2]||'', tests:[], preScores:[], postScores:[], allScores:[], hasData:false, bmiAvg:null, bmiCategory:'', bmiCount:0, bmiRecords:[]};
+                        rawIds.forEach(r => { if(r) { uidToSid[r]=sid; uidToSid[r.toUpperCase()]=sid; } });
+                        if(sec !== 'N/A') studentSections.add(sec);
+                    }
+                }
+
+                if(!stuData[sid]) return;
+
+                let category = a.category;
+                if(!category || category === 'unknown') category = getBMICategory(bmi);
+                else category = resolveBMICat(category, bmi);
+
+                if(!stuData[sid].bmiRecords) stuData[sid].bmiRecords = [];
+                stuData[sid].bmiRecords.push({
+                    bmi, category,
+                    categoryDisplay: getBMICategoryDisplay(category),
+                    date: a.recordedAt || a.updatedAt || a.assessmentDate || new Date()
                 });
-            } catch(e) {}
-            preAssessments.forEach(a => {
-                const rawSid=a.studentId||a.studentEmail||a.umakId||a.email||'';
-                const tEmail=(a.email||'').toLowerCase(); const tUmak=(a.umakId||'').toUpperCase(); const tSid=(a.studentId||'').toUpperCase();
-                let sid=uidToSid[rawSid]||uidToSid[tEmail]||uidToSid[tUmak]||uidToSid[tSid]||rawSid;
-                if(!stuData[sid]) { let name=a.studentName||a.name||a.displayName||'Unknown Student'; let sec=a.section||a.assignedSection||'N/A'; let umakId=a.umakId||a.studentId||''; stuData[sid]={name,id:sid,umakId,firebaseUid:'',section:sec,email:a.email||'',tests:[],preScores:[],postScores:[],allScores:[],hasData:false,bmiAvg:null,bmiCategory:'',bmiCount:0,bmiRecords:[]}; uidToSid[sid]=sid; if(umakId) uidToSid[umakId.toUpperCase()]=sid; if(a.email) uidToSid[a.email.toLowerCase()]=sid; if(sec!=='N/A') studentSections.add(sec); }
-                const bmi=parseFloat(a.bmi);
-                if(!isNaN(bmi)&&bmi>0) { let category=a.category; if(!category||category==='unknown') category=getBMICategory(bmi); else category=resolveBMICat(category,bmi); if(!stuData[sid].bmiRecords) stuData[sid].bmiRecords=[]; stuData[sid].bmiRecords.push({bmi,category,categoryDisplay:getBMICategoryDisplay(category),date:a.recordedAt||a.updatedAt||a.assessmentDate||new Date()}); stuData[sid].bmiCount=(stuData[sid].bmiCount||0)+1; stuData[sid].bmiAvg=stuData[sid].bmiAvg?(stuData[sid].bmiAvg+bmi)/2:bmi; stuData[sid].bmiCategory=category; }
+                stuData[sid].bmiCount = stuData[sid].bmiRecords.length;
             });
-            testResults.forEach(t => {
-                const rawSid=t.studentId||t.studentEmail||t.umakId||t.email||'';
-                const tEmail=(t.studentEmail||t.email||'').toLowerCase(); const tUmak=(t.umakId||'').toUpperCase(); const tSid=(t.studentId||'').toUpperCase();
-                const sid=uidToSid[rawSid]||uidToSid[tEmail]||uidToSid[tUmak]||uidToSid[tSid]||rawSid;
-                const score=t.score||0; const type=t.type||'unknown';
-                if(!stuData[sid]) { stuData[sid]={name:t.studentName||'Unknown Student',id:sid,section:t.section||'N/A',email:tEmail,tests:[],preScores:[],postScores:[],allScores:[],hasData:false,bmiAvg:null,bmiCategory:'',bmiCount:0,bmiRecords:[]}; }
-                stuData[sid].tests.push({name:t.testName||'Unknown',type,score,date:t.submittedAt});
-                stuData[sid].allScores.push(score); stuData[sid].hasData=true;
-                if(type==='pre') stuData[sid].preScores.push(score); else if(type==='post') stuData[sid].postScores.push(score);
-                if(t.section&&t.section!=='N/A') studentSections.add(t.section);
-            });
-            studentRankings=[];
-            for(const [sid,data] of Object.entries(stuData)) {
-                const avg=data.allScores.length?data.allScores.reduce((a,b)=>a+b,0)/data.allScores.length:0;
-                const preA=data.preScores.length?data.preScores.reduce((a,b)=>a+b,0)/data.preScores.length:0;
-                const postA=data.postScores.length?data.postScores.reduce((a,b)=>a+b,0)/data.postScores.length:0;
-                let bmiAvg=null,bmiCategory='',bmiCount=0;
-                if(data.bmiRecords&&data.bmiRecords.length>0) { bmiCount=data.bmiRecords.length; const bmiVals=data.bmiRecords.map(r=>r.bmi).filter(b=>b>0); if(bmiVals.length>0) { bmiAvg=bmiVals.reduce((a,b)=>a+b,0)/bmiVals.length; const sorted=[...data.bmiRecords].sort((a,b)=>{ const da=a.date?.toDate?.()||new Date(a.date||0); const db=b.date?.toDate?.()||new Date(b.date||0); return db-da; }); bmiCategory=sorted.length>0&&sorted[0].category?sorted[0].category:getBMICategory(bmiAvg); } }
-                studentRankings.push({id:sid,name:data.name,section:data.section||'N/A',testsTaken:data.tests.length,preTestAvg:parseFloat(preA.toFixed(2)),postTestAvg:parseFloat(postA.toFixed(2)),improvement:parseFloat((postA-preA).toFixed(2)),avgScore:parseFloat(avg.toFixed(2)),hasData:data.hasData,preScores:data.preScores,postScores:data.postScores,allScores:data.allScores,tests:data.tests,bmiAvg,bmiCategory,bmiCount,bmiRecords:data.bmiRecords||[]});
+        } catch(e) { console.error('Error loading BMI data:', e); }
+
+        // 3. Compute bmiAvg and bmiCategory after ALL records collected
+        for(const [sid, data] of Object.entries(stuData)) {
+            if(data.bmiRecords && data.bmiRecords.length > 0) {
+                const bmiVals = data.bmiRecords.map(r => r.bmi).filter(b => b > 0);
+                if(bmiVals.length > 0) {
+                    data.bmiAvg = bmiVals.reduce((a,b) => a+b, 0) / bmiVals.length;
+                    const sorted = [...data.bmiRecords].sort((a,b) => {
+                        const da = a.date?.toDate?.() || new Date(a.date || 0);
+                        const db = b.date?.toDate?.() || new Date(b.date || 0);
+                        return db - da;
+                    });
+                    data.bmiCategory = sorted[0]?.category || getBMICategory(data.bmiAvg);
+                }
             }
-            const withData=studentRankings.filter(s=>s.hasData).sort((a,b)=>b.avgScore-a.avgScore);
-            const withoutData=studentRankings.filter(s=>!s.hasData).sort((a,b)=>a.name.localeCompare(b.name));
-            studentRankings=[...withData,...withoutData];
-            updateStudentSectionFilter(); filterStudentRankings(); updateStudentRankingSummaryStats();
-        } catch(e) { console.error(e); /* silent fail on background load */ }
-    }
+        }
+
+        // 4. Map test results to students
+        testResults.forEach(t => {
+            const rawSid = t.studentId || t.studentEmail || t.umakId || t.email || '';
+            const tEmail = (t.studentEmail || t.email || '').toLowerCase();
+            const tUmak = (t.umakId || '').trim();
+            const sid = uidToSid[rawSid] || uidToSid[rawSid.toUpperCase()] || uidToSid[tEmail] || uidToSid[tUmak] || uidToSid[tUmak.toUpperCase()] || rawSid;
+            const score = t.score || 0; const type = t.type || 'unknown';
+            if(!stuData[sid]) {
+                stuData[sid] = {name: t.studentName || 'Unknown Student', id:sid, section: t.section||'N/A', email:tEmail, tests:[], preScores:[], postScores:[], allScores:[], hasData:false, bmiAvg:null, bmiCategory:'', bmiCount:0, bmiRecords:[]};
+            }
+            stuData[sid].tests.push({name: t.testName||'Unknown', type, score, date: t.submittedAt});
+            stuData[sid].allScores.push(score); stuData[sid].hasData = true;
+            if(type==='pre') stuData[sid].preScores.push(score);
+            else if(type==='post') stuData[sid].postScores.push(score);
+            if(t.section && t.section !== 'N/A') studentSections.add(t.section);
+        });
+
+        // 5. Build final rankings array
+        studentRankings = [];
+        for(const [sid, data] of Object.entries(stuData)) {
+            const avg = data.allScores.length ? data.allScores.reduce((a,b)=>a+b,0)/data.allScores.length : 0;
+            const preA = data.preScores.length ? data.preScores.reduce((a,b)=>a+b,0)/data.preScores.length : 0;
+            const postA = data.postScores.length ? data.postScores.reduce((a,b)=>a+b,0)/data.postScores.length : 0;
+            studentRankings.push({
+                id:sid, name:data.name, section:data.section||'N/A',
+                testsTaken:data.tests.length,
+                preTestAvg:parseFloat(preA.toFixed(2)),
+                postTestAvg:parseFloat(postA.toFixed(2)),
+                improvement:parseFloat((postA-preA).toFixed(2)),
+                avgScore:parseFloat(avg.toFixed(2)),
+                hasData:data.hasData,
+                preScores:data.preScores, postScores:data.postScores, allScores:data.allScores,
+                tests:data.tests,
+                bmiAvg:data.bmiAvg||null,
+                bmiCategory:data.bmiCategory||'',
+                bmiCount:data.bmiCount||0,
+                bmiRecords:data.bmiRecords||[]
+            });
+        }
+
+        const withData = studentRankings.filter(s=>s.hasData).sort((a,b)=>b.avgScore-a.avgScore);
+        const withoutData = studentRankings.filter(s=>!s.hasData).sort((a,b)=>a.name.localeCompare(b.name));
+        studentRankings = [...withData, ...withoutData];
+        updateStudentSectionFilter(); filterStudentRankings(); updateStudentRankingSummaryStats();
+    } catch(e) { console.error('loadStudentRankings error:', e); }
+}
 
     function updateStudentSectionFilter() {
         const el=document.getElementById('studentSectionFilter'); if(!el) return;
@@ -1497,16 +1925,17 @@
             const rt=getScoreRating(s.avgScore);
             let bmiDisplay='—';
             if(s.bmiCount>0&&s.bmiAvg!==null&&s.bmiAvg>0) { const cat=s.bmiCategory||getBMICategory(s.bmiAvg); const catDisplay=getBMICategoryDisplay(cat); const catClass=getBMICategoryClass(cat); bmiDisplay=`<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;"><span style="font-weight:600;font-family:'DM Mono',monospace;">${s.bmiAvg.toFixed(2)}</span><span class="bmi-pill ${catClass}" style="font-size:9px;padding:2px 5px;">${catDisplay}</span>${s.bmiCount>1?`<span style="font-size:9px;color:#8a98ae;">(${s.bmiCount} records)</span>`:''}</div>`; }
-            return `<tr style="${!hasData?'opacity:0.65;':''}"><td data-label="Rank"><div class="rank-num ${rc}" style="${!hasData?'background:#f4f6fa;color:#4a5a72;border:1px solid #e1e6ef;':''}">${rankDisplay}</div></td><td data-label="Student Name"><span style="font-weight:600;color:#0a1628;">${s.name}</span>${!hasData?'<span style="margin-left:6px;font-size:10px;background:#f1f5f9;color:#94a3b8;padding:2px 7px;border-radius:10px;font-weight:600;">No test data</span>':''}</td><td data-label="Section"><span style="font-size:13px;">${s.section}</span></td><td data-label="Student ID"><span style="font-family:'DM Mono',monospace;font-size:12px;color:#8a98ae;">${s.id}</span></td><td data-label="Tests Taken">${s.testsTaken||'—'}</td><td data-label="BMI Avg (Pre)">${bmiDisplay}</td><td data-label="Post-Test Avg">${s.postTestAvg>0?s.postTestAvg.toFixed(1):'—'}</td><td data-label="Improvement">${hasData?`<span class="${ic}"><i class="fas fa-${ii}" style="margin-right:4px;"></i>${s.improvement>0?'+':''}${s.improvement.toFixed(1)}</span>`:'<span style="color:#8a98ae;">—</span>'}</td><td data-label="Avg Score"><strong>${hasData?s.avgScore.toFixed(1):'—'}</strong></td><td data-label="Rating">${hasData?`<span class="score-pill ${rt.cls}">${rt.text}</span>`:'<span style="color:#8a98ae;font-size:12px;">Pending</span>'}</td><td data-label="Actions"><div class="tbl-actions"><button class="tbl-btn tbl-btn-view" onclick="viewStudentDetails('${s.id.replace(/'/g,"\\'")}')"><i class="fas fa-eye"></i> View</button></div></td></tr>`;
+            return `<tr style="${!hasData?'opacity:0.65;':''}"><td data-label="Rank"><div class="rank-num ${rc}" style="${!hasData?'background:#f4f6fa;color:#4a5a72;border:1px solid #e1e6ef;':''}">${rankDisplay}</div></td><td data-label="Student Name"><span style="font-weight:600;color:#0a1628;">${s.name}</span>${!hasData?'<span style="margin-left:6px;font-size:10px;background:#f1f5f9;color:#94a3b8;padding:2px 7px;border-radius:10px;font-weight:600;">No test data</span>':''}</td><td data-label="Section"><span style="font-size:13px;">${s.section}</span></td><td data-label="Student ID"><span style="font-family:'DM Mono',monospace;font-size:12px;color:#8a98ae;">${s.id}</span></td><td data-label="Tests Taken">${s.testsTaken||'—'}</td><td data-label="BMI Avg (Pre)">${bmiDisplay}</td><td data-label="Post-Test Avg">${s.postTestAvg>0?s.postTestAvg.toFixed(1):'—'}</td><td data-label="Improvement">${hasData?`<span class="${ic}"><i class="fas fa-${ii}" style="margin-right:4px;"></i>${s.improvement>0?'+':''}${s.improvement.toFixed(1)}</span>`:'<span style="color:#8a98ae;">—</span>'}</td><td data-label="Avg Score"><strong>${hasData?getScoreRating(s.avgScore).text:'—'}</strong></td>
+                <td data-label="Rating">${hasData?`<span class="score-pill ${rt.cls}">${rt.text}</span>`:'<span style="color:#8a98ae;font-size:12px;">Pending</span>'}</td><td data-label="Actions"><div class="tbl-actions"><button class="tbl-btn tbl-btn-view" onclick="viewStudentDetails('${s.id.replace(/'/g,"\\'")}')"><i class="fas fa-eye"></i> View</button></div></td></tr>`;
         }).join('');
     }
 
     function updateStudentRankingSummaryStats() {
         document.getElementById('totalStudentsRanked').textContent=filteredStudentRankings.length;
         const avgs=filteredStudentRankings.filter(s=>s.hasData).map(s=>s.avgScore).filter(s=>s>0);
-        document.getElementById('studentOverallAvgScore').textContent=avgs.length?(avgs.reduce((a,b)=>a+b,0)/avgs.length).toFixed(1):'0.0';
-        const top=filteredStudentRankings.filter(s=>s.hasData);
-        if(top.length>0) { document.getElementById('topStudentName').textContent=top[0].name; document.getElementById('topStudentScore').textContent=top[0].avgScore.toFixed(1)+' avg score'; } else { document.getElementById('topStudentName').textContent='—'; document.getElementById('topStudentScore').textContent='N/A'; }
+const stuOverallAvg = avgs.length ? avgs.reduce((a,b)=>a+b,0)/avgs.length : 0;
+        document.getElementById('studentOverallAvgScore').textContent = stuOverallAvg > 0 ? getScoreRating(stuOverallAvg).text : '—';        const top=filteredStudentRankings.filter(s=>s.hasData);
+        if(top.length>0) { document.getElementById('topStudentName').textContent=top[0].name; document.getElementById('topStudentScore').textContent=getScoreRating(top[0].avgScore).text+' overall'; } else { document.getElementById('topStudentName').textContent='—'; document.getElementById('topStudentScore').textContent='N/A'; }
         document.getElementById('studentSectionsCount').textContent=studentSections.size;
     }
 
