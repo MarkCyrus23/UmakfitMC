@@ -1034,21 +1034,22 @@
     }
 
     function setupUI(user) {
-        const name  = currentProfessor.fullName || currentProfessor.name || user.displayName || 'Professor';
-        const email = currentProfessor.email || user.email;
-        const init  = name.charAt(0).toUpperCase();
-        const short = name.split(',')[0]?.trim() || name;
-        const photo = user.photoURL || null;
-        document.getElementById('headerName').textContent   = short;
-        document.getElementById('dropdownName').textContent = name;
-        document.getElementById('dropdownEmail').textContent = email;
-        const setAv = (el, src, i) => {
-            if (!el) return;
-            el.innerHTML = src ? `<img src="${src}" class="w-full h-full object-cover rounded-full" alt="">` : i;
-        };
-        setAv(document.getElementById('profileAvatarSmall'), photo, init);
-        setAv(document.getElementById('profileDropdownAvatar'), photo, init);
-    }
+    const displayName = user.displayName || currentProfessor.fullName || currentProfessor.name || 'Professor';
+    const email = currentProfessor.email || user.email;
+    const initial = displayName.charAt(0).toUpperCase();
+    const photo = user.photoURL || null;
+
+    document.getElementById('headerName').textContent    = displayName;
+    document.getElementById('dropdownName').textContent  = displayName;
+    document.getElementById('dropdownEmail').textContent = email;
+
+    const setAv = (el, src, i) => {
+        if (!el) return;
+        el.innerHTML = src ? `<img src="${src}" class="w-full h-full object-cover rounded-full" alt="">` : i;
+    };
+    setAv(document.getElementById('profileAvatarSmall'), photo, initial);
+    setAv(document.getElementById('profileDropdownAvatar'), photo, initial);
+}
 
     // ─────────────────────────────────────────────────────────────────
     //  LOAD SECTIONS

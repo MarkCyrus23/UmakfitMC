@@ -787,7 +787,7 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">Test Type <span class="text-danger">*</span></label>
-                    <select class="form-select" id="testType" required>
+                   <select class="form-select" id="testType" required onchange="updateAttemptsDisplay()">
                         <option value="">Select Test Type</option>
                         <option value="3-Minute Step Test">3-Minute Step Test</option>
                         <option value="Curl-Up Test">Curl-Up Test</option>
@@ -1515,6 +1515,11 @@
 
                 window.allScheduledTests = [];
                 testsSnapshot.forEach(docSnap => { window.allScheduledTests.push({ id: docSnap.id, ...docSnap.data() }); });
+                window.allScheduledTests.sort((a, b) => {
+                    const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt || 0);
+                    const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt || 0);
+                    return dateB - dateA;
+                });
                 // Initialize status snapshot for real-time tracking
 lastStatusSnapshot = new Map();
 window.allScheduledTests.forEach(test => {
@@ -2093,6 +2098,7 @@ function getAgeGroupFromStudent(studentData) {
     document.getElementById('testInstructions').value = '';
     document.getElementById('attemptsAllowed').value = '2';
     document.getElementById('attemptsDisplay').value = '2 Attempts';
+    updateAttemptsDisplay();
     
     sectionSelect.innerHTML = '<option value="">Select Section</option>';
     if (window.assignedSections && window.assignedSections.length > 0) {
@@ -2387,6 +2393,13 @@ window.filterScheduleTable = async function() {
             newOkBtn.addEventListener('click', () => { modal.style.display = 'none'; });
             modal.style.display = 'flex';
         }
+        function updateAttemptsDisplay() {
+    const testType = document.getElementById('testType').value.toLowerCase();
+    const isOneAttempt = testType.includes('skinfold') || testType.includes('step test') || testType.includes('3-minute');
+    const attempts = isOneAttempt ? 1 : 2;
+    document.getElementById('attemptsAllowed').value = attempts;
+    document.getElementById('attemptsDisplay').value = attempts === 1 ? '1 Attempt' : '2 Attempts';
+}
     </script>
 </body>
 </html>

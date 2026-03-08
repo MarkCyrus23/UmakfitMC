@@ -740,6 +740,7 @@
         }
 
         function rankToCategory(rank) {
+            if (rank === null) return null;
             if (rank >= 4.5) return 'Excellent';
             if (rank >= 3.5) return 'Good';
             if (rank >= 2.5) return 'Average';

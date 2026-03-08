@@ -381,7 +381,7 @@
             </div>
 
             <!-- Assigned Sections Panel -->
-            <div class="bg-white rounded-2xl border border-border shadow-sm mb-7 overflow-hidden">
+           <div id="sectionsPanelCard" class="bg-white rounded-2xl border border-border shadow-sm mb-7 overflow-hidden" style="display:none;">
                 <div class="px-4 md:px-6 py-4 border-b border-border flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                     <div class="flex items-center gap-2.5 text-[15px] font-semibold text-navy">
                         <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[#0d7a5a] to-success flex items-center justify-center text-white text-[13px]">
@@ -420,7 +420,7 @@
                         </div>
                     </div>
                 </div>
-                <div id="sectionsGrid" class="grid gap-4 p-4 md:p-6" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));"></div>
+                <div id="sectionsGrid" class="grid gap-4 p-4 md:p-6 empty:p-0 empty:hidden" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));"></div>
                 <div id="noSectionsMsg" class="hidden py-12 px-8 text-center">
                     <div class="w-[60px] h-[60px] rounded-2xl bg-surface flex items-center justify-center text-2xl text-text-muted mx-auto mb-4">
                         <i class="fas fa-layer-group"></i>
@@ -699,7 +699,7 @@ function getAgeGroupFromStudent(studentData) {
     }
 
     function renderCategoryBadge(category) {
-        if (!category || category === 'No Grades') return '<span class="category-badge category-default">— No Grades</span>';
+        if (!category || category === 'No Assessments yet') return '<span class="category-badge category-default">— No Results yet</span>';
         const icon = getCategoryIcon(category);
         const className = getCategoryClass(category);
         return `<span class="category-badge ${className}">${icon} ${category}</span>`;
@@ -891,23 +891,21 @@ function getAgeGroupFromStudent(studentData) {
     }
 
     function setupUI(user) {
-        const name = currentProfessor.fullName || currentProfessor.name || user.displayName || 'Professor';
-        const email = currentProfessor.email || user.email;
-        const init = name.charAt(0).toUpperCase();
-        const short = name.split(',')[0]?.trim() || name;
-        const photo = user.photoURL || null;
+    const displayName = user.displayName || currentProfessor.fullName || currentProfessor.name || 'Professor';
+    const email = currentProfessor.email || user.email;
+    const initial = displayName.charAt(0).toUpperCase();
+    const photo = user.photoURL || null;
 
-        document.getElementById('headerName').textContent = short;
-        document.getElementById('dropdownName').textContent = name;
-        document.getElementById('dropdownEmail').textContent = email;
+    document.getElementById('headerName').textContent    = displayName;
+    document.getElementById('dropdownName').textContent  = displayName;
+    document.getElementById('dropdownEmail').textContent = email;
 
-        const setAv = (el, src, i) => {
-            if (!el) return;
-            el.innerHTML = src ? `<img src="${src}" class="w-full h-full object-cover rounded-full" alt="">` : i;
-        };
-        setAv(document.getElementById('profileAvatarSmall'), photo, init);
-        setAv(document.getElementById('profileDropdownAvatar'), photo, init);
-    }
+    const as = document.getElementById('profileAvatarSmall');
+    const al = document.getElementById('profileDropdownAvatar');
+    const img = src => `<img src="${src}" class="w-full h-full object-cover rounded-full" alt="">`;
+    if (photo) { as.innerHTML = img(photo); al.innerHTML = img(photo); }
+    else { as.textContent = initial; al.textContent = initial; }
+}
 
  async function loadAssignedSections() {
     assignedSections = [];
@@ -1058,12 +1056,17 @@ async function loadAllStudentsData() {
         const grid = document.getElementById('sectionsGrid');
         const empty = document.getElementById('noSectionsMsg');
 
+       const panel = document.getElementById('sectionsPanelCard');
         if (!sections.length) {
             grid.innerHTML = '';
+            grid.style.padding = '0';
             empty.classList.remove('hidden');
+            if (panel) panel.style.display = 'block';
             return;
         }
         empty.classList.add('hidden');
+        grid.style.padding = '';
+        if (panel) panel.style.display = 'block';
 
         let html = '';
         sections.forEach(sec => {
@@ -1247,7 +1250,7 @@ function calculateRankings() {
 
         const studentCategories = [];
         studentMap.forEach((s, email) => {
-            const overallCategory = s.categories.length ? getOverallCategory(s.categories) : 'No Grades';
+            const overallCategory = s.categories.length ? getOverallCategory(s.categories) : 'No Results yet';
             const categoryScore = s.categories.length ? 
                 s.categories.reduce((sum, cat) => sum + (CATEGORY_ORDER[cat] || 3), 0) / s.categories.length : 0;
             
@@ -1267,17 +1270,18 @@ function calculateRankings() {
         const studentsWithGrades = studentCategories.filter(s => s.hasGrades).length;
         const completionRate = totalStudents > 0 ? (studentsWithGrades / totalStudents) * 100 : 0;
         
-        // Calculate section overall category based on student category scores
         const sectionCategoryScore = studentsWithGrades > 0
             ? studentCategories.filter(s => s.hasGrades).reduce((sum, s) => sum + s.categoryScore, 0) / studentsWithGrades
-            : 3;
+            : 0;
         
-        let sectionOverallCategory = 'Average';
-        if (sectionCategoryScore >= 4.5) sectionOverallCategory = 'Excellent';
-        else if (sectionCategoryScore >= 3.5) sectionOverallCategory = 'Good';
-        else if (sectionCategoryScore >= 2.5) sectionOverallCategory = 'Average';
-        else if (sectionCategoryScore >= 1.5) sectionOverallCategory = 'Below Average';
-        else sectionOverallCategory = 'Poor';
+        let sectionOverallCategory = 'No data yet';
+        if (studentsWithGrades > 0) {
+            if (sectionCategoryScore >= 4.5) sectionOverallCategory = 'Excellent';
+            else if (sectionCategoryScore >= 3.5) sectionOverallCategory = 'Good';
+            else if (sectionCategoryScore >= 2.5) sectionOverallCategory = 'Average';
+            else if (sectionCategoryScore >= 1.5) sectionOverallCategory = 'Below Average';
+            else sectionOverallCategory = 'Poor';
+        }
 
         sectionRankings.push({
             id: sec.id, 
@@ -1358,13 +1362,16 @@ function calculateRankings() {
         document.getElementById('statTotalStudents').textContent = rankings.reduce((s, r) => s + r.totalStudents, 0);
         
         // Calculate overall category for all sections combined
-        const avgScore = rankings.reduce((s, r) => s + r.categoryScore, 0) / rankings.length;
-        let overallCategory = 'Average';
-        if (avgScore >= 4.5) overallCategory = 'Excellent';
-        else if (avgScore >= 3.5) overallCategory = 'Good';
-        else if (avgScore >= 2.5) overallCategory = 'Average';
-        else if (avgScore >= 1.5) overallCategory = 'Below Average';
-        else overallCategory = 'Poor';
+         const sectionsWithGrades = rankings.filter(r => r.studentsWithGrades > 0);
+        let overallCategory = 'No data yet';
+        if (sectionsWithGrades.length > 0) {
+            const avgScore = sectionsWithGrades.reduce((s, r) => s + r.categoryScore, 0) / sectionsWithGrades.length;
+            if (avgScore >= 4.5) overallCategory = 'Excellent';
+            else if (avgScore >= 3.5) overallCategory = 'Good';
+            else if (avgScore >= 2.5) overallCategory = 'Average';
+            else if (avgScore >= 1.5) overallCategory = 'Below Average';
+            else overallCategory = 'Poor';
+        }
         
         document.getElementById('statOverallCategory').innerHTML = renderCategoryBadge(overallCategory);
     }
@@ -1432,7 +1439,7 @@ window.viewSectionDetails = function(sectionId) {
                     <div class="flex items-center gap-2 flex-shrink-0">
                         ${st.hasGrades
                             ? studentBadge
-                            : `<span class="inline-block px-2 py-0.5 rounded text-[11px] font-semibold bg-surface text-text-muted border border-border">No Grades</span>`
+                            : `<span class="inline-block px-2 py-0.5 rounded text-[11px] font-semibold bg-surface text-text-muted border border-border">No Results yet</span>`
                         }
                     </div>
                 </div>`;

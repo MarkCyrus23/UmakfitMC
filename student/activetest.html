@@ -1371,7 +1371,8 @@
                     <!-- Dynamic inputs will be inserted here based on test type -->
                 </div>
 
-                
+                <!-- Hidden notes field -->
+                <textarea id="notesField" style="display:none;"></textarea>
 
                 <!-- Submit Section -->
                 <div class="submit-section">
@@ -2961,7 +2962,7 @@ function showErrorPopup(message, title = 'Missing Information') {
                     <line x1="34" y1="14" x2="14" y2="34" stroke="#ea4335" stroke-width="3.5" stroke-linecap="round"/>
                 </svg>
             </div>
-            <<div style="font-size:1.25rem; font-weight:600; color:#202124; margin-bottom:0.5rem;">
+            <div style="font-size:1.25rem; font-weight:600; color:#202124; margin-bottom:0.5rem;">
                 ${title}
             </div>
             <div style="font-size:0.875rem; color:#5f6368; margin-bottom:1.75rem;">
@@ -3078,7 +3079,7 @@ function showErrorPopup(message, title = 'Missing Information') {
                 ? `Chest:${s1}mm, Abdomen:${s2}mm, Thigh:${s3}mm`
                 : `Triceps:${s1}mm, Suprailium:${s2}mm, Thigh:${s3}mm`;
 
-            const classification = getBodyFatClassification(parseFloat(calcDisplay), sex);
+            const classification = window.getBodyFatClassification(parseFloat(calcDisplay), sex);
 
             rawResult = calcDisplay;
             resultValue = `${calcDisplay}% body fat (${classification.label}) | ${sex === 'male' ? 'Male' : 'Female'} | ${siteName}`;

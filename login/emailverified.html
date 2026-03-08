@@ -4,182 +4,414 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UMakFit - Email Verified</title>
-    <link href="https://fonts.googleapis.com/css?family=Inter:600,500,400,700" rel="stylesheet">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=Playfair+Display:ital,wght@0,700;0,800;0,900;1,800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --navy:       #0A1628;
+            --navy-mid:   #142240;
+            --navy-light: #1E3358;
+            --gold:       #C8992A;
+            --gold-light: #E8BA4A;
+            --gold-pale:  #F5E4A8;
+            --white:      #FFFFFF;
+            --gray-border: rgba(255,255,255,0.1);
+            --success:    #10b981;
+            --success-dim: rgba(16,185,129,0.15);
+        }
+
+        html, body {
+            height: 100%;
+            font-family: 'DM Sans', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            background: var(--navy);
+            color: var(--white);
+            overflow-x: hidden;
         }
 
         body {
-            font-family: 'Inter', Helvetica, sans-serif;
-            background: linear-gradient(180deg, rgba(30, 58, 138, 1) 0%, rgba(59, 130, 246, 1) 100%);
             min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        /* ─── BACKGROUND ─── */
+        .page-bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background:
+                radial-gradient(ellipse 80% 60% at 80% 30%, rgba(200,153,42,0.07) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 80% at 10% 80%, rgba(30,51,88,0.6) 0%, transparent 60%),
+                linear-gradient(165deg, #0A1628 0%, #142240 55%, #0E1E38 100%);
+        }
+
+        .bg-grid {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background-image:
+                linear-gradient(rgba(200,153,42,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(200,153,42,0.04) 1px, transparent 1px);
+            background-size: 60px 60px;
+            mask-image: radial-gradient(ellipse 100% 100% at 50% 50%, black 10%, transparent 75%);
+            pointer-events: none;
+        }
+
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: orbFloat 20s infinite ease-in-out;
+            z-index: 0;
+        }
+        .orb-1 { width: 500px; height: 500px; top: -200px; right: -150px; background: radial-gradient(circle, rgba(200,153,42,0.09) 0%, transparent 65%); }
+        .orb-2 { width: 400px; height: 400px; bottom: 0; left: -100px; background: radial-gradient(circle, rgba(30,51,88,0.5) 0%, transparent 65%); animation-delay: -8s; }
+        .orb-3 { width: 250px; height: 250px; top: 40%; left: 15%; background: radial-gradient(circle, rgba(200,153,42,0.05) 0%, transparent 65%); animation-delay: -14s; }
+
+        @keyframes orbFloat {
+            0%, 100% { transform: translate(0,0) scale(1); }
+            33%       { transform: translate(3%,-4%) scale(1.05); }
+            66%       { transform: translate(-3%,4%) scale(0.96); }
+        }
+
+        /* ─── CARD ─── */
+        .container {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 1.25rem;
+            animation: cardSlide 0.8s 0.1s ease both;
+        }
+
+        @keyframes cardSlide {
+            from { opacity: 0; transform: translateY(28px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            background: rgba(255,255,255,0.97);
+            border-radius: 28px;
+            padding: clamp(2rem, 5vw, 2.8rem) clamp(1.75rem, 5vw, 2.5rem);
+            box-shadow: 0 40px 80px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.08);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            color: var(--navy);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--gold), var(--gold-light), var(--success), var(--gold));
+            background-size: 200% auto;
+            animation: shimmer 3s linear infinite;
+        }
+
+        @keyframes shimmer {
+            to { background-position: 200% center; }
+        }
+
+        /* ─── LOGO ─── */
+        .card-logo {
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            gap: 10px;
+            margin-bottom: 1.5rem;
         }
 
-        .container {
-            max-width: 600px;
-            background: white;
-            border-radius: 24px;
-            padding: 50px 40px;
-            text-align: center;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        .card-logo-img {
+            width: 38px; height: 38px;
+            object-fit: contain;
+        }
+
+        .card-logo-text {
+            font-family: 'Playfair Display', serif;
+            font-weight: 800;
+            font-size: 1.25rem;
+            background: linear-gradient(135deg, #8B6D2D 0%, #C8992A 50%, #E8BA4A 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* ─── SUCCESS ICON ─── */
+        .success-icon-wrap {
+            width: 88px; height: 88px;
+            margin: 0 auto 1.5rem;
+            position: relative;
+        }
+
+        .success-ring {
+            position: absolute;
+            inset: -8px;
+            border-radius: 50%;
+            border: 2px solid rgba(16,185,129,0.2);
+            animation: ringPulse 2.5s ease-in-out infinite;
+        }
+
+        @keyframes ringPulse {
+            0%, 100% { transform: scale(1); opacity: 0.6; }
+            50%       { transform: scale(1.08); opacity: 0.2; }
         }
 
         .success-icon {
-            width: 100px;
-            height: 100px;
-            background: linear-gradient(135deg, #10b981, #059669);
+            width: 88px; height: 88px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 30px;
-            animation: scaleIn 0.5s ease-out;
+            box-shadow: 0 12px 32px rgba(16,185,129,0.35);
+            animation: iconPop 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.2s both;
         }
 
-        @keyframes scaleIn {
-            0% {
-                transform: scale(0);
-            }
-            50% {
-                transform: scale(1.1);
-            }
-            100% {
-                transform: scale(1);
-            }
+        @keyframes iconPop {
+            from { transform: scale(0); opacity: 0; }
+            to   { transform: scale(1); opacity: 1; }
         }
 
         .success-icon svg {
-            width: 60px;
-            height: 60px;
+            width: 46px; height: 46px;
             stroke: white;
-            stroke-width: 3;
+            stroke-width: 2.5;
             fill: none;
             stroke-linecap: round;
             stroke-linejoin: round;
             stroke-dasharray: 100;
             stroke-dashoffset: 100;
-            animation: checkmark 0.8s ease-out 0.3s forwards;
+            animation: drawCheck 0.6s ease-out 0.6s forwards;
         }
 
-        @keyframes checkmark {
-            to {
-                stroke-dashoffset: 0;
-            }
+        @keyframes drawCheck {
+            to { stroke-dashoffset: 0; }
         }
 
-        h1 {
-            font-size: 32px;
-            font-weight: 700;
-            color: #1e3a8a;
-            margin-bottom: 15px;
+        /* ─── HEADING ─── */
+        .card-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(1.6rem, 4vw, 2rem);
+            font-weight: 900;
+            color: #0A1628;
+            line-height: 1.15;
+            margin-bottom: 0.5rem;
         }
 
-        .subtitle {
-            font-size: 16px;
-            color: #64748b;
-            margin-bottom: 30px;
-            line-height: 1.6;
+        .card-subtitle {
+            font-size: 0.875rem;
+            color: #4B5563;
+            line-height: 1.65;
+            font-weight: 300;
+            margin-bottom: 1.5rem;
         }
 
+        /* ─── SUCCESS BOX ─── */
         .success-box {
-            background: #d1fae5;
-            border: 2px solid #10b981;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 30px;
+            background: #ECFDF5;
+            border: 1.5px solid rgba(16,185,129,0.35);
+            border-radius: 14px;
+            padding: 0.85rem 1.25rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .success-box-icon {
+            width: 32px; height: 32px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .success-box-icon i {
+            color: white;
+            font-size: 0.85rem;
         }
 
         .success-box p {
-            color: #065f46;
-            font-size: 15px;
+            font-size: 0.875rem;
             font-weight: 600;
-            margin: 0;
+            color: #065f46;
+            text-align: left;
+            line-height: 1.4;
         }
 
-        .redirect-info {
-            background: #eff6ff;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 30px;
+        /* ─── REDIRECT INFO ─── */
+        .redirect-card {
+            background: #EFF6FF;
+            border: 1.5px solid rgba(59,130,246,0.2);
+            border-radius: 14px;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
         }
 
-        .redirect-info p {
-            color: #1e40af;
-            font-size: 14px;
-            margin-bottom: 15px;
+        .redirect-label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #1D4ED8;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 0.6rem;
+        }
+
+        .redirect-desc {
+            font-size: 0.85rem;
+            color: #1E40AF;
+            margin-bottom: 1rem;
+            font-weight: 400;
+        }
+
+        .countdown-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            margin-bottom: 0.85rem;
         }
 
         .countdown {
-            font-size: 36px;
-            font-weight: 700;
-            color: #3b82f6;
+            font-family: 'Playfair Display', serif;
+            font-size: 2.4rem;
+            font-weight: 900;
+            color: #1E3A8A;
+            line-height: 1;
+            min-width: 2.5rem;
+        }
+
+        .countdown-unit {
+            font-size: 0.75rem;
+            color: #3B82F6;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
         }
 
         .loading-bar {
             width: 100%;
-            height: 6px;
-            background: #e5e7eb;
+            height: 5px;
+            background: rgba(59,130,246,0.15);
             border-radius: 10px;
             overflow: hidden;
-            margin-top: 15px;
         }
 
         .loading-progress {
             height: 100%;
-            background: linear-gradient(90deg, #3b82f6, #10b981);
+            background: linear-gradient(90deg, #3B82F6, #10b981);
             border-radius: 10px;
             width: 0%;
             animation: progress 5s linear forwards;
         }
 
-        @keyframes progress {
-            to {
-                width: 100%;
-            }
+        @keyframes progress { to { width: 100%; } }
+
+        /* ─── TRUST ROW ─── */
+        .trust-row {
+            display: flex;
+            justify-content: center;
+            gap: 1.2rem;
+            flex-wrap: wrap;
+            padding-top: 1rem;
+            border-top: 1px solid #F3F4F6;
         }
 
-        @media (max-width: 768px) {
-            .container {
-                padding: 40px 25px;
-            }
+        .trust-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            color: #6B7280;
+            font-weight: 500;
+        }
 
-            h1 {
-                font-size: 26px;
-            }
+        .trust-item i { color: var(--gold); font-size: 0.8rem; }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 520px) {
+            .container { padding: 1rem; }
         }
     </style>
 </head>
 <body>
+
+    <div class="page-bg"></div>
+    <div class="bg-grid"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
     <div class="container">
-        <div class="success-icon">
-            <svg viewBox="0 0 24 24">
-                <path d="M20 6L9 17L4 12"/>
-            </svg>
-        </div>
+        <div class="card">
 
-        <h1>Email Verified! ✅</h1>
-        <p class="subtitle">
-            Your UMak email has been successfully verified.<br>
-            You're all set to continue with your registration!
-        </p>
-
-        <div class="success-box">
-            <p>✓ Email verification complete</p>
-        </div>
-
-        <div class="redirect-info">
-            <p><strong>Redirecting you to Data Privacy Agreement...</strong></p>
-            <div class="countdown" id="countdown">5</div>
-            <div class="loading-bar">
-                <div class="loading-progress"></div>
+            <!-- Logo -->
+            <div class="card-logo">
+                <img src="UMakfit Logo (2).png" alt="UMakFIT Logo" class="card-logo-img"
+                     onerror="this.style.display='none'">
+                <span class="card-logo-text">UMakFIT</span>
             </div>
+
+            <!-- Success Icon -->
+            <div class="success-icon-wrap">
+                <div class="success-ring"></div>
+                <div class="success-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M20 6L9 17L4 12"/>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Heading -->
+            <h1 class="card-title">Email Verified!</h1>
+            <p class="card-subtitle">
+                Your UMak email has been successfully verified.<br>
+                You're all set to continue with your registration.
+            </p>
+
+            <!-- Success Box -->
+            <div class="success-box">
+                <div class="success-box-icon">
+                    <i class="fas fa-check"></i>
+                </div>
+                <p>Email verification complete — account is ready</p>
+            </div>
+
+            <!-- Redirect Countdown -->
+            <div class="redirect-card">
+                <div class="redirect-label">Redirecting you to</div>
+                <div class="redirect-desc">Data Privacy Agreement</div>
+                <div class="countdown-row">
+                    <span class="countdown" id="countdown">5</span>
+                    <span class="countdown-unit">seconds</span>
+                </div>
+                <div class="loading-bar">
+                    <div class="loading-progress"></div>
+                </div>
+            </div>
+
+            <!-- Trust Row -->
+            <div class="trust-row">
+                <div class="trust-item"><i class="fas fa-shield-alt"></i><span>Secure Session</span></div>
+                <div class="trust-item"><i class="fas fa-lock"></i><span>UMak Email Only</span></div>
+                <div class="trust-item"><i class="fas fa-bolt"></i><span>Instant Access</span></div>
+            </div>
+
         </div>
     </div>
 
@@ -197,9 +429,9 @@
             appId: "1:276569891504:web:39b1732b519f4d8b785175"
         };
 
-        const app = initializeApp(firebaseConfig);
+        const app  = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const db = getFirestore(app);
+        const db   = getFirestore(app);
 
         let countdown = 5;
         const countdownEl = document.getElementById('countdown');
@@ -207,17 +439,14 @@
         const timer = setInterval(() => {
             countdown--;
             countdownEl.textContent = countdown;
-            if (countdown <= 0) {
-                clearInterval(timer);
-            }
+            if (countdown <= 0) clearInterval(timer);
         }, 1000);
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 console.log('✓ User authenticated:', user.email);
                 console.log('Email verified status:', user.emailVerified);
-                
-                // Update student record to mark email as verified
+
                 try {
                     const studentRef = doc(db, 'students', user.uid);
                     await updateDoc(studentRef, {
@@ -228,8 +457,7 @@
                 } catch (error) {
                     console.error('Error updating student record:', error);
                 }
-                
-                // Redirect after 5 seconds
+
                 setTimeout(() => {
                     window.location.href = './dataprivacy.html';
                 }, 5000);
@@ -241,5 +469,6 @@
             }
         });
     </script>
+
 </body>
 </html>

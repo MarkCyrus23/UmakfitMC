@@ -1102,9 +1102,13 @@
                                                     <input type="email" class="form-control" id="editEmail" required>
                                                 </div>
                                                 <div class="col-md-6">
-                                                    <label class="form-label fw-bold">Contact Number</label>
-                                                    <input type="tel" class="form-control" id="editContact" placeholder="+63 9XXXXXXXXX" required>
-                                                </div>
+                                                        <label class="form-label fw-bold">Contact Number</label>
+                                                        <input type="tel" class="form-control" id="editContact" placeholder="09XXXXXXXXX" maxlength="11" required>
+                                                        <small class="text-muted">Format: 11 digits starting with 09 (e.g. 09947845672)</small>
+                                                        <div id="contactError" style="color:#dc2626; font-size:12px; display:none; margin-top:4px;">
+                                                            ⚠️ Phone number must be exactly 11 digits starting with 09
+                                                        </div>
+                                                    </div>
                                                 <div class="col-md-6">
                                                     <label class="form-label fw-bold">Height (cm)</label>
                                                     <input type="number" class="form-control" id="editHeight" min="100" max="250" required>
@@ -2044,77 +2048,35 @@ age: calculateAge(document.getElementById('editBirthday').value),
             const studentRef = doc(db, 'students', window.currentStudentId);
             await updateDoc(studentRef, updatedData);
             
-const bmiChanged = (height !== oldHeight || weight !== oldWeight) && height > 0 && weight > 0;
-
-if (bmiChanged) {
-    const bmi = calculateBMI(weight, height);
-    const category = getBMICategory(bmi);
-
-    // ── Determine testType: pre or post ──────────────────────────────
-    // Query existing BMI records for this student, sorted by recordedAt
-    const { collection: col, addDoc: add, query: q, where: wh, orderBy, getDocs: gd } =
-        await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-
-    let testType = 'pre'; // default
-
-    try {
-        const bmiQuery = q(
-            col(db, 'BMI'),
-            wh('studentId', '==', window.currentStudentId)
-        );
-        const bmiSnap = await gd(bmiQuery);
-
-        if (!bmiSnap.empty) {
-            // Find the earliest BMI record
-            let earliestDate = null;
-            bmiSnap.forEach(docSnap => {
-                const data = docSnap.data();
-                const recordedAt = data.recordedAt
-                    ? (data.recordedAt.toDate ? data.recordedAt.toDate() : new Date(data.recordedAt))
-                    : null;
-                if (recordedAt && (!earliestDate || recordedAt < earliestDate)) {
-                    earliestDate = recordedAt;
-                }
-            });
-
-if (earliestDate) {
-    const now = new Date();
-    const diffMs = now - earliestDate;
-    const diffHours = diffMs / (1000 * 60 * 60); // Convert to hours
-    // If more than 1 hour since the first BMI record → post
-    testType = diffHours > 1 ? 'post' : 'pre';
-}
-        }
-    } catch (err) {
-        console.warn('Could not determine BMI testType, defaulting to pre:', err);
-        testType = 'pre';
-    }
-
-    const bmiData = {
-        studentId: window.currentStudentId,
-        studentName: `${nameInfo.firstName} ${nameInfo.lastName}`.trim(),
-        umakId: extractedId,
-        section: window.currentStudentData?.section || 'Not Assigned',
-        email: email,
-        height: height,
-        weight: weight,
-        bmi: parseFloat(bmi),
-        category: category,
-        testType: testType,
-        recordedAt: new Date().toISOString(),
-        recordedBy: 'student',
-        updatedAt: new Date().toISOString()
-    };
-
-    console.log(`Creating BMI record as [${testType}]:`, bmiData);
-    await add(col(db, 'BMI'), bmiData);
-    console.log('BMI record created successfully');
-
-    const typeLabel = testType === 'post' ? 'Post-Assessment' : 'Pre-Assessment';
-    alert(`Profile and BMI ${typeLabel} record updated successfully!`);
-} else {
-    alert('Profile updated successfully!');
-}
+            const bmiChanged = (height !== oldHeight || weight !== oldWeight) && height > 0 && weight > 0;
+            
+            if (bmiChanged) {
+                const bmi = calculateBMI(weight, height);
+                const category = getBMICategory(bmi);
+                
+                const bmiData = {
+                    studentId: window.currentStudentId,
+                    studentName: `${nameInfo.firstName} ${nameInfo.lastName}`.trim(),
+                    umakId: extractedId,
+                    section: window.currentStudentData?.section || 'Not Assigned',
+                    email: email,
+                    height: height,
+                    weight: weight,
+                    bmi: parseFloat(bmi),
+                    category: category,
+                    testType: 'pre',
+                    recordedAt: new Date().toISOString(),
+                    recordedBy: 'student',
+                    updatedAt: new Date().toISOString()
+                };
+                
+                console.log('Creating BMI record:', bmiData);
+                await addDoc(collection(db, 'BMI'), bmiData);
+                console.log('BMI record created successfully');
+                showProfileSavePopup('success', 'Profile and BMI record updated successfully!');
+            } else {
+                showProfileSavePopup('success', 'Profile updated successfully!');
+            }
             
             bootstrap.Modal.getInstance(document.getElementById('editProfileModal')).hide();
             
@@ -2124,10 +2086,101 @@ if (earliestDate) {
             updateProfileAvatar();
         } catch (error) {
             console.error('Error updating profile:', error);
-            alert('Failed to update profile. Please try again.');
+            showProfileSavePopup('error', 'Failed to update profile. Please try again.');
         }
     };
+            function showProfileSavePopup(type, message) {
+    const existing = document.getElementById('profileSavePopupOverlay');
+    if (existing) existing.remove();
 
+    const isSuccess = type === 'success';
+
+    const overlay = document.createElement('div');
+    overlay.id = 'profileSavePopupOverlay';
+    overlay.style.cssText = `
+        position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+        display: flex; align-items: center; justify-content: center;
+        z-index: 99999; padding: 1rem;
+        animation: fadeInPopup 0.2s ease;
+    `;
+
+    overlay.innerHTML = `
+        <style>
+            @keyframes fadeInPopup { from { opacity:0; } to { opacity:1; } }
+            @keyframes slideUpPopup { from { opacity:0; transform:translateY(24px) scale(0.97); } to { opacity:1; transform:translateY(0) scale(1); } }
+        </style>
+        <div style="
+            background:#fff;
+            border-radius:24px;
+            padding:2rem 1.5rem 1.5rem;
+            max-width:360px;
+            width:100%;
+            box-shadow:0 8px 40px rgba(60,64,67,0.18), 0 2px 8px rgba(60,64,67,0.10);
+            animation:slideUpPopup 0.35s cubic-bezier(.4,0,.2,1);
+            text-align:center;
+            font-family:'Inter',sans-serif;
+        ">
+            <!-- Icon -->
+            <div style="
+                width:68px; height:68px;
+                background:${isSuccess ? '#e6f4ea' : '#fce8e6'};
+                border-radius:50%;
+                display:flex; align-items:center; justify-content:center;
+                margin:0 auto 1.25rem;
+            ">
+                ${isSuccess ? `
+                <svg width="34" height="34" viewBox="0 0 48 48" fill="none">
+                    <circle cx="24" cy="24" r="18" stroke="#34a853" stroke-width="3.5"/>
+                    <path d="M15 24l7 7 11-12" stroke="#34a853" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>` : `
+                <svg width="34" height="34" viewBox="0 0 48 48" fill="none">
+                    <circle cx="24" cy="24" r="18" stroke="#ea4335" stroke-width="3.5"/>
+                    <path d="M24 16v10" stroke="#ea4335" stroke-width="3.5" stroke-linecap="round"/>
+                    <circle cx="24" cy="32" r="2" fill="#ea4335"/>
+                </svg>`}
+            </div>
+
+            <!-- Title -->
+            <div style="font-size:1.2rem; font-weight:600; color:#202124; margin-bottom:0.35rem; letter-spacing:-0.01em;">
+                ${isSuccess ? 'Changes Saved!' : 'Save Failed'}
+            </div>
+
+            <!-- Message -->
+            <div style="font-size:0.875rem; color:#5f6368; margin-bottom:1.5rem; line-height:1.5;">
+                ${message}
+            </div>
+
+            <!-- Divider -->
+            <div style="height:1px; background:#e8eaed; margin:0 -1.5rem 1.25rem;"></div>
+
+            <!-- Button -->
+            <button id="profileSavePopupOkBtn" style="
+                width:100%;
+                padding:0.75rem;
+                border-radius:100px;
+                border:none;
+                background:${isSuccess ? '#34a853' : '#ea4335'};
+                color:#fff;
+                font-size:0.9375rem;
+                font-weight:500;
+                cursor:pointer;
+                font-family:'Inter',sans-serif;
+                min-height:48px;
+                transition:opacity 0.15s;
+            ">OK</button>
+        </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    document.getElementById('profileSavePopupOkBtn').addEventListener('click', () => {
+        overlay.remove();
+    });
+
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) overlay.remove();
+    });
+}
     // Profile dropdown toggle
     window.toggleProfileDropdown = function() {
         const isMobile = window.innerWidth < 1024;

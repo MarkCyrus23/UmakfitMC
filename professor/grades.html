@@ -1007,22 +1007,21 @@
     }
 
     function setupUI(user) {
-        const profName  = currentProfessor.fullName || currentProfessor.name || user.displayName || 'Professor';
-        const email     = currentProfessor.email || user.email;
-        const initial   = profName.charAt(0).toUpperCase();
-        const shortName = profName.split(',')[0]?.trim() || profName;
-        const photoURL  = user.photoURL || null;
-        document.getElementById('headerName').textContent    = shortName;
-        document.getElementById('dropdownName').textContent  = profName;
-        document.getElementById('dropdownEmail').textContent = email;
-        const setAvatar = (el, src, init) => {
-            if (!el) return;
-            if (src) { el.innerHTML = `<img src="${src}" class="w-full h-full object-cover rounded-full" alt="">`; }
-            else { el.textContent = init; }
-        };
-        setAvatar(document.getElementById('profileAvatarSmall'), photoURL, initial);
-        setAvatar(document.getElementById('profileDropdownAvatar'), photoURL, initial);
-    }
+    const displayName = user.displayName || currentProfessor.fullName || currentProfessor.name || 'Professor';
+    const email = currentProfessor.email || user.email;
+    const initial = displayName.charAt(0).toUpperCase();
+    const photo = user.photoURL || null;
+
+    document.getElementById('headerName').textContent    = displayName;
+    document.getElementById('dropdownName').textContent  = displayName;
+    document.getElementById('dropdownEmail').textContent = email;
+
+    const as = document.getElementById('profileAvatarSmall');
+    const al = document.getElementById('profileDropdownAvatar');
+    const img = src => `<img src="${src}" class="w-full h-full object-cover rounded-full" alt="">`;
+    if (photo) { as.innerHTML = img(photo); al.innerHTML = img(photo); }
+    else { as.textContent = initial; al.textContent = initial; }
+}
 
     async function loadAssignedSections() {
         assignedSections = [];

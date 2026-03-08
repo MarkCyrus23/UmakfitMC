@@ -789,21 +789,24 @@
         if (dd && !e.target.closest('#profileCircle') && !dd.contains(e.target)) dd.classList.remove('show');
     });
 
-    function updateProfileUI(photoURL, displayName, email) {
-        const name = displayName || 'Professor';
-        const initial = name.charAt(0).toUpperCase();
-        document.getElementById('headerName').textContent = name.split(',')[0].trim();
-        document.getElementById('dropdownName').textContent = name;
-        document.getElementById('dropdownEmail').textContent = email || '';
-        const setAvatar = (id) => {
-            const el = document.getElementById(id);
-            if (!el) return;
-            if (photoURL) { el.innerHTML = `<img src="${photoURL}" class="w-full h-full object-cover rounded-full" alt="">`; }
-            else { el.textContent = initial; }
-        };
-        setAvatar('profileAvatarSmall');
-        setAvatar('profileDropdownAvatar');
-    }
+        function updateProfileUI(photoURL, displayName, email) {
+            const name = displayName || 'Professor';
+            const initial = name.charAt(0).toUpperCase();
+
+            // Use Google displayName directly — no splitting
+            document.getElementById('headerName').textContent = name;
+            document.getElementById('dropdownName').textContent = name;
+            document.getElementById('dropdownEmail').textContent = email || '';
+
+            const setAvatar = (id) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                if (photoURL) { el.innerHTML = `<img src="${photoURL}" class="w-full h-full object-cover rounded-full" alt="">`; }
+                else { el.textContent = initial; }
+            };
+            setAvatar('profileAvatarSmall');
+            setAvatar('profileDropdownAvatar');
+        }
     window.updateProfileUI = updateProfileUI;
 
     function showLogoutConfirmPopup() {
@@ -1097,11 +1100,14 @@
         }
     }
 
-    function renderCategoryBadge(category) {
-        const icon = getCategoryIcon(category);
-        const className = getCategoryClass(category);
-        return `<span class="category-badge ${className}">${icon} ${category}</span>`;
+function renderCategoryBadge(category) {
+    if (!category) {
+        return `<span class="category-badge category-default">— No Data Yet</span>`;
     }
+    const icon = getCategoryIcon(category);
+    const className = getCategoryClass(category);
+    return `<span class="category-badge ${className}">${icon} ${category}</span>`;
+}
 
     function getPushUpCategory(genderKey, ageGroup, reps) {
         if (genderKey === 'male') {
@@ -1225,7 +1231,7 @@
     }
 
     function getOverallCategory(categories) {
-        if (!categories || categories.length === 0) return 'Average';
+    if (!categories || categories.length === 0) return null;
         const scores = categories.map(c => CATEGORY_ORDER[c] || 3);
         const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
         if (avg >= 4.5) return 'Excellent';
@@ -1280,7 +1286,7 @@
                         window.currentProfessor = { email: user.email, name: user.displayName || user.email.split('@')[0], fullName: user.displayName || user.email.split('@')[0].toUpperCase() };
                     }
                 }
-                const profName = window.currentProfessor.fullName || window.currentProfessor.name || user.displayName || 'Professor';
+                const profName = user.displayName || window.currentProfessor.fullName || window.currentProfessor.name || 'Professor';
                 updateProfileUI(user.photoURL, profName, user.email);
                 
                 // Load initial data
@@ -1644,22 +1650,14 @@ rowsHTML += `<tr onclick="viewStudentDetails('${student.id}')" style="cursor:poi
             
             // Calculate section statistics
             let totalAttempts = 0, studentsWithAttempts = 0;
-            const categoryCounts = { 'Excellent': 0, 'Good': 0, 'Average': 0, 'Below Average': 0, 'Poor': 0 };
-            
-            sectionStudents.forEach(student => { 
+           sectionStudents.forEach(student => { 
                 if (student.uniqueTestCount > 0) { 
                     studentsWithAttempts++; 
                     totalAttempts += student.totalAttempts;
-                    categoryCounts[student.overallCategory] = (categoryCounts[student.overallCategory] || 0) + 1;
                 } 
             });
             
             const completionRate = sectionStudents.length > 0 ? Math.round((studentsWithAttempts / sectionStudents.length) * 100) : 0;
-            
-            // Find most common category
-            let mostCommonCategory = '—';
-            let maxCount = 0;
-            Object.entries(categoryCounts).forEach(([cat, cnt]) => { if (cnt > maxCount) { maxCount = cnt; mostCommonCategory = cat; } });
             
             let schedule = '';
             if (sectionData.time && sectionData.day && sectionData.room) schedule = `${sectionData.time} / ${sectionData.day} / ${sectionData.room}`;
@@ -1672,7 +1670,6 @@ rowsHTML += `<tr onclick="viewStudentDetails('${student.id}')" style="cursor:poi
                 <div class="info-item"><div class="info-label">Total Students</div><div class="info-value"><strong style="color:#2d6fc4; font-size:18px;">${sectionStudents.length}</strong></div></div>
                 <div class="info-item"><div class="info-label">Schedule</div><div class="info-value">${schedule}</div></div>
                 <div class="info-item"><div class="info-label">Total Attempts</div><div class="info-value"><strong>${totalAttempts}</strong></div></div>
-                <div class="info-item"><div class="info-label">Most Common</div><div class="info-value">${mostCommonCategory !== '—' ? renderCategoryBadge(mostCommonCategory) : '—'}</div></div>
                 <div class="info-item"><div class="info-label">Completion Rate</div><div class="info-value"><strong>${completionRate}%</strong></div></div>
                 <div class="info-item"><div class="info-label">Professor</div><div class="info-value">${sectionData.professor || window.currentUser?.displayName || window.currentUser?.email}</div></div>
                 ${sectionData.description ? `<div class="info-item" style="grid-column: 1 / -1;"><div class="info-label">Description</div><div class="info-value" style="font-size:14px; color:#475569; line-height:1.5;">${sectionData.description}</div></div>` : ''}
@@ -2290,7 +2287,40 @@ testPermissionsUnsubscribe = onSnapshot(collection(db, 'testPermissions'), async
         } catch (error) { showErrorModal('Error: ' + error.message); }
     });
 };
+        window.disableOverdueTest = async function(studentEmail, testId, testName) {
+    showConfirmModal(`Disable "${testName}" for this student? They will no longer be able to take this overdue test.`, async () => {
+        try {
+            const existingPermissionQuery = query(
+                collection(db, 'testPermissions'),
+                where('studentEmail', '==', studentEmail),
+                where('testId', '==', testId)
+            );
+            const existingSnapshot = await getDocs(existingPermissionQuery);
+            if (existingSnapshot.empty) {
+                showWarningModal('No active permission found for this test.', () => {}, () => {});
+                return;
+            }
 
+            // Delete all matching permission docs
+            const deletePromises = existingSnapshot.docs.map(docSnap =>
+                deleteDoc(doc(db, 'testPermissions', docSnap.id))
+            );
+            await Promise.all(deletePromises);
+
+            // Optimistically update currentStudentTests in-place
+            window.currentStudentTests = window.currentStudentTests.map(t =>
+                (t.studentEmail === studentEmail && t.testId === testId)
+                    ? { ...t, isEnabled: false }
+                    : t
+            );
+            filterStudentTests();
+
+            showSuccessModal('Test disabled. The student can no longer take this overdue test.');
+        } catch (error) {
+            showErrorModal('Error: ' + error.message);
+        }
+    });
+};
     window.setOverdueScore = function(studentEmail, testId, testName, testTarget, testUnit, studentName, currentCategory = null, currentResult = '', resultId = '') {
         window.openEditResultModal(studentEmail, testId, testName, testTarget, testUnit, studentName, currentCategory, currentResult, resultId);
     };
@@ -2510,11 +2540,10 @@ testPermissionsUnsubscribe = onSnapshot(collection(db, 'testPermissions'), async
                     <td data-label="Status">${hasCompleted ? '<span class="status-badge status-active">Completed</span>' : '<span class="status-badge" style="background:#fee2e2; color:#991b1b;">Pending</span>'}</td>
                     <td data-label="Deadline"><small style="color:#64748b;">${item.deadlineString}</small></td>
                     <td data-label="Category">${hasCompleted ? categoryBadge : '<span style="color:#64748b;">—</span>'}</td>
-                    <td data-label="Actions"><div class="action-buttons" style="display:flex; gap:8px; flex-wrap:wrap;">
-                        ${!hasCompleted && !isEnabled ? `<button class="btn-action btn-view" onclick="event.stopPropagation(); enableOverdueTest('${item.studentEmail}', '${item.testId}', '${item.testName}')"><i class="fas fa-unlock"></i> Enable</button>` : ''}
-                        ${!hasCompleted && isEnabled ? `<button class="btn-action" style="background:#2d6fc4; color:white;" disabled><i class="fas fa-check-circle"></i> Enabled</button>` : ''}
-                        <button class="btn-action btn-attempt" onclick="event.stopPropagation(); setOverdueScore('${item.studentEmail}', '${item.testId}', '${item.testName}', ${item.testTarget}, '${item.testUnit || ''}', '${item.studentName}', ${hasCompleted ? JSON.stringify(item.currentCategory) : null}, '${hasCompleted ? item.currentResult || '' : ''}', '${item.resultId || ''}')"><i class="fas fa-edit"></i> ${hasCompleted ? 'Edit' : 'Set'} Result</button>
-                    </div></td>
+                   <td data-label="Actions"><div class="action-buttons" style="display:flex; gap:8px; flex-wrap:wrap;">
+                    ${!hasCompleted && !isEnabled ? `<button class="btn-action btn-view" onclick="event.stopPropagation(); enableOverdueTest('${item.studentEmail}', '${item.testId}', '${item.testName}')"><i class="fas fa-unlock"></i> Enable</button>` : ''}
+                    ${!hasCompleted && isEnabled ? `<button class="btn-action" style="background:#ef4444; color:white;" onclick="event.stopPropagation(); disableOverdueTest('${item.studentEmail}', '${item.testId}', '${item.testName}')"><i class="fas fa-lock"></i> Disable</button>` : ''}
+                </div></td>
                 </tr>`;
             });
         }

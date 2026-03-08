@@ -419,14 +419,7 @@
                                 class="px-3.5 py-2 border border-border rounded-lg font-sans text-[13px] text-text-primary bg-surface cursor-pointer focus:outline-none focus:border-blue">
                                 <option value="">All Sections</option>
                             </select>
-                            <select id="yearFilter" onchange="filterSections()"
-                                class="px-3.5 py-2 border border-border rounded-lg font-sans text-[13px] text-text-primary bg-surface cursor-pointer focus:outline-none focus:border-blue">
-                                <option value="">All Years</option>
-                                <option value="1">1st Year</option>
-                                <option value="2">2nd Year</option>
-                                <option value="3">3rd Year</option>
-                                <option value="4">4th Year</option>
-                            </select>
+                           
                         </div>
                     </div>
                 </div>
@@ -501,11 +494,11 @@
 </div>
 
 <script>
-    function updateHeaderDate() {
+        function updateHeaderDate() {
         const el = document.getElementById('headerDate');
         if (el) el.textContent = new Date().toLocaleDateString('en-US', { weekday:'short', year:'numeric', month:'short', day:'numeric' });
     }
-    updateHeaderDate(); setInterval(updateHeaderDate, 60000);
+    updateHeaderDate();
 
     function toggleSidebar() {
         const sb = document.getElementById('mainSidebar');
@@ -523,7 +516,6 @@
         ov.classList.add('hidden');
         hb.classList.remove('hamburger-open');
     }
-
     window.toggleProfileDropdown = function() {
         document.getElementById('profileDropdown').classList.toggle('show');
     };
@@ -531,7 +523,6 @@
         const dd = document.getElementById('profileDropdown');
         if (dd && !e.target.closest('#profileCircle') && !dd.contains(e.target)) dd.classList.remove('show');
     });
-
     window.showAlert = function(msg, type='info', title='') {
         const icons  = { success:'check-circle', error:'times-circle', warning:'exclamation-triangle', info:'info-circle' };
         const titles = { success:'Success', error:'Error', warning:'Warning', info:'Information' };
@@ -543,8 +534,7 @@
         iconWrap.innerHTML = `<i class="fas fa-${icons[type]||'info-circle'}"></i>`;
         document.getElementById('alertModal').classList.add('open');
     };
-    window.closeAlertModal = () => document.getElementById('alertModal').classList.remove('open');
-
+    window.closeAlertModal  = () => document.getElementById('alertModal').classList.remove('open');
     window.showConfirm = function(msg, onYes) {
         document.getElementById('confirmModalMsg').textContent = msg;
         const yesBtn = document.getElementById('confirmModalYesBtn');
@@ -552,7 +542,8 @@
         document.getElementById('confirmModal').classList.add('open');
     };
     window.closeConfirmModal = () => document.getElementById('confirmModal').classList.remove('open');
-    window.scrollToSections = () => document.getElementById('sectionsPanel').scrollIntoView({ behavior:'smooth' });
+    window.scrollToSections  = () => document.getElementById('sectionsPanel').scrollIntoView({ behavior:'smooth' });
+
 </script>
 
 <script type="module">
@@ -620,57 +611,43 @@
         }
     });
 function setupUI(user) {
-    // Build full name from individual fields first (most reliable)
-    const firstName    = currentProfessor.firstName    || '';
-    const middleInitial = currentProfessor.middleInitial || '';
-    const lastName     = currentProfessor.lastName     || '';
+    const displayName = user.displayName || 
+                        currentProfessor.fullName || 
+                        currentProfessor.name || 
+                        'Professor';
 
-    let fullName;
-    if (firstName && lastName) {
-        // Construct: "MENDOZA, MARK CYRUS"  (Last, First Middle)
-fullName = `${firstName}${middleInitial ? ' ' + middleInitial : ''} ${lastName}`.trim();
-    } else {
-        // Fallback to stored name / displayName
-        fullName = currentProfessor.fullName
-                || currentProfessor.name
-                || user.displayName
-                || 'Professor';
-    }
-
-    // First name for the "Welcome," greeting
-    const greetName = firstName || fullName.split(/[\s,]+/)[0] || 'Professor';
-
-    const email    = currentProfessor.email || user.email;
-    const initial  = (lastName || fullName).charAt(0).toUpperCase();
+    const email   = user.email || currentProfessor.email || '';
+    const initial = displayName.charAt(0).toUpperCase();
     const photoURL = user.photoURL || null;
 
-    // Welcome banner
-    document.getElementById('dashWelcomeName').textContent = `Welcome, ${greetName}`;
+    // Welcome banner — first name only
+    const greetName = displayName.split(' ')[0] || 'Professor';
+    document.getElementById('dashWelcomeName').textContent = `Welcome, ${displayName}`;
 
-    // Header pill (top-right) — show full name
-    document.getElementById('headerName').textContent = fullName;
+    // Header top-right
+    document.getElementById('headerName').textContent = displayName;
 
-    // Profile dropdown card — full name
-    document.getElementById('dropdownName').textContent  = fullName;
+    // Profile dropdown
+    document.getElementById('dropdownName').textContent  = displayName;
     document.getElementById('dropdownEmail').textContent = email;
 
-    // Profile info card — full name
-    document.getElementById('profFullName').textContent = fullName;
+    // Profile card
+    document.getElementById('profFullName').textContent = displayName;
     document.getElementById('profEmail').textContent    = email;
 
     // Avatars
     const avatarSmall = document.getElementById('profileAvatarSmall');
-    const avatarLg    = document.getElementById('profileDropdownAvatar');
+    const avatarDrop  = document.getElementById('profileDropdownAvatar');
     const picLg       = document.getElementById('profilePicLg');
 
     if (photoURL) {
         const img = `<img src="${photoURL}" alt="Profile" class="w-full h-full object-cover rounded-full">`;
         avatarSmall.innerHTML = img;
-        avatarLg.innerHTML    = img;
+        avatarDrop.innerHTML  = img;
         picLg.innerHTML       = img;
     } else {
         avatarSmall.textContent = initial;
-        avatarLg.textContent    = initial;
+        avatarDrop.textContent  = initial;
         picLg.textContent       = initial;
     }
 }

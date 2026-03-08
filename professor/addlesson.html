@@ -635,22 +635,29 @@
         window.currentProfessor=currentProfessor;
     }
 
-    function setupUI(user){
-        const profName=currentProfessor.fullName||currentProfessor.name||user.displayName||'Professor';
-        const email=currentProfessor.email||user.email;
-        const initial=profName.charAt(0).toUpperCase();
-        const photoURL=user.photoURL||null;
-        const shortName=profName.split(',')[0]?.trim()||profName;
-        document.getElementById('headerName').textContent=shortName;
-        document.getElementById('dropdownName').textContent=profName;
-        document.getElementById('dropdownEmail').textContent=email;
-        const as=document.getElementById('profileAvatarSmall'), al=document.getElementById('profileDropdownAvatar');
-        if(photoURL){
-            as.innerHTML=`<img src="${photoURL}" alt="Profile" class="w-full h-full object-cover rounded-full">`;
-            al.innerHTML=`<img src="${photoURL}" alt="Profile" class="w-full h-full object-cover">`;
-        }else{ as.textContent=initial; al.textContent=initial; }
-    }
+        function setupUI(user){
+        const displayName = user.displayName || currentProfessor.fullName || currentProfessor.name || 'Professor';
+        const email = currentProfessor.email || user.email;
+        const initial = displayName.charAt(0).toUpperCase();
+        const photoURL = user.photoURL || null;
 
+        // All name fields use Google displayName directly
+        document.getElementById('headerName').textContent = displayName;
+        document.getElementById('dropdownName').textContent = displayName;
+        document.getElementById('dropdownEmail').textContent = email;
+
+        const as = document.getElementById('profileAvatarSmall');
+        const al = document.getElementById('profileDropdownAvatar');
+
+        if(photoURL){
+            const img = `<img src="${photoURL}" alt="Profile" class="w-full h-full object-cover rounded-full">`;
+            as.innerHTML = img;
+            al.innerHTML = img;
+        } else {
+            as.textContent = initial;
+            al.textContent = initial;
+        }
+    }
     async function loadAssignedSections(){
         assignedSections=[];
         const profEmail=currentProfessor.email;

@@ -1122,12 +1122,22 @@
         }
 
         function setupTestUpdatesForStudent() {
-            try {
-                if (!studentData || !studentData.section) return;
-                const testsQuery = query(collection(db, 'scheduledTests'), where('section', '==', studentData.section));
-                onSnapshot(testsQuery, (snapshot) => { loadAvailableTests(); }, (error) => { console.error('❌ Error in real-time listener:', error); });
-            } catch (error) { console.error('Error setting up test updates for student:', error); }
-        }
+    try {
+        if (!studentData || !studentData.section) return;
+
+        // Listen for scheduled tests changes
+        const testsQuery = query(collection(db, 'scheduledTests'), where('section', '==', studentData.section));
+        onSnapshot(testsQuery, () => { loadAvailableTests(); }, (error) => { console.error('❌ Error in real-time listener:', error); });
+
+        // Listen for testPermissions changes in real-time
+        const permQuery = query(collection(db, 'testPermissions'), where('studentEmail', '==', studentData.email));
+        onSnapshot(permQuery, () => {
+            // Re-render overdue tests with updated permissions
+            renderOverdueTests(overdueTests);
+        }, (error) => { console.error('❌ Error in permissions listener:', error); });
+
+    } catch (error) { console.error('Error setting up test updates for student:', error); }
+}
 
         function setupDeadlineWatcher() {
             setInterval(async () => {
@@ -1349,9 +1359,9 @@
                 return;
             }
             countBadge.classList.remove('hidden');
-            let enabledTestIds = new Set();
+           let enabledTestIds = new Set();
             try {
-                const permQuery = query(collection(db, 'testPermissions'), where('studentEmail', '==', studentData.email), where('status', '==', 'active'));
+                const permQuery = query(collection(db, 'testPermissions'), where('studentEmail', '==', studentData.email));
                 const permSnapshot = await getDocs(permQuery);
                 permSnapshot.forEach(docSnap => { const perm = docSnap.data(); if (perm.testId) enabledTestIds.add(perm.testId); });
             } catch (e) { console.warn('Could not load testPermissions:', e); }
@@ -1392,11 +1402,11 @@
                                 </div>
                             </div>
                             <div class="text-sm pl-0">
-                                ${isCompleted ? `<p class="text-green-600 font-semibold">${completion.attempts} Attempt${completion.attempts !== 1 ? 's' : ''} submitted</p>` : isViewOnly ? `<p class="text-gray-500">You are not selected for this test</p>` : isProfessorEnabled ? `<p class="text-blue-600 font-semibold">Your professor enabled this overdue test for you</p>` : `<p class="text-red-600 font-semibold">Overdue: ${formatDeadline(test.deadline, test.deadlineTime)}</p>`}
-                            </div>
+                            ${isCompleted ? `<p class="text-green-600 font-semibold">${completion.attempts} Attempt${completion.attempts !== 1 ? 's' : ''} submitted</p>` : isViewOnly ? `<p class="text-gray-500">You are not selected for this test</p>` : isProfessorEnabled ? `<p class="text-blue-600 font-semibold">Enabled by professor · ${completion.attempts > 0 ? `${completion.attempts}/${completion.attemptsAllowed} attempt${completion.attemptsAllowed !== 1 ? 's' : ''} used` : 'No attempts yet'}</p>` : `<p class="text-red-600 font-semibold">Overdue: ${formatDeadline(test.deadline, test.deadlineTime)}</p>`}                            </div>
                         </div>
                         <div class="w-full lg:w-auto lg:min-w-[140px]">
-                            ${isCompleted ? `<div class="w-full px-4 py-2.5 bg-green-500 text-white rounded-lg font-bold text-sm text-center"><i class="bi bi-check-circle-fill mr-1"></i> Done</div>` : isViewOnly ? `<div class="w-full px-4 py-2.5 bg-gray-200 text-gray-500 rounded-lg font-semibold text-sm text-center cursor-not-allowed"><i class="bi bi-eye-slash mr-1"></i> View Only</div>` : isProfessorEnabled ? `<button onclick="startOverdueTest('${test.id}', '${encodeURIComponent(test.testName)}')" class="w-full px-4 py-2.5 bg-blue-500 text-white rounded-lg font-bold text-sm hover:bg-blue-600 hover:shadow-md transition-all flex items-center justify-center gap-2"><i class="bi bi-play-fill"></i> Take Test</button>` : `<div class="w-full px-4 py-2.5 bg-gray-100 text-gray-500 rounded-lg font-semibold text-sm text-center border border-gray-200"><i class="bi bi-lock-fill mr-1"></i> Locked</div>`}
+                           ${isCompleted ? `<div class="w-full px-4 py-2.5 bg-green-500 text-white rounded-lg font-bold text-sm text-center"><i class="bi bi-check-circle-fill mr-1"></i> Done</div>` : isViewOnly ? `<div class="w-full px-4 py-2.5 bg-gray-200 text-gray-500 rounded-lg font-semibold text-sm text-center cursor-not-allowed"><i class="bi bi-eye-slash mr-1"></i> View Only</div>` : isProfessorEnabled ? `<button onclick="startOverdueTest('${test.id}', '${encodeURIComponent(test.testName)}')" class="w-full px-4 py-2.5 bg-blue-500 text-white rounded-lg font-bold text-sm hover:bg-blue-600 hover:shadow-md transition-all flex items-center justify-center gap-2"><i class="bi bi-${completion.attempts > 0 ? 'arrow-clockwise' : 'play-fill'}">
+                            </i> ${completion.attempts > 0 ? 'Retry' : 'Take Test'}</button>` : `<div class="w-full px-4 py-2.5 bg-gray-100 text-gray-500 rounded-lg font-semibold text-sm text-center border border-gray-200"><i class="bi bi-lock-fill mr-1"></i> Locked</div>`}
                         </div>
                     </div>
                 </div>`;
