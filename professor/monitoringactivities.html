@@ -1197,51 +1197,63 @@ if (data.dateTime) {
     // ─────────────────────────────────────────────────────────────────
     //  LOAD TEST RESULTS
     // ─────────────────────────────────────────────────────────────────
-    async function loadTestResults() {
-        testCompletions.clear();
-        studentTestResults.clear();
-        const studentsMap = new Map();
-        allStudents.forEach(student => { if (student.email || student.uniqueId) studentsMap.set(student.email || student.uniqueId, student); });
-        try {
-            const snap = await getDocs(query(collection(db,'testResults'), where('status','==','completed')));
-            snap.forEach(docSnap => {
-                const data = docSnap.data();
-                const studentEmail = data.studentEmail || data.email || '';
-                const testId       = data.testId || data.scheduledTestId || docSnap.id;
-                const testName     = data.testName || 'Unknown Test';
-                if (!studentEmail) return;
-                const isOurs = allStudents.some(s => s.email === studentEmail || s.uniqueId === studentEmail)
-                            || assignedSections.some(sec => sec.name === data.section);
-                if (!isOurs) return;
-                const studentData = studentsMap.get(studentEmail);
-                const ageGroup = getAgeGroupFromStudent(studentData);
-                const gender = (data.gender || '').toLowerCase();
-                const genderKey = gender.startsWith('f') ? 'female' : 'male';
-                const category = getNormCategory(testName, data.result || data.resultData || data.repetitions || data, genderKey, ageGroup);
-                let submittedDate = new Date();
-                if (data.submittedAt) {
-                    if (typeof data.submittedAt.toDate === 'function') submittedDate = data.submittedAt.toDate();
-                    else if (data.submittedAt.seconds) submittedDate = new Date(data.submittedAt.seconds * 1000);
-                    else if (typeof data.submittedAt === 'string') submittedDate = new Date(data.submittedAt);
-                }
-                const attempt = { id: docSnap.id, attemptNumber: data.attemptNumber || 1, category, result: extractResult(data), testUnit: data.testUnit || '', submittedAt: submittedDate, formattedDate: submittedDate.toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }), testName, isProfessorOverride: data.isProfessorOverride || false, ageGroup };
-                if (!studentTestResults.has(studentEmail)) studentTestResults.set(studentEmail, new Map());
-                const stMap = studentTestResults.get(studentEmail);
-                if (!stMap.has(testId)) {
-                    stMap.set(testId, { bestCategory: category, bestAttempt: attempt, attempts: [attempt], testName, testId, ageGroup });
-                } else {
-                    const existing = stMap.get(testId);
-                    existing.attempts.push(attempt);
-                    if ((CATEGORY_ORDER[category] || 3) > (CATEGORY_ORDER[existing.bestCategory] || 0)) { existing.bestCategory = category; existing.bestAttempt = attempt; }
-                    existing.attempts.sort((a,b) => b.submittedAt - a.submittedAt);
-                }
-                if (!testCompletions.has(testId)) testCompletions.set(testId, new Set());
-                testCompletions.get(testId).add(studentEmail);
-            });
-        } catch(e) { console.error('testResults load error:', e); }
-        updateTestsToday();
-    }
+  async function loadTestResults() {
+    testCompletions.clear();
+    studentTestResults.clear();
+    
+    // Load students from Firestore to get accurate birthday data (same as grades.html)
+    const studentsDbMap = new Map();
+    try {
+        const studentsSnap = await getDocs(collection(db, 'students'));
+        studentsSnap.forEach(doc => {
+            const data = doc.data();
+            if (data.email) studentsDbMap.set(data.email, data);
+        });
+    } catch(e) { console.error('students load error:', e); }
+    
+    try {
+        const snap = await getDocs(query(collection(db,'testResults'), where('status','==','completed')));
+        snap.forEach(docSnap => {
+            const data = docSnap.data();
+            const studentEmail = data.studentEmail || data.email || '';
+            const testId       = data.testId || data.scheduledTestId || docSnap.id;
+            const testName     = data.testName || 'Unknown Test';
+            if (!studentEmail) return;
+            const isOurs = allStudents.some(s => s.email === studentEmail || s.uniqueId === studentEmail)
+                        || assignedSections.some(sec => sec.name === data.section);
+            if (!isOurs) return;
 
+            // Use Firestore students collection first (has birthday), fallback to allStudents
+            const studentData = studentsDbMap.get(studentEmail) 
+                             || allStudents.find(s => s.email === studentEmail || s.uniqueId === studentEmail);
+            const ageGroup = getAgeGroupFromStudent(studentData);
+            
+            const gender = (data.gender || '').toLowerCase();
+            const genderKey = gender.startsWith('f') ? 'female' : 'male';
+            const category = getNormCategory(testName, data.result || data.resultData || data.repetitions || data, genderKey, ageGroup);
+            let submittedDate = new Date();
+            if (data.submittedAt) {
+                if (typeof data.submittedAt.toDate === 'function') submittedDate = data.submittedAt.toDate();
+                else if (data.submittedAt.seconds) submittedDate = new Date(data.submittedAt.seconds * 1000);
+                else if (typeof data.submittedAt === 'string') submittedDate = new Date(data.submittedAt);
+            }
+            const attempt = { id: docSnap.id, attemptNumber: data.attemptNumber || 1, category, result: extractResult(data), testUnit: data.testUnit || '', submittedAt: submittedDate, formattedDate: submittedDate.toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }), testName, isProfessorOverride: data.isProfessorOverride || false, ageGroup };
+            if (!studentTestResults.has(studentEmail)) studentTestResults.set(studentEmail, new Map());
+            const stMap = studentTestResults.get(studentEmail);
+            if (!stMap.has(testId)) {
+                stMap.set(testId, { bestCategory: category, bestAttempt: attempt, attempts: [attempt], testName, testId, ageGroup });
+            } else {
+                const existing = stMap.get(testId);
+                existing.attempts.push(attempt);
+                if ((CATEGORY_ORDER[category] || 3) > (CATEGORY_ORDER[existing.bestCategory] || 0)) { existing.bestCategory = category; existing.bestAttempt = attempt; }
+                existing.attempts.sort((a,b) => b.submittedAt - a.submittedAt);
+            }
+            if (!testCompletions.has(testId)) testCompletions.set(testId, new Set());
+            testCompletions.get(testId).add(studentEmail);
+        });
+    } catch(e) { console.error('testResults load error:', e); }
+    updateTestsToday();
+}
     // ─────────────────────────────────────────────────────────────────
     //  REAL-TIME LISTENER
     // ─────────────────────────────────────────────────────────────────

@@ -1353,46 +1353,54 @@
         }
 
         // Load lessons
-        async function loadLessons() {
-            try {
-                if (!studentData || !studentData.section) {
-                    document.getElementById('loadingScreen').classList.add('hidden');
-                    document.getElementById('mainContent').classList.remove('hidden');
-                    return;
-                }
-
-const lessonsQuery = query(
-    collection(db, 'lessons'),
-    where('section', '==', studentData.section),
-    where('status', '==', 'published')
-);                
-                const lessonsSnapshot = await getDocs(lessonsQuery);
-                
-                if (lessonsSnapshot.empty) {
-                    document.getElementById('noLessonsState').classList.remove('hidden');
-                } else {
-                    document.getElementById('noLessonsState').classList.add('hidden');
-                    document.getElementById('lessonsContainer').classList.remove('hidden');
-                    
-                    const container = document.getElementById('lessonsContainer');
-                    let html = '';
-                    
-                    lessonsSnapshot.forEach((doc) => {
-                        const lesson = doc.data();
-                        html += renderLessonCard(lesson);
-                    });
-                    
-                    container.innerHTML = html;
-                }
-                
-                document.getElementById('loadingScreen').classList.add('hidden');
-                document.getElementById('mainContent').classList.remove('hidden');
-            } catch (error) {
-                console.error('Error loading lessons:', error);
-                document.getElementById('loadingScreen').classList.add('hidden');
-                document.getElementById('mainContent').classList.remove('hidden');
-            }
+ // Load lessons with real-time listener
+function loadLessons() {
+    try {
+        if (!studentData || !studentData.section) {
+            document.getElementById('loadingScreen').classList.add('hidden');
+            document.getElementById('mainContent').classList.remove('hidden');
+            return;
         }
+
+        const lessonsQuery = query(
+            collection(db, 'lessons'),
+            where('section', '==', studentData.section),
+            where('status', '==', 'published')
+        );
+
+        onSnapshot(lessonsQuery, (lessonsSnapshot) => {
+            if (lessonsSnapshot.empty) {
+                document.getElementById('noLessonsState').classList.remove('hidden');
+                document.getElementById('lessonsContainer').classList.add('hidden');
+            } else {
+                document.getElementById('noLessonsState').classList.add('hidden');
+                document.getElementById('lessonsContainer').classList.remove('hidden');
+
+                const container = document.getElementById('lessonsContainer');
+                let html = '';
+
+                lessonsSnapshot.forEach((doc) => {
+                    const lesson = doc.data();
+                    html += renderLessonCard(lesson);
+                });
+
+                container.innerHTML = html;
+            }
+
+            document.getElementById('loadingScreen').classList.add('hidden');
+            document.getElementById('mainContent').classList.remove('hidden');
+        }, (error) => {
+            console.error('Error loading lessons:', error);
+            document.getElementById('loadingScreen').classList.add('hidden');
+            document.getElementById('mainContent').classList.remove('hidden');
+        });
+
+    } catch (error) {
+        console.error('Error loading lessons:', error);
+        document.getElementById('loadingScreen').classList.add('hidden');
+        document.getElementById('mainContent').classList.remove('hidden');
+    }
+}
 
         // Render lesson card
         function renderLessonCard(lesson) {
