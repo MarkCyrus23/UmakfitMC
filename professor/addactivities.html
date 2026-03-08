@@ -822,11 +822,8 @@
                     <input type="text" class="form-control" id="attemptsDisplay" value="2 Attempts" readonly style="background-color: #f4f6fa; cursor: not-allowed;">
                     <input type="hidden" id="attemptsAllowed" value="2">
                 </div>
-                <!-- Target-based scoring removed: tests now use norm tables -->
-                <div class="form-group">
-                    <label class="form-label">Additional Instructions (Optional)</label>
-                    <textarea class="form-control" id="testInstructions" rows="3" placeholder="Add any specific instructions for this test..."></textarea>
-                </div>
+                
+               
             </div>
             <div class="modal-footer">
                 <button class="px-4 py-2 bg-surface hover:bg-border text-text-secondary rounded-xl font-medium transition-all border border-border" onclick="closeScheduleTestModal()">Cancel</button>
@@ -2095,7 +2092,6 @@ function getAgeGroupFromStudent(studentData) {
     
     document.getElementById('testType').value = '';
     document.getElementById('videoURL').value = '';
-    document.getElementById('testInstructions').value = '';
     document.getElementById('attemptsAllowed').value = '2';
     document.getElementById('attemptsDisplay').value = '2 Attempts';
     updateAttemptsDisplay();
@@ -2373,7 +2369,6 @@ function getAgeGroupFromStudent(studentData) {
             document.getElementById('testDeadlineTime').value = '23:59';
             document.getElementById('testTime').value = '00:00';
             document.getElementById('attemptsAllowed').value = '1';
-            document.getElementById('testInstructions').value = '';
             document.getElementById('videoURL').value = '';
             if (window.currentUser) loadScheduledTests(window.currentUser.email, window.currentUser.uid);
         };
