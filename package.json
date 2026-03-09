@@ -1,0 +1,26 @@
+{
+  "name": "umakfit",
+  "version": "1.0.0",
+  "description": "��#\u0000 \u0000U\u0000M\u0000a\u0000k\u0000F\u0000i\u0000t\u0000 \u0000P\u0000r\u0000o\u0000j\u0000e\u0000c\u0000t\u0000\r\u0000 \u0000",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MarkCyrus23/UmakfitMC.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MarkCyrus23/UmakfitMC/issues"
+  },
+  "homepage": "https://github.com/MarkCyrus23/UmakfitMC#readme",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "node-fetch": "^3.3.2"
+  }
+}

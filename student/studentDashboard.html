@@ -465,7 +465,7 @@
                 <div class="w-12 h-12 sm:w-14 sm:h-14 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
                     <i class="bi bi-clipboard-check-fill text-blue-600 text-xl sm:text-2xl"></i>
                 </div>
-                <div id="testsDone" class="text-5xl sm:text-6xl font-black text-gray-900">0</div>
+               <div id="testsDone" class="text-2xl sm:text-3xl font-black text-gray-900 leading-tight">0</div>
             </div>
             <p class="text-xs sm:text-sm font-bold text-gray-500 uppercase tracking-wider">Tests Completed</p>
         </div>
@@ -476,7 +476,7 @@
                 <div class="w-12 h-12 sm:w-14 sm:h-14 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
                     <i class="bi bi-graph-up-arrow text-green-600 text-xl sm:text-2xl"></i>
                 </div>
-                <div id="avgScore" class="text-5xl sm:text-6xl font-black text-gray-900">0.00</div>
+                <div id="avgScore" class="text-2xl sm:text-3xl font-black text-gray-900 leading-tight">0.00</div>
             </div>
             <p class="text-xs sm:text-sm font-bold text-gray-500 uppercase tracking-wider">Overall Performance</p>
         </div>
@@ -487,7 +487,7 @@
                 <div class="w-12 h-12 sm:w-14 sm:h-14 bg-yellow-100 rounded-xl flex items-center justify-center flex-shrink-0">
                     <i class="bi bi-trophy-fill text-yellow-600 text-xl sm:text-2xl"></i>
                 </div>
-                <div id="bestScore" class="text-5xl sm:text-6xl font-black text-gray-900">0</div>
+                <div id="bestScore" class="text-2xl sm:text-3xl font-black text-gray-900 leading-tight">0</div>
             </div>
             <p class="text-xs sm:text-sm font-bold text-gray-500 uppercase tracking-wider">Best Score</p>
             <div id="bestScoreTest" class="text-xs text-gray-400 mt-1 truncate hidden"></div>
@@ -3696,64 +3696,141 @@ function calculateTestScore(testName, result, testTarget = null) {
         
         // Generate Calendar
         function generateMiniCalendar() {
-            const calendar = document.getElementById('miniCalendar');
-            if (!calendar) return;
-            
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = now.getMonth();
-            const today = now.getDate();
-            
-            const firstDay = new Date(year, month, 1).getDay();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            
-            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-                            'July', 'August', 'September', 'October', 'November', 'December'];
-            
-            let html = `
-                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
-                    <div class="grid grid-cols-7 gap-3 text-center">
-                        <div class="font-bold text-blue-700 py-3 text-xs sm:text-sm uppercase tracking-wide">Sun</div>
-                        <div class="font-bold text-blue-700 py-3 text-xs sm:text-sm uppercase tracking-wide">Mon</div>
-                        <div class="font-bold text-blue-700 py-3 text-xs sm:text-sm uppercase tracking-wide">Tue</div>
-                        <div class="font-bold text-blue-700 py-3 text-xs sm:text-sm uppercase tracking-wide">Wed</div>
-                        <div class="font-bold text-blue-700 py-3 text-xs sm:text-sm uppercase tracking-wide">Thu</div>
-                        <div class="font-bold text-blue-700 py-3 text-xs sm:text-sm uppercase tracking-wide">Fri</div>
-                        <div class="font-bold text-blue-700 py-3 text-xs sm:text-sm uppercase tracking-wide">Sat</div>
-            `;
-            
-            // Empty cells before first day
-            for (let i = 0; i < firstDay; i++) {
-                html += '<div class="py-3"></div>';
-            }
-            
-            // Days of month
-            for (let day = 1; day <= daysInMonth; day++) {
-                const isToday = day === today;
-                const classes = isToday 
-                    ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white font-bold rounded-xl py-3 sm:py-4 text-sm sm:text-base shadow-lg transform scale-110 hover:scale-115 transition-transform' 
-                    : 'text-gray-700 hover:bg-blue-100 rounded-xl py-3 sm:py-4 cursor-pointer transition-all text-sm sm:text-base hover:shadow-md';
-                html += `<div class="${classes}">${day}</div>`;
-            }
-            
-            html += '</div></div>';
-            calendar.innerHTML = html;
+    const calendar = document.getElementById('miniCalendar');
+    if (!calendar) return;
+
+    const now = new Date();
+    let viewYear = now.getFullYear();
+    let viewMonth = now.getMonth();
+    const today = now.getDate();
+
+    async function getDeadlinesForMonth(year, month) {
+        const deadlineMap = new Map();
+        try {
+            if (!studentData || !studentData.section) return deadlineMap;
+            const testsQuery = query(
+                collection(db, 'scheduledTests'),
+                where('section', '==', studentData.section),
+                where('isVisible', '==', true)
+            );
+            const snap = await getDocs(testsQuery);
+            snap.forEach(docSnap => {
+                const test = docSnap.data();
+                let deadlineDate;
+                if (test.deadlineDateTime) {
+                    deadlineDate = new Date(test.deadlineDateTime);
+                } else if (test.deadline) {
+                    deadlineDate = new Date(test.deadline);
+                    deadlineDate.setHours(23, 59, 59, 999);
+                }
+                if (!deadlineDate || isNaN(deadlineDate)) return;
+                if (deadlineDate.getFullYear() === year && deadlineDate.getMonth() === month) {
+                    const day = deadlineDate.getDate();
+                    if (!deadlineMap.has(day)) deadlineMap.set(day, []);
+                    deadlineMap.get(day).push({
+                        name: test.testName || 'Test',
+                        time: test.deadlineTime || deadlineDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+                    });
+                }
+            });
+        } catch (e) { console.warn('Calendar deadline fetch error:', e); }
+        return deadlineMap;
+    }
+
+    async function renderCalendar(year, month) {
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'];
+
+        const deadlineMap = await getDeadlinesForMonth(year, month);
+
+        let html = `
+            <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-4 sm:p-6 border border-blue-100">
+                <!-- Month Navigation -->
+                <div class="flex items-center justify-between mb-4">
+                    <button id="calPrevBtn" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-blue-200 hover:bg-blue-100 transition-all text-blue-600 font-bold shadow-sm">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <h3 class="text-base sm:text-lg font-bold text-blue-800">${monthNames[month]} ${year}</h3>
+                    <button id="calNextBtn" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-blue-200 hover:bg-blue-100 transition-all text-blue-600 font-bold shadow-sm">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                </div>
+
+                <!-- Day Headers -->
+                <div class="grid grid-cols-7 gap-1 text-center mb-1">
+                    ${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d =>
+                        `<div class="font-bold text-blue-700 py-1 text-xs uppercase tracking-wide">${d}</div>`
+                    ).join('')}
+                </div>
+
+                <!-- Days Grid -->
+                <div class="grid grid-cols-7 gap-1 text-center items-start">`;
+
+        // Empty cells
+        for (let i = 0; i < firstDay; i++) {
+            html += `<div class="py-2"></div>`;
         }
-        const closeNotificationBtn = document.getElementById('closeNotificationBtn');
-const closeNotificationBtnMobile = document.getElementById('closeNotificationBtnMobile');
 
-if (closeNotificationBtn) {
-    closeNotificationBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        closeNotificationDropdown();
-    });
-}
+        // Day cells
+        for (let day = 1; day <= daysInMonth; day++) {
+            const isToday = day === today && month === now.getMonth() && year === now.getFullYear();
+            const hasDeadline = deadlineMap.has(day);
+            const deadlines = deadlineMap.get(day) || [];
 
-if (closeNotificationBtnMobile) {
-    closeNotificationBtnMobile.addEventListener('click', (e) => {
-        e.stopPropagation();
-        closeNotificationDropdown();
-    });
+            let cellClass = 'relative text-sm font-medium py-2 rounded-xl transition-all cursor-default ';
+            if (isToday) {
+                cellClass += 'bg-gradient-to-br from-blue-600 to-blue-700 text-white font-bold shadow-lg scale-110';
+            } else if (hasDeadline) {
+                cellClass += 'bg-red-100 text-red-700 font-bold border border-red-300 hover:bg-red-200 cursor-pointer';
+            } else {
+                cellClass += 'text-gray-700 hover:bg-blue-100';
+            }
+
+            if (hasDeadline) {
+                html += `
+                    <div class="relative rounded-xl overflow-hidden border border-red-300 bg-red-50 min-h-[56px]">
+                        <div class="absolute top-1 left-0 right-0 text-center text-sm font-bold ${isToday ? 'text-white' : 'text-red-700'} z-10">
+                            ${day}
+                            ${isToday ? `<span class="absolute inset-0 -z-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-t-xl"></span>` : ''}
+                        </div>
+                        <div class="pt-6 px-1 pb-1 space-y-0.5">
+                            ${deadlines.map(d => `
+                                <div class="bg-red-400 text-white rounded px-1 py-0.5 text-center">
+                                    <div class="text-xs font-semibold leading-tight truncate">${d.name}</div>
+                                    <div class="text-xs opacity-80 leading-tight">${d.time}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>`;
+            } else {
+                html += `<div class="${cellClass}">${day}</div>`;
+            }
+        }
+
+        html += `</div>`;
+
+    
+       
+
+        html += `</div>`;
+        calendar.innerHTML = html;
+
+        // Navigation buttons
+        document.getElementById('calPrevBtn').addEventListener('click', () => {
+            viewMonth--;
+            if (viewMonth < 0) { viewMonth = 11; viewYear--; }
+            renderCalendar(viewYear, viewMonth);
+        });
+        document.getElementById('calNextBtn').addEventListener('click', () => {
+            viewMonth++;
+            if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+            renderCalendar(viewYear, viewMonth);
+        });
+    }
+
+    renderCalendar(viewYear, viewMonth);
 }
         
     </script>
