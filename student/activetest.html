@@ -1565,10 +1565,11 @@
             try {
                 if (!studentData || !studentData.section) return;
 
-                const notificationsQuery = query(
-                    collection(db, 'notifications'),
-                    where('section', '==', studentData.section)
-                );
+const notificationsQuery = query(
+    collection(db, 'notifications'),
+    where('section', '==', studentData.section),
+    where('studentEmail', '==', studentData.email)
+);
                 
                 const notificationsSnapshot = await getDocs(notificationsQuery);
                 
@@ -1619,10 +1620,11 @@
                     return;
                 }
 
-                const notificationsQuery = query(
-                    collection(db, 'notifications'),
-                    where('section', '==', studentData.section)
-                );
+const notificationsQuery = query(
+    collection(db, 'notifications'),
+    where('section', '==', studentData.section),
+    where('studentEmail', '==', studentData.email)
+);
                 
                 const notificationsSnapshot = await getDocs(notificationsQuery);
                 const readNotifications = JSON.parse(localStorage.getItem(`readNotifications_${studentData.email}`) || '[]');
@@ -1708,10 +1710,11 @@
             try {
                 if (!studentData || !studentData.section) return;
                 
-                const notificationsQuery = query(
-                    collection(db, 'notifications'),
-                    where('section', '==', studentData.section)
-                );
+const notificationsQuery = query(
+    collection(db, 'notifications'),
+    where('section', '==', studentData.section),
+    where('studentEmail', '==', studentData.email)
+);
                 
                 const notificationsSnapshot = await getDocs(notificationsQuery);
                 const uniqueNotificationIds = new Set();
@@ -1781,11 +1784,11 @@
             try {
                 if (!studentData || !studentData.section) return;
 
-                const notificationsQuery = query(
-                    collection(db, 'notifications'),
-                    where('section', '==', studentData.section)
-                );
-                
+const notificationsQuery = query(
+    collection(db, 'notifications'),
+    where('section', '==', studentData.section),
+    where('studentEmail', '==', studentData.email)
+);
                 onSnapshot(notificationsQuery, (snapshot) => {
                     console.log('🔔 Notification update detected!');
                     checkUnreadNotifications();

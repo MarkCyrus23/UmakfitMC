@@ -774,8 +774,11 @@
         async function checkUnreadNotifications() {
             try {
                 if (!studentData || !studentData.section) return;
-                const notificationsQuery = query(collection(db, 'notifications'), where('section', '==', studentData.section));
-                const notificationsSnapshot = await getDocs(notificationsQuery);
+const notificationsQuery = query(
+    collection(db, 'notifications'),
+    where('section', '==', studentData.section),
+    where('studentEmail', '==', studentData.email)
+);                const notificationsSnapshot = await getDocs(notificationsQuery);
                 const readNotifications = JSON.parse(localStorage.getItem(`readNotifications_${studentData.email}`) || '[]');
                 let unreadCount = 0;
                 notificationsSnapshot.forEach(doc => { if (!readNotifications.includes(doc.id)) unreadCount++; });
@@ -799,8 +802,11 @@
                     dropdownBody.innerHTML = `<div class="notification-empty"><i class="bi bi-bell-slash"></i><p>No section assigned</p></div>`;
                     return;
                 }
-                const notificationsQuery = query(collection(db, 'notifications'), where('section', '==', studentData.section));
-                const notificationsSnapshot = await getDocs(notificationsQuery);
+const notificationsQuery = query(
+    collection(db, 'notifications'),
+    where('section', '==', studentData.section),
+    where('studentEmail', '==', studentData.email)
+);                const notificationsSnapshot = await getDocs(notificationsQuery);
                 const readNotifications = JSON.parse(localStorage.getItem(`readNotifications_${studentData.email}`) || '[]');
                 if (!notificationsSnapshot.empty) {
                     const seenNotifications = new Set();
@@ -853,8 +859,11 @@
 
         function setupNotificationListener() {
             if (!studentData || !studentData.section) return;
-            const notificationsQuery = query(collection(db, 'notifications'), where('section', '==', studentData.section));
-            onSnapshot(notificationsQuery, () => checkUnreadNotifications(), error => console.error(error));
+const notificationsQuery = query(
+    collection(db, 'notifications'),
+    where('section', '==', studentData.section),
+    where('studentEmail', '==', studentData.email)
+);            onSnapshot(notificationsQuery, () => checkUnreadNotifications(), error => console.error(error));
         }
 
         // ========== PROFILE ==========

@@ -359,8 +359,7 @@
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-import { getFirestore, doc, getDoc, collection, query, where, getDocs, orderBy, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-
+import { getFirestore, doc, getDoc, collection, query, where, getDocs, orderBy } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 const firebaseConfig = {
     apiKey: "AIzaSyAgaLunqEf2gs6dSpF_sz1hV5XQ5Wm52jo",
     authDomain: "umakfit-e3b1d.firebaseapp.com",
@@ -630,9 +629,12 @@ function getResultCategory(testName, result) {
 async function checkUnreadNotifications() {
     try {
         if (!studentData || !studentData.section) return;
-        const q = query(collection(db, 'notifications'), where('section', '==', studentData.section));
-        const snap = await getDocs(q);
-        const read = JSON.parse(localStorage.getItem(`readNotifications_${studentData.email}`) || '[]');
+const notificationsQuery = query(
+    collection(db, 'notifications'),
+    where('section', '==', studentData.section),
+    where('studentEmail', '==', studentData.email)
+);
+        const snap = await getDocs(notificationsQuery);        const read = JSON.parse(localStorage.getItem(`readNotifications_${studentData.email}`) || '[]');
         let unread = 0;
         snap.forEach(d => { if (!read.includes(d.id)) unread++; });
         const badge = document.getElementById('navNotificationCount');
@@ -657,9 +659,12 @@ async function loadNotificationDropdown() {
             dropdownBody.innerHTML = `<div class="p-8 text-center text-gray-400"><i class="bi bi-bell-slash text-5xl mb-3 block"></i><p class="text-gray-600">No section assigned</p></div>`;
             return;
         }
-        const q = query(collection(db, 'notifications'), where('section', '==', studentData.section));
-        const snap = await getDocs(q);
-        if (!snap.empty) {
+const notificationsQuery = query(
+    collection(db, 'notifications'),
+    where('section', '==', studentData.section),
+    where('studentEmail', '==', studentData.email)
+);
+        const snap = await getDocs(notificationsQuery);        if (!snap.empty) {
             const seen = new Set(); const unique = [];
             snap.forEach(d => {
                 const n = d.data();
@@ -718,11 +723,11 @@ async function loadTestResults() {
     try {
         if (!studentData?.email) { testResults = []; return; }
         const resultsQuery = query(collection(db, 'testResults'), where('studentEmail', '==', studentData.email));
-        onSnapshot(resultsQuery, (snapshot) => {
-            testResults = [];
-            testCategoriesCompleted.clear();
-            const byTest = new Map();
-            snapshot.forEach(d => {
+        const snapshot = await getDocs(resultsQuery);
+        testResults = [];
+        testCategoriesCompleted.clear();
+        const byTest = new Map();
+        snapshot.forEach(d => {
                 const r = { id: d.id, ...d.data() };
                 // Compute score using unified norm-aware function
                 r.score = calculateTestScore(r.testName, r.resultData || r.result, r.testTarget);
@@ -742,15 +747,14 @@ async function loadTestResults() {
                 const cat = getTestCategory(best.testName);
                 if (cat) testCategoriesCompleted.add(cat);
             });
-            checkAchievements();
-            updateStats();
-            renderAchievements();
-        }, (err) => {
-            console.error('loadTestResults error', err);
-            testResults = [];
-            checkAchievements(); updateStats(); renderAchievements();
-        });
-    } catch (e) { console.error(e); }
+    checkAchievements();
+        updateStats();
+        renderAchievements();
+    } catch (e) {
+        console.error('loadTestResults error', e);
+        testResults = [];
+        checkAchievements(); updateStats(); renderAchievements();
+    }
 }
 
 function getTestCategory(testName) {

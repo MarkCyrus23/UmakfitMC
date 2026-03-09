@@ -2039,23 +2039,7 @@ function getAgeGroupFromStudent(studentData) {
                 await updateDoc(doc(db, 'scheduledTests', testId), { selectedStudents: selectedStudentsArray, totalStudents: selectedStudentsArray.length, updatedAt: serverTimestamp() });
                 const testDoc = await getDoc(doc(db, 'scheduledTests', testId));
                 const testData = testDoc.data();
-                const oldNotificationsQuery = query(collection(db, 'notifications'), where('testId', '==', testId));
-                const oldNotifications = await getDocs(oldNotificationsQuery);
-                await Promise.all(oldNotifications.docs.map(d => deleteDoc(d.ref)));
-                const notificationPromises = [];
-                for (const studentEmail of selectedStudentsArray) {
-                    const student = window.currentTestStudents.find(s => s.email === studentEmail);
-                    if (student) {
-                        notificationPromises.push(addDoc(collection(db, 'notifications'), {
-                            type: 'new_test', title: 'Fitness Test Available',
-                            message: `${testData.testName} has been assigned to you. Deadline: ${testData.deadline} at ${testData.deadlineTime}`,
-                            section: testData.section, testName: testData.testName, testId,
-                            testDate: testData.date, deadline: testData.deadline, deadlineTime: testData.deadlineTime,
-                            studentEmail, studentId: student.id, isRead: false, createdAt: serverTimestamp(), timestamp: new Date().toISOString()
-                        }));
-                    }
-                }
-                await Promise.all(notificationPromises);
+  
                 if (saveBtn) { saveBtn.disabled = false; saveBtn.innerHTML = originalText; }
                 if (cancelBtn) cancelBtn.disabled = false;
                 closeManageStudentsModal();
