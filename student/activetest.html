@@ -2233,7 +2233,9 @@ function updateTimer() {
                 html = `
                     <div class="input-group-custom">
                         <label class="input-label">💪 Number of Curl-Ups Completed <span style="color: #ef4444;">*</span></label>
-                        <input type="number" class="input-field" id="repetitionsInput" placeholder="Enter number of curl-ups">
+<input type="number" class="input-field" id="repetitionsInput" 
+  placeholder="Enter number of push-ups" 
+  max="999" oninput="if(this.value.length>3)this.value=this.value.slice(0,3)">
                         <div class="input-hint">
                             <i class="bi bi-info-circle"></i>
                             Count only complete curl-ups at 1 per 3 seconds pace${targetHint}
@@ -2261,8 +2263,9 @@ function updateTimer() {
                 html = `
                     <div class="input-group-custom">
                         <label class="input-label">💪 Grip Strength (kg) <span style="color: #ef4444;">*</span></label>
-                        <input type="number" class="input-field" id="strengthInput" placeholder="Enter grip strength${targetHint}" step="0.1" min="0" required>
-                        <div class="input-hint">
+<input type="number" class="input-field" id="strengthInput" 
+  placeholder="Enter grip strength" step="0.1" min="0" max="999" 
+  oninput="if(this.value.length>3)this.value=this.value.slice(0,3)" required>                        <div class="input-hint">
                             <i class="bi bi-info-circle"></i>
                             Record the highest reading from 3 attempts per hand${targetHint}
                         </div>
@@ -2288,8 +2291,10 @@ function updateTimer() {
                 html = `
                     <div class="input-group-custom">
                         <label class="input-label">❤️ Recovery Heart Rate (bpm) <span style="color: #ef4444;">*</span></label>
-                        <input type="number" class="input-field" id="heartRateInput" placeholder="Wait for the 3-min timer to finish..." min="40" max="220" required disabled style="opacity:0.5; cursor:not-allowed;">
-                        <div class="input-hint">
+<input type="number" class="input-field" id="heartRateInput" 
+  placeholder="Wait for the 3-min timer to finish..." 
+  min="40" max="999" oninput="if(this.value.length>3)this.value=this.value.slice(0,3)" 
+  required disabled style="opacity:0.5; cursor:not-allowed;">                        <div class="input-hint">
                             <i class="bi bi-info-circle"></i>
                             Complete 3 minutes stepping, rest 5 seconds, then count pulse for 60 seconds
                         </div>
@@ -2318,8 +2323,9 @@ function updateTimer() {
                 html = `
                     <div class="input-group-custom">
                         <label class="input-label">📏 Distance Reached (cm) <span style="color: #ef4444;">*</span></label>
-                        <input type="number" class="input-field" id="distanceInput" placeholder="Enter distance in cm">
-                        <div class="input-hint">
+<input type="number" class="input-field" id="distanceInput" 
+  placeholder="Enter distance in cm" 
+  max="999" oninput="if(this.value.length>3)this.value=this.value.slice(0,3)">                        <div class="input-hint">
                             <i class="bi bi-info-circle"></i>
                             Measure how far you can reach past your toes (positive = past toes)${targetHint}
                         </div>
@@ -2331,12 +2337,14 @@ function updateTimer() {
                 html = `
                     <div class="input-group-custom">
                         <label class="input-label">📏 Height (cm) <span style="color: #ef4444;">*</span></label>
-                        <input type="number" class="input-field" id="heightInput" placeholder="Enter height in centimeters" step="0.1" min="100" max="250" required>
-                    </div>
+<input type="number" class="input-field" id="heightInput" 
+  placeholder="Enter height in centimeters" step="0.1" min="100" max="999" 
+  oninput="if(this.value.length>3)this.value=this.value.slice(0,3)" required>                    </div>
                     <div class="input-group-custom">
                         <label class="input-label">⚖️ Weight (kg) <span style="color: #ef4444;">*</span></label>
-                        <input type="number" class="input-field" id="weightInput" placeholder="Enter weight in kilograms" step="0.1" min="30" max="200" required>
-                        <div class="input-hint">
+<input type="number" class="input-field" id="weightInput" 
+  placeholder="Enter weight in kilograms" step="0.1" min="30" max="999" 
+  oninput="if(this.value.length>3)this.value=this.value.slice(0,3)" required>                        <div class="input-hint">
                             <i class="bi bi-info-circle"></i>
                             BMI will be calculated automatically: weight (kg) ÷ height² (m²)
                         </div>
