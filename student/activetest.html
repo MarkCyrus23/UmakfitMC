@@ -2233,9 +2233,7 @@ function updateTimer() {
                 html = `
                     <div class="input-group-custom">
                         <label class="input-label">💪 Number of Curl-Ups Completed <span style="color: #ef4444;">*</span></label>
-<input type="number" class="input-field" id="repetitionsInput" 
-  placeholder="Enter number of push-ups" 
-  max="999" oninput="if(this.value.length>3)this.value=this.value.slice(0,3)">
+<input type="number" class="input-field" id="repetitionsInput" placeholder="Enter number of curl-ups" oninput="if(this.value.length>3)this.value=this.value.slice(0,3)">
                         <div class="input-hint">
                             <i class="bi bi-info-circle"></i>
                             Count only complete curl-ups at 1 per 3 seconds pace${targetHint}
@@ -2249,7 +2247,7 @@ function updateTimer() {
                 html = `
                     <div class="input-group-custom">
                         <label class="input-label">💪 Number of Push-ups Completed <span style="color: #ef4444;">*</span></label>
-                        <input type="number" class="input-field" id="repetitionsInput" placeholder="Enter number of push-ups">
+<input type="number" class="input-field" id="repetitionsInput" placeholder="Enter number of push-ups" oninput="if(this.value.length>3)this.value=this.value.slice(0,3)">
                         <div class="input-hint">
                             <i class="bi bi-info-circle"></i>
                             Count only complete push-ups with proper form${targetHint}
@@ -2258,43 +2256,13 @@ function updateTimer() {
                 `;
                 document.getElementById('submitBtn').disabled = false;
             }
-            else if (normalizedName.includes('grip strength') || normalizedName.includes('grip')) {
-                const targetHint = '';
-                html = `
-                    <div class="input-group-custom">
-                        <label class="input-label">💪 Grip Strength (kg) <span style="color: #ef4444;">*</span></label>
-<input type="number" class="input-field" id="strengthInput" 
-  placeholder="Enter grip strength" step="0.1" min="0" max="999" 
-  oninput="if(this.value.length>3)this.value=this.value.slice(0,3)" required>                        <div class="input-hint">
-                            <i class="bi bi-info-circle"></i>
-                            Record the highest reading from 3 attempts per hand${targetHint}
-                        </div>
-                    </div>
-                `;
-                document.getElementById('submitBtn').disabled = false;
-            }
-            else if (normalizedName.includes('plank')) {
-                const targetHint = '';
-                html = `
-                    <div class="input-group-custom">
-                        <label class="input-label">⏱️ Plank Hold Duration <span style="color: #ef4444;">*</span></label>
-                        <input type="text" class="input-field" id="durationInput" placeholder="Use timer above${targetHint}" readonly>
-                        <div class="input-hint">
-                            <i class="bi bi-info-circle"></i>
-                            Use the timer above to track your plank hold time${targetHint}
-                        </div>
-                    </div>
-                `;
-            }
             else if (normalizedName.includes('step test') || normalizedName.includes('3-minute')) {
                 const targetHint = '';
                 html = `
                     <div class="input-group-custom">
                         <label class="input-label">❤️ Recovery Heart Rate (bpm) <span style="color: #ef4444;">*</span></label>
-<input type="number" class="input-field" id="heartRateInput" 
-  placeholder="Wait for the 3-min timer to finish..." 
-  min="40" max="999" oninput="if(this.value.length>3)this.value=this.value.slice(0,3)" 
-  required disabled style="opacity:0.5; cursor:not-allowed;">                        <div class="input-hint">
+<input type="number" class="input-field" id="heartRateInput" placeholder="Wait for the 3-min timer to finish..." min="40" max="220" required disabled style="opacity:0.5; cursor:not-allowed;" oninput="if(this.value.length>3)this.value=this.value.slice(0,3)">
+                        <div class="input-hint">
                             <i class="bi bi-info-circle"></i>
                             Complete 3 minutes stepping, rest 5 seconds, then count pulse for 60 seconds
                         </div>
@@ -2305,48 +2273,15 @@ function updateTimer() {
                 document.getElementById('seconds').textContent = '00';
                 document.getElementById('milliseconds').textContent = '00';
             }
-            else if (normalizedName.includes('mile') || normalizedName.includes('run') || normalizedName.includes('1-mile')) {
-                const targetHint = '';
-                html = `
-                    <div class="input-group-custom">
-                        <label class="input-label">⏱️ Completion Time <span style="color: #ef4444;">*</span></label>
-                        <input type="text" class="input-field" id="timeInput" placeholder="Use timer above${targetHint}" readonly>
-                        <div class="input-hint">
-                            <i class="bi bi-info-circle"></i>
-                            Use the timer above to track your 1-mile run time${targetHint}
-                        </div>
-                    </div>
-                `;
-            }
             else if (normalizedName.includes('sit-and-reach') || normalizedName.includes('sit and reach')) {
                 const targetHint = '';
                 html = `
                     <div class="input-group-custom">
                         <label class="input-label">📏 Distance Reached (cm) <span style="color: #ef4444;">*</span></label>
-<input type="number" class="input-field" id="distanceInput" 
-  placeholder="Enter distance in cm" 
-  max="999" oninput="if(this.value.length>3)this.value=this.value.slice(0,3)">                        <div class="input-hint">
+<input type="number" class="input-field" id="distanceInput" placeholder="Enter distance in cm" oninput="if(this.value.length>3)this.value=this.value.slice(0,3)">
+                        <div class="input-hint">
                             <i class="bi bi-info-circle"></i>
                             Measure how far you can reach past your toes (positive = past toes)${targetHint}
-                        </div>
-                    </div>
-                `;
-                document.getElementById('submitBtn').disabled = false;
-            }
-            else if (normalizedName.includes('bmi')) {
-                html = `
-                    <div class="input-group-custom">
-                        <label class="input-label">📏 Height (cm) <span style="color: #ef4444;">*</span></label>
-<input type="number" class="input-field" id="heightInput" 
-  placeholder="Enter height in centimeters" step="0.1" min="100" max="999" 
-  oninput="if(this.value.length>3)this.value=this.value.slice(0,3)" required>                    </div>
-                    <div class="input-group-custom">
-                        <label class="input-label">⚖️ Weight (kg) <span style="color: #ef4444;">*</span></label>
-<input type="number" class="input-field" id="weightInput" 
-  placeholder="Enter weight in kilograms" step="0.1" min="30" max="999" 
-  oninput="if(this.value.length>3)this.value=this.value.slice(0,3)" required>                        <div class="input-hint">
-                            <i class="bi bi-info-circle"></i>
-                            BMI will be calculated automatically: weight (kg) ÷ height² (m²)
                         </div>
                     </div>
                 `;
@@ -2371,17 +2306,17 @@ function updateTimer() {
             <div id="maleSites">
                 <div class="input-group-custom">
                     <label class="input-label">📏 Chest Skinfold (mm) <span style="color: #ef4444;">*</span></label>
-                    <input type="number" class="input-field" id="site1Input" placeholder="Enter chest skinfold in mm" step="0.1" min="0" max="100">
+<input type="number" class="input-field" id="site1Input" placeholder="Enter chest skinfold in mm" step="0.1" min="0" max="100" oninput="if(this.value.length>3)this.value=this.value.slice(0,3)">
                     <div class="input-hint"><i class="bi bi-info-circle"></i> Diagonal fold, midway between anterior axillary line and nipple</div>
                 </div>
                 <div class="input-group-custom">
                     <label class="input-label">📏 Abdomen Skinfold (mm) <span style="color: #ef4444;">*</span></label>
-                    <input type="number" class="input-field" id="site2Input" placeholder="Enter abdomen skinfold in mm" step="0.1" min="0" max="100">
+<input type="number" class="input-field" id="site2Input" placeholder="Enter abdomen skinfold in mm" step="0.1" min="0" max="100" oninput="if(this.value.length>3)this.value=this.value.slice(0,3)">
                     <div class="input-hint"><i class="bi bi-info-circle"></i> Vertical fold, 2 cm to the right of the umbilicus</div>
                 </div>
                 <div class="input-group-custom">
                     <label class="input-label">📏 Thigh Skinfold (mm) <span style="color: #ef4444;">*</span></label>
-                    <input type="number" class="input-field" id="site3Input" placeholder="Enter thigh skinfold in mm" step="0.1" min="0" max="100">
+<input type="number" class="input-field" id="site3Input" placeholder="Enter thigh skinfold in mm" step="0.1" min="0" max="100" oninput="if(this.value.length>3)this.value=this.value.slice(0,3)">
                     <div class="input-hint"><i class="bi bi-info-circle"></i> Vertical fold, anterior midline of thigh, midway between hip and knee</div>
                 </div>
             </div>
@@ -2389,17 +2324,17 @@ function updateTimer() {
             <div id="femaleSites" style="display:none;">
                 <div class="input-group-custom">
                     <label class="input-label">📏 Triceps Skinfold (mm) <span style="color: #ef4444;">*</span></label>
-                    <input type="number" class="input-field" id="site1Input" placeholder="Enter triceps skinfold in mm" step="0.1" min="0" max="100">
+<input type="number" class="input-field" id="site1Input" placeholder="Enter triceps skinfold in mm" step="0.1" min="0" max="100" oninput="if(this.value.length>3)this.value=this.value.slice(0,3)">
                     <div class="input-hint"><i class="bi bi-info-circle"></i> Vertical fold, posterior midline of upper arm, halfway between shoulder and elbow</div>
                 </div>
                 <div class="input-group-custom">
                     <label class="input-label">📏 Suprailium Skinfold (mm) <span style="color: #ef4444;">*</span></label>
-                    <input type="number" class="input-field" id="site2Input" placeholder="Enter suprailium (hip) skinfold in mm" step="0.1" min="0" max="100">
+<input type="number" class="input-field" id="site2Input" placeholder="Enter suprailium (hip) skinfold in mm" step="0.1" min="0" max="100" oninput="if(this.value.length>3)this.value=this.value.slice(0,3)">
                     <div class="input-hint"><i class="bi bi-info-circle"></i> Diagonal fold, just above the iliac crest along the anterior axillary line</div>
                 </div>
                 <div class="input-group-custom">
                     <label class="input-label">📏 Thigh Skinfold (mm) <span style="color: #ef4444;">*</span></label>
-                    <input type="number" class="input-field" id="site3Input" placeholder="Enter thigh skinfold in mm" step="0.1" min="0" max="100">
+<input type="number" class="input-field" id="site3Input" placeholder="Enter thigh skinfold in mm" step="0.1" min="0" max="100" oninput="if(this.value.length>3)this.value=this.value.slice(0,3)">
                     <div class="input-hint"><i class="bi bi-info-circle"></i> Vertical fold, anterior midline of thigh, midway between hip and knee</div>
                 </div>
             </div>
