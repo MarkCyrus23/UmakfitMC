@@ -803,7 +803,7 @@
             <div class="p-6 pt-8">
                 <!-- Drawer Header -->
                 <div class="flex items-center gap-3 mb-8 pb-6 border-b border-white/20">
-                    <img src="https://c.animaapp.com/vkhEa8zW/img/screenshot-2025-09-19-2-53-51-pm-removebg-preview-3@2x.png" 
+                    <img src="UMakfit Logo (2).png" 
                          alt="UMak Logo" class="h-12 w-auto object-contain">
                     <span class="text-2xl font-extrabold font-manrope" style="background: linear-gradient(135deg, #EAD38A 0%, #C5A046 50%, #8B6D2D 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">
                         UMakFIT
@@ -964,6 +964,29 @@
         </div>
     </footer>
     </div>
+    <script>
+        window.addEventListener('resize', function() {
+    const hamburger = document.getElementById('hamburger');
+    const mobileDrawer = document.getElementById('mobileDrawer');
+    const drawerOverlay = document.getElementById('drawerOverlay');
+    
+    // Check if we're in desktop view (1024px and above)
+    if (window.innerWidth >= 1024) {
+        // If mobile drawer is open, close it
+        if (hamburger && hamburger.classList.contains('active')) {
+            hamburger.classList.remove('active');
+        }
+        if (mobileDrawer && mobileDrawer.classList.contains('active')) {
+            mobileDrawer.classList.remove('active');
+        }
+        if (drawerOverlay && drawerOverlay.classList.contains('active')) {
+            drawerOverlay.classList.remove('active');
+        }
+        // Restore body overflow
+        document.body.style.overflow = '';
+    }
+});
+        </script>
 
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
@@ -1177,25 +1200,34 @@ const notificationsQuery = query(
             }
         }
 
-        function toggleNotificationDropdown(event) {
-            event?.stopPropagation();
-            const isMobile = window.innerWidth < 1024;
-            const dropdown = isMobile ? 
-                document.getElementById('notificationDropdownMobile') : 
-                document.getElementById('notificationDropdown');
-            
-            if (dropdown.classList.contains('hidden')) {
-                dropdown.classList.remove('hidden');
-                loadNotificationDropdown(isMobile);
-                
-                const profileDropdown = document.getElementById('profileDropdown');
-                const profileDropdownMobile = document.getElementById('profileDropdownMobile');
-                if (profileDropdown) profileDropdown.classList.add('hidden');
-                if (profileDropdownMobile) profileDropdownMobile.classList.add('hidden');
-            } else {
-                dropdown.classList.add('hidden');
-            }
-        }
+ // In toggleNotificationDropdown function
+function toggleNotificationDropdown(event) {
+    event?.stopPropagation();
+    const isMobile = window.innerWidth < 1024;
+    const dropdown = isMobile ? 
+        document.getElementById('notificationDropdownMobile') : 
+        document.getElementById('notificationDropdown');
+    
+    // Close mobile drawer if open
+    if (hamburger && hamburger.classList.contains('active')) {
+        hamburger.classList.remove('active');
+        mobileDrawer.classList.remove('active');
+        drawerOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+    
+    if (dropdown.classList.contains('hidden')) {
+        dropdown.classList.remove('hidden');
+        loadNotificationDropdown(isMobile);
+        
+        const profileDropdown = document.getElementById('profileDropdown');
+        const profileDropdownMobile = document.getElementById('profileDropdownMobile');
+        if (profileDropdown) profileDropdown.classList.add('hidden');
+        if (profileDropdownMobile) profileDropdownMobile.classList.add('hidden');
+    } else {
+        dropdown.classList.add('hidden');
+    }
+}
 
         function closeNotificationDropdown() {
             const notificationDropdown = document.getElementById('notificationDropdown');
@@ -1260,19 +1292,27 @@ const notificationsQuery = query(
             if (dropdownEmailMobile) dropdownEmailMobile.textContent = studentData?.email || currentUser?.email || '';
         }
 
-        // Profile dropdown functions
-        function toggleProfileDropdown(event) {
-            event?.stopPropagation();
-            const isMobile = window.innerWidth < 1024;
-            const dropdown = document.getElementById(isMobile ? 'profileDropdownMobile' : 'profileDropdown');
-            
-            if (dropdown.classList.contains('hidden')) {
-                dropdown.classList.remove('hidden');
-                closeNotificationDropdown();
-            } else {
-                dropdown.classList.add('hidden');
-            }
-        }
+  // In toggleProfileDropdown function
+function toggleProfileDropdown(event) {
+    event?.stopPropagation();
+    const isMobile = window.innerWidth < 1024;
+    const dropdown = document.getElementById(isMobile ? 'profileDropdownMobile' : 'profileDropdown');
+    
+    // Close mobile drawer if open
+    if (hamburger && hamburger.classList.contains('active')) {
+        hamburger.classList.remove('active');
+        mobileDrawer.classList.remove('active');
+        drawerOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+    
+    if (dropdown.classList.contains('hidden')) {
+        dropdown.classList.remove('hidden');
+        closeNotificationDropdown();
+    } else {
+        dropdown.classList.add('hidden');
+    }
+}
 
         function closeProfileDropdown() {
             const profileDropdown = document.getElementById('profileDropdown');
@@ -1286,27 +1326,34 @@ const notificationsQuery = query(
         const mobileDrawer = document.getElementById('mobileDrawer');
         const drawerOverlay = document.getElementById('drawerOverlay');
         const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
-
-        // Toggle drawer
-        if (hamburger) {
-            hamburger.addEventListener('click', (e) => {
-                e.stopPropagation();
-                hamburger.classList.toggle('active');
-                mobileDrawer.classList.toggle('active');
-                drawerOverlay.classList.toggle('active');
-                document.body.style.overflow = mobileDrawer.classList.contains('active') ? 'hidden' : '';
-            });
-        }
-
-        // Close drawer when overlay is clicked
-        if (drawerOverlay) {
-            drawerOverlay.addEventListener('click', () => {
-                hamburger.classList.remove('active');
-                mobileDrawer.classList.remove('active');
-                drawerOverlay.classList.remove('active');
-                document.body.style.overflow = '';
-            });
-        }
+if (hamburger) {
+    hamburger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        
+        // Close profile dropdown if open
+        closeProfileDropdown();
+        // Close notification dropdown if open
+        closeNotificationDropdown();
+        
+        hamburger.classList.toggle('active');
+        mobileDrawer.classList.toggle('active');
+        drawerOverlay.classList.toggle('active');
+        document.body.style.overflow = mobileDrawer.classList.contains('active') ? 'hidden' : '';
+    });
+}
+// Close drawer when overlay is clicked
+if (drawerOverlay) {
+    drawerOverlay.addEventListener('click', () => {
+        hamburger.classList.remove('active');
+        mobileDrawer.classList.remove('active');
+        drawerOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+        
+        // Close profile and notification dropdowns if open
+        closeProfileDropdown();
+        closeNotificationDropdown();
+    });
+}
 
         // Close drawer when nav link is clicked
         mobileNavLinks.forEach(link => {

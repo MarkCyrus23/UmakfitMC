@@ -394,7 +394,7 @@
         <div class="p-6 pt-8">
             <!-- Drawer Header -->
             <div class="flex items-center gap-3 mb-8 pb-6 border-b border-white/20">
-                <img src="https://c.animaapp.com/vkhEa8zW/img/screenshot-2025-09-19-2-53-51-pm-removebg-preview-3@2x.png" 
+                <img src="UMakfit Logo (2).png" 
                      alt="UMak Logo" class="h-12 w-auto object-contain">
                 <span class="text-2xl font-extrabold font-manrope" style="background: linear-gradient(135deg, #EAD38A 0%, #C5A046 50%, #8B6D2D 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">
                     UMakFIT
@@ -403,7 +403,7 @@
 
             <!-- Navigation Links -->
             <nav class="space-y-2">
-                <a href="#" class="mobile-nav-link block text-white bg-white/10 font-semibold py-3 px-4 rounded-lg transition-all">
+                <a href="studentDashboard.html" class="mobile-nav-link block text-white bg-white/10 font-semibold py-3 px-4 rounded-lg transition-all">
                     <i class="bi bi-speedometer2 mr-3"></i>Dashboard
                 </a>
                 <a href="./test.html" class="mobile-nav-link block text-white/80 hover:text-white hover:bg-white/10 font-medium py-3 px-4 rounded-lg transition-all">
@@ -664,6 +664,28 @@
                     "Warm up before any physical activity to prevent injury and improve your overall test performance.",
                     "Track your progress regularly. Seeing how far you've come is the best motivation to keep going! 🏆"
                 ];
+
+                window.addEventListener('resize', function() {
+    const hamburger = document.getElementById('hamburger');
+    const mobileDrawer = document.getElementById('mobileDrawer');
+    const drawerOverlay = document.getElementById('drawerOverlay');
+    
+    // Check if we're in desktop view (1024px and above)
+    if (window.innerWidth >= 1024) {
+        // If mobile drawer is open, close it
+        if (hamburger && hamburger.classList.contains('active')) {
+            hamburger.classList.remove('active');
+        }
+        if (mobileDrawer && mobileDrawer.classList.contains('active')) {
+            mobileDrawer.classList.remove('active');
+        }
+        if (drawerOverlay && drawerOverlay.classList.contains('active')) {
+            drawerOverlay.classList.remove('active');
+        }
+        // Restore body overflow
+        document.body.style.overflow = '';
+    }
+});
 
                 const tip = dailyTips[new Date().getDay() % dailyTips.length];
                 document.getElementById('dailyTip').textContent = tip;
@@ -999,15 +1021,21 @@
         const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
 
         // Toggle drawer
-        if (hamburger) {
-            hamburger.addEventListener('click', (e) => {
-                e.stopPropagation();
-                hamburger.classList.toggle('active');
-                mobileDrawer.classList.toggle('active');
-                drawerOverlay.classList.toggle('active');
-                document.body.style.overflow = mobileDrawer.classList.contains('active') ? 'hidden' : '';
-            });
+ if (hamburger) {
+    hamburger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        hamburger.classList.toggle('active');
+        mobileDrawer.classList.toggle('active');
+        drawerOverlay.classList.toggle('active');
+        document.body.style.overflow = mobileDrawer.classList.contains('active') ? 'hidden' : '';
+
+        // Close profile and notification dropdowns when opening drawer
+        if (mobileDrawer.classList.contains('active')) {
+            document.getElementById('profileDropdownMobile')?.classList.add('hidden');
+            document.getElementById('notificationDropdownMobile')?.classList.add('hidden');
         }
+    });
+}
 
         // Close drawer when overlay is clicked
         if (drawerOverlay) {
@@ -1327,22 +1355,28 @@ function closeNotificationDropdown() {
 }
 
         // Profile dropdown
-        function toggleProfileDropdown(event) {
-            event?.stopPropagation();
-            const isMobile = window.innerWidth < 1024;
-            const dropdown = isMobile ? profileDropdownMobile : profileDropdown;
-            
-            const isHidden = dropdown.classList.contains('hidden');
-            
-            if (isHidden) {
-                dropdown.classList.remove('hidden');
-                document.body.classList.add('dropdown-open');
-                closeNotificationDropdown();
-            } else {
-                dropdown.classList.add('hidden');
-                document.body.classList.remove('dropdown-open');
-            }
-        }
+ function toggleProfileDropdown(event) {
+    event?.stopPropagation();
+    const isMobile = window.innerWidth < 1024;
+    const dropdown = isMobile ? profileDropdownMobile : profileDropdown;
+    
+    const isHidden = dropdown.classList.contains('hidden');
+    
+    if (isHidden) {
+        dropdown.classList.remove('hidden');
+        document.body.classList.add('dropdown-open');
+        closeNotificationDropdown();
+
+        // Close hamburger drawer if open
+        hamburger?.classList.remove('active');
+        mobileDrawer?.classList.remove('active');
+        drawerOverlay?.classList.remove('active');
+        document.body.style.overflow = '';
+    } else {
+        dropdown.classList.add('hidden');
+        document.body.classList.remove('dropdown-open');
+    }
+}
 
         function closeProfileDropdown() {
             profileDropdown.classList.add('hidden');

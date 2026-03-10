@@ -255,9 +255,9 @@
 
 <div class="drawer-overlay" id="drawerOverlay"></div>
 <div class="mobile-drawer" id="mobileDrawer">
-   
+    <div class="p-6 pt-8">
         <div class="flex items-center gap-3 mb-8 pb-6 border-b border-white/20">
-            <img src="https://c.animaapp.com/vkhEa8zW/img/screenshot-2025-09-19-2-53-51-pm-removebg-preview-3@2x.png" alt="UMak Logo" class="h-12 w-auto object-contain">
+            <img src="UMakfit Logo (2).png" alt="UMak Logo" class="h-12 w-auto object-contain">
             <span class="text-2xl font-extrabold font-manrope" style="background:linear-gradient(135deg,#EAD38A 0%,#C5A046 50%,#8B6D2D 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;">UMakFIT</span>
         </div>
         <nav class="space-y-2">
@@ -270,6 +270,7 @@
         </nav>
     </div>
 </div>
+
 
 <!-- Main Content -->
 <div class="main-container">
@@ -430,10 +431,14 @@
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 text-center lg:text-left">
             <div>
-                <div class="flex items-center justify-center lg:justify-start gap-3 mb-4">
-                    <img src="UMakfit Logo (2).png" alt="UMak Logo" class="h-12 w-auto object-contain">
-                    <div><h6 class="text-yellow-400 font-bold text-lg lg:text-xl mb-1">UMakFit</h6><p class="text-xs text-blue-200 font-medium">College of Human Kinetics</p></div>
-                </div>
+<div class="flex items-center justify-center lg:justify-start gap-3 mb-4">
+    <img src="UMakfit Logo (2).png" 
+         alt="UMak Logo" class="h-12 w-auto object-contain">
+    <div>
+        <h6 class="text-yellow-400 font-bold text-lg lg:text-xl mb-1">UMakFit</h6>
+        <p class="text-xs text-blue-200 font-medium">College of Human Kinetics</p>
+    </div>
+</div>
                 <p class="text-sm leading-relaxed text-blue-100">UMakFit is the official fitness assessment and tracking platform of the College of Human Kinetics at University of Makati.</p>
                 <div class="mt-4 flex flex-wrap gap-2 justify-center lg:justify-start">
                     <span style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.5);font-size:0.7rem;padding:4px 10px;border-radius:100px;font-weight:500;">Fitness Tracking</span>
@@ -474,6 +479,30 @@
         </div>
     </div>
 </footer>
+
+<script>
+    window.addEventListener('resize', function() {
+    const hamburger = document.getElementById('hamburger');
+    const mobileDrawer = document.getElementById('mobileDrawer');
+    const drawerOverlay = document.getElementById('drawerOverlay');
+    
+    // Check if we're in desktop view (1024px and above)
+    if (window.innerWidth >= 1024) {
+        // If mobile drawer is open, close it
+        if (hamburger && hamburger.classList.contains('active')) {
+            hamburger.classList.remove('active');
+        }
+        if (mobileDrawer && mobileDrawer.classList.contains('active')) {
+            mobileDrawer.classList.remove('active');
+        }
+        if (drawerOverlay && drawerOverlay.classList.contains('active')) {
+            drawerOverlay.classList.remove('active');
+        }
+        // Restore body overflow
+        document.body.style.overflow = '';
+    }
+});
+    </script>
 
 
 <script type="module">
@@ -1152,15 +1181,41 @@ function toggleNotificationDropdown(e) {
     e?.stopPropagation();
     const isMobile = window.innerWidth < 1024;
     const dd = isMobile ? document.getElementById('notificationDropdownMobile') : document.getElementById('notificationDropdown');
-    if (dd.classList.contains('hidden')) { dd.classList.remove('hidden'); loadNotificationDropdown(isMobile); document.getElementById('profileDropdown')?.classList.add('hidden'); document.getElementById('profileDropdownMobile')?.classList.add('hidden'); }
-    else dd.classList.add('hidden');
+    
+    // Close mobile drawer if open
+    if (hamburger && hamburger.classList.contains('active')) {
+        hamburger.classList.remove('active');
+        mobileDrawer.classList.remove('active');
+        drawerOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+    
+    if (dd.classList.contains('hidden')) { 
+        dd.classList.remove('hidden'); 
+        loadNotificationDropdown(isMobile); 
+        document.getElementById('profileDropdown')?.classList.add('hidden'); 
+        document.getElementById('profileDropdownMobile')?.classList.add('hidden'); 
+    } else dd.classList.add('hidden');
 }
+
 function closeNotificationDropdown() { document.getElementById('notificationDropdown')?.classList.add('hidden'); document.getElementById('notificationDropdownMobile')?.classList.add('hidden'); }
 function toggleProfileDropdown(e) {
     e?.stopPropagation();
     const isMobile = window.innerWidth < 1024;
     const dd = document.getElementById(isMobile?'profileDropdownMobile':'profileDropdown');
-    if (dd.classList.contains('hidden')) { dd.classList.remove('hidden'); closeNotificationDropdown(); } else dd.classList.add('hidden');
+    
+    // Close mobile drawer if open
+    if (hamburger && hamburger.classList.contains('active')) {
+        hamburger.classList.remove('active');
+        mobileDrawer.classList.remove('active');
+        drawerOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+    
+    if (dd.classList.contains('hidden')) { 
+        dd.classList.remove('hidden'); 
+        closeNotificationDropdown(); 
+    } else dd.classList.add('hidden');
 }
 function closeProfileDropdown() { document.getElementById('profileDropdown')?.classList.add('hidden'); document.getElementById('profileDropdownMobile')?.classList.add('hidden'); }
 
@@ -1171,9 +1226,40 @@ function closeProfileDropdown() { document.getElementById('profileDropdown')?.cl
 const hamburger = document.getElementById('hamburger');
 const mobileDrawer = document.getElementById('mobileDrawer');
 const drawerOverlay = document.getElementById('drawerOverlay');
-hamburger?.addEventListener('click', e => { e.stopPropagation(); hamburger.classList.toggle('active'); mobileDrawer.classList.toggle('active'); drawerOverlay.classList.toggle('active'); document.body.style.overflow = mobileDrawer.classList.contains('active') ? 'hidden' : ''; });
-drawerOverlay?.addEventListener('click', () => { hamburger?.classList.remove('active'); mobileDrawer?.classList.remove('active'); drawerOverlay.classList.remove('active'); document.body.style.overflow = ''; });
-document.querySelectorAll('.mobile-nav-link').forEach(l => l.addEventListener('click', () => { hamburger?.classList.remove('active'); mobileDrawer?.classList.remove('active'); drawerOverlay?.classList.remove('active'); document.body.style.overflow = ''; }));
+hamburger?.addEventListener('click', e => { 
+    e.stopPropagation(); 
+    
+    // Close profile and notification dropdowns if open
+    closeProfileDropdown();
+    closeNotificationDropdown();
+    
+    hamburger.classList.toggle('active'); 
+    mobileDrawer.classList.toggle('active'); 
+    drawerOverlay.classList.toggle('active'); 
+    document.body.style.overflow = mobileDrawer.classList.contains('active') ? 'hidden' : ''; 
+});
+drawerOverlay?.addEventListener('click', () => { 
+    hamburger?.classList.remove('active'); 
+    mobileDrawer?.classList.remove('active'); 
+    drawerOverlay.classList.remove('active'); 
+    document.body.style.overflow = ''; 
+    
+    // Close profile and notification dropdowns if open
+    closeProfileDropdown();
+    closeNotificationDropdown();
+});
+document.querySelectorAll('.mobile-nav-link').forEach(l => 
+    l.addEventListener('click', () => { 
+        hamburger?.classList.remove('active'); 
+        mobileDrawer?.classList.remove('active'); 
+        drawerOverlay?.classList.remove('active'); 
+        document.body.style.overflow = ''; 
+        
+        // Close profile and notification dropdowns if open
+        closeProfileDropdown();
+        closeNotificationDropdown();
+    })
+);
 
 // ============================================================
 // PROFILE UI
@@ -1271,6 +1357,7 @@ window.handleLogout = function() {
         catch(error) { console.error(error); overlay.remove(); alert('Error logging out. Please try again.'); }
     });
 };
+
 
 window.toggleNotificationDropdown = toggleNotificationDropdown;
 window.closeNotificationDropdown  = closeNotificationDropdown;

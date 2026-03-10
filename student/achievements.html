@@ -356,6 +356,29 @@
         </div>
     </footer>
 </div>
+<script>
+    window.addEventListener('resize', function() {
+    const hamburger = document.getElementById('hamburger');
+    const mobileDrawer = document.getElementById('mobileDrawer');
+    const drawerOverlay = document.getElementById('drawerOverlay');
+    
+    // Check if we're in desktop view (1024px and above)
+    if (window.innerWidth >= 1024) {
+        // If mobile drawer is open, close it
+        if (hamburger && hamburger.classList.contains('active')) {
+            hamburger.classList.remove('active');
+        }
+        if (mobileDrawer && mobileDrawer.classList.contains('active')) {
+            mobileDrawer.classList.remove('active');
+        }
+        if (drawerOverlay && drawerOverlay.classList.contains('active')) {
+            drawerOverlay.classList.remove('active');
+        }
+        // Restore body overflow
+        document.body.style.overflow = '';
+    }
+});
+</script>
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
@@ -1164,15 +1187,51 @@ function setupEventListeners() {
     const hamburger = document.getElementById('hamburger');
     const drawer = document.getElementById('mobileDrawer');
     const overlay = document.getElementById('drawerOverlay');
-    hamburger?.addEventListener('click', (e) => { e.stopPropagation(); hamburger.classList.toggle('active'); drawer.classList.toggle('active'); overlay.classList.toggle('active'); document.body.style.overflow = drawer.classList.contains('active')?'hidden':''; });
-    overlay?.addEventListener('click', () => { hamburger.classList.remove('active'); drawer.classList.remove('active'); overlay.classList.remove('active'); document.body.style.overflow=''; });
-    document.querySelectorAll('.mobile-nav-link').forEach(link => { link.addEventListener('click', () => { hamburger.classList.remove('active'); drawer.classList.remove('active'); overlay.classList.remove('active'); document.body.style.overflow=''; }); });
+hamburger?.addEventListener('click', (e) => { 
+    e.stopPropagation(); 
+    
+    // Close profile and notification dropdowns if open
+    closeProfileDropdown();
+    closeNotificationDropdown();
+    
+    hamburger.classList.toggle('active'); 
+    drawer.classList.toggle('active'); 
+    overlay.classList.toggle('active'); 
+    document.body.style.overflow = drawer.classList.contains('active')?'hidden':''; 
+});
+overlay?.addEventListener('click', () => { 
+    hamburger.classList.remove('active'); 
+    drawer.classList.remove('active'); 
+    overlay.classList.remove('active'); 
+    document.body.style.overflow=''; 
+    
+    // Close profile and notification dropdowns if open
+    closeProfileDropdown();
+    closeNotificationDropdown();
+});
+document.querySelectorAll('.mobile-nav-link').forEach(link => { 
+    link.addEventListener('click', () => { 
+        hamburger.classList.remove('active'); 
+        drawer.classList.remove('active'); 
+        overlay.classList.remove('active'); 
+        document.body.style.overflow=''; 
+        
+        // Close profile and notification dropdowns if open
+        closeProfileDropdown();
+        closeNotificationDropdown();
+    }); 
+});
+}
+function closeProfileDropdown() {
+    document.getElementById('profileDropdown')?.classList.add('hidden');
+    document.getElementById('profileDropdownMobile')?.classList.add('hidden');
 }
 
 function toggleProfileDropdown() {
     const isMobile = window.innerWidth < 1024;
     document.getElementById(isMobile ? 'profileDropdownMobile' : 'profileDropdown')?.classList.toggle('hidden');
 }
+
 
 // ============================================================
 // LOGOUT

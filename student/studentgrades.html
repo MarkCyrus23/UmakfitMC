@@ -235,57 +235,78 @@
                         </div>
                     </div>
                     
-                    <!-- Mobile Right Icons -->
-                    <div class="flex lg:hidden items-center gap-2 sm:gap-3">
-                        <div class="relative">
-                            <button id="notificationBellBtnMobile" class="w-9 h-9 sm:w-10 sm:h-10 bg-white/20 border-2 border-white/30 rounded-full flex items-center justify-center text-white hover:bg-white/30 hover:scale-110 transition-all">
-                                <i class="bi bi-bell-fill text-base sm:text-lg"></i>
-                                <span id="navNotificationCountMobile" class="notification-badge hidden">0</span>
-                            </button>
-                            <div id="notificationDropdownMobile" class="notification-dropdown hidden fixed right-2 left-2 top-20 max-h-[calc(100vh-6rem)] overflow-y-auto">
-                                <div class="notification-dropdown-header">
-                                    <h6 class="font-bold text-gray-900 text-sm sm:text-base flex items-center gap-2">
-                                        <i class="bi bi-bell-fill text-blue-500"></i> Notifications
-                                    </h6>
-                                    <button id="closeNotificationBtnMobile" class="text-gray-400 hover:text-gray-600 p-1 transition-colors"><i class="bi bi-x-lg"></i></button>
-                                </div>
-                                <div id="notificationDropdownBodyMobile" class="notification-dropdown-body">
-                                    <div class="notification-empty"><i class="bi bi-bell-slash"></i><p>No notifications yet</p></div>
-                                </div>
-                                <div class="notification-dropdown-footer">
-                                    <button onclick="window.location.href='./notifications.html'" class="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-2 px-3 sm:px-4 rounded-lg font-semibold text-xs sm:text-sm hover:from-blue-600 hover:to-blue-700 hover:shadow-lg transition-all">
-                                        View All Notifications
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="relative">
-                            <img src="" alt="Profile" id="profilePictureBtnMobile" onclick="toggleProfileDropdown()" class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-white/30 cursor-pointer hover:border-white/60 object-cover">
-                            <div id="profileDropdownMobile" class="hidden fixed right-2 top-20 w-64 sm:w-72 bg-white rounded-xl shadow-2xl z-[9999] slide-down">
-                                <div class="p-4 sm:p-6 border-b-2 border-gray-200 text-center">
-                                    <img src="" alt="Profile" id="profileDropdownPictureMobile" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full mx-auto mb-2 sm:mb-3 border-3 border-blue-500 object-cover">
-                                    <h6 id="profileDropdownNameMobile" class="font-bold text-gray-900 text-base sm:text-lg">Loading...</h6>
-                                    <p id="profileDropdownEmailMobile" class="text-xs sm:text-sm text-gray-500 mt-1 truncate px-2">Loading...</p>
-                                </div>
-                                <div class="p-2">
-                                    <a href="./studentProfile.html" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-gray-100 transition-colors">
-                                        <i class="bi bi-person-circle text-blue-500 text-lg sm:text-xl"></i>
-                                        <span class="font-medium text-gray-700 text-sm sm:text-base">View Profile</span>
-                                    </a>
-                                    <div class="h-px bg-gray-200 my-1 sm:my-2"></div>
-                                    <div onclick="handleLogout()" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-red-500">
-                                        <i class="bi bi-box-arrow-right text-lg sm:text-xl"></i>
-                                        <span class="font-medium text-sm sm:text-base">Logout</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="hamburger" id="hamburger">
-                            <span></span><span></span><span></span>
-                        </div>
-                    </div>
+ <!-- Mobile Right Icons -->
+<div class="flex lg:hidden items-center gap-2 sm:gap-3">
+    <div class="relative">
+        <button id="notificationBellBtnMobile" class="w-9 h-9 sm:w-10 sm:h-10 bg-white/20 border-2 border-white/30 rounded-full flex items-center justify-center text-white hover:bg-white/30 hover:scale-110 transition-all">
+            <i class="bi bi-bell-fill text-base sm:text-lg"></i>
+            <span id="navNotificationCountMobile" class="notification-badge hidden">0</span>
+        </button>
+        <div id="notificationDropdownMobile" class="notification-dropdown hidden fixed right-2 left-2 top-20 max-h-[calc(100vh-6rem)] overflow-y-auto">
+            <div class="notification-dropdown-header">
+                <h6 class="font-bold text-gray-900 text-sm sm:text-base flex items-center gap-2">
+                    <i class="bi bi-bell-fill text-blue-500"></i> Notifications
+                </h6>
+                <button id="closeNotificationBtnMobile" class="text-gray-400 hover:text-gray-600 p-1 transition-colors"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <div id="notificationDropdownBodyMobile" class="notification-dropdown-body">
+                <div class="notification-empty"><i class="bi bi-bell-slash"></i><p>No notifications yet</p></div>
+            </div>
+            <div class="notification-dropdown-footer">
+                <button onclick="window.location.href='./notifications.html'" class="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-2 px-3 sm:px-4 rounded-lg font-semibold text-xs sm:text-sm hover:from-blue-600 hover:to-blue-700 hover:shadow-lg transition-all">
+                    View All Notifications
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="relative">
+        <img src="" alt="Profile" id="profilePictureBtnMobile" class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-white/30 cursor-pointer hover:border-white/60 object-cover">
+        <div id="profileDropdownMobile" class="hidden fixed right-2 top-20 w-64 sm:w-72 bg-white rounded-xl shadow-2xl z-[9999] slide-down">
+            <div class="p-4 sm:p-6 border-b-2 border-gray-200 text-center">
+                <img src="" alt="Profile" id="profileDropdownPictureMobile" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full mx-auto mb-2 sm:mb-3 border-3 border-blue-500 object-cover">
+                <h6 id="profileDropdownNameMobile" class="font-bold text-gray-900 text-base sm:text-lg">Loading...</h6>
+                <p id="profileDropdownEmailMobile" class="text-xs sm:text-sm text-gray-500 mt-1 truncate px-2">Loading...</p>
+            </div>
+            <div class="p-2">
+                <a href="./studentProfile.html" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="bi bi-person-circle text-blue-500 text-lg sm:text-xl"></i>
+                    <span class="font-medium text-gray-700 text-sm sm:text-base">View Profile</span>
+                </a>
+                <div class="h-px bg-gray-200 my-1 sm:my-2"></div>
+                <div onclick="handleLogout()" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-red-500">
+                    <i class="bi bi-box-arrow-right text-lg sm:text-xl"></i>
+                    <span class="font-medium text-sm sm:text-base">Logout</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="hamburger" id="hamburger">
+        <span></span><span></span><span></span>
+    </div>
+</div>
+
+<!-- Mobile Drawer Overlay -->
+<div class="drawer-overlay" id="drawerOverlay"></div>
+
+<!-- Mobile Drawer -->
+<div class="mobile-drawer" id="mobileDrawer">
+    <div class="p-6 pt-8">
+        <div class="flex items-center gap-3 mb-8 pb-6 border-b border-white/20">
+            <img src="UMakfit Logo (2).png" alt="UMak Logo" class="h-12 w-auto object-contain">
+            <span class="text-2xl font-extrabold font-manrope" style="background: linear-gradient(135deg, #EAD38A 0%, #C5A046 50%, #8B6D2D 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">UMakFIT</span>
+        </div>
+        <nav class="space-y-2">
+            <a href="./studentDashboard.html" class="mobile-nav-link block text-white/80 hover:text-white hover:bg-white/10 font-medium py-3 px-4 rounded-lg transition-all"><i class="bi bi-speedometer2 mr-3"></i>Dashboard</a>
+            <a href="./test.html" class="mobile-nav-link block text-white/80 hover:text-white hover:bg-white/10 font-medium py-3 px-4 rounded-lg transition-all"><i class="bi bi-clipboard-check mr-3"></i>Test</a>
+            <a href="./studentlesson.html" class="mobile-nav-link block text-white/80 hover:text-white hover:bg-white/10 font-medium py-3 px-4 rounded-lg transition-all"><i class="bi bi-book mr-3"></i>Lessons</a>
+            <a href="./studentgrades.html" class="mobile-nav-link block text-white bg-white/10 font-semibold py-3 px-4 rounded-lg transition-all"><i class="bi bi-activity mr-3"></i>Performance</a>
+            <a href="./progress.html" class="mobile-nav-link block text-white/80 hover:text-white hover:bg-white/10 font-medium py-3 px-4 rounded-lg transition-all"><i class="bi bi-graph-up mr-3"></i>Progress</a>
+            <a href="./achievements.html" class="mobile-nav-link block text-white/80 hover:text-white hover:bg-white/10 font-medium py-3 px-4 rounded-lg transition-all"><i class="bi bi-trophy mr-3"></i>Achievements</a>
+        </nav>
+    </div>
+</div>
                 </div>
             </div>
         </nav>
@@ -497,6 +518,29 @@
             </div>
         </footer>
     </div>
+    <script>
+        window.addEventListener('resize', function() {
+    const hamburger = document.getElementById('hamburger');
+    const mobileDrawer = document.getElementById('mobileDrawer');
+    const drawerOverlay = document.getElementById('drawerOverlay');
+    
+    // Check if we're in desktop view (1024px and above)
+    if (window.innerWidth >= 1024) {
+        // If mobile drawer is open, close it
+        if (hamburger && hamburger.classList.contains('active')) {
+            hamburger.classList.remove('active');
+        }
+        if (mobileDrawer && mobileDrawer.classList.contains('active')) {
+            mobileDrawer.classList.remove('active');
+        }
+        if (drawerOverlay && drawerOverlay.classList.contains('active')) {
+            drawerOverlay.classList.remove('active');
+        }
+        // Restore body overflow
+        document.body.style.overflow = '';
+    }
+});
+        </script>
 
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
@@ -700,6 +744,7 @@
 
             return null;
         }
+        
 
         function normCategoryClass(category) {
             if (!category) return 'norm-average';
@@ -866,16 +911,22 @@ const notificationsQuery = query(
 );            onSnapshot(notificationsQuery, () => checkUnreadNotifications(), error => console.error(error));
         }
 
-        // ========== PROFILE ==========
-        function toggleProfileDropdown(event) {
-            event?.stopPropagation();
-            const isMobile = window.innerWidth < 1024;
-            const dropdown = document.getElementById(isMobile ? 'profileDropdownMobile' : 'profileDropdown');
-            if (dropdown.classList.contains('hidden')) {
-                dropdown.classList.remove('hidden');
-                closeNotificationDropdown();
-            } else { dropdown.classList.add('hidden'); }
-        }
+  window.toggleProfileDropdown = function() {
+    const isMobile = window.innerWidth < 1024;
+    const dropdown = document.getElementById(isMobile ? 'profileDropdownMobile' : 'profileDropdown');
+    const notificationDropdown = document.getElementById('notificationDropdown');
+    const notificationDropdownMobile = document.getElementById('notificationDropdownMobile');
+    if (notificationDropdown) notificationDropdown.classList.add('hidden');
+    if (notificationDropdownMobile) notificationDropdownMobile.classList.add('hidden');
+
+    // Close hamburger drawer if open
+    hamburger?.classList.remove('active');
+    mobileDrawer?.classList.remove('active');
+    drawerOverlay?.classList.remove('active');
+    document.body.style.overflow = '';
+
+    dropdown.classList.toggle('hidden');
+};
 
         function closeProfileDropdown() {
             document.getElementById('profileDropdown')?.classList.add('hidden');
@@ -898,16 +949,21 @@ const notificationsQuery = query(
         const hamburger = document.getElementById('hamburger');
         const mobileDrawer = document.getElementById('mobileDrawer');
         const drawerOverlay = document.getElementById('drawerOverlay');
+if (hamburger) {
+    hamburger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        hamburger.classList.toggle('active');
+        mobileDrawer.classList.toggle('active');
+        drawerOverlay.classList.toggle('active');
+        document.body.style.overflow = mobileDrawer.classList.contains('active') ? 'hidden' : '';
 
-        if (hamburger) {
-            hamburger.addEventListener('click', (e) => {
-                e.stopPropagation();
-                hamburger.classList.toggle('active');
-                mobileDrawer.classList.toggle('active');
-                drawerOverlay.classList.toggle('active');
-                document.body.style.overflow = mobileDrawer.classList.contains('active') ? 'hidden' : '';
-            });
+        // Close profile and notification dropdowns when opening drawer
+        if (mobileDrawer.classList.contains('active')) {
+            document.getElementById('profileDropdownMobile')?.classList.add('hidden');
+            document.getElementById('notificationDropdownMobile')?.classList.add('hidden');
         }
+    });
+}
         if (drawerOverlay) {
             drawerOverlay.addEventListener('click', () => {
                 hamburger.classList.remove('active');
