@@ -1117,11 +1117,14 @@
                                              <div class="col-md-6">
         <label class="form-label fw-bold">Height</label>
         <div class="input-group">
-            <input type="number" class="form-control" id="editHeight" 
-                min="100" max="250" required placeholder="100–250"
-                oninput="
-                    this.setCustomValidity('');
-                    var hVal = parseFloat(this.value);
+ <input type="number" class="form-control" id="editHeight" 
+    min="100" max="250" required placeholder="100–250"
+    maxlength="3" inputmode="numeric"
+    onkeydown="if(['e','E','+','-','.'].includes(event.key)) event.preventDefault();"
+    oninput="
+        this.value = this.value.replace(/[^0-9]/g, '').slice(0, 3);
+        this.setCustomValidity('');
+        var hVal = parseFloat(this.value);
                     var sBtn = document.querySelector('#editProfileModal .btn-primary');
                     var wVal = parseFloat(document.getElementById('editWeight').value);
                     var wHas = document.getElementById('editWeight').value !== '';
@@ -1146,11 +1149,14 @@
         <div class="col-md-6">
             <label class="form-label fw-bold">Weight</label>
             <div class="input-group">
-                <input type="number" class="form-control" id="editWeight" 
-                    min="30" max="130" required placeholder="30–130"
-                    oninput="
-                        this.setCustomValidity('');
-                        var wVal = parseFloat(this.value);
+ <input type="number" class="form-control" id="editWeight" 
+    min="30" max="130" required placeholder="30–130"
+    maxlength="3" inputmode="numeric"
+    onkeydown="if(['e','E','+','-','.'].includes(event.key)) event.preventDefault();"
+    oninput="
+        this.value = this.value.replace(/[^0-9]/g, '').slice(0, 3);
+        this.setCustomValidity('');
+        var wVal = parseFloat(this.value);
                         var sBtn = document.querySelector('#editProfileModal .btn-primary');
                         var hVal = parseFloat(document.getElementById('editHeight').value);
                         var hHas = document.getElementById('editHeight').value !== '';
