@@ -73,7 +73,9 @@ Write exactly 2-3 sentences of specific things they should do TODAY to improve t
         }
     }
 });
-
+    app.get('/health', (req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
     console.log(`✅ UMakFit Recommendation Server running on http://localhost:${PORT}`);
