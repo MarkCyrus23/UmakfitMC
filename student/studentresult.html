@@ -1846,7 +1846,7 @@ async function generateRecommendation(testName, result, category, timerValue) {
         return null;
     }
 
-    console.log('Calling Node.js server for recommendation...');
+    console.log('Calling server for recommendation...');
 
     const maxRetries = 3;
     const baseDelay = 3000;
@@ -1855,7 +1855,7 @@ async function generateRecommendation(testName, result, category, timerValue) {
         try {
             console.log(`📤 Attempt ${attempt}/${maxRetries}`);
 
-            const response = await fetch('http://localhost:3001/api/recommendation', {
+            const response = await fetch('https://umakfit-ai.jmotea-a12241914.workers.dev', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ testName, result, category })
@@ -1863,7 +1863,6 @@ async function generateRecommendation(testName, result, category, timerValue) {
 
             if (response.status === 429) {
                 const waitTime = baseDelay * attempt;
-                console.log(`⏳ Rate limited. Waiting ${waitTime/1000}s before retry ${attempt}/${maxRetries}...`);
                 if (attempt < maxRetries) {
                     await new Promise(resolve => setTimeout(resolve, waitTime));
                     continue;
@@ -1878,12 +1877,18 @@ async function generateRecommendation(testName, result, category, timerValue) {
 
             const data = await response.json();
 
-            if (data.recommendation) {
-                console.log('✅ Success!');
-                return data.recommendation;
+            if (data.error) {
+                console.warn('⚠️ Server reported error:', data.error);
+                throw new Error(data.error);
             }
 
-            throw new Error('Empty recommendation from server');
+            if (!data.recommendation) {
+                const debugInfo = data.debug ? ` | Debug: ${data.debug}` : '';
+                throw new Error('Empty recommendation from server' + debugInfo);
+            }
+
+            console.log('✅ Success!');
+            return data.recommendation;
 
         } catch (error) {
             console.error(`❌ Attempt ${attempt} failed:`, error.message);
