@@ -1247,7 +1247,7 @@ function toggleNotificationDropdown(event) {
         );
 
         unsubscribeNotifListener = onSnapshot(notificationsQuery, (snapshot) => {
-            console.log('🔔 Notification update detected!');
+            // debug log removed
             checkUnreadNotifications();
         }, (error) => {
             console.error('❌ Error in notification listener:', error);

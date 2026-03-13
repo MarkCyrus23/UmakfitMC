@@ -1085,7 +1085,7 @@ const notificationsQuery = query(
                     }
                 });
                 
-                console.log('📬 Unread notifications:', unreadCount);
+                // debug log removed
                 
                 // Update BOTH badges with same count
                 const countBadge = document.getElementById('navNotificationCount');
@@ -1153,8 +1153,7 @@ const notificationsQuery = query(
                 }
             });
             
-            console.log(`📬 Total notifications fetched: ${notificationsSnapshot.size}`);
-            console.log(`📬 Unique notifications after dedup: ${uniqueNotifications.length}`);
+            // debug logs removed
             
             // Get read notifications from localStorage
             const readNotifications = JSON.parse(localStorage.getItem(`readNotifications_${studentData.email}`) || '[]');
@@ -1286,7 +1285,7 @@ const notificationsQuery = query(
             }
         });
         
-        console.log('📬 Updated unread count:', unreadCount);
+        // debug log removed
         
         // Update badges
         const countBadge = document.getElementById('navNotificationCount');
@@ -1798,7 +1797,7 @@ function closeNotificationDropdown() {
                     'Body Composition': []
                 };
                 
-                console.log('📊 Processing test results for charts...');
+                // debug log removed
                 
                 // Group results by category with timestamps
                 resultsSnapshot.forEach((doc) => {
@@ -1813,7 +1812,7 @@ function closeNotificationDropdown() {
                     
                     const timestamp = result.submittedAt?.toDate?.() || new Date(result.date);
                     
-                    console.log(`📝 Test: ${result.testName} → Category: ${category} → Score: ${score}`);
+                    // debug log removed
                     
                     if (categoryData[category]) {
                         categoryData[category].push({
@@ -1824,7 +1823,7 @@ function closeNotificationDropdown() {
                     }
                 });
                 
-                console.log('📊 Final category data:', categoryData);
+                // debug log removed
                 
                 // Update Fitness Overview Chart
                 if (window.fitnessOverviewChart) {
@@ -1889,7 +1888,7 @@ function closeNotificationDropdown() {
                     window.fitnessOverviewChart.data.datasets[4].data = dataByCategory['Body Composition'];
                     
                     window.fitnessOverviewChart.update('active');
-                    console.log('✅ Fitness Overview Chart updated');
+                    // debug log removed
                 }
                 
                 // Update Performance Radar Chart
@@ -1902,13 +1901,13 @@ function closeNotificationDropdown() {
                         getLatestScore(categoryData['Body Composition'])
                     ];
                     
-                    console.log('📊 Current Performance:', currentPerformance);
+                    // debug log removed
                     
                     window.performanceRadarChart.data.datasets[0].data = currentPerformance;
                     window.performanceRadarChart.data.datasets[1].data = [85, 85, 85, 85, 85];
                     
                     window.performanceRadarChart.update();
-                    console.log('✅ Performance Radar Chart updated');
+                    // debug log removed
                 }
                 
             } catch (error) {
@@ -2060,7 +2059,7 @@ function closeNotificationDropdown() {
                         }
                     }
                 });
-                console.log('✅ Overall progress chart (per-week) created');
+                // debug log removed
             } catch (error) {
                 console.error('❌ Error creating overall progress chart:', error);
                 const container = document.getElementById('overallProgressChart');
@@ -2074,14 +2073,14 @@ function closeNotificationDropdown() {
         function getCategoryForTest(testName) {
             const normalized = testName.toLowerCase().trim();
             
-            console.log('🔍 Categorizing test:', testName, '→', normalized);
+            // debug log removed
             
             for (const [category, data] of Object.entries(testCategories)) {
                 if (data.tests.some(t => 
                     normalized.includes(t.toLowerCase()) || 
                     t.toLowerCase().includes(normalized)
                 )) {
-                    console.log('✅ Category:', category);
+                    // debug log removed
                     return category;
                 }
             }
@@ -2090,29 +2089,29 @@ function closeNotificationDropdown() {
                 normalized.includes('sit and reach') ||
                 normalized.includes('flexibility') ||
                 normalized.includes('shoulder')) {
-                console.log('✅ Category: Flexibility (fallback)');
+                // debug log removed
                 return 'Flexibility';
             } else if (normalized.includes('push-up') || 
                        normalized.includes('pushup') || 
                        normalized.includes('push up') ||
                        normalized.includes('grip')) {
-                console.log('✅ Category: Muscular Strength (fallback)');
+                // debug log removed
                 return 'Muscular Strength';
             } else if (normalized.includes('curl-up') ||
                        normalized.includes('curl up') ||
                        normalized.includes('plank')) {
-                console.log('✅ Category: Muscular Endurance (fallback)');
+                // debug log removed
                 return 'Muscular Endurance';
             } else if (normalized.includes('step') || 
                        normalized.includes('run') || 
                        normalized.includes('cardio') || 
                        normalized.includes('mile') ||
                        normalized.includes('bmi')) {
-                console.log('✅ Category: Cardiorespiratory Endurance (fallback)');
+                // debug log removed
                 return 'Cardiorespiratory Endurance';
             }
             
-            console.log('❌ No category found, defaulting to Cardiorespiratory Endurance');
+            // debug log removed
             return 'Cardiorespiratory Endurance';
         }
         
@@ -2125,13 +2124,13 @@ function closeNotificationDropdown() {
             if (!categoryData || categoryData.length === 0) return 0;
             const sum = categoryData.reduce((total, item) => total + item.score, 0);
             const average = sum / categoryData.length;
-            console.log(`📊 Average for category: ${categoryData.length} tests, sum: ${sum}, avg: ${average}`);
+            // debug log removed
             return Math.round(average);
         }
 
         async function loadStudentData(user) {
             try {
-                console.log('Loading data for student:', user.email);
+                // debug log removed
                 
                 // Try to get student data from students collection using email
                 const studentsQuery = query(
@@ -2202,7 +2201,7 @@ function closeNotificationDropdown() {
                     return studentData;
                     
                 } else {
-                    console.log('⚠️ No student profile found in students collection');
+                    // debug log removed
                     
                     // Create a minimal student data object from Firebase auth
                     studentData = {
@@ -2342,7 +2341,7 @@ function closeNotificationDropdown() {
         async function loadUpcomingTests() {
             try {
                 if (!studentData || !studentData.section || studentData.section === 'Not Assigned') {
-                    console.log('No student data or section available');
+                    // debug log removed
                     const container = document.getElementById('upcomingTestsCard');
                     if (container) {
                         container.innerHTML = `
@@ -2828,7 +2827,7 @@ async function calculateAndUpdateStats() {
         async function updatePerformanceSummary() {
             try {
                 if (!studentData || !studentData.email || !studentData.section || studentData.section === 'Not Assigned') {
-                    console.log('No student data or section available for performance summary');
+                    // debug log removed
                     document.getElementById('completionRate').textContent = '0%';
                     document.getElementById('testsCompletedCount').textContent = '0 / 0';
                     document.getElementById('currentStreak').textContent = '0 weeks';
@@ -2848,7 +2847,7 @@ async function calculateAndUpdateStats() {
                 );
                 const assignedTestsSnapshot = await getDocs(assignedTestsQuery);
 
-                console.log('📊 Total scheduled tests found:', assignedTestsSnapshot.size);
+                // debug log removed
 
                 const seenTestIds = new Set();
                 let totalAssignedTests = 0;
@@ -2873,13 +2872,13 @@ async function calculateAndUpdateStats() {
                     // Count all tests that the student is selected for
                     if (isStudentSelected) {
                         totalAssignedTests++;
-                        console.log(`✓ Counted test: ${test.testName}`);
+                        // debug log removed
                     } else {
-                        console.log(`✗ Skipped test (not selected): ${test.testName}`);
+                        // debug log removed
                     }
                 });
 
-                console.log('📊 Total assigned tests for student:', totalAssignedTests);
+                // debug log removed
 
                 // Get completed tests (unique tests only)
                 const completedTestsQuery = query(
@@ -2926,12 +2925,12 @@ async function calculateAndUpdateStats() {
                         } catch(e) { console.warn('Could not sync weekStreak:', e); }
                     }
 
-                console.log('📊 Completion Summary:', {
+                // debug log removed
                     totalAssignedTests,
                     totalCompleted,
                     completionRate: completionRate + '%',
                     weekStreak: weekStreak + ' weeks'
-                });
+                // });
 
                 // Calculate Class Ranking and Strongest Category
                 await calculateClassRanking();
@@ -3312,12 +3311,11 @@ async function calculateClassRanking() {
         async function loadTestHistory() {
             try {
                 if (!currentUser || !studentData) {
-                    console.log('No current user or student data');
+                    // debug log removed
                     return;
                 }
 
-                console.log('=== LOADING MOST RECENT TEST RESULT ===');
-                console.log('Student Email:', studentData.email);
+                // debug logs removed
 
                 // Query by studentEmail
                 const historyQuery = query(
@@ -3331,7 +3329,7 @@ async function calculateClassRanking() {
                 let historySnapshot;
                 try {
                     historySnapshot = await getDocs(historyQuery);
-                    console.log('Query with orderBy found:', historySnapshot.size, 'results');
+                    // debug log removed
                 } catch (indexError) {
                     console.warn('Index not ready, trying without orderBy:', indexError);
                     const simpleQuery = query(
@@ -3380,17 +3378,17 @@ async function calculateClassRanking() {
                     const results = [];
                     historySnapshot.forEach(doc => {
                         const data = doc.data();
-                        console.log('Most recent test result:', data.testName, 'Score:', data.score, 'Date:', data.submittedAt?.toDate?.());
+                        // debug log removed
                         results.push({ id: doc.id, ...data });
                     });
                     
-                    console.log('✓ Found most recent test result');
+                    // debug log removed
                     
                     allTestResults = results;
                     renderSingleTestResult(results[0], container);
                     
                 } else {
-                    console.log('✗ No completed tests found');
+                    // debug log removed
                     allTestResults = [];
                     container.innerHTML = `
                         <div class="text-center py-8 sm:py-12">
@@ -3502,7 +3500,7 @@ function calculateTestScore(testName, result, testTarget = null) {
         if (result.score !== undefined && result.score !== null) {
             const score = parseFloat(result.score);
             if (!isNaN(score) && score >= 0 && score <= 100) {
-                console.log(`✅ Using stored professor score: ${score} for ${testName}`);
+                // debug log removed
                 return score;
             }
         }
@@ -3526,7 +3524,7 @@ function calculateTestScore(testName, result, testTarget = null) {
         numericValue = parseFloat(result) || 0;
     }
     
-    console.log(`🎯 Calculating: ${testName} | Value: ${numericValue} | Target: ${testTarget}`);
+    // debug log removed
     
     // Use test target if available (matches grades page)
     if (testTarget && testTarget > 0) {
@@ -3809,7 +3807,7 @@ unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
             // ✅ Load student data, then re-render calendar with deadlines
             loadStudentData(user).then(() => {
                 generateMiniCalendar(); // re-render now that studentData is available
-                console.log('✓ Student data fully loaded');
+                // debug log removed
             }).catch(err => {
                 console.error('Background load error:', err);
             });

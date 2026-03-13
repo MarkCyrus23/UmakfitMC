@@ -1333,7 +1333,7 @@ function setupNotificationListener() {
             where('studentEmail', '==', studentData.email)
         );
         unsubscribeNotificationListener = onSnapshot(notificationsQuery, (snapshot) => {
-            console.log('🔔 Notification update detected!');
+            // debug log removed
             checkUnreadNotifications();
         }, (error) => {
             console.error('❌ Error in notification listener:', error);
@@ -1731,7 +1731,7 @@ window.addEventListener('beforeunload', () => {
             // Fallback: keep existing percentage-based logic for other tests
             let numericValue = extractNumericResult(result);
 
-            console.log(`🎯 Score Calculation (fallback): ${testName} | Value: ${numericValue} | Target: ${testTarget}`);
+            // debug log removed
 
             if (!testTarget || testTarget <= 0) {
                 return 75;
@@ -1861,14 +1861,14 @@ async function generateRecommendation(testName, result, category, timerValue) {
         return null;
     }
 
-    console.log('Calling server for recommendation...');
+    // debug log removed
 
     const maxRetries = 3;
     const baseDelay = 3000;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
-            console.log(`📤 Attempt ${attempt}/${maxRetries}`);
+            // debug log removed
 
             const response = await fetch('https://umakfit-ai.jmotea-a12241914.workers.dev', {
                 method: 'POST',
@@ -1902,7 +1902,7 @@ async function generateRecommendation(testName, result, category, timerValue) {
                 throw new Error('Empty recommendation from server' + debugInfo);
             }
 
-            console.log('✅ Success!');
+            // debug log removed
             return data.recommendation;
 
         } catch (error) {
@@ -1913,7 +1913,7 @@ async function generateRecommendation(testName, result, category, timerValue) {
             }
 
             const waitTime = baseDelay * Math.pow(2, attempt - 1);
-            console.log(`⏳ Waiting ${waitTime/1000}s before retry...`);
+            // debug log removed
             await new Promise(resolve => setTimeout(resolve, waitTime));
         }
     }

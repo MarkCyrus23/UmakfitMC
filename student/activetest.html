@@ -2634,7 +2634,7 @@ function updateTimer() {
     }
 
     try {
-        console.log('🔄 Loading test data:', testId);
+        // debug log removed
         
         document.getElementById('testName').textContent = 'Loading Test...';
         document.getElementById('testSubtitle').textContent = 'Please wait while we load your test';
@@ -2654,7 +2654,7 @@ function updateTimer() {
             ...testData
         };
         
-        console.log('📋 Test data loaded:', currentTest);
+        // debug log removed
         
         // Ensure professor data exists
         if (!currentTest.professorId || !currentTest.professorEmail) {
@@ -2663,7 +2663,7 @@ function updateTimer() {
             currentTest.professorEmail = 'professor@umak.edu.ph';
         }
         
-        console.log('✅ Test data loaded successfully:', currentTest.testName);
+        // debug log removed
         
         let subtitleText = `Section: ${currentTest.section} • Deadline: ${new Date(currentTest.deadline).toLocaleDateString()}`;
         document.getElementById('testName').textContent = currentTest.testName;
@@ -3201,9 +3201,9 @@ function calculateScoreWithNorms(testName, rawResult, testTarget, student) {
                     await updateDoc(testRef, {
                         completedStudents: increment(1)
                     });
-                    console.log('✅ Incremented completedStudents (first attempt)');
+                    // debug log removed
                 } else {
-                    console.log('⚠️ NOT incrementing completedStudents (retry attempt)');
+                    // debug log removed
                 }
 
                   showSuccessPopup(calculatedScore, currentAttempts + 1, currentTest.attemptsAllowed || 1, docRef.id, currentTest.id);
@@ -3221,7 +3221,7 @@ function calculateScoreWithNorms(testName, rawResult, testTarget, student) {
             const normalized = testName.toLowerCase();
             const numericValue = parseFloat(rawResult);
 
-            console.log(`🎯 Scoring: ${testName} | Result: ${numericValue} | Target: ${testTarget}`);
+            // debug log removed
 
            if (normalized.includes('skinfold')) {
                 // Based on table classifications
@@ -3361,11 +3361,10 @@ function calculateScoreWithNorms(testName, rawResult, testTarget, student) {
 
         async function createActiveTestDocument() {
             try {
-                console.log('🎯 Creating active test document...');
-                console.log('👨‍🏫 Professor data:', {
+                // debug logs removed
                     professorId: currentTest.professorId,
                     professorEmail: currentTest.professorEmail
-                });
+                // });
                 
                 const activeTestData = {
                     studentId: currentUser.uid,
@@ -3392,10 +3391,10 @@ function calculateScoreWithNorms(testName, rawResult, testTarget, student) {
                 };
 
                 const activeTestRef = await addDoc(collection(db, 'activeTests'), activeTestData);
-                console.log('✅ Active test document created:', activeTestRef.id);
+                // debug log removed
                 
                 const createdDoc = await getDoc(activeTestRef);
-                console.log('📋 Created document data:', createdDoc.data());
+                // debug log removed
                 
                 return activeTestRef.id;
                 
@@ -3595,7 +3594,7 @@ function showTestDeletedPopup() {
 
     if (user) {
         try {
-            console.log('👤 User authenticated:', user.email);
+            // debug log removed
             currentUser = user;
             
             updateProfileUI();
@@ -3611,7 +3610,7 @@ function showTestDeletedPopup() {
             
             await loadTestData();
             
-            console.log('✅ All data loaded successfully');
+            // debug log removed
             
  loadingScreen.style.display = 'none';
 mainContent.style.display = 'block';
@@ -3655,7 +3654,7 @@ mainContent.style.display = 'block';
                     showErrorOnLoad('Error: ' + (error.message || 'Unknown error occurred'));
                 }
             } else {
-                console.log('🚫 No user authenticated, redirecting to login');
+                // debug log removed
                 window.location.href = '../login/index.html';
             }
         });

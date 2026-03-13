@@ -258,6 +258,16 @@
             <div class="w-8 h-8 rounded-lg bg-white/[0.08] flex items-center justify-center text-[13px] flex-shrink-0"><i class="fas fa-users-cog"></i></div>
             <span>Manage Accounts</span>
         </a>
+        <a href="#" id="nav-classlist" onclick="showClasslistImport(); navClick();"
+            class="flex items-center gap-3 px-5 py-2.5 text-white/55 no-underline text-[13.5px] font-medium hover:text-white/90 hover:bg-white/5 transition-all">
+            <div class="w-8 h-8 rounded-lg bg-white/[0.08] flex items-center justify-center text-[13px] flex-shrink-0"><i class="fas fa-file-import"></i></div>
+            <span>Class List Import</span>
+        </a>
+        <a href="#" id="nav-activity" onclick="showActivityHistory(); navClick();"
+            class="flex items-center gap-3 px-5 py-2.5 text-white/55 no-underline text-[13.5px] font-medium hover:text-white/90 hover:bg-white/5 transition-all">
+            <div class="w-8 h-8 rounded-lg bg-white/[0.08] flex items-center justify-center text-[13px] flex-shrink-0"><i class="fas fa-history"></i></div>
+            <span>Activity History</span>
+        </a>
 
         <!-- Sidebar Footer -->
         <div class="mt-auto px-5 pt-4 border-t border-white/[0.06]">
@@ -758,6 +768,103 @@
             </div>
         </div>
 
+        <!-- ═══════════════════ CLASS LIST IMPORT ═══════════════════ -->
+        <div id="classlistImportPage" class="management-page">
+            <div class="relative bg-gradient-to-br from-navy via-[#1a4580] to-navy-light rounded-2xl p-7 mb-7 overflow-hidden">
+                <div class="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-accent/[0.07] pointer-events-none"></div>
+                <div class="relative flex items-center gap-4 flex-wrap">
+                    <div class="w-[52px] h-[52px] rounded-2xl bg-info/20 border border-info/30 flex items-center justify-center text-info text-[22px] flex-shrink-0"><i class="fas fa-file-import"></i></div>
+                    <div>
+                        <div class="text-xs text-white/50 uppercase tracking-[2px] mb-1">Administration</div>
+                        <div class="font-display text-2xl font-bold text-white mb-1">Class List Import</div>
+                        <div class="text-[13px] text-white/45">Upload official UMak classlist CSV files to import students and section rosters</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-border shadow-sm overflow-hidden mb-7">
+                <div class="px-6 py-4 border-b border-border flex items-center gap-2.5 text-[15px] font-semibold text-navy">
+                    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-royal to-blue flex items-center justify-center text-white text-[13px]"><i class="fas fa-cloud-upload-alt"></i></div>
+                    Import Student CSV Files
+                </div>
+                <div class="p-6">
+                    <div id="classlistAlert" style="display:none;"></div>
+
+                    <input type="file" id="deanStudentCsvInput" accept=".csv" onchange="handleDeanStudentFileSelect(event)" style="display:none;">
+
+                    <div class="p-6 rounded-2xl border border-border bg-surface text-center">
+                        <div class="w-16 h-16 rounded-2xl bg-info-bg flex items-center justify-center mx-auto mb-4 text-blue text-[26px]"><i class="fas fa-cloud-upload-alt"></i></div>
+                        <div class="font-display text-lg font-bold text-navy mb-2">Import Student Classlist</div>
+                        <div class="text-sm text-text-muted max-w-md mx-auto mb-5 leading-relaxed">Upload an official UMak classlist CSV. This will update/create section rosters and student records.</div>
+                        <label for="deanStudentCsvInput" class="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-br from-royal to-blue text-white rounded-xl text-[13px] font-semibold cursor-pointer hover:-translate-y-px hover:shadow-lg transition-all">
+                            <i class="fas fa-upload"></i> Choose CSV File
+                        </label>
+                        <div class="mt-2.5 text-xs text-text-muted" id="deanStudentFileName">No file chosen</div>
+                    </div>
+
+                    <div id="deanPreviewSection" style="display:none;" class="mt-7">
+                        <div class="flex items-center gap-2.5 mb-3.5">
+                            <i class="fas fa-eye text-text-muted"></i>
+                            <h4 class="text-[15px] font-bold text-navy m-0">Preview Import Data</h4>
+                        </div>
+                        <div class="p-4 rounded-xl bg-surface border border-border mb-3" id="deanPreviewMeta"></div>
+                        <div class="overflow-x-auto border border-border rounded-xl bg-white">
+                            <table class="custom-table">
+                                <thead><tr><th>Name</th><th>Student ID</th><th>Email</th><th>Section</th><th>Course Code</th><th>Professor</th></tr></thead>
+                                <tbody id="deanPreviewTableBody"></tbody>
+                            </table>
+                        </div>
+                        <div class="flex justify-between items-center mt-3.5 flex-wrap gap-2.5">
+                            <div id="deanPreviewCountLabel" class="text-[13px] text-text-muted"></div>
+                            <div class="flex gap-2.5">
+                                <button onclick="cancelDeanImport()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-transparent text-text-secondary border border-border rounded-xl text-[13px] font-medium cursor-pointer hover:border-blue hover:text-blue transition-all"><i class="fas fa-times"></i> Cancel</button>
+                                <button id="deanProcessImportBtn" onclick="processDeanImport()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-br from-[#0d7a5a] to-success text-white border-none rounded-xl text-[13px] font-semibold cursor-pointer hover:-translate-y-px hover:shadow-lg transition-all"><i class="fas fa-check"></i> Process Import</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════ ACTIVITY HISTORY ═══════════════════ -->
+        <div id="activityHistoryPage" class="management-page">
+            <div class="relative bg-gradient-to-br from-navy via-[#1a4580] to-navy-light rounded-2xl p-7 mb-7 overflow-hidden">
+                <div class="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-accent/[0.07] pointer-events-none"></div>
+                <div class="relative flex items-center gap-4 flex-wrap">
+                    <div class="w-[52px] h-[52px] rounded-2xl bg-accent/15 border border-accent/25 flex items-center justify-center text-accent text-[22px] flex-shrink-0"><i class="fas fa-history"></i></div>
+                    <div>
+                        <div class="text-xs text-white/50 uppercase tracking-[2px] mb-1">Audit</div>
+                        <div class="font-display text-2xl font-bold text-white mb-1">Activity History</div>
+                        <div class="text-[13px] text-white/45">See who changed section professor assignments with date and time</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-border shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-border flex items-center justify-between flex-wrap gap-3">
+                    <div class="flex items-center gap-2.5 text-[15px] font-semibold text-navy">
+                        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[#8b6914] to-accent flex items-center justify-center text-white text-[13px]"><i class="fas fa-clipboard-list"></i></div>
+                        Recent Activity
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full bg-info-bg text-blue text-xs font-semibold ml-1">Showing: <span id="activityCount" class="ml-1">0</span></span>
+                    </div>
+                    <div class="flex items-center gap-2.5 flex-wrap">
+                        <div class="relative flex items-center">
+                            <i class="fas fa-search absolute left-3 text-text-muted text-[13px] pointer-events-none"></i>
+                            <input type="text" class="pl-9 pr-3.5 py-2 border border-border rounded-lg text-[13px] text-text-primary bg-surface w-[260px] focus:outline-none focus:border-blue focus:ring-2 focus:ring-blue/10 focus:bg-white transition-all font-sans" id="activitySearch" placeholder="Search section / professor / user…" oninput="filterActivityLogs()">
+                        </div>
+                        <button onclick="loadActivityLogs()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-transparent text-text-secondary border border-border rounded-xl text-[13px] font-medium cursor-pointer transition-all hover:border-blue hover:text-blue hover:bg-info-bg/40"><i class="fas fa-sync-alt"></i> Refresh</button>
+                    </div>
+                </div>
+                <div class="p-6" id="activityListWrap">
+                    <div class="py-10 text-center text-text-muted" id="activityEmptyState">
+                        <div class="text-4xl text-border-strong mb-4"><i class="fas fa-history"></i></div>
+                        <div class="text-sm">No activity logs yet.</div>
+                    </div>
+                    <div class="space-y-3" id="activityList"></div>
+                </div>
+            </div>
+        </div>
+
         <!-- ═══════════════════ PROFILE ═══════════════════ -->
         <div id="profilePage" class="management-page">
             <div class="relative bg-gradient-to-br from-navy via-[#1a4580] to-navy-light rounded-2xl p-7 mb-7 overflow-hidden">
@@ -967,6 +1074,8 @@ const loadingTimeout = setTimeout(() => {
     let testResults = [];
     let studentRankings = [], filteredStudentRankings = [];
     let studentSections = new Set();
+    let deanCurrentImportData = null;
+    let activityLogs = [], filteredActivityLogs = [];
 
 // ─── NORM-BASED SCORE HELPERS (matches grades.html) ───
     const CATEGORY_ORDER = { 'Excellent': 5, 'Good': 4, 'Average': 3, 'Below Average': 2, 'Poor': 1 };
@@ -1208,6 +1317,8 @@ const loadingTimeout = setTimeout(() => {
     window.showPreAssessment = function() { hideAllPages(); document.getElementById('preAssessmentPage').classList.add('active'); setActiveNav('nav-pre'); loadPreAssessments(); };
     window.showPostAssessment = function() { hideAllPages(); document.getElementById('postAssessmentPage').classList.add('active'); setActiveNav('nav-post'); loadPostAssessments(); };
     window.showAccountManagement = function() { hideAllPages(); document.getElementById('accountPage').classList.add('active'); setActiveNav('nav-account'); loadAllAccounts(); };
+    window.showClasslistImport = function() { hideAllPages(); document.getElementById('classlistImportPage').classList.add('active'); setActiveNav('nav-classlist'); };
+    window.showActivityHistory = function() { hideAllPages(); document.getElementById('activityHistoryPage').classList.add('active'); setActiveNav('nav-activity'); loadActivityLogs(); };
 
     // ─── AUTH ───
   let unsubscribeAuth = null;
@@ -2831,6 +2942,402 @@ window.deleteSection = async function(sectionName) {
         await showDeanAlert('Delete failed: ' + err.message, { title: 'Error', type: 'error' });
     }
 };
+
+// ─── CLASS LIST IMPORT (DEAN) ───
+window.handleDeanStudentFileSelect = function(event) {
+    const file = event.target.files && event.target.files[0];
+    const nameEl = document.getElementById('deanStudentFileName');
+    if (nameEl) nameEl.textContent = file ? file.name : 'No file chosen';
+    if (!file) return;
+    if (!/\.csv$/i.test(file.name)) {
+        showDeanAlert('Please upload a CSV file.', { title: 'Invalid File', type: 'error' });
+        cancelDeanImport();
+        return;
+    }
+    parseDeanStudentCSV(file);
+};
+
+function parseDeanStudentCSV(file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const text = String(e.target.result || '');
+            const cleanedText = text.replace(/"/g, '');
+            const lines = cleanedText.split('\n').map(l => l.trim()).filter(Boolean);
+
+            let professorName = '', courseCode = '', section = '', courseTitle = '';
+            let timeSchedule = '', daySchedule = '', roomSchedule = '';
+            let yearLevel = '', academicYear = '';
+
+            for (const line of lines) {
+                if (line.includes('Faculty:')) {
+                    const m = line.match(/Faculty:\s*(?:Prof\.\s*)?(.+?)\s+Units:/i);
+                    if (m) professorName = m[1].trim();
+                }
+                if (line.includes('Course Code:')) {
+                    const m = line.match(/Course Code:\s*(.+?)\s+Course File/i);
+                    if (m) courseCode = m[1].trim();
+                }
+                if (line.includes('Section:')) {
+                    const m = line.match(/Section:\s*(.+?)\s{2,}Time(?:\/Days\/Room)?:/i);
+                    if (m) {
+                        section = m[1].trim();
+                        const ym = section.match(/^([IVX]+)-/);
+                        if (ym) {
+                            const ymap = { I: '1', II: '2', III: '3', IV: '4' };
+                            yearLevel = ymap[ym[1]] || '';
+                        }
+                    }
+                    const sm = line.match(/Time\/Days\/Room:\s*(.+?)$/i);
+                    if (sm) {
+                        const parts = sm[1].trim().split('/').map(p => p.trim());
+                        timeSchedule = parts[0] || '';
+                        daySchedule = parts[1] || '';
+                        roomSchedule = parts[2] || '';
+                    }
+                }
+                if (line.includes('Course Title:')) {
+                    const m = line.match(/Course Title:\s*(.+?)$/i);
+                    if (m) courseTitle = m[1].trim();
+                }
+                if (line.includes('A.Y.')) {
+                    const m = line.match(/A\.Y\.\s*(\d{4}-\d{4})/i);
+                    if (m) academicYear = `A.Y. ${m[1]}`;
+                }
+            }
+
+            const studentData = [];
+            for (const line of lines) {
+                if (
+                    !line.includes('@umak.edu.ph') ||
+                    ['UNIVERSITY OF MAKATI', 'OFFICIAL CLASSLIST', 'COLLEGE OF', 'First Semester', 'INSTRUCTION', 'NOTE:', 'Date Printed:', 'Powered by', 'XXXXX'].some(s => line.includes(s)) ||
+                    line.startsWith('#')
+                ) continue;
+
+                const emailMatch = line.match(/([a-z][a-z0-9]+\.[a-zA-Z0-9]+@umak\.edu\.ph)/i);
+                if (!emailMatch) continue;
+                const email = emailMatch[1].toLowerCase();
+
+                let remaining = line.replace(/^\d+\s+/, '').replace(/\S+@umak\.edu\.ph/i, '').trim();
+                const idMatch = remaining.match(/([AaKk]\d{5,})/);
+                let studentId = '';
+                if (idMatch) { studentId = idMatch[1].toUpperCase(); remaining = remaining.replace(idMatch[0], '').trim(); }
+
+                const nameMatch = remaining.match(/([A-ZÁÉÍÓÚÑÜ][A-ZÁÉÍÓÚÑÜ\s,.']+(?:,\s*[A-ZÁÉÍÓÚÑÜ][A-ZÁÉÍÓÚÑÜ\s.]+))[\s]*$/);
+                const name = nameMatch ? nameMatch[1].replace(/\s+/g, ' ').trim() : remaining.replace(/\s+/g, ' ').trim();
+                if (!name) continue;
+
+                studentData.push({
+                    name,
+                    student_id: studentId,
+                    email,
+                    section: section || '',
+                    course_code: courseCode || '',
+                    course_title: courseTitle || '',
+                    professor: professorName || '',
+                    time: timeSchedule || '',
+                    day: daySchedule || '',
+                    room: roomSchedule || '',
+                    year_level: yearLevel || '',
+                    academic_year: academicYear || ''
+                });
+            }
+
+            if (!studentData.length) throw new Error('No valid student data found in CSV.');
+            deanCurrentImportData = {
+                data: studentData,
+                metadata: { professorName, courseCode, section, courseTitle, timeSchedule, daySchedule, roomSchedule, yearLevel, academicYear }
+            };
+            showDeanPreviewTable(studentData, deanCurrentImportData.metadata);
+        } catch (err) {
+            console.error('Dean CSV parse error:', err);
+            showDeanAlert(err.message || 'Failed to parse CSV file.', { title: 'Parse Error', type: 'error' });
+            cancelDeanImport();
+        }
+    };
+    reader.onerror = () => {
+        showDeanAlert('Failed to read the file. Please try again.', { title: 'File Error', type: 'error' });
+        cancelDeanImport();
+    };
+    reader.readAsText(file);
+}
+
+function showDeanPreviewTable(data, meta) {
+    const metaEl = document.getElementById('deanPreviewMeta');
+    if (metaEl) {
+        metaEl.innerHTML = `
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-[13px]">
+                <div><span class="text-text-muted font-semibold">Section:</span> <span class="font-semibold text-navy">${meta.section || '—'}</span></div>
+                <div><span class="text-text-muted font-semibold">Course:</span> <span class="font-semibold text-navy">${meta.courseCode || '—'}</span></div>
+                <div><span class="text-text-muted font-semibold">Title:</span> <span class="font-semibold text-navy">${meta.courseTitle || '—'}</span></div>
+                <div><span class="text-text-muted font-semibold">Professor:</span> <span class="font-semibold text-navy">${meta.professorName || '—'}</span></div>
+            </div>
+            <div class="mt-2 text-[12px] text-text-muted"><span class="font-semibold">Schedule:</span> ${(meta.timeSchedule || '—')} / ${(meta.daySchedule || '—')} / ${(meta.roomSchedule || '—')}</div>
+        `;
+    }
+
+    const tbody = document.getElementById('deanPreviewTableBody');
+    if (tbody) {
+        tbody.innerHTML = data.slice(0, 25).map(r => `
+            <tr>
+                <td data-label="Name" style="font-weight:600;color:#0a1628;">${r.name || '—'}</td>
+                <td data-label="Student ID" style="font-family:'DM Mono',monospace;font-size:12px;">${r.student_id || '—'}</td>
+                <td data-label="Email" style="font-size:12px;">${r.email || '—'}</td>
+                <td data-label="Section"><span style="background:rgba(45,111,196,0.1);color:#2d6fc4;font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;">${r.section || '—'}</span></td>
+                <td data-label="Course Code" style="font-size:13px;">${r.course_code || '—'}</td>
+                <td data-label="Professor" style="font-size:13px;">${r.professor || '—'}</td>
+            </tr>
+        `).join('') + (data.length > 25 ? `<tr><td colspan="6" style="text-align:center;color:#8a98ae;font-style:italic;">… and ${data.length - 25} more students</td></tr>` : '');
+    }
+
+    const label = document.getElementById('deanPreviewCountLabel');
+    if (label) label.textContent = `Showing ${Math.min(data.length, 25)} of ${data.length} students`;
+    const sec = document.getElementById('deanPreviewSection');
+    if (sec) sec.style.display = 'block';
+    sec && sec.scrollIntoView({ behavior: 'smooth' });
+}
+
+window.cancelDeanImport = function() {
+    const input = document.getElementById('deanStudentCsvInput');
+    if (input) input.value = '';
+    const nameEl = document.getElementById('deanStudentFileName');
+    if (nameEl) nameEl.textContent = 'No file chosen';
+    const sec = document.getElementById('deanPreviewSection');
+    if (sec) sec.style.display = 'none';
+    deanCurrentImportData = null;
+};
+
+window.processDeanImport = async function() {
+    if (!deanCurrentImportData || !deanCurrentImportData.data || !deanCurrentImportData.data.length) {
+        await showDeanAlert('No import data selected.', { title: 'No Data', type: 'error' });
+        return;
+    }
+    const meta = deanCurrentImportData.metadata || {};
+    const sectionName = (meta.section || (deanCurrentImportData.data[0] && deanCurrentImportData.data[0].section) || '').trim();
+    if (!sectionName) {
+        await showDeanAlert('Missing section name in CSV.', { title: 'Validation Error', type: 'error' });
+        return;
+    }
+
+    const btn = document.getElementById('deanProcessImportBtn');
+    if (btn) btn.disabled = true;
+    try {
+        let successCount = 0, errorCount = 0;
+        for (const row of deanCurrentImportData.data) {
+            try {
+                await deanUpsertStudentRow(row);
+                successCount++;
+            } catch (e) {
+                errorCount++;
+                console.error('Dean import row error:', e);
+            }
+        }
+        await deanUpdateSectionRoster(sectionName, deanCurrentImportData.data, meta);
+
+        await showDeanAlert(
+            `Import complete.<br><br><strong>${successCount}</strong> student record(s) processed${errorCount ? `, <strong>${errorCount}</strong> failed.` : '.'}`,
+            { title: 'Import Complete', type: errorCount ? 'warning' : 'success' }
+        );
+        cancelDeanImport();
+    } finally {
+        if (btn) btn.disabled = false;
+    }
+};
+
+async function deanUpsertStudentRow(row) {
+    const fullName = row.name || '';
+    const studentId = row.student_id || '';
+    const email = (row.email || '').toLowerCase().trim();
+    if (!email) throw new Error('Missing email');
+
+    let firstName = '', lastName = '';
+    if (fullName.includes(',')) {
+        const parts = fullName.split(',');
+        lastName = (parts[0] || '').trim();
+        firstName = (parts[1] || '').trim();
+    } else {
+        firstName = fullName.trim();
+    }
+
+    const uniqueId = studentId ? `student_${studentId}` : `student_${email.replace(/[^a-zA-Z0-9]/g, '_')}`;
+    const existingSnap = await db.collection('students').where('email', '==', email).limit(1).get();
+
+    const data = {
+        firstName,
+        lastName,
+        fullName,
+        studentId,
+        email,
+        section: (row.section || '').trim(),
+        courseCode: (row.course_code || '').trim(),
+        professor: (row.professor || '').trim(),
+        time: (row.time || '').trim(),
+        day: (row.day || '').trim(),
+        room: (row.room || '').trim(),
+        yearLevel: (row.year_level || '').trim(),
+        academicYear: (row.academic_year || '').trim(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        lastImportedBy: currentUser ? currentUser.uid : '',
+        lastImportedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    if (!existingSnap.empty) {
+        const existingId = existingSnap.docs[0].id;
+        await db.collection('users').doc(email.replace(/\./g, '_')).set({
+            uid: existingId,
+            email,
+            role: 'student',
+            studentId,
+            name: fullName,
+            section: row.section || ''
+        }, { merge: true });
+    } else {
+        await db.collection('students').doc(uniqueId).set({
+            uid: uniqueId,
+            ...data,
+            status: 'active',
+            importedBy: currentUser ? currentUser.uid : '',
+            importedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            emailVerified: false,
+            privacyAccepted: false,
+            isActive: true
+        }, { merge: true });
+        await db.collection('users').doc(email.replace(/\./g, '_')).set({
+            uid: uniqueId,
+            email,
+            role: 'student',
+            studentId,
+            name: fullName,
+            section: row.section || ''
+        }, { merge: true });
+    }
+}
+
+async function deanUpdateSectionRoster(sectionName, rows, meta) {
+    const safeName = (sectionName || '').trim();
+    if (!safeName) return;
+
+    const sectionRef = db.collection('sections').doc(safeName);
+    const snap = await sectionRef.get();
+    const incomingList = rows.map(r => ({
+        email: (r.email || '').toLowerCase().trim(),
+        name: (r.name || '').trim(),
+        student_id: (r.student_id || '').trim()
+    })).filter(s => s.email);
+
+    const metaFields = {
+        name: safeName,
+        courseCode: (meta.courseCode || '').trim(),
+        courseTitle: (meta.courseTitle || '').trim(),
+        professor: (meta.professorName || '').trim(),
+        time: (meta.timeSchedule || '').trim(),
+        day: (meta.daySchedule || '').trim(),
+        room: (meta.roomSchedule || '').trim(),
+        yearLevel: (meta.yearLevel || '').trim(),
+        academicYear: (meta.academicYear || '').trim(),
+        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    if (snap.exists) {
+        const existingList = (snap.data().students || []).map(s => ({
+            email: (s.email || '').toLowerCase().trim(),
+            name: (s.name || '').trim(),
+            student_id: (s.student_id || '').trim()
+        })).filter(s => s.email);
+        const merged = new Map();
+        existingList.forEach(s => merged.set(s.email, s));
+        incomingList.forEach(s => merged.set(s.email, { ...(merged.get(s.email) || {}), ...s }));
+        const finalList = Array.from(merged.values());
+        await sectionRef.set({ ...metaFields, students: finalList, studentCount: finalList.length }, { merge: true });
+    } else {
+        await sectionRef.set({
+            ...metaFields,
+            students: incomingList,
+            studentCount: incomingList.length,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+    }
+}
+
+// ─── ACTIVITY LOGS (DEAN) ───
+window.loadActivityLogs = async function() {
+    try {
+        const snap = await db.collection('activityLogs').orderBy('timestamp', 'desc').limit(200).get();
+        activityLogs = [];
+        snap.forEach(d => activityLogs.push({ id: d.id, ...d.data() }));
+        filteredActivityLogs = [...activityLogs];
+        renderActivityLogs(filteredActivityLogs);
+    } catch (err) {
+        console.error('loadActivityLogs error:', err);
+        await showDeanAlert('Failed to load activity logs: ' + (err.message || 'Unknown error'), { title: 'Error', type: 'error' });
+    }
+};
+
+window.filterActivityLogs = function() {
+    const q = (document.getElementById('activitySearch')?.value || '').toLowerCase().trim();
+    if (!q) {
+        filteredActivityLogs = [...activityLogs];
+    } else {
+        filteredActivityLogs = activityLogs.filter(a => {
+            const sec = (a.sectionName || a.sectionId || '').toLowerCase();
+            const fromP = (a.fromProfessor || '').toLowerCase();
+            const toP = (a.toProfessor || '').toLowerCase();
+            const by = (a.changedByName || a.changedById || '').toLowerCase();
+            return sec.includes(q) || fromP.includes(q) || toP.includes(q) || by.includes(q);
+        });
+    }
+    renderActivityLogs(filteredActivityLogs);
+};
+
+function renderActivityLogs(list) {
+    const countEl = document.getElementById('activityCount');
+    if (countEl) countEl.textContent = String(list.length || 0);
+
+    const empty = document.getElementById('activityEmptyState');
+    const wrap = document.getElementById('activityList');
+    if (!wrap) return;
+
+    if (!list.length) {
+        if (empty) empty.style.display = 'block';
+        wrap.innerHTML = '';
+        return;
+    }
+    if (empty) empty.style.display = 'none';
+
+    wrap.innerHTML = list.map(a => {
+        const when = a.timestamp?.toDate ? a.timestamp.toDate() : (a.timestamp ? new Date(a.timestamp) : null);
+        const timeStr = when ? when.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
+        const sec = a.sectionName || a.sectionId || '—';
+        const fromP = a.fromProfessor || '—';
+        const toP = a.toProfessor || '—';
+        const by = a.changedByName || a.changedById || '—';
+        const role = (a.changedByRole || 'user').toUpperCase();
+
+        return `
+            <div class="p-4 rounded-2xl border border-border bg-surface">
+                <div class="flex items-start justify-between gap-3 flex-wrap">
+                    <div>
+                        <div class="text-[13px] text-text-muted font-semibold uppercase tracking-[0.8px]">SECTION</div>
+                        <div class="text-[16px] font-bold text-navy">${sec}</div>
+                        <div class="mt-1 text-[13px] text-text-secondary">
+                            <span class="font-semibold text-text-muted">Professor:</span>
+                            <span class="font-semibold">${fromP}</span>
+                            <span class="text-text-muted mx-1">→</span>
+                            <span class="font-semibold">${toP}</span>
+                        </div>
+                        <div class="mt-1 text-[12px] text-text-muted">
+                            Changed by <span class="font-semibold text-navy">${by}</span>
+                            <span class="inline-flex items-center ml-2 px-2 py-0.5 rounded-full bg-info-bg text-blue text-[10px] font-semibold tracking-[1px]">${role}</span>
+                        </div>
+                    </div>
+                    <div class="text-[12px] text-text-muted font-mono">${timeStr}</div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
 </script>
 </body>
 </html>

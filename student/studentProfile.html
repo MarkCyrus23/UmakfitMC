@@ -1656,7 +1656,7 @@ function setupNotificationListener() {
         );
 
         unsubscribeNotificationListener = onSnapshot(notificationsQuery, (snapshot) => {
-            console.log('🔔 Notification update detected!');
+            // debug log removed
             checkUnreadNotifications();
         }, (error) => {
             console.error('❌ Error in notification listener:', error);
@@ -1759,7 +1759,7 @@ window.addEventListener('beforeunload', () => {
 
     async function loadStudentProfile(user) {
         try {
-            console.log('Loading student profile for:', user.email);
+            // debug log removed
             
             const studentsQuery = query(
                 collection(db, 'students'),
@@ -1768,21 +1768,21 @@ window.addEventListener('beforeunload', () => {
             const studentsSnapshot = await getDocs(studentsQuery);
             
             if (!studentsSnapshot.empty) {
-                console.log('Found student by email query');
+                // debug log removed
                 studentsSnapshot.forEach((doc) => {
                     studentData = doc.data();
                     studentDocId = doc.id;
                 });
             } else {
-                console.log('No student found by email, trying by UID');
+                // debug log removed
                 const studentRef = doc(db, 'students', user.uid);
                 const studentDoc = await getDoc(studentRef);
                 if (studentDoc.exists()) {
                     studentData = studentDoc.data();
                     studentDocId = user.uid;
-                    console.log('Student data found by UID:', studentData);
+                    // debug log removed
                 } else {
-                    console.log('No student profile found at all');
+                    // debug log removed
                     const extractedId = extractUmakIdFromEmail(user.email);
                     const nameInfo = extractNameFromEmail(user.email);
                     
@@ -1807,7 +1807,7 @@ window.addEventListener('beforeunload', () => {
                         lastLogin: new Date().toISOString()
                     };
                     studentDocId = user.uid;
-                    console.log('Created minimal student data:', studentData);
+                    // debug log removed
                 }
             }
             
@@ -2024,7 +2024,7 @@ document.getElementById('profileAgeGender').textContent =
             await updateDoc(studentRef, {
                 lastLogin: new Date().toISOString()
             });
-            console.log('Last login updated');
+            // debug log removed
         } catch (error) {
             console.error('Error updating last login:', error);
         }
@@ -2188,7 +2188,7 @@ age: calculateAge(document.getElementById('editBirthday').value),
                 updatedAt: new Date().toISOString()
             };
             
-            console.log('Updating student profile:', updatedData);
+            // debug log removed
             
             const { collection, addDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
             
@@ -2217,9 +2217,9 @@ age: calculateAge(document.getElementById('editBirthday').value),
                     updatedAt: new Date().toISOString()
                 };
                 
-                console.log('Creating BMI record:', bmiData);
+                // debug log removed
                 await addDoc(collection(db, 'BMI'), bmiData);
-                console.log('BMI record created successfully');
+                // debug log removed
                 showProfileSavePopup('success', 'Profile and BMI record updated successfully!');
             } else {
                 showProfileSavePopup('success', 'Profile updated successfully!');

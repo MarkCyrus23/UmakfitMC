@@ -1071,9 +1071,7 @@ async function checkStudentAttempts(testId, userId) {
         const snap = await getDocs(q);
         
         // ADD THIS - open browser console to check
-        console.log('Checking testId:', testId);
-        console.log('Total results found:', snap.size);
-        snap.forEach(d => console.log('Result doc:', d.data().testId, d.data().testName, d.data().attemptNumber));
+        // debug logs removed
 
         let attempts = [], highest = 0, perfect = false;
         snap.forEach(d => {
