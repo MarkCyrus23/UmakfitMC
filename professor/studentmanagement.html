@@ -1288,15 +1288,21 @@ function renderCategoryBadge(category) {
                 const profName = user.displayName || window.currentProfessor.fullName || window.currentProfessor.name || 'Professor';
                 updateProfileUI(user.photoURL, profName, user.email);
                 
-                // Load initial data
-                await loadSections();
-                await loadStudents();
-                
-                // Set up real-time listeners
-                setupRealtimeUpdates();
-                
-                loadingScreen.style.display = 'none';
-                mainContent.classList.remove('hidden');
+           // Show page immediately — same pattern as dashboard
+const loadingTimeout = setTimeout(() => {
+    loadingScreen.style.display = 'none';
+    mainContent.classList.remove('hidden');
+}, 1500);
+
+loadSections().then(() => loadStudents()).then(() => {
+    setupRealtimeUpdates();
+}).catch(err => {
+    showErrorModal('Error loading data: ' + err.message);
+});
+
+clearTimeout(loadingTimeout);
+loadingScreen.style.display = 'none';
+mainContent.classList.remove('hidden');
             } catch (error) {
                 console.error('Error loading student management:', error);
                 loadingScreen.style.display = 'none';
@@ -1372,133 +1378,113 @@ function renderCategoryBadge(category) {
         if (numericMatch) return numericMatch[0];
         return 'N/A';
     }
+window.loadStudents = async function() {
+    try {
+        if (window.sections.length === 0) { updateStudentsTable([]); return; }
+        window.students = [];
+        const seenStudentIds = new Set();
 
-    window.loadStudents = async function() {
-        try {
-            if (window.sections.length === 0) { updateStudentsTable([]); return; }
-            window.students = [];
-            const seenStudentIds = new Set();
-            
-            // Load all students data from students collection para makuha ang age/birthday
-            const studentsMap = new Map();
-            const studentsSnap = await getDocs(collection(db, 'students'));
-            studentsSnap.forEach(doc => {
-                const data = doc.data();
-                if (data.email) {
-                    studentsMap.set(data.email, {
-                        birthday: data.birthday || null,
-                        age: data.age || null,
-                        gender: data.gender || 'male',
-                        medicalCondition: data.medicalCondition || null
-                    });
-                }
+        // ── Single batch: fetch ALL student profile data ──────────────────
+        const studentsMap = new Map();
+        const studentsSnap = await getDocs(collection(db, 'students'));
+        studentsSnap.forEach(doc => {
+            const data = doc.data();
+            if (data.email) studentsMap.set(data.email, {
+                birthday: data.birthday || null,
+                age: data.age || null,
+                gender: data.gender || 'male',
+                medicalCondition: data.medicalCondition || null
             });
-            
-            for (const section of window.sections) {
-                if (!section.students || !Array.isArray(section.students) || section.students.length === 0) continue;
-                
-                for (const rawStudent of section.students) {
-                    const studentEmail = rawStudent.email || '';
-                    if (!studentEmail || seenStudentIds.has(studentEmail)) continue;
-                    seenStudentIds.add(studentEmail);
-                    
-                    let firstName = '', lastName = '', fullName = rawStudent.name || 'Unknown Student';
-                    if (fullName.includes(',')) { 
-                        const parts = fullName.split(',').map(p => p.trim()); 
-                        lastName = parts[0]; 
-                        firstName = parts.slice(1).join(' '); 
-                    } else { 
-                        const nameParts = fullName.split(' '); 
-                        firstName = nameParts[0] || ''; 
-                        lastName = nameParts.slice(1).join(' ') || ''; 
-                    }
+        });
 
-                    // Get student data for age
-                    const studentAgeData = studentsMap.get(studentEmail) || {};
+        // ── Single batch: fetch ALL completed testResults ──────────────────
+        const allResultsSnap = await getDocs(
+            query(collection(db, 'testResults'), where('status', '==', 'completed'))
+        );
+        // Group by studentEmail
+        const resultsByEmail = new Map();
+        allResultsSnap.forEach(docSnap => {
+            const data = docSnap.data();
+            const email = data.studentEmail;
+            if (!email) return;
+            if (!resultsByEmail.has(email)) resultsByEmail.set(email, []);
+            resultsByEmail.get(email).push({ id: docSnap.id, ...data });
+        });
 
-                    // Load attempts and calculate categories (like grades.html)
-                    let categories = [];
-                    const bestCategoriesPerTest = new Map(); // Store best category per test
-                    let totalAttempts = 0;
+        // ── Build students from sections (no per-student Firestore calls) ──
+        for (const section of window.sections) {
+            if (!section.students || !Array.isArray(section.students) || section.students.length === 0) continue;
 
-                    if (studentEmail) {
-                        try {
-                            const attemptsQuery = query(
-                                collection(db, 'testResults'),
-                                where('studentEmail', '==', studentEmail),
-                                where('status', '==', 'completed')
-                            );
-                            const snapshot = await getDocs(attemptsQuery);
-                            totalAttempts = snapshot.size;
+            for (const rawStudent of section.students) {
+                const studentEmail = rawStudent.email || '';
+                if (!studentEmail || seenStudentIds.has(studentEmail)) continue;
+                seenStudentIds.add(studentEmail);
 
-                            snapshot.forEach(docSnap => {
-                                const data = docSnap.data();
-                                const testId = data.testId || docSnap.id;
-                                const testName = data.testName || 'Unknown Activity';
-                                const result = data.result || data.resultData || data.repetitions || '';
-                                
-                                // Determine gender (from test data or student data)
-                                const gender = (data.gender || studentAgeData.gender || '').toLowerCase();
-                                const genderKey = gender.startsWith('f') ? 'female' : 'male';
-                                
-                                // Get age group from student data
-                                const ageGroup = getAgeGroupFromStudent(studentAgeData);
-                                
-                                // Get category with CORRECT age group
-                                const category = getNormCategory(testName, result, genderKey, ageGroup);
-                                
-                                // Keep best category per test (based on CATEGORY_ORDER)
-                                if (!bestCategoriesPerTest.has(testId) || 
-                                    (CATEGORY_ORDER[category] || 3) > (CATEGORY_ORDER[bestCategoriesPerTest.get(testId)] || 0)) {
-                                    bestCategoriesPerTest.set(testId, category);
-                                }
-                            });
-                        } catch (e) { console.warn('Error loading attempts for student:', fullName, e); }
-                    }
-
-                    // Get all unique best categories
-                    const uniqueCategories = Array.from(bestCategoriesPerTest.values());
-                    const uniqueTestCount = uniqueCategories.length;
-                    
-                    // Get overall category (like grades.html)
-                    const overallCategory = getOverallCategory(uniqueCategories);
-                    
-                    // Calculate numeric representation for sorting
-                    const overallScore = CATEGORY_ORDER[overallCategory] || 3;
-
-                    window.students.push({
-                        id: studentEmail,
-                        umakId: rawStudent.student_id || rawStudent.studentId || 'N/A',
-                        firstName: firstName || 'Unknown',
-                        lastName: lastName || '',
-                        fullName: fullName,
-                        email: studentEmail,
-                        section: section.name,
-                        yearLevel: section.yearLevel || extractYearLevel(section.name),
-                        totalAttempts: totalAttempts || 0,
-                        uniqueTestCount: uniqueTestCount || 0,
-                        categories: uniqueCategories,
-                        overallCategory: overallCategory,
-                        overallScore: overallScore,
-                        status: 'active',
-                        age: studentAgeData.age || null,
-                        birthday: studentAgeData.birthday || null,
-                        medicalCondition: studentAgeData.medicalCondition || null
-                    });
+                let firstName = '', lastName = '', fullName = rawStudent.name || 'Unknown Student';
+                if (fullName.includes(',')) {
+                    const parts = fullName.split(',').map(p => p.trim());
+                    lastName = parts[0]; firstName = parts.slice(1).join(' ');
+                } else {
+                    const nameParts = fullName.split(' ');
+                    firstName = nameParts[0] || ''; lastName = nameParts.slice(1).join(' ') || '';
                 }
+
+                const studentAgeData = studentsMap.get(studentEmail) || {};
+                const attempts = resultsByEmail.get(studentEmail) || [];
+                const totalAttempts = attempts.length;
+
+                // Calculate best category per test (all in memory — no Firestore calls)
+                const bestCategoriesPerTest = new Map();
+                attempts.forEach(data => {
+                    const testId = data.testId || data.id;
+                    const testName = data.testName || 'Unknown Activity';
+                    const result = data.result || data.resultData || data.repetitions || '';
+                    const gender = (data.gender || studentAgeData.gender || '').toLowerCase();
+                    const genderKey = gender.startsWith('f') ? 'female' : 'male';
+                    const ageGroup = getAgeGroupFromStudent(studentAgeData);
+                    const category = getNormCategory(testName, result, genderKey, ageGroup);
+                    if (!bestCategoriesPerTest.has(testId) ||
+                        (CATEGORY_ORDER[category] || 3) > (CATEGORY_ORDER[bestCategoriesPerTest.get(testId)] || 0)) {
+                        bestCategoriesPerTest.set(testId, category);
+                    }
+                });
+
+                const uniqueCategories = Array.from(bestCategoriesPerTest.values());
+                const overallCategory = getOverallCategory(uniqueCategories);
+
+                window.students.push({
+                    id: studentEmail,
+                    umakId: rawStudent.student_id || rawStudent.studentId || 'N/A',
+                    firstName: firstName || 'Unknown',
+                    lastName: lastName || '',
+                    fullName,
+                    email: studentEmail,
+                    section: section.name,
+                    yearLevel: section.yearLevel || extractYearLevel(section.name),
+                    totalAttempts,
+                    uniqueTestCount: uniqueCategories.length,
+                    categories: uniqueCategories,
+                    overallCategory,
+                    overallScore: CATEGORY_ORDER[overallCategory] || 3,
+                    status: 'active',
+                    age: studentAgeData.age || null,
+                    birthday: studentAgeData.birthday || null,
+                    medicalCondition: studentAgeData.medicalCondition || null
+                });
             }
-            
-            window.filteredStudents = [...window.students];
-            window.currentPage = 1;
-            updateStudentsTable(window.filteredStudents);
-            await loadOverdueStudents();
-            document.getElementById('allStudentsCount').textContent = window.students.length;
-        } catch (error) {
-            console.error('Error loading students:', error);
-            updateStudentsTable([]);
-            showErrorModal('Error loading students: ' + error.message);
         }
-    };
+
+        window.filteredStudents = [...window.students];
+        window.currentPage = 1;
+        updateStudentsTable(window.filteredStudents);
+        await loadOverdueStudents();
+        document.getElementById('allStudentsCount').textContent = window.students.length;
+    } catch (error) {
+        console.error('Error loading students:', error);
+        updateStudentsTable([]);
+        showErrorModal('Error loading students: ' + error.message);
+    }
+};
 
     function populateSectionsTable() {
         const tableBody = document.getElementById('sectionsTableBody');
@@ -2018,13 +2004,15 @@ rowsHTML += `<tr onclick="viewStudentDetails('${student.id}')" style="cursor:poi
             await loadSections();
             await loadStudents();
         });
-
- testResultsUnsubscribe = onSnapshot(collection(db, 'testResults'), async () => {
+let reloadDebounceTimer = null;
+testResultsUnsubscribe = onSnapshot(collection(db, 'testResults'), async () => {
     const modalOpen = document.getElementById('studentTestsModal')?.style.display === 'flex';
-    if (!modalOpen) {
+    if (modalOpen) return;
+    clearTimeout(reloadDebounceTimer);
+    reloadDebounceTimer = setTimeout(async () => {
         await loadStudents();
         await loadOverdueStudents();
-    }
+    }, 3000);
 });
 
  // Listen for test permissions changes
@@ -2046,16 +2034,28 @@ testPermissionsUnsubscribe = onSnapshot(collection(db, 'testPermissions'), async
         if (!window.additionalListeners) window.additionalListeners = [];
         window.additionalListeners.push(additionalPermissionsListener);
     }
+function cleanupAllListeners() {
+    if (sectionsUnsubscribe) { try { sectionsUnsubscribe(); } catch(e){} sectionsUnsubscribe = null; }
+    if (testResultsUnsubscribe) { try { testResultsUnsubscribe(); } catch(e){} testResultsUnsubscribe = null; }
+    if (testPermissionsUnsubscribe) { try { testPermissionsUnsubscribe(); } catch(e){} testPermissionsUnsubscribe = null; }
+    if (window.additionalListeners) {
+        window.additionalListeners.forEach(fn => { try { fn(); } catch(e){} });
+        window.additionalListeners = [];
+    }
+}
 
-    // Clean up listeners on page unload
-    window.addEventListener('beforeunload', () => {
-        if (sectionsUnsubscribe) sectionsUnsubscribe();
-        if (testResultsUnsubscribe) testResultsUnsubscribe();
-        if (testPermissionsUnsubscribe) testPermissionsUnsubscribe();
-        if (window.additionalListeners) {
-            window.additionalListeners.forEach(listener => listener());
-        }
-    });
+// pagehide fires on mobile/Safari too (beforeunload doesn't always fire)
+window.addEventListener('pagehide', cleanupAllListeners);
+window.addEventListener('beforeunload', cleanupAllListeners);
+
+// visibilitychange: pause realtime when tab is hidden, resume when visible
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+        cleanupAllListeners();
+    } else if (document.visibilityState === 'visible' && window.currentUser) {
+        setupRealtimeUpdates();
+    }
+});
 
     window.loadOverdueStudents = async function() {
         try {
