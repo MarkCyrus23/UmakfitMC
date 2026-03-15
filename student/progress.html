@@ -251,7 +251,7 @@
             </div>
         </div>
     </div>
-</nav><a href="/cdn-cgi/l/email-protection#e083888ba0958d818bce858495ce9088" class="text-blue-100 hover:text-yellow-300 transition-colors text-sm"><span class="__cf_email__" data-cfemail="12717a7952677f73793c7776673c627a">[email&#160;protected]</span></a>
+</nav>
 
 <div class="drawer-overlay" id="drawerOverlay"></div>
 <div class="mobile-drawer" id="mobileDrawer">
@@ -270,7 +270,6 @@
         </nav>
     </div>
 </div>
-
 
 <!-- Main Content -->
 <div class="main-container">
@@ -504,11 +503,12 @@
 });
     </script>
 
-
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-import { getFirestore, collection, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { getFirestore, collection, query, where, getDocs, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { getNormCategory, getNormDoc, resolveTestKey, resolveAgeGroup, resolveGender, extractNumericResult } from './normLookup.js';
+
 const firebaseConfig = {
     apiKey: "AIzaSyAgaLunqEf2gs6dSpF_sz1hV5XQ5Wm52jo",
     authDomain: "umakfit-e3b1d.firebaseapp.com",
@@ -525,6 +525,7 @@ const db = getFirestore(app);
 let currentUser = null;
 let studentData = null;
 let allRawResults = [];
+let normCache = new Map();
 
 // ============================================================
 // NORM RANK SYSTEM
@@ -579,92 +580,161 @@ function normBadgeHTML(cat, small = false) {
 }
 
 // ============================================================
-// NORM CLASSIFICATION TABLES (same as studentresult.html)
+// NORM CLASSIFICATION WITH PRIORITY (from normLookup.js)
 // ============================================================
-function getStudentAge() {
-    if (!studentData) return null;
+
+function _studentAge() {
+    if (!studentData) return 20;
     if (studentData.birthday) {
         try {
             const bd = studentData.birthday.toDate ? studentData.birthday.toDate() : new Date(studentData.birthday);
-            const today = new Date();
-            let age = today.getFullYear() - bd.getFullYear();
-            const m = today.getMonth() - bd.getMonth();
-            if (m < 0 || (m === 0 && today.getDate() < bd.getDate())) age--;
-            if (!isNaN(age)) return age;
-        } catch(e) {}
+            const now = new Date();
+            let age = now.getFullYear() - bd.getFullYear();
+            if (now.getMonth() < bd.getMonth() || (now.getMonth() === bd.getMonth() && now.getDate() < bd.getDate())) age--;
+            if (!isNaN(age) && age > 0) return age;
+        } catch (_) {}
     }
-    if (typeof studentData.age === 'number') return studentData.age;
-    if (typeof studentData.age === 'string') { const m = studentData.age.match(/(\d+)/); if (m) return parseInt(m[1], 10); }
-    return null;
+    return parseInt(studentData.age) || 20;
 }
 
-function getAgeGroup(age) {
-    if (age == null) return null;
+function _genderKey() {
+    const g = (studentData?.gender || '').toString().toLowerCase();
+    return g.startsWith('f') ? 'female' : 'male';
+}
+
+function _ageGroup() {
+    const age = _studentAge();
     if (age <= 18) return '15-18';
     if (age <= 22) return '19-22';
     if (age <= 26) return '23-26';
     return '27-30';
 }
 
-function getGender() {
-    return (studentData?.gender || '').toLowerCase().startsWith('f') ? 'female' : 'male';
-}
+/**
+ * Get norm category with proper priority:
+ * 1. Student-specific norms (studentNorms)
+ * 2. Test-level norms (if testId provided)
+ * 3. Database default norms (fitnessNorms)
+ * 4. Fallback to normLookup.js
+ */
+async function getNormCategoryWithPriority(testName, result, testId = null) {
+    if (!studentData || !testName) return null;
+    
+    const testKey = resolveTestKey(testName);
+    if (!testKey) return null;
 
-function extractNum(result) {
-    if (typeof result === 'object' && result !== null)
-        return result.value ?? result.result ?? result.score ?? result.count ?? result.repetitions ?? 0;
-    if (typeof result === 'string') { const m = result.match(/(\d+\.?\d*)/); return m ? parseFloat(m[1]) : parseFloat(result) || 0; }
-    return parseFloat(result) || 0;
-}
+    const gender = _genderKey();
+    const ageGroup = _ageGroup();
+    const value = extractNumericResult(result);
 
-function pushUpCat(ag, gender, reps) {
-    const male   = {'15-18':[40,31,21,11],'19-22':[38,28,18,9],'23-26':[35,25,16,8],'27-30':[32,23,14,6]};
-    const female = {'15-18':[25,19,13,7],'19-22':[23,17,11,6],'23-26':[20,15,9,5],'27-30':[18,13,8,4]};
-    const t = (gender==='female'?female:male)[ag]||(gender==='female'?female:male)['27-30'];
-    if (reps>=t[0]) return 'Excellent'; if (reps>=t[1]) return 'Good'; if (reps>=t[2]) return 'Average'; if (reps>=t[3]) return 'Below Average'; return 'Poor';
-}
+    // Create cache key
+    const cacheKey = `${studentData?.email}|${testKey}|${gender}|${ageGroup}|${testId || 'none'}`;
+    if (normCache.has(cacheKey)) return normCache.get(cacheKey);
 
-function curlUpCat(ag, gender, reps) {
-    const male   = {'15-18':[50,41,31,21],'19-22':[47,38,28,19],'23-26':[44,35,25,17],'27-30':[40,32,22,15]};
-    const female = {'15-18':[45,36,26,16],'19-22':[42,34,24,15],'23-26':[39,31,21,13],'27-30':[36,28,19,11]};
-    const t = (gender==='female'?female:male)[ag]||(gender==='female'?female:male)['27-30'];
-    if (reps>=t[0]) return 'Excellent'; if (reps>=t[1]) return 'Good'; if (reps>=t[2]) return 'Average'; if (reps>=t[3]) return 'Below Average'; return 'Poor';
-}
-
-function sitReachCat(ag, gender, v) {
-    const male   = {'15-18':[38,33,26,18],'19-22':[37,32,25,17],'23-26':[35.5,30.5,23.5,15.5],'27-30':[34,29,22,14]};
-    const female = {'15-18':[39,34,27,19],'19-22':[38,33,26,18],'23-26':[37,32,25,17],'27-30':[36,31,24,16]};
-    const t = (gender==='female'?female:male)[ag]||(gender==='female'?female:male)['27-30'];
-    if (v>=t[0]) return 'Excellent'; if (v>=t[1]) return 'Good'; if (v>=t[2]) return 'Average'; if (v>=t[3]) return 'Below Average'; return 'Poor';
-}
-
-function stepTestCat(ag, gender, hr) {
-    const male   = {'15-18':[84,97,108,118],'19-22':[79,89,105,116],'23-26':[80,90,106,117],'27-30':[81,91,107,118]};
-    const female = {'15-18':[89,103,113,124],'19-22':[85,98,109,118],'23-26':[86,99,110,119],'27-30':[88,101,112,121]};
-    const t = (gender==='female'?female:male)[ag]||(gender==='female'?female:male)['27-30'];
-    if (hr<=t[0]) return 'Excellent'; if (hr<=t[1]) return 'Good'; if (hr<=t[2]) return 'Average'; if (hr<=t[3]) return 'Below Average'; return 'Poor';
-}
-
-function getNormCategory(testName, result) {
-    if (!testName) return null;
-    const n = testName.toLowerCase();
-    const num = extractNum(result);
-    const age = getStudentAge();
-    const ag  = getAgeGroup(age);
-    const gender = getGender();
-
-    // Skinfold — extract label from "18% (Athletic)"
-    if (n.includes('skinfold')) {
-        if (typeof result === 'string') { const m = result.match(/\(([^)]+)\)/); if (m) return m[1]; }
-        return 'Completed';
+    // 1️⃣ STUDENT-SPECIFIC NORMS (highest priority)
+    if (studentData?.email) {
+        try {
+            const studentNormRef = doc(db, 'studentNorms', studentData.email, 'tests', testKey);
+            const studentNormSnap = await getDoc(studentNormRef);
+            
+            if (studentNormSnap.exists()) {
+                const nd = studentNormSnap.data();
+                const thresholds = nd.thresholds;
+                const lowerIsBetter = nd.lowerIsBetter ?? false;
+                
+                const order = ['Excellent', 'Good', 'Average', 'Below Average'];
+                for (const cat of order) {
+                    const threshold = thresholds[cat];
+                    if (threshold == null) continue;
+                    if (lowerIsBetter && value <= threshold) {
+                        normCache.set(cacheKey, cat);
+                        return cat;
+                    }
+                    if (!lowerIsBetter && value >= threshold) {
+                        normCache.set(cacheKey, cat);
+                        return cat;
+                    }
+                }
+                normCache.set(cacheKey, 'Poor');
+                return 'Poor';
+            }
+        } catch (error) {
+            console.warn('Error checking student norms:', error);
+        }
     }
-    if (n.includes('step test') || n.includes('3-minute')) {
-        if (!ag) return 'Completed';
-        return stepTestCat(ag, gender, num);
+
+// 2️⃣ TEST-LEVEL NORMS (inline customNorms on scheduledTests doc)
+if (testId) {
+    try {
+        const testSnap = await getDoc(doc(db, 'scheduledTests', testId));
+        if (testSnap.exists()) {
+            const testData = testSnap.data();
+            if (testData.customNorms?.thresholds) {
+                const nd = testData.customNorms;
+                const lowerIsBetter = nd.lowerIsBetter ?? false;
+                const order = ['Excellent', 'Good', 'Average', 'Below Average'];
+                for (const cat of order) {
+                    const threshold = nd.thresholds[cat];
+                    if (threshold == null) continue;
+                    if (lowerIsBetter && value <= threshold) { normCache.set(cacheKey, cat); return cat; }
+                    if (!lowerIsBetter && value >= threshold) { normCache.set(cacheKey, cat); return cat; }
+                }
+                normCache.set(cacheKey, 'Poor');
+                return 'Poor';
+            }
+        }
+    } catch (error) {
+        console.warn('Error checking test norms:', error);
     }
-    if (n.includes('push-up') || n.includes('pushup')) { if (!ag) return null; return pushUpCat(ag, gender, num); }
-    if (n.includes('curl-up') || n.includes('curl up')) { if (!ag) return null; return curlUpCat(ag, gender, num); }
-    if (n.includes('sit-and-reach') || n.includes('sit and reach')) { if (!ag) return null; return sitReachCat(ag, gender, num); }
+}
+    // 3️⃣ DATABASE DEFAULT NORMS
+    try {
+        const defaultNormRef = doc(db, 'fitnessNorms', `${testKey}_${gender}_${ageGroup}`);
+        const defaultNormSnap = await getDoc(defaultNormRef);
+        
+        if (defaultNormSnap.exists()) {
+            const nd = defaultNormSnap.data();
+            const thresholds = nd.thresholds;
+            const lowerIsBetter = nd.lowerIsBetter ?? false;
+            
+            const order = ['Excellent', 'Good', 'Average', 'Below Average'];
+            for (const cat of order) {
+                const threshold = thresholds[cat];
+                if (threshold == null) continue;
+                if (lowerIsBetter && value <= threshold) {
+                    normCache.set(cacheKey, cat);
+                    return cat;
+                }
+                if (!lowerIsBetter && value >= threshold) {
+                    normCache.set(cacheKey, cat);
+                    return cat;
+                }
+            }
+            normCache.set(cacheKey, 'Poor');
+            return 'Poor';
+        }
+    } catch (error) {
+        console.warn('Error checking default norms:', error);
+    }
+
+    // 4️⃣ FALLBACK TO normLookup.js
+    try {
+        const fallbackResult = await getNormCategory(db, {
+            testName,
+            result,
+            studentEmail: studentData?.email || '',
+            gender: studentData?.gender || 'male',
+            age: _studentAge(),
+        });
+        
+        if (fallbackResult) {
+            normCache.set(cacheKey, fallbackResult.category);
+            return fallbackResult.category;
+        }
+    } catch (error) {
+        console.warn('Error using fallback norms:', error);
+    }
+
     return null;
 }
 
@@ -851,13 +921,13 @@ window.handleModalOverlayClick = function(e) {
     if (e.target === document.getElementById('improvementModal')) closeImprovementModal();
 };
 
-function buildTestGroups(raw) {
+async function buildTestGroups(raw) {
     const groups = {};
-    raw.forEach(result => {
+    for (const result of raw) {
         const testId = result.testId || result.id;
         if (!groups[testId]) groups[testId] = { testName: result.testName, category: getCategoryForTest(result.testName), attempts: [] };
 
-        const normCat = getNormCategory(result.testName, result.result || result.resultData) || 'Completed';
+        const normCat = await getNormCategoryWithPriority(result.testName, result.result || result.resultData, result.testId) || 'Completed';
         let testDate = new Date();
         if (result.submittedAt) {
             if (result.submittedAt.toDate) testDate = result.submittedAt.toDate();
@@ -871,12 +941,12 @@ function buildTestGroups(raw) {
             dateStr: testDate.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}),
             status: result.status
         });
-    });
+    }
     Object.values(groups).forEach(g => g.attempts.sort((a,b) => a.date - b.date));
     return groups;
 }
 
-function renderImprovementModal() {
+async function renderImprovementModal() {
     const body = document.getElementById('improvementModalBody');
     const strip = document.getElementById('improvementSummaryStrip');
 
@@ -886,7 +956,7 @@ function renderImprovementModal() {
         return;
     }
 
-    const groups = buildTestGroups(allRawResults);
+    const groups = await buildTestGroups(allRawResults);
     const sorted = Object.values(groups).sort((a,b) => b.attempts.length - a.attempts.length || a.testName.localeCompare(b.testName));
 
     // Summary
@@ -913,7 +983,7 @@ function renderImprovementModal() {
     strip.style.display = 'block';
 
     let html = '';
-    sorted.forEach(group => {
+    for (const group of sorted) {
         const catInfo   = getCategoryTag(group.category);
         const attempts  = group.attempts;
         const hasMulti  = attempts.length >= 2;
@@ -984,7 +1054,7 @@ function renderImprovementModal() {
                 </div>
             </div>`:''}
         </div>`;
-    });
+    }
 
     body.innerHTML = html;
 }
@@ -992,14 +1062,14 @@ function renderImprovementModal() {
 // ============================================================
 // UPDATE IMPROVEMENT PREVIEW CARD
 // ============================================================
-function updateImprovementPreview() {
+async function updateImprovementPreview() {
     if (allRawResults.length === 0) {
         document.getElementById('previewTotalTests').textContent = '0';
         document.getElementById('previewImproved').textContent  = '0';
         document.getElementById('previewBestGain').textContent  = '—';
         return;
     }
-    const groups = buildTestGroups(allRawResults);
+    const groups = await buildTestGroups(allRawResults);
     const arr = Object.values(groups);
     let improved = 0, bestGainLabel = '—', bestGainDiff = 0;
     arr.forEach(g => {
@@ -1044,19 +1114,19 @@ async function loadProgressData(userEmail) {
 
         // For the 4 category timelines: keep LATEST attempt per testId
         const latestByTestId = {};
-        allRawResults.forEach(r => {
+        for (const r of allRawResults) {
             const tid = r.testId || r.id;
             let dt = new Date();
             if (r.submittedAt) { if (r.submittedAt.toDate) dt = r.submittedAt.toDate(); else if (r.submittedAt.seconds) dt = new Date(r.submittedAt.seconds*1000); else dt = new Date(r.submittedAt); }
             if (!latestByTestId[tid] || dt > latestByTestId[tid].date) latestByTestId[tid] = {...r, date: dt};
-        });
+        }
 
         const categoryData = { 'Cardiorespiratory Endurance':[], 'Muscular Strength and Endurance':[], 'Flexibility':[], 'Body Composition':[] };
         const categoryBestRank = { 'Cardiorespiratory Endurance':0, 'Muscular Strength and Endurance':0, 'Flexibility':0, 'Body Composition':0 };
         let latestDate = null, latestTestName = 'No tests taken';
 
-        Object.values(latestByTestId).forEach(r => {
-            const normCat  = getNormCategory(r.testName, r.result || r.resultData) || 'Completed';
+        for (const r of Object.values(latestByTestId)) {
+            const normCat  = await getNormCategoryWithPriority(r.testName, r.result || r.resultData, r.testId) || 'Completed';
             const category = getCategoryForTest(r.testName);
             const rank     = normRank(normCat);
             const dateStr  = r.date.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
@@ -1066,7 +1136,7 @@ async function loadProgressData(userEmail) {
                 if (rank > categoryBestRank[category]) categoryBestRank[category] = rank;
             }
             if (!latestDate || r.date > latestDate) { latestDate = r.date; latestTestName = r.testName; }
-        });
+        }
 
         Object.keys(categoryData).forEach(cat => categoryData[cat].sort((a,b) => a.ts - b.ts));
 
@@ -1099,7 +1169,7 @@ async function loadProgressData(userEmail) {
         renderNormTimeline('flexibilityChart', categoryData['Flexibility'],                      'Flexibility');
         renderNormTimeline('bodyCompChart',  categoryData['Body Composition'],                  'Body Composition');
 
-        updateImprovementPreview();
+        await updateImprovementPreview();
 
     } catch(error) {
         console.error('Error loading progress data:', error);
@@ -1117,15 +1187,18 @@ async function loadProgressData(userEmail) {
 async function checkUnreadNotifications() {
     try {
         if (!studentData?.section) return;
-const notificationsQuery = query(
-    collection(db, 'notifications'),
-    where('section', '==', studentData.section),
-    where('studentEmail', '==', studentData.email)
-);
-const snap = await getDocs(notificationsQuery);
+        
+        const notificationsQuery = query(
+            collection(db, 'notifications'),
+            where('section', '==', studentData.section),
+            where('studentEmail', '==', studentData.email)
+        );
+        const snap = await getDocs(notificationsQuery);
+        
         const read = JSON.parse(localStorage.getItem(`readNotifications_${studentData.email}`) || '[]');
         let unread = 0;
         snap.forEach(d => { if (!read.includes(d.id)) unread++; });
+        
         ['navNotificationCount','navNotificationCountMobile'].forEach(id => {
             const el = document.getElementById(id);
             if (!el) return;
@@ -1133,22 +1206,24 @@ const snap = await getDocs(notificationsQuery);
         });
     } catch(e) { console.error(e); }
 }
+
 async function loadNotificationDropdown(isMobile = false) {
     try {
         const bodyId = isMobile ? 'notificationDropdownBodyMobile' : 'notificationDropdownBody';
         const dropBody = document.getElementById(bodyId);
         if (!dropBody || !studentData?.section) return;
 
-const notificationsQuery = query(
-    collection(db, 'notifications'),
-    where('section', '==', studentData.section),
-    where('studentEmail', '==', studentData.email)
-);
-const snap = await getDocs(notificationsQuery);
+        const notificationsQuery = query(
+            collection(db, 'notifications'),
+            where('section', '==', studentData.section),
+            where('studentEmail', '==', studentData.email)
+        );
+        const snap = await getDocs(notificationsQuery);
+        
         const read = JSON.parse(localStorage.getItem(`readNotifications_${studentData.email}`) || '[]');
 
         if (!snap.empty) {
-            // Deduplicate by content key (title + message + timestamp) — same as dashboard
+            // Deduplicate by content key (title + message + timestamp)
             const seen = new Set(), unique = [];
             snap.forEach(d => {
                 const n = d.data();
@@ -1177,6 +1252,7 @@ const snap = await getDocs(notificationsQuery);
         }
     } catch(e) { console.error(e); }
 }
+
 function toggleNotificationDropdown(e) {
     e?.stopPropagation();
     const isMobile = window.innerWidth < 1024;
@@ -1198,7 +1274,11 @@ function toggleNotificationDropdown(e) {
     } else dd.classList.add('hidden');
 }
 
-function closeNotificationDropdown() { document.getElementById('notificationDropdown')?.classList.add('hidden'); document.getElementById('notificationDropdownMobile')?.classList.add('hidden'); }
+function closeNotificationDropdown() { 
+    document.getElementById('notificationDropdown')?.classList.add('hidden'); 
+    document.getElementById('notificationDropdownMobile')?.classList.add('hidden'); 
+}
+
 function toggleProfileDropdown(e) {
     e?.stopPropagation();
     const isMobile = window.innerWidth < 1024;
@@ -1217,8 +1297,11 @@ function toggleProfileDropdown(e) {
         closeNotificationDropdown(); 
     } else dd.classList.add('hidden');
 }
-function closeProfileDropdown() { document.getElementById('profileDropdown')?.classList.add('hidden'); document.getElementById('profileDropdownMobile')?.classList.add('hidden'); }
 
+function closeProfileDropdown() { 
+    document.getElementById('profileDropdown')?.classList.add('hidden'); 
+    document.getElementById('profileDropdownMobile')?.classList.add('hidden'); 
+}
 
 // ============================================================
 // HAMBURGER
@@ -1226,6 +1309,7 @@ function closeProfileDropdown() { document.getElementById('profileDropdown')?.cl
 const hamburger = document.getElementById('hamburger');
 const mobileDrawer = document.getElementById('mobileDrawer');
 const drawerOverlay = document.getElementById('drawerOverlay');
+
 hamburger?.addEventListener('click', e => { 
     e.stopPropagation(); 
     
@@ -1238,6 +1322,7 @@ hamburger?.addEventListener('click', e => {
     drawerOverlay.classList.toggle('active'); 
     document.body.style.overflow = mobileDrawer.classList.contains('active') ? 'hidden' : ''; 
 });
+
 drawerOverlay?.addEventListener('click', () => { 
     hamburger?.classList.remove('active'); 
     mobileDrawer?.classList.remove('active'); 
@@ -1248,6 +1333,7 @@ drawerOverlay?.addEventListener('click', () => {
     closeProfileDropdown();
     closeNotificationDropdown();
 });
+
 document.querySelectorAll('.mobile-nav-link').forEach(l => 
     l.addEventListener('click', () => { 
         hamburger?.classList.remove('active'); 
@@ -1288,6 +1374,10 @@ function setupEventListeners() {
     });
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeImprovementModal(); });
 }
+
+// ============================================================
+// AUTH
+// ============================================================
 const loadingTimeout = setTimeout(() => {
     document.getElementById('loadingScreen').style.display = 'none';
 }, 1500);
@@ -1361,7 +1451,6 @@ window.handleLogout = function() {
         catch(error) { console.error(error); overlay.remove(); alert('Error logging out. Please try again.'); }
     });
 };
-
 
 window.toggleNotificationDropdown = toggleNotificationDropdown;
 window.closeNotificationDropdown  = closeNotificationDropdown;

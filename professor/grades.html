@@ -713,8 +713,9 @@
 <script type="module">
     import { initializeApp }       from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
     import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-    import { getFirestore, collection, getDocs, query, where, doc, orderBy }
+    import { getFirestore, collection, getDocs, query, where, doc, getDoc, orderBy }
         from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+    import { getNormCategory, getNormDoc, resolveTestKey, resolveAgeGroup, resolveGender, extractNumericResult } from './normLookup.js';
 
     const firebaseConfig = {
         apiKey: "AIzaSyAgaLunqEf2gs6dSpF_sz1hV5XQ5Wm52jo",
@@ -734,18 +735,34 @@
     let allGrades = [];
     let currentFinalGrades = [];
     let filteredFinalGrades = [];
+    let normCache = new Map();
 
-    // ===== NORM-BASED CLASSIFICATION (EXACT SAME as studentgrades.html) =====
+    // ===== NORM-BASED CLASSIFICATION WITH PRIORITY =====
 
-    function extractNumericResult(result) {
-        if (typeof result === 'object' && result !== null) {
-            return parseFloat(result.value || result.result || result.score || result.count || result.repetitions || result.time || 0) || 0;
+    function _studentAge(student) {
+        if (!student) return 20;
+        if (student.birthday) {
+            try {
+                const bd = student.birthday.toDate ? student.birthday.toDate() : new Date(student.birthday);
+                const now = new Date();
+                let age = now.getFullYear() - bd.getFullYear();
+                if (now.getMonth() < bd.getMonth() || (now.getMonth() === bd.getMonth() && now.getDate() < bd.getDate())) age--;
+                if (!isNaN(age) && age > 0) return age;
+            } catch (_) {}
         }
-        if (typeof result === 'string') {
-            const match = result.match(/(\d+\.?\d*)/);
-            if (match) return parseFloat(match[1]);
-        }
-        return parseFloat(result) || 0;
+        return parseInt(student.age) || 20;
+    }
+
+    function _ageGroup(age) {
+        if (age <= 18) return '15-18';
+        if (age <= 22) return '19-22';
+        if (age <= 26) return '23-26';
+        return '27-30';
+    }
+
+    function _genderKey(gender) {
+        const g = (gender || '').toString().toLowerCase();
+        return g.startsWith('f') ? 'female' : 'male';
     }
 
     // Norm category order for sorting (best to worst)
@@ -780,233 +797,152 @@
         return `<span class="category-badge ${className}">${icon} ${category}</span>`;
     }
 
-    // Get age group from age
-    function getAgeGroup(age) {
-        if (age == null) return '19-22';
-        if (age <= 18) return '15-18';
-        if (age <= 22) return '19-22';
-        if (age <= 26) return '23-26';
-        return '27-30';
-    }
-
-    // Push-up norms
-    function getPushUpCategory(genderKey, ageGroup, reps) {
-        if (genderKey === 'male') {
-            const norms = { 
-                '15-18': [40, 31, 21, 11], 
-                '19-22': [38, 28, 18, 9], 
-                '23-26': [35, 25, 16, 8], 
-                '27-30': [32, 23, 14, 6] 
-            };
-            const t = norms[ageGroup] || norms['19-22'];
-            if (reps >= t[0]) return 'Excellent';
-            if (reps >= t[1]) return 'Good';
-            if (reps >= t[2]) return 'Average';
-            if (reps >= t[3]) return 'Below Average';
-            return 'Poor';
-        } else {
-            const norms = { 
-                '15-18': [25, 19, 13, 7], 
-                '19-22': [23, 17, 11, 6], 
-                '23-26': [20, 15, 9, 5], 
-                '27-30': [18, 13, 8, 4] 
-            };
-            const t = norms[ageGroup] || norms['19-22'];
-            if (reps >= t[0]) return 'Excellent';
-            if (reps >= t[1]) return 'Good';
-            if (reps >= t[2]) return 'Average';
-            if (reps >= t[3]) return 'Below Average';
-            return 'Poor';
-        }
-    }
-
-    // Curl-up norms (corrected according to the norms table)
- function getCurlUpCategory(genderKey, ageGroup, reps) {
-    if (genderKey === 'male') {
-        const norms = { 
-            '15-18': [50, 41, 31, 21],  // Excellent: 50+, Good: 41-49, Average: 31-40, Below Avg: 21-30, Poor: ≤20
-            '19-22': [47, 38, 28, 19],  // Excellent: 47+, Good: 38-46, Average: 28-37, Below Avg: 19-27, Poor: ≤18
-            '23-26': [44, 35, 25, 17],  // Excellent: 44+, Good: 35-43, Average: 25-34, Below Avg: 17-24, Poor: ≤16
-            '27-30': [40, 32, 22, 15]   // Excellent: 40+, Good: 32-39, Average: 22-31, Below Avg: 15-21, Poor: ≤14
-        };
-        const t = norms[ageGroup] || norms['19-22'];
-        
-        if (reps >= t[0]) return 'Excellent';
-        if (reps >= t[1]) return 'Good';
-        if (reps >= t[2]) return 'Average';
-        if (reps >= t[3]) return 'Below Average';
-        return 'Poor';
-        
-    } else {
-        const norms = { 
-            '15-18': [45, 36, 26, 16],  // Excellent: 45+, Good: 36-44, Average: 26-35, Below Avg: 16-25, Poor: ≤15
-            '19-22': [42, 34, 24, 15],  // Excellent: 42+, Good: 34-41, Average: 24-33, Below Avg: 15-23, Poor: ≤14
-            '23-26': [39, 31, 21, 13],  // Excellent: 39+, Good: 31-38, Average: 21-30, Below Avg: 13-20, Poor: ≤12
-            '27-30': [36, 28, 19, 11]   // Excellent: 36+, Good: 28-35, Average: 19-27, Below Avg: 11-18, Poor: ≤10
-        };
-        const t = norms[ageGroup] || norms['19-22'];
-        
-        if (reps >= t[0]) return 'Excellent';
-        if (reps >= t[1]) return 'Good';
-        if (reps >= t[2]) return 'Average';
-        if (reps >= t[3]) return 'Below Average';
-        return 'Poor';
-    }
+function getOverallCategory(categories) {
+    if (!categories || categories.length === 0) return 'Average';
+    const scores = categories.map(c => CATEGORY_ORDER[c] || 3);
+    const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+    if (avg >= 4.5) return 'Excellent';
+    if (avg >= 3.5) return 'Good';
+    if (avg >= 2.5) return 'Average';
+    if (avg >= 1.5) return 'Below Average';
+    return 'Poor';
 }
-    // Sit-and-reach norms
-    function getSitReachCategory(genderKey, ageGroup, cm) {
-        if (genderKey === 'male') {
-            const norms = { 
-                '15-18': [38, 33, 26, 18], 
-                '19-22': [37, 32, 25, 17], 
-                '23-26': [35.5, 30.5, 23.5, 15.5], 
-                '27-30': [34, 29, 22, 14] 
-            };
-            const t = norms[ageGroup] || norms['19-22'];
-            if (cm >= t[0]) return 'Excellent';
-            if (cm >= t[1]) return 'Good';
-            if (cm >= t[2]) return 'Average';
-            if (cm >= t[3]) return 'Below Average';
-            return 'Poor';
-        } else {
-            const norms = { 
-                '15-18': [39, 34, 27, 19], 
-                '19-22': [38, 33, 26, 18], 
-                '23-26': [37, 32, 25, 17], 
-                '27-30': [36, 31, 24, 16] 
-            };
-            const t = norms[ageGroup] || norms['19-22'];
-            if (cm >= t[0]) return 'Excellent';
-            if (cm >= t[1]) return 'Good';
-            if (cm >= t[2]) return 'Average';
-            if (cm >= t[3]) return 'Below Average';
-            return 'Poor';
-        }
-    }
+ async function getNormCategoryWithPriority(testName, result, testId, studentEmail, studentGender, studentAge) {
+    if (!testName) return 'Average';
+    
+    const testKey = resolveTestKey(testName);
+    if (!testKey) return 'Average';
 
-    // Step test norms (lower heart rate is better)
-    function getStepTestCategory(genderKey, ageGroup, hr) {
-        if (genderKey === 'male') {
-            const norms = { 
-                '15-18': [84, 97, 108, 118], 
-                '19-22': [79, 89, 105, 116], 
-                '23-26': [80, 90, 106, 117], 
-                '27-30': [81, 91, 107, 118] 
-            };
-            const t = norms[ageGroup] || norms['19-22'];
-            if (hr <= t[0]) return 'Excellent';
-            if (hr <= t[1]) return 'Good';
-            if (hr <= t[2]) return 'Average';
-            if (hr <= t[3]) return 'Below Average';
-            return 'Poor';
-        } else {
-            const norms = { 
-                '15-18': [89, 103, 113, 124], 
-                '19-22': [85, 98, 109, 118], 
-                '23-26': [86, 99, 110, 119], 
-                '27-30': [88, 101, 112, 121] 
-            };
-            const t = norms[ageGroup] || norms['19-22'];
-            if (hr <= t[0]) return 'Excellent';
-            if (hr <= t[1]) return 'Good';
-            if (hr <= t[2]) return 'Average';
-            if (hr <= t[3]) return 'Below Average';
-            return 'Poor';
-        }
-    }
+    const gender = _genderKey(studentGender);
+    const ageGroup = _ageGroup(studentAge);
+    const value = extractNumericResult(result);
 
-    function getNormCategory(testName, result, genderKey = 'male', ageGroup = '19-22') {
-        const normalized = (testName || '').toLowerCase();
-        const value = extractNumericResult(result);
+    const cacheKey = `${studentEmail}|${testKey}|${gender}|${ageGroup}|${testId || 'none'}`;
+    if (normCache.has(cacheKey)) return normCache.get(cacheKey);
 
-        // Push-up
-        if (normalized.includes('push-up') || normalized.includes('pushup'))
-            return getPushUpCategory(genderKey, ageGroup, value);
-
-        // Curl-up
-        if (normalized.includes('curl-up') || normalized.includes('curl up'))
-            return getCurlUpCategory(genderKey, ageGroup, value);
-
-        // Sit-and-reach
-        if (normalized.includes('sit-and-reach') || normalized.includes('sit and reach'))
-            return getSitReachCategory(genderKey, ageGroup, value);
-
-        // Step test
-        if (normalized.includes('step test') || normalized.includes('3-minute'))
-            return getStepTestCategory(genderKey, ageGroup, value);
-
-        // Skinfold - extract category from result string
-        if (normalized.includes('skinfold') || normalized.includes('skin fold')) {
-            if (typeof result === 'string') {
-                const classMatch = result.match(/\(([^)]+)\)/);
-                if (classMatch) {
-                    const cls = classMatch[1];
-                    if (cls === 'Athletic' || cls === 'Fitness') return 'Excellent';
-                    if (cls === 'Average') return 'Average';
-                    if (cls === 'Essential Fat') return 'Good';
-                    if (cls === 'Overfat') return 'Below Average';
-                    if (cls === 'Obese') return 'Poor';
+    // 1️⃣ STUDENT-SPECIFIC NORMS
+    if (studentEmail) {
+        try {
+            const studentNormRef = doc(db, 'studentNorms', studentEmail, 'tests', testKey); // ← FIXED TYPO
+            const studentNormSnap = await getDoc(studentNormRef);
+            if (studentNormSnap.exists()) {
+                const nd = studentNormSnap.data();
+                const lowerIsBetter = nd.lowerIsBetter ?? false;
+                const order = ['Excellent', 'Good', 'Average', 'Below Average'];
+                for (const cat of order) {
+                    const threshold = nd.thresholds[cat];
+                    if (threshold == null) continue;
+                    if (lowerIsBetter && value <= threshold) { normCache.set(cacheKey, cat); return cat; }
+                    if (!lowerIsBetter && value >= threshold) { normCache.set(cacheKey, cat); return cat; }
                 }
+                normCache.set(cacheKey, 'Poor');
+                return 'Poor';
             }
-            return 'Average';
-        }
-
-        // BMI
-        if (normalized.includes('bmi')) {
-            const bmi = value;
-            if (bmi >= 18.5 && bmi <= 24.9) return 'Excellent';
-            if ((bmi >= 17.0 && bmi < 18.5) || (bmi >= 25.0 && bmi < 27.0)) return 'Good';
-            if ((bmi >= 16.0 && bmi < 17.0) || (bmi >= 27.0 && bmi < 30.0)) return 'Average';
-            return 'Below Average';
-        }
-
-        return 'Average';
+        } catch (error) { console.warn('Error checking student norms:', error); }
     }
 
-    // Get overall category from array of per-activity categories
-    function getOverallCategory(categories) {
-        if (!categories || categories.length === 0) return 'Average';
-        const scores = categories.map(c => CATEGORY_ORDER[c] || 3);
-        const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
-        if (avg >= 4.5) return 'Excellent';
-        if (avg >= 3.5) return 'Good';
-        if (avg >= 2.5) return 'Average';
-        if (avg >= 1.5) return 'Below Average';
-        return 'Poor';
+    // 2️⃣ TEST-LEVEL NORMS — subcollection (matches monitoring exactly)
+    if (testId) {
+        try {
+            const testNormRef = doc(db, 'scheduledTestNorms', testId, 'tests', testKey); // ← FIXED: matches monitoring
+            const testNormSnap = await getDoc(testNormRef);
+            if (testNormSnap.exists()) {
+                const nd = testNormSnap.data();
+                const lowerIsBetter = nd.lowerIsBetter ?? false;
+                const order = ['Excellent', 'Good', 'Average', 'Below Average'];
+                for (const cat of order) {
+                    const threshold = nd.thresholds[cat];
+                    if (threshold == null) continue;
+                    if (lowerIsBetter && value <= threshold) { normCache.set(cacheKey, cat); return cat; }
+                    if (!lowerIsBetter && value >= threshold) { normCache.set(cacheKey, cat); return cat; }
+                }
+                normCache.set(cacheKey, 'Poor');
+                return 'Poor';
+            }
+        } catch (error) { console.warn('Error checking test norms:', error); }
     }
 
-  // AFTER:
-const loadingTimeout = setTimeout(() => {
-    document.getElementById('loadingScreen').style.display = 'none';
-    document.getElementById('mainContent').style.display = 'block';
-}, 1500);
-
-const unsubscribeAuth = onAuthStateChanged(auth, async user => {
-    if (!user) {
-        clearTimeout(loadingTimeout);
-        window.location.href = '/login/index.html';
-        return;
-    }
+    // 3️⃣ DATABASE DEFAULT NORMS
     try {
-        currentUser = user;
-        // Show page immediately
-        clearTimeout(loadingTimeout);
+        const defaultNormRef = doc(db, 'fitnessNorms', `${testKey}_${gender}_${ageGroup}`);
+        const defaultNormSnap = await getDoc(defaultNormRef);
+        if (defaultNormSnap.exists()) {
+            const nd = defaultNormSnap.data();
+            const lowerIsBetter = nd.lowerIsBetter ?? false;
+            const order = ['Excellent', 'Good', 'Average', 'Below Average'];
+            for (const cat of order) {
+                const threshold = nd.thresholds[cat];
+                if (threshold == null) continue;
+                if (lowerIsBetter && value <= threshold) { normCache.set(cacheKey, cat); return cat; }
+                if (!lowerIsBetter && value >= threshold) { normCache.set(cacheKey, cat); return cat; }
+            }
+            normCache.set(cacheKey, 'Poor');
+            return 'Poor';
+        }
+    } catch (error) { console.warn('Error checking default norms:', error); }
+
+    // 4️⃣ FALLBACK TO normLookup.js
+    try {
+        const fallbackResult = await getNormCategory(db, {
+            testName, result,
+            studentEmail: studentEmail || '',
+            gender: studentGender || 'male',
+            age: studentAge,
+        });
+        if (fallbackResult) { normCache.set(cacheKey, fallbackResult.category); return fallbackResult.category; }
+    } catch (error) { console.warn('Error using fallback norms:', error); }
+
+    return 'Average';
+}
+    function extractDisplayResult(data) {
+        if (data.result !== undefined && data.result !== null) {
+            if (typeof data.result === 'string') return data.result;
+            if (typeof data.result === 'number') return data.result.toString();
+            if (typeof data.result === 'object') {
+                return data.result.value || data.result.repetitions || data.result.time || data.result.distance || '-';
+            }
+        }
+        if (data.resultData) { 
+            if (typeof data.resultData === 'object') return data.resultData.value || data.resultData.repetitions || data.resultData.time || '-'; 
+            return data.resultData.toString(); 
+        }
+        if (data.repetitions !== undefined) return data.repetitions.toString();
+        return '-';
+    }
+
+    // AFTER:
+    const loadingTimeout = setTimeout(() => {
         document.getElementById('loadingScreen').style.display = 'none';
         document.getElementById('mainContent').style.display = 'block';
-        // Load data in background
-        await loadProfessorData(user);
-        setupUI(user);
-        await loadAssignedSections();
-        await loadGrades();
-        buildFinalGrades();
-    } catch(err) {
-        console.error(err);
-        showAlert('Error loading grades: ' + err.message, 'error');
-    }
-});
+    }, 1500);
 
-window.addEventListener('pagehide', () => { unsubscribeAuth(); });
-window.addEventListener('beforeunload', () => { unsubscribeAuth(); });
+    const unsubscribeAuth = onAuthStateChanged(auth, async user => {
+        if (!user) {
+            clearTimeout(loadingTimeout);
+            window.location.href = '/login/index.html';
+            return;
+        }
+        try {
+            currentUser = user;
+            // Show page immediately
+            clearTimeout(loadingTimeout);
+            document.getElementById('loadingScreen').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+            // Load data in background
+            await loadProfessorData(user);
+            setupUI(user);
+            await loadAssignedSections();
+            await loadGrades();
+            buildFinalGrades();
+        } catch(err) {
+            console.error(err);
+            showAlert('Error loading grades: ' + err.message, 'error');
+        }
+    });
+
+    window.addEventListener('pagehide', () => { unsubscribeAuth(); });
+    window.addEventListener('beforeunload', () => { unsubscribeAuth(); });
+
     async function loadProfessorData(user) {
         const email = user.email.toLowerCase();
         const q1 = await getDocs(query(collection(db,'professors'), where('email','==',email)));
@@ -1017,21 +953,21 @@ window.addEventListener('beforeunload', () => { unsubscribeAuth(); });
     }
 
     function setupUI(user) {
-    const displayName = user.displayName || currentProfessor.fullName || currentProfessor.name || 'Professor';
-    const email = currentProfessor.email || user.email;
-    const initial = displayName.charAt(0).toUpperCase();
-    const photo = user.photoURL || null;
+        const displayName = user.displayName || currentProfessor.fullName || currentProfessor.name || 'Professor';
+        const email = currentProfessor.email || user.email;
+        const initial = displayName.charAt(0).toUpperCase();
+        const photo = user.photoURL || null;
 
-    document.getElementById('headerName').textContent    = displayName;
-    document.getElementById('dropdownName').textContent  = displayName;
-    document.getElementById('dropdownEmail').textContent = email;
+        document.getElementById('headerName').textContent    = displayName;
+        document.getElementById('dropdownName').textContent  = displayName;
+        document.getElementById('dropdownEmail').textContent = email;
 
-    const as = document.getElementById('profileAvatarSmall');
-    const al = document.getElementById('profileDropdownAvatar');
-    const img = src => `<img src="${src}" class="w-full h-full object-cover rounded-full" alt="">`;
-    if (photo) { as.innerHTML = img(photo); al.innerHTML = img(photo); }
-    else { as.textContent = initial; al.textContent = initial; }
-}
+        const as = document.getElementById('profileAvatarSmall');
+        const al = document.getElementById('profileDropdownAvatar');
+        const img = src => `<img src="${src}" class="w-full h-full object-cover rounded-full" alt="">`;
+        if (photo) { as.innerHTML = img(photo); al.innerHTML = img(photo); }
+        else { as.textContent = initial; al.textContent = initial; }
+    }
 
     async function loadAssignedSections() {
         assignedSections = [];
@@ -1067,7 +1003,7 @@ window.addEventListener('beforeunload', () => { unsubscribeAuth(); });
         assignedSections.forEach(s => { const opt = document.createElement('option'); opt.value = s.section; opt.textContent = s.section; sel.appendChild(opt); });
     }
 
- async function loadGrades() {
+async function loadGrades() {
     allGrades = [];
     if (!assignedSections.length) return;
 
@@ -1091,30 +1027,31 @@ window.addEventListener('beforeunload', () => { unsubscribeAuth(); });
                 where('status','==','completed')
             ));
             
-            snap.forEach(docSnap => {
+            for (const docSnap of snap.docs) {
                 const data = docSnap.data();
                 const studentEmail = data.studentEmail || '';
-                const testId = data.testId || docSnap.id;
+                const testId = data.testId || docSnap.id; // ← THIS IS CRITICAL
                 const testKey = `${studentEmail}_${testId}`;
                 const testName = data.testName || 'Unknown Activity';
                 const result = data.result || data.resultData || data.repetitions || '';
 
-                // Determine gender from data
-                const gender = (data.gender || '').toLowerCase();
-                const genderKey = gender.startsWith('f') ? 'female' : 'male';
+                // Get student data
+                const student = studentsMap.get(studentEmail);
                 
-                // GET STUDENT'S ACTUAL AGE
-                let ageGroup = '19-22'; // default
-                const studentData = studentsMap.get(studentEmail);
-                if (studentData) {
+                // GET STUDENT'S ACTUAL AGE AND GENDER
+                let studentAge = 20; // default
+                let studentGender = 'male'; // default
+                
+                if (student) {
+                    studentGender = student.gender || 'male';
                     // Compute age from birthday
-                    if (studentData.birthday) {
+                    if (student.birthday) {
                         try {
                             let birthDate;
-                            if (studentData.birthday.toDate) {
-                                birthDate = studentData.birthday.toDate();
+                            if (student.birthday.toDate) {
+                                birthDate = student.birthday.toDate();
                             } else {
-                                birthDate = new Date(studentData.birthday);
+                                birthDate = new Date(student.birthday);
                             }
                             const today = new Date();
                             let age = today.getFullYear() - birthDate.getFullYear();
@@ -1124,17 +1061,25 @@ window.addEventListener('beforeunload', () => { unsubscribeAuth(); });
                             }
                             
                             if (!isNaN(age) && age > 0) {
-                                if (age <= 18) ageGroup = '15-18';
-                                else if (age <= 22) ageGroup = '19-22';
-                                else if (age <= 26) ageGroup = '23-26';
-                                else ageGroup = '27-30';
+                                studentAge = age;
                             }
                         } catch (e) {}
                     }
                 }
 
-                // Get norm category with CORRECT age group
-                const category = getNormCategory(testName, result, genderKey, ageGroup);
+                // Use stored score first (fastest, most accurate)
+                const category = (data.score || data.category) && 
+                                 ['Excellent','Good','Average','Below Average','Poor'].includes(data.score || data.category)
+                    ? (data.score || data.category)
+                    : await getNormCategoryWithPriority(
+                        testName, 
+                        data.result || data.resultData || data.repetitions || data, 
+                        testId, // ← PASS THE TEST ID
+                        studentEmail,
+                        studentGender,
+                        studentAge
+                    );              
+                
                 const categoryScore = CATEGORY_ORDER[category] || 3;
 
                 let submittedDate = new Date();
@@ -1159,50 +1104,41 @@ window.addEventListener('beforeunload', () => { unsubscribeAuth(); });
                         dateObject: submittedDate,
                         studentEmail,
                         studentId: data.studentId || '',
-                        gender: genderKey,
-                        ageGroup: ageGroup // store for debugging
+                        gender: studentGender,
+                        age: studentAge // store for debugging
                     });
                 }
-            });
+            }
         } catch(e) { console.error(`Error loading grades for ${sec.section}:`, e); }
     }
     allGrades = Array.from(bestResultsMap.values()).sort((a,b) => b.dateObject - a.dateObject);
 }
-    function extractDisplayResult(data) {
-        if (data.result !== undefined && data.result !== null) {
-            if (typeof data.result === 'string') return data.result;
-            if (typeof data.result === 'number') return data.result;
-            if (typeof data.result === 'object') {
-                return data.result.value || data.result.repetitions || data.result.time || data.result.distance || '-';
-            }
-        }
-        if (data.resultData) { if (typeof data.resultData === 'object') return data.resultData.value || data.resultData.repetitions || data.resultData.time || '-'; return data.resultData; }
-        if (data.repetitions !== undefined) return data.repetitions;
-        return '-';
-    }
 
-    function buildFinalGrades() {
-        const map = {};
-        allGrades.forEach(g => {
-            const key = g.studentEmail || `${g.studentName}_${g.section}`.toLowerCase();
-            if (!map[key]) { 
-                map[key] = { 
-                    key, 
-                    name: g.studentName, 
-                    section: g.section, 
-                    email: g.studentEmail, 
-                    categories: [], 
-                    instances: [] 
-                }; 
-            }
-            map[key].categories.push(g.category);
-            map[key].instances.push({ 
-                name: g.testName, 
-                date: g.date, 
-                result: g.result, 
-                category: g.category 
-            });
+function buildFinalGrades() {
+    const map = {};
+    allGrades.forEach(g => {
+        const key = g.studentEmail || `${g.studentName}_${g.section}`.toLowerCase();
+        if (!map[key]) { 
+            map[key] = { 
+                key, 
+                name: g.studentName, 
+                section: g.section, 
+                email: g.studentEmail, 
+                categories: [], 
+                instances: [] 
+            }; 
+        }
+        map[key].categories.push(g.category);
+        map[key].instances.push({ 
+            name: g.testName, 
+            date: g.date, 
+            result: g.result, 
+            category: g.category 
         });
+        
+        // DEBUG — i-remove pagkatapos
+        console.log(`[Grades] ${g.studentName} | ${g.testName} | category=${g.category} | score=${g.score || 'none'}`);
+    });
         
         currentFinalGrades = Object.values(map).map(s => {
             const overall = getOverallCategory(s.categories);

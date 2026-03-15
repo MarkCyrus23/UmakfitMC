@@ -235,82 +235,61 @@
                         </div>
                     </div>
                     
- <!-- Mobile Right Icons -->
-<div class="flex lg:hidden items-center gap-2 sm:gap-3">
-    <div class="relative">
-        <button id="notificationBellBtnMobile" class="w-9 h-9 sm:w-10 sm:h-10 bg-white/20 border-2 border-white/30 rounded-full flex items-center justify-center text-white hover:bg-white/30 hover:scale-110 transition-all">
-            <i class="bi bi-bell-fill text-base sm:text-lg"></i>
-            <span id="navNotificationCountMobile" class="notification-badge hidden">0</span>
-        </button>
-        <div id="notificationDropdownMobile" class="notification-dropdown hidden fixed right-2 left-2 top-20 max-h-[calc(100vh-6rem)] overflow-y-auto">
-            <div class="notification-dropdown-header">
-                <h6 class="font-bold text-gray-900 text-sm sm:text-base flex items-center gap-2">
-                    <i class="bi bi-bell-fill text-blue-500"></i> Notifications
-                </h6>
-                <button id="closeNotificationBtnMobile" class="text-gray-400 hover:text-gray-600 p-1 transition-colors"><i class="bi bi-x-lg"></i></button>
-            </div>
-            <div id="notificationDropdownBodyMobile" class="notification-dropdown-body">
-                <div class="notification-empty"><i class="bi bi-bell-slash"></i><p>No notifications yet</p></div>
-            </div>
-            <div class="notification-dropdown-footer">
-                <button onclick="window.location.href='./notifications.html'" class="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-2 px-3 sm:px-4 rounded-lg font-semibold text-xs sm:text-sm hover:from-blue-600 hover:to-blue-700 hover:shadow-lg transition-all">
-                    View All Notifications
-                </button>
-            </div>
-        </div>
-    </div>
-    
-    <div class="relative">
-        <img src="" alt="Profile" id="profilePictureBtnMobile" class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-white/30 cursor-pointer hover:border-white/60 object-cover">
-        <div id="profileDropdownMobile" class="hidden fixed right-2 top-20 w-64 sm:w-72 bg-white rounded-xl shadow-2xl z-[9999] slide-down">
-            <div class="p-4 sm:p-6 border-b-2 border-gray-200 text-center">
-                <img src="" alt="Profile" id="profileDropdownPictureMobile" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full mx-auto mb-2 sm:mb-3 border-3 border-blue-500 object-cover">
-                <h6 id="profileDropdownNameMobile" class="font-bold text-gray-900 text-base sm:text-lg">Loading...</h6>
-                <p id="profileDropdownEmailMobile" class="text-xs sm:text-sm text-gray-500 mt-1 truncate px-2">Loading...</p>
-            </div>
-            <div class="p-2">
-                <a href="./studentProfile.html" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-gray-100 transition-colors">
-                    <i class="bi bi-person-circle text-blue-500 text-lg sm:text-xl"></i>
-                    <span class="font-medium text-gray-700 text-sm sm:text-base">View Profile</span>
-                </a>
-                <div class="h-px bg-gray-200 my-1 sm:my-2"></div>
-                <div onclick="handleLogout()" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-red-500">
-                    <i class="bi bi-box-arrow-right text-lg sm:text-xl"></i>
-                    <span class="font-medium text-sm sm:text-base">Logout</span>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="hamburger" id="hamburger">
-        <span></span><span></span><span></span>
-    </div>
-</div>
-
-<!-- Mobile Drawer Overlay -->
-<div class="drawer-overlay" id="drawerOverlay"></div>
-
-<!-- Mobile Drawer -->
-<div class="mobile-drawer" id="mobileDrawer">
-    <div class="p-6 pt-8">
-        <div class="flex items-center gap-3 mb-8 pb-6 border-b border-white/20">
-            <img src="UMakfit Logo (2).png" alt="UMak Logo" class="h-12 w-auto object-contain">
-            <span class="text-2xl font-extrabold font-manrope" style="background: linear-gradient(135deg, #EAD38A 0%, #C5A046 50%, #8B6D2D 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">UMakFIT</span>
-        </div>
-        <nav class="space-y-2">
-            <a href="./studentDashboard.html" class="mobile-nav-link block text-white/80 hover:text-white hover:bg-white/10 font-medium py-3 px-4 rounded-lg transition-all"><i class="bi bi-speedometer2 mr-3"></i>Dashboard</a>
-            <a href="./test.html" class="mobile-nav-link block text-white/80 hover:text-white hover:bg-white/10 font-medium py-3 px-4 rounded-lg transition-all"><i class="bi bi-clipboard-check mr-3"></i>Test</a>
-            <a href="./studentlesson.html" class="mobile-nav-link block text-white/80 hover:text-white hover:bg-white/10 font-medium py-3 px-4 rounded-lg transition-all"><i class="bi bi-book mr-3"></i>Lessons</a>
-            <a href="./studentgrades.html" class="mobile-nav-link block text-white bg-white/10 font-semibold py-3 px-4 rounded-lg transition-all"><i class="bi bi-activity mr-3"></i>Performance</a>
-            <a href="./progress.html" class="mobile-nav-link block text-white/80 hover:text-white hover:bg-white/10 font-medium py-3 px-4 rounded-lg transition-all"><i class="bi bi-graph-up mr-3"></i>Progress</a>
-            <a href="./achievements.html" class="mobile-nav-link block text-white/80 hover:text-white hover:bg-white/10 font-medium py-3 px-4 rounded-lg transition-all"><i class="bi bi-trophy mr-3"></i>Achievements</a>
-        </nav>
-    </div>
-</div>
+                    <!-- Mobile Right Icons -->
+                    <div class="flex lg:hidden items-center gap-2 sm:gap-3">
+                        <div class="relative">
+                            <button id="notificationBellBtnMobile" class="w-9 h-9 sm:w-10 sm:h-10 bg-white/20 border-2 border-white/30 rounded-full flex items-center justify-center text-white hover:bg-white/30 hover:scale-110 transition-all">
+                                <i class="bi bi-bell-fill text-base sm:text-lg"></i>
+                                <span id="navNotificationCountMobile" class="notification-badge hidden">0</span>
+                            </button>
+                            <div id="notificationDropdownMobile" class="notification-dropdown hidden fixed right-2 left-2 top-20 max-h-[calc(100vh-6rem)] overflow-y-auto">
+                                <div class="notification-dropdown-header">
+                                    <h6 class="font-bold text-gray-900 text-sm sm:text-base flex items-center gap-2">
+                                        <i class="bi bi-bell-fill text-blue-500"></i> Notifications
+                                    </h6>
+                                    <button id="closeNotificationBtnMobile" class="text-gray-400 hover:text-gray-600 p-1 transition-colors"><i class="bi bi-x-lg"></i></button>
+                                </div>
+                                <div id="notificationDropdownBodyMobile" class="notification-dropdown-body">
+                                    <div class="notification-empty"><i class="bi bi-bell-slash"></i><p>No notifications yet</p></div>
+                                </div>
+                                <div class="notification-dropdown-footer">
+                                    <button onclick="window.location.href='./notifications.html'" class="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-2 px-3 sm:px-4 rounded-lg font-semibold text-xs sm:text-sm hover:from-blue-600 hover:to-blue-700 hover:shadow-lg transition-all">
+                                        View All Notifications
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="relative">
+                            <img src="" alt="Profile" id="profilePictureBtnMobile" class="w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-white/30 cursor-pointer hover:border-white/60 object-cover">
+                            <div id="profileDropdownMobile" class="hidden fixed right-2 top-20 w-64 sm:w-72 bg-white rounded-xl shadow-2xl z-[9999] slide-down">
+                                <div class="p-4 sm:p-6 border-b-2 border-gray-200 text-center">
+                                    <img src="" alt="Profile" id="profileDropdownPictureMobile" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full mx-auto mb-2 sm:mb-3 border-3 border-blue-500 object-cover">
+                                    <h6 id="profileDropdownNameMobile" class="font-bold text-gray-900 text-base sm:text-lg">Loading...</h6>
+                                    <p id="profileDropdownEmailMobile" class="text-xs sm:text-sm text-gray-500 mt-1 truncate px-2">Loading...</p>
+                                </div>
+                                <div class="p-2">
+                                    <a href="./studentProfile.html" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-gray-100 transition-colors">
+                                        <i class="bi bi-person-circle text-blue-500 text-lg sm:text-xl"></i>
+                                        <span class="font-medium text-gray-700 text-sm sm:text-base">View Profile</span>
+                                    </a>
+                                    <div class="h-px bg-gray-200 my-1 sm:my-2"></div>
+                                    <div onclick="handleLogout()" class="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-red-50 transition-colors cursor-pointer text-red-500">
+                                        <i class="bi bi-box-arrow-right text-lg sm:text-xl"></i>
+                                        <span class="font-medium text-sm sm:text-base">Logout</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="hamburger" id="hamburger">
+                            <span></span><span></span><span></span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </nav>
-        
+
         <!-- Mobile Drawer Overlay -->
         <div class="drawer-overlay" id="drawerOverlay"></div>
 
@@ -318,7 +297,7 @@
         <div class="mobile-drawer" id="mobileDrawer">
             <div class="p-6 pt-8">
                 <div class="flex items-center gap-3 mb-8 pb-6 border-b border-white/20">
-                    <img src="https://c.animaapp.com/vkhEa8zW/img/screenshot-2025-09-19-2-53-51-pm-removebg-preview-3@2x.png" alt="UMak Logo" class="h-12 w-auto object-contain">
+                    <img src="UMakfit Logo (2).png" alt="UMak Logo" class="h-12 w-auto object-contain">
                     <span class="text-2xl font-extrabold font-manrope" style="background: linear-gradient(135deg, #EAD38A 0%, #C5A046 50%, #8B6D2D 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">UMakFIT</span>
                 </div>
                 <nav class="space-y-2">
@@ -518,34 +497,12 @@
             </div>
         </footer>
     </div>
-    <script>
-        window.addEventListener('resize', function() {
-    const hamburger = document.getElementById('hamburger');
-    const mobileDrawer = document.getElementById('mobileDrawer');
-    const drawerOverlay = document.getElementById('drawerOverlay');
-    
-    // Check if we're in desktop view (1024px and above)
-    if (window.innerWidth >= 1024) {
-        // If mobile drawer is open, close it
-        if (hamburger && hamburger.classList.contains('active')) {
-            hamburger.classList.remove('active');
-        }
-        if (mobileDrawer && mobileDrawer.classList.contains('active')) {
-            mobileDrawer.classList.remove('active');
-        }
-        if (drawerOverlay && drawerOverlay.classList.contains('active')) {
-            drawerOverlay.classList.remove('active');
-        }
-        // Restore body overflow
-        document.body.style.overflow = '';
-    }
-});
-        </script>
 
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
         import { getFirestore, collection, query, where, getDocs, doc, getDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getNormCategory, getNormDoc, resolveTestKey, resolveAgeGroup, resolveGender, extractNumericResult } from './normLookup.js';
 
         const firebaseConfig = {
             apiKey: "AIzaSyAgaLunqEf2gs6dSpF_sz1hV5XQ5Wm52jo",
@@ -563,192 +520,172 @@
         let cachedStudentData = null;
         let currentUser = null;
         let studentData = null;
+        let normCache = new Map();
 
         const activeListeners = [];
-function registerListener(unsub) { activeListeners.push(unsub); }
-function cleanupAllListeners() { activeListeners.forEach(fn => { try { fn(); } catch(e) {} }); activeListeners.length = 0; }
+        function registerListener(unsub) { activeListeners.push(unsub); }
+        function cleanupAllListeners() { activeListeners.forEach(fn => { try { fn(); } catch(e) {} }); activeListeners.length = 0; }
 
-        // ========== NORM CLASSIFICATION HELPERS (same as studentresult.html) ==========
+        // ========== NORM CLASSIFICATION WITH PRIORITY ==========
 
-        function getStudentAgeForNorms() {
-            if (!studentData) return null;
+        function _studentAge() {
+            if (!studentData) return 20;
             if (studentData.birthday) {
                 try {
-                    let birthDate;
-                    if (studentData.birthday.toDate) {
-                        birthDate = studentData.birthday.toDate();
-                    } else {
-                        birthDate = new Date(studentData.birthday);
-                    }
-                    const today = new Date();
-                    let age = today.getFullYear() - birthDate.getFullYear();
-                    const m = today.getMonth() - birthDate.getMonth();
-                    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
-                    if (!isNaN(age)) return age;
-                } catch (e) {}
+                    const bd = studentData.birthday.toDate ? studentData.birthday.toDate() : new Date(studentData.birthday);
+                    const now = new Date();
+                    let age = now.getFullYear() - bd.getFullYear();
+                    if (now.getMonth() < bd.getMonth() || (now.getMonth() === bd.getMonth() && now.getDate() < bd.getDate())) age--;
+                    if (!isNaN(age) && age > 0) return age;
+                } catch (_) {}
             }
-            if (typeof studentData.age === 'number') return studentData.age;
-            if (typeof studentData.age === 'string') {
-                const m = studentData.age.match(/(\d+)/);
-                if (m) return parseInt(m[1], 10);
-            }
-            return null;
+            return parseInt(studentData.age) || 20;
         }
 
-        function getAgeGroup(age) {
-            if (age == null) return null;
+        function _genderKey() {
+            const g = (studentData?.gender || '').toString().toLowerCase();
+            return g.startsWith('f') ? 'female' : 'male';
+        }
+
+        function _ageGroup() {
+            const age = _studentAge();
             if (age <= 18) return '15-18';
             if (age <= 22) return '19-22';
             if (age <= 26) return '23-26';
-            if (age < 15) return '15-18';
             return '27-30';
         }
 
-        function getGenderKey() {
-            const g = (studentData?.gender || '').toString().toLowerCase();
-            if (g.startsWith('m')) return 'male';
-            if (g.startsWith('f')) return 'female';
-            return 'male';
-        }
+        /**
+         * Get norm category with proper priority:
+         * 1. Student-specific norms (studentNorms)
+         * 2. Test-level norms (if testId provided)
+         * 3. Database default norms (fitnessNorms)
+         * 4. Fallback to normLookup.js
+         */
+        async function getNormCategoryWithPriority(testName, result, testId = null) {
+            if (!studentData || !testName) return null;
+            
+            const testKey = resolveTestKey(testName);
+            if (!testKey) return null;
 
-        function extractNumericResult(result) {
-            if (typeof result === 'object' && result !== null) {
-                return result.value || result.result || result.score || result.count || result.repetitions || 0;
-            }
-            if (typeof result === 'string') {
-                const match = result.match(/(\d+\.?\d*)/);
-                if (match) return parseFloat(match[1]);
-                const parsed = parseFloat(result);
-                return isNaN(parsed) ? 0 : parsed;
-            }
-            const parsed = parseFloat(result);
-            return isNaN(parsed) ? 0 : parsed;
-        }
+            const gender = _genderKey();
+            const ageGroup = _ageGroup();
+            const value = extractNumericResult(result);
 
-        function getPushUpNormCategory(ageGroup, genderKey, reps) {
-            if (genderKey === 'male') {
-                const thresholds = { '15-18': [40,31,21,11], '19-22': [38,28,18,9], '23-26': [35,25,16,8], '27-30': [32,23,14,6] };
-                const t = thresholds[ageGroup] || thresholds['27-30'];
-                if (reps >= t[0]) return 'Excellent';
-                if (reps >= t[1]) return 'Good';
-                if (reps >= t[2]) return 'Average';
-                if (reps >= t[3]) return 'Below Average';
-                return 'Poor';
-            } else {
-                const thresholds = { '15-18': [25,19,13,7], '19-22': [23,17,11,6], '23-26': [20,15,9,5], '27-30': [18,13,8,4] };
-                const t = thresholds[ageGroup] || thresholds['27-30'];
-                if (reps >= t[0]) return 'Excellent';
-                if (reps >= t[1]) return 'Good';
-                if (reps >= t[2]) return 'Average';
-                if (reps >= t[3]) return 'Below Average';
-                return 'Poor';
-            }
-        }
+            // Create cache key
+            const cacheKey = `${studentData?.email}|${testKey}|${gender}|${ageGroup}|${testId || 'none'}`;
+            if (normCache.has(cacheKey)) return normCache.get(cacheKey);
 
-        function getCurlUpNormCategory(ageGroup, genderKey, reps) {
-            if (genderKey === 'male') {
-                const thresholds = { '15-18': [50,41,31,21], '19-22': [47,38,28,19], '23-26': [44,35,25,17], '27-30': [40,32,22,15] };
-                const t = thresholds[ageGroup] || thresholds['27-30'];
-                if (reps >= t[0]) return 'Excellent';
-                if (reps >= t[1]) return 'Good';
-                if (reps >= t[2]) return 'Average';
-                if (reps >= t[3]) return 'Below Average';
-                return 'Poor';
-            } else {
-                const thresholds = { '15-18': [45,36,26,16], '19-22': [42,34,24,15], '23-26': [39,31,21,13], '27-30': [36,28,19,11] };
-                const t = thresholds[ageGroup] || thresholds['27-30'];
-                if (reps >= t[0]) return 'Excellent';
-                if (reps >= t[1]) return 'Good';
-                if (reps >= t[2]) return 'Average';
-                if (reps >= t[3]) return 'Below Average';
-                return 'Poor';
-            }
-        }
-
-        function getSitAndReachNormCategory(ageGroup, genderKey, v) {
-            if (genderKey === 'male') {
-                const thresholds = { '15-18': [38,33,26,18], '19-22': [37,32,25,17], '23-26': [35.5,30.5,23.5,15.5], '27-30': [34,29,22,14] };
-                const t = thresholds[ageGroup] || thresholds['27-30'];
-                if (v >= t[0]) return 'Excellent';
-                if (v >= t[1]) return 'Good';
-                if (v >= t[2]) return 'Average';
-                if (v >= t[3]) return 'Below Average';
-                return 'Poor';
-            } else {
-                const thresholds = { '15-18': [39,34,27,19], '19-22': [38,33,26,18], '23-26': [37,32,25,17], '27-30': [36,31,24,16] };
-                const t = thresholds[ageGroup] || thresholds['27-30'];
-                if (v >= t[0]) return 'Excellent';
-                if (v >= t[1]) return 'Good';
-                if (v >= t[2]) return 'Average';
-                if (v >= t[3]) return 'Below Average';
-                return 'Poor';
-            }
-        }
-
-        function getStepTestNormCategory(ageGroup, genderKey, hr) {
-            if (genderKey === 'male') {
-                const thresholds = { '15-18': [84,97,108,118], '19-22': [79,89,105,116], '23-26': [80,90,106,117], '27-30': [81,91,107,118] };
-                const t = thresholds[ageGroup] || thresholds['27-30'];
-                if (hr <= t[0]) return 'Excellent';
-                if (hr <= t[1]) return 'Good';
-                if (hr <= t[2]) return 'Average';
-                if (hr <= t[3]) return 'Below Average';
-                return 'Poor';
-            } else {
-                const thresholds = { '15-18': [89,103,113,124], '19-22': [85,98,109,118], '23-26': [86,99,110,119], '27-30': [88,101,112,121] };
-                const t = thresholds[ageGroup] || thresholds['27-30'];
-                if (hr <= t[0]) return 'Excellent';
-                if (hr <= t[1]) return 'Good';
-                if (hr <= t[2]) return 'Average';
-                if (hr <= t[3]) return 'Below Average';
-                return 'Poor';
-            }
-        }
-
-        function getNormCategory(testName, result) {
-            if (!testName) return null;
-            const normalized = testName.toLowerCase();
-            const numericValue = extractNumericResult(result);
-            const age = getStudentAgeForNorms();
-            const ageGroup = getAgeGroup(age);
-            const genderKey = getGenderKey();
-
-            // Skinfold — extract label from result string like "18% (Athletic)"
-            if (normalized.includes('skinfold')) {
-                if (typeof result === 'string') {
-                    const match = result.match(/\(([^)]+)\)/);
-                    if (match) return match[1]; // e.g. "Athletic", "Fitness", "Average"
+            // 1️⃣ STUDENT-SPECIFIC NORMS (highest priority)
+            if (studentData?.email) {
+                try {
+                    const studentNormRef = doc(db, 'studentNorms', studentData.email, 'tests', testKey);
+                    const studentNormSnap = await getDoc(studentNormRef);
+                    
+                    if (studentNormSnap.exists()) {
+                        const nd = studentNormSnap.data();
+                        const thresholds = nd.thresholds;
+                        const lowerIsBetter = nd.lowerIsBetter ?? false;
+                        
+                        const order = ['Excellent', 'Good', 'Average', 'Below Average'];
+                        for (const cat of order) {
+                            const threshold = thresholds[cat];
+                            if (threshold == null) continue;
+                            if (lowerIsBetter && value <= threshold) {
+                                normCache.set(cacheKey, cat);
+                                return cat;
+                            }
+                            if (!lowerIsBetter && value >= threshold) {
+                                normCache.set(cacheKey, cat);
+                                return cat;
+                            }
+                        }
+                        normCache.set(cacheKey, 'Poor');
+                        return 'Poor';
+                    }
+                } catch (error) {
+                    console.warn('Error checking student norms:', error);
                 }
-                return 'Completed';
             }
 
-            // Step test / 3-minute step
-            if (normalized.includes('step test') || normalized.includes('3-minute')) {
-                if (!ageGroup) return 'Completed';
-                return getStepTestNormCategory(ageGroup, genderKey, numericValue);
+            // 2️⃣ TEST-LEVEL NORMS (if testId provided)
+  // 2️⃣ TEST-LEVEL NORMS (inline customNorms on scheduledTests doc)
+if (testId) {
+    try {
+        const testSnap = await getDoc(doc(db, 'scheduledTests', testId));
+        if (testSnap.exists()) {
+            const testData = testSnap.data();
+            if (testData.customNorms?.thresholds) {
+                const nd = testData.customNorms;
+                const lowerIsBetter = nd.lowerIsBetter ?? false;
+                const order = ['Excellent', 'Good', 'Average', 'Below Average'];
+                for (const cat of order) {
+                    const threshold = nd.thresholds[cat];
+                    if (threshold == null) continue;
+                    if (lowerIsBetter && value <= threshold) { normCache.set(cacheKey, cat); return cat; }
+                    if (!lowerIsBetter && value >= threshold) { normCache.set(cacheKey, cat); return cat; }
+                }
+                normCache.set(cacheKey, 'Poor');
+                return 'Poor';
+            }
+        }
+    } catch (error) {
+        console.warn('Error checking test norms:', error);
+    }
+}
+
+            // 3️⃣ DATABASE DEFAULT NORMS
+            try {
+                const defaultNormRef = doc(db, 'fitnessNorms', `${testKey}_${gender}_${ageGroup}`);
+                const defaultNormSnap = await getDoc(defaultNormRef);
+                
+                if (defaultNormSnap.exists()) {
+                    const nd = defaultNormSnap.data();
+                    const thresholds = nd.thresholds;
+                    const lowerIsBetter = nd.lowerIsBetter ?? false;
+                    
+                    const order = ['Excellent', 'Good', 'Average', 'Below Average'];
+                    for (const cat of order) {
+                        const threshold = thresholds[cat];
+                        if (threshold == null) continue;
+                        if (lowerIsBetter && value <= threshold) {
+                            normCache.set(cacheKey, cat);
+                            return cat;
+                        }
+                        if (!lowerIsBetter && value >= threshold) {
+                            normCache.set(cacheKey, cat);
+                            return cat;
+                        }
+                    }
+                    normCache.set(cacheKey, 'Poor');
+                    return 'Poor';
+                }
+            } catch (error) {
+                console.warn('Error checking default norms:', error);
             }
 
-            // Push-up
-            if (normalized.includes('push-up') || normalized.includes('pushup')) {
-                if (!ageGroup) return null;
-                return getPushUpNormCategory(ageGroup, genderKey, numericValue);
-            }
-
-            // Curl-up
-            if (normalized.includes('curl-up') || normalized.includes('curl up')) {
-                if (!ageGroup) return null;
-                return getCurlUpNormCategory(ageGroup, genderKey, numericValue);
-            }
-
-            // Sit-and-reach
-            if (normalized.includes('sit-and-reach') || normalized.includes('sit and reach')) {
-                if (!ageGroup) return null;
-                return getSitAndReachNormCategory(ageGroup, genderKey, numericValue);
+            // 4️⃣ FALLBACK TO normLookup.js
+            try {
+                const fallbackResult = await getNormCategory(db, {
+                    testName,
+                    result,
+                    studentEmail: studentData?.email || '',
+                    gender: studentData?.gender || 'male',
+                    age: _studentAge(),
+                });
+                
+                if (fallbackResult) {
+                    normCache.set(cacheKey, fallbackResult.category);
+                    return fallbackResult.category;
+                }
+            } catch (error) {
+                console.warn('Error using fallback norms:', error);
             }
 
             return null;
         }
-        
+
+        // ========== NORM HELPER FUNCTIONS ==========
 
         function normCategoryClass(category) {
             if (!category) return 'norm-average';
@@ -776,16 +713,15 @@ function cleanupAllListeners() { activeListeners.forEach(fn => { try { fn(); } c
             return 'bi-check-circle-fill';
         }
 
-        // Map norm category to a numeric rank for computing "overall standing"
         function normCategoryRank(category) {
             if (!category) return 3;
             const c = category.toLowerCase();
             if (c === 'excellent') return 5;
             if (c === 'good' || c === 'athletic' || c === 'fitness') return 4;
-            if (c === 'average') return 3;
+            if (c === 'average' || c === 'essential fat') return 3;
             if (c === 'below average' || c === 'overfat') return 2;
             if (c === 'poor' || c === 'obese') return 1;
-            return 3; // completed/essential fat/etc
+            return 3;
         }
 
         function rankToCategory(rank) {
@@ -823,16 +759,21 @@ function cleanupAllListeners() { activeListeners.forEach(fn => { try { fn(); } c
         async function checkUnreadNotifications() {
             try {
                 if (!studentData || !studentData.section) return;
-const notificationsQuery = query(
-    collection(db, 'notifications'),
-    where('section', '==', studentData.section),
-    where('studentEmail', '==', studentData.email)
-);                const notificationsSnapshot = await getDocs(notificationsQuery);
+                
+                const notificationsQuery = query(
+                    collection(db, 'notifications'),
+                    where('section', '==', studentData.section),
+                    where('studentEmail', '==', studentData.email)
+                );
+                
+                const notificationsSnapshot = await getDocs(notificationsQuery);
                 const readNotifications = JSON.parse(localStorage.getItem(`readNotifications_${studentData.email}`) || '[]');
                 let unreadCount = 0;
                 notificationsSnapshot.forEach(doc => { if (!readNotifications.includes(doc.id)) unreadCount++; });
+                
                 const countBadge = document.getElementById('navNotificationCount');
                 const countBadgeMobile = document.getElementById('navNotificationCountMobile');
+                
                 if (unreadCount > 0) {
                     if (countBadge) { countBadge.textContent = unreadCount; countBadge.classList.remove('hidden'); }
                     if (countBadgeMobile) { countBadgeMobile.textContent = unreadCount; countBadgeMobile.classList.remove('hidden'); }
@@ -851,12 +792,16 @@ const notificationsQuery = query(
                     dropdownBody.innerHTML = `<div class="notification-empty"><i class="bi bi-bell-slash"></i><p>No section assigned</p></div>`;
                     return;
                 }
-const notificationsQuery = query(
-    collection(db, 'notifications'),
-    where('section', '==', studentData.section),
-    where('studentEmail', '==', studentData.email)
-);                const notificationsSnapshot = await getDocs(notificationsQuery);
+                
+                const notificationsQuery = query(
+                    collection(db, 'notifications'),
+                    where('section', '==', studentData.section),
+                    where('studentEmail', '==', studentData.email)
+                );
+                
+                const notificationsSnapshot = await getDocs(notificationsQuery);
                 const readNotifications = JSON.parse(localStorage.getItem(`readNotifications_${studentData.email}`) || '[]');
+                
                 if (!notificationsSnapshot.empty) {
                     const seenNotifications = new Set();
                     const uniqueNotifications = [];
@@ -867,6 +812,7 @@ const notificationsQuery = query(
                     });
                     uniqueNotifications.sort((a, b) => (b.createdAt?.toDate?.() || new Date(0)) - (a.createdAt?.toDate?.() || new Date(0)));
                     const unreadIds = uniqueNotifications.filter(n => !readNotifications.includes(n.id)).map(n => n.id);
+                    
                     let html = '';
                     uniqueNotifications.slice(0, 5).forEach(notification => {
                         const createdDate = notification.createdAt?.toDate?.();
@@ -908,33 +854,32 @@ const notificationsQuery = query(
 
         function setupNotificationListener() {
             if (!studentData || !studentData.section) return;
-const notificationsQuery = query(
-    collection(db, 'notifications'),
-    where('section', '==', studentData.section),
-    where('studentEmail', '==', studentData.email)
+            
+            const notificationsQuery = query(
+                collection(db, 'notifications'),
+                where('section', '==', studentData.section),
+                where('studentEmail', '==', studentData.email)
+            );
 
-);           
-registerListener(onSnapshot(notificationsQuery, () => checkUnreadNotifications(), error => console.error(error)));
-
-
+            registerListener(onSnapshot(notificationsQuery, () => checkUnreadNotifications(), error => console.error(error)));
         }
 
-  window.toggleProfileDropdown = function() {
-    const isMobile = window.innerWidth < 1024;
-    const dropdown = document.getElementById(isMobile ? 'profileDropdownMobile' : 'profileDropdown');
-    const notificationDropdown = document.getElementById('notificationDropdown');
-    const notificationDropdownMobile = document.getElementById('notificationDropdownMobile');
-    if (notificationDropdown) notificationDropdown.classList.add('hidden');
-    if (notificationDropdownMobile) notificationDropdownMobile.classList.add('hidden');
+        window.toggleProfileDropdown = function() {
+            const isMobile = window.innerWidth < 1024;
+            const dropdown = document.getElementById(isMobile ? 'profileDropdownMobile' : 'profileDropdown');
+            const notificationDropdown = document.getElementById('notificationDropdown');
+            const notificationDropdownMobile = document.getElementById('notificationDropdownMobile');
+            if (notificationDropdown) notificationDropdown.classList.add('hidden');
+            if (notificationDropdownMobile) notificationDropdownMobile.classList.add('hidden');
 
-    // Close hamburger drawer if open
-    hamburger?.classList.remove('active');
-    mobileDrawer?.classList.remove('active');
-    drawerOverlay?.classList.remove('active');
-    document.body.style.overflow = '';
+            // Close hamburger drawer if open
+            hamburger?.classList.remove('active');
+            mobileDrawer?.classList.remove('active');
+            drawerOverlay?.classList.remove('active');
+            document.body.style.overflow = '';
 
-    dropdown.classList.toggle('hidden');
-};
+            dropdown.classList.toggle('hidden');
+        };
 
         function closeProfileDropdown() {
             document.getElementById('profileDropdown')?.classList.add('hidden');
@@ -944,11 +889,14 @@ registerListener(onSnapshot(notificationsQuery, () => checkUnreadNotifications()
         function updateProfileUI() {
             if (!currentUser || !studentData) return;
             const photoURL = currentUser?.photoURL || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(studentData?.displayName || `${studentData?.firstName || ''} ${studentData?.lastName || ''}`.trim() || 'User') + '&background=3b82f6&color=fff&size=128';
+            
             ['profilePictureBtn', 'profileDropdownPicture', 'profilePictureBtnMobile', 'profileDropdownPictureMobile'].forEach(id => {
                 const el = document.getElementById(id); if (el) el.src = photoURL;
             });
+            
             const name = studentData?.displayName || `${studentData?.firstName || ''} ${studentData?.lastName || ''}`.trim() || 'Student';
             const email = studentData?.email || currentUser?.email || '';
+            
             ['profileDropdownName', 'profileDropdownNameMobile'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = name; });
             ['profileDropdownEmail', 'profileDropdownEmailMobile'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = email; });
         }
@@ -957,21 +905,23 @@ registerListener(onSnapshot(notificationsQuery, () => checkUnreadNotifications()
         const hamburger = document.getElementById('hamburger');
         const mobileDrawer = document.getElementById('mobileDrawer');
         const drawerOverlay = document.getElementById('drawerOverlay');
-if (hamburger) {
-    hamburger.addEventListener('click', (e) => {
-        e.stopPropagation();
-        hamburger.classList.toggle('active');
-        mobileDrawer.classList.toggle('active');
-        drawerOverlay.classList.toggle('active');
-        document.body.style.overflow = mobileDrawer.classList.contains('active') ? 'hidden' : '';
 
-        // Close profile and notification dropdowns when opening drawer
-        if (mobileDrawer.classList.contains('active')) {
-            document.getElementById('profileDropdownMobile')?.classList.add('hidden');
-            document.getElementById('notificationDropdownMobile')?.classList.add('hidden');
+        if (hamburger) {
+            hamburger.addEventListener('click', (e) => {
+                e.stopPropagation();
+                hamburger.classList.toggle('active');
+                mobileDrawer.classList.toggle('active');
+                drawerOverlay.classList.toggle('active');
+                document.body.style.overflow = mobileDrawer.classList.contains('active') ? 'hidden' : '';
+
+                // Close profile and notification dropdowns when opening drawer
+                if (mobileDrawer.classList.contains('active')) {
+                    document.getElementById('profileDropdownMobile')?.classList.add('hidden');
+                    document.getElementById('notificationDropdownMobile')?.classList.add('hidden');
+                }
+            });
         }
-    });
-}
+        
         if (drawerOverlay) {
             drawerOverlay.addEventListener('click', () => {
                 hamburger.classList.remove('active');
@@ -980,6 +930,7 @@ if (hamburger) {
                 document.body.style.overflow = '';
             });
         }
+        
         document.querySelectorAll('.mobile-nav-link').forEach(link => {
             link.addEventListener('click', () => {
                 hamburger.classList.remove('active');
@@ -1001,7 +952,7 @@ if (hamburger) {
             } catch (error) { console.error('Error loading student data:', error); return null; }
         }
 
-        // ========== MAIN GRADES LOADING ==========
+        // ========== MAIN PERFORMANCE LOADING ==========
         async function loadPerformance() {
             try {
                 if (!studentData || !studentData.email) {
@@ -1023,8 +974,8 @@ if (hamburger) {
 
                 let totalAssignedTests = 0;
 
-registerListener(onSnapshot(assignedTestsQuery, async (assignedSnapshot) => {
-                        const now = new Date();
+                registerListener(onSnapshot(assignedTestsQuery, async (assignedSnapshot) => {
+                    const now = new Date();
                     const seenTestIds = new Set();
                     totalAssignedTests = 0;
 
@@ -1075,8 +1026,8 @@ registerListener(onSnapshot(assignedTestsQuery, async (assignedSnapshot) => {
                     where('status', 'in', ['completed', 'overdue', 'late'])
                 );
 
-registerListener(onSnapshot(resultsQuery, (resultsSnapshot) => {
-                        const testResults = [];
+                registerListener(onSnapshot(resultsQuery, async (resultsSnapshot) => {
+                    const testResults = [];
                     const categoryData = {};
 
                     Object.keys(testCategories).forEach(cat => {
@@ -1085,7 +1036,7 @@ registerListener(onSnapshot(resultsQuery, (resultsSnapshot) => {
 
                     const testGroups = {};
 
-                    resultsSnapshot.forEach((doc) => {
+                    for (const doc of resultsSnapshot.docs) {
                         const result = doc.data();
 
                         let testDate = new Date();
@@ -1096,8 +1047,13 @@ registerListener(onSnapshot(resultsQuery, (resultsSnapshot) => {
                             else testDate = new Date(result.submittedAt);
                         }
 
-                        // Get norm category
-                        const normCat = getNormCategory(result.testName, result.result || result.resultData);
+                        // Get norm category with priority
+                        const normCat = await getNormCategoryWithPriority(
+                            result.testName, 
+                            result.result || result.resultData, 
+                            result.testId
+                        );
+                        
                         const category = getCategoryForTest(result.testName);
                         const testId = result.testId || doc.id;
 
@@ -1116,7 +1072,7 @@ registerListener(onSnapshot(resultsQuery, (resultsSnapshot) => {
                                 testGroups[testId] = { ...result, normCategory: normCat, category, id: doc.id, submittedAt: testDate };
                             }
                         }
-                    });
+                    }
 
                     let testCount = 0;
                     const allRanks = [];
@@ -1136,6 +1092,7 @@ registerListener(onSnapshot(resultsQuery, (resultsSnapshot) => {
                     // Overall standing from average rank
                     const overallStandingEl = document.getElementById('overallStanding');
                     const overallNoteEl = document.getElementById('overallNote');
+                    
                     if (allRanks.length > 0) {
                         const avgRank = allRanks.reduce((a, b) => a + b, 0) / allRanks.length;
                         const overallCat = rankToCategory(avgRank);
@@ -1347,50 +1304,48 @@ registerListener(onSnapshot(resultsQuery, (resultsSnapshot) => {
                 }
             });
         }
-// REPLACE WITH:
-let unsubscribeAuth = null;
 
-// Start showing page in max 1.5s regardless
-const loadingTimeout = setTimeout(() => {
-    document.getElementById('loadingScreen').classList.add('hidden');
-    document.getElementById('mainContent').classList.remove('hidden');
-}, 1500);
+        // ========== AUTH ==========
+        let unsubscribeAuth = null;
 
-unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
-    if (user) {
-        currentUser = user;
-        setupEventListeners();
+        // Start showing page in max 1.5s regardless
+        const loadingTimeout = setTimeout(() => {
+            document.getElementById('loadingScreen').classList.add('hidden');
+            document.getElementById('mainContent').classList.remove('hidden');
+        }, 1500);
 
-        // Parallel: load student data + set up UI simultaneously
-        await loadStudentData(user);
-        cachedStudentData = studentData;
-        updateProfileUI();
+        unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                setupEventListeners();
 
-        clearTimeout(loadingTimeout);
-        document.getElementById('loadingScreen').classList.add('hidden');
-        document.getElementById('mainContent').classList.remove('hidden');
+                // Parallel: load student data + set up UI simultaneously
+                await loadStudentData(user);
+                cachedStudentData = studentData;
+                updateProfileUI();
 
-        // Non-blocking background load
-        loadPerformance().catch(err => console.error('Performance load error:', err));
-    } else {
-        clearTimeout(loadingTimeout);
-        window.location.href = '../login/index.html';
-    }
-});
+                clearTimeout(loadingTimeout);
+                document.getElementById('loadingScreen').classList.add('hidden');
+                document.getElementById('mainContent').classList.remove('hidden');
 
-// Kill all listeners when navigating away
-window.addEventListener('pagehide', () => {
-    cleanupAllListeners();
-    if (unsubscribeAuth) unsubscribeAuth();
-});
+                // Non-blocking background load
+                loadPerformance().catch(err => console.error('Performance load error:', err));
+            } else {
+                clearTimeout(loadingTimeout);
+                window.location.href = '../login/index.html';
+            }
+        });
 
-window.addEventListener('beforeunload', () => {
-    cleanupAllListeners();
-    if (unsubscribeAuth) unsubscribeAuth();
-});
+        // Kill all listeners when navigating away
+        window.addEventListener('pagehide', () => {
+            cleanupAllListeners();
+            if (unsubscribeAuth) unsubscribeAuth();
+        });
 
-// ✅ Cleanup on page leave
-window.addEventListener('pagehide', () => unsubscribeAuth());
+        window.addEventListener('beforeunload', () => {
+            cleanupAllListeners();
+            if (unsubscribeAuth) unsubscribeAuth();
+        });
 
         // ========== LOGOUT ==========
         window.handleLogout = function() { showLogoutConfirmPopup(); };

@@ -375,10 +375,10 @@
             <div class="w-8 h-8 rounded-lg bg-white/[0.08] flex items-center justify-center text-[13px] flex-shrink-0"><i class="fas fa-chart-bar"></i></div>
             <span>Monitoring</span>
         </a>
-            <a href="grades.html" class="flex items-center gap-3 px-5 py-2.5 text-white/55 no-underline text-[13.5px] font-medium hover:text-white/90 hover:bg-white/5 transition-all">
-                <div class="w-8 h-8 rounded-lg bg-white/[0.08] flex items-center justify-center text-[13px] flex-shrink-0"><i class="fas fa-chart-line"></i></div>
-                <span>Performance</span>
-            </a>
+        <a href="grades.html" class="flex items-center gap-3 px-5 py-2.5 text-white/55 no-underline text-[13.5px] font-medium hover:text-white/90 hover:bg-white/5 transition-all">
+            <div class="w-8 h-8 rounded-lg bg-white/[0.08] flex items-center justify-center text-[13px] flex-shrink-0"><i class="fas fa-chart-line"></i></div>
+            <span>Performance</span>
+        </a>
         <a href="sectionranklist.html" class="flex items-center gap-3 px-5 py-2.5 text-white/55 no-underline text-[13.5px] font-medium hover:text-white/90 hover:bg-white/5 transition-all">
             <div class="w-8 h-8 rounded-lg bg-white/[0.08] flex items-center justify-center text-[13px] flex-shrink-0"><i class="fas fa-trophy"></i></div>
             <span>Section Rank</span>
@@ -482,7 +482,8 @@
                         <input type="text" id="searchStudents" placeholder="Search students by name or ID..."
                             class="px-4 py-2.5 border border-border rounded-lg focus:ring-2 focus:ring-blue/20 focus:border-blue bg-surface text-sm transition-all w-full"
                             onkeyup="filterStudents()">
-                            <select id="filterSection" class="px-4 py-2.5 border border-border rounded-lg focus:ring-2 focus:ring-blue/20 focus:border-blue bg-surface text-sm w-full" onchange="filterStudents(); onTestFilterChange()"></select>                        <select id="filterCategory" class="px-4 py-2.5 border border-border rounded-lg focus:ring-2 focus:ring-blue/20 focus:border-blue bg-surface text-sm w-full" onchange="filterStudents()">
+                        <select id="filterSection" class="px-4 py-2.5 border border-border rounded-lg focus:ring-2 focus:ring-blue/20 focus:border-blue bg-surface text-sm w-full" onchange="filterStudents(); onTestFilterChange()"></select>                        
+                        <select id="filterCategory" class="px-4 py-2.5 border border-border rounded-lg focus:ring-2 focus:ring-blue/20 focus:border-blue bg-surface text-sm w-full" onchange="filterStudents()">
                             <option value="">All Categories</option>
                             <option value="Excellent">Excellent</option>
                             <option value="Good">Good</option>
@@ -491,7 +492,7 @@
                             <option value="Poor">Poor</option>
                             <option value="no-attempts">No Attempts Yet</option>
                         </select>
-                       <select id="filterTest" class="px-4 py-2.5 border border-border rounded-lg focus:ring-2 focus:ring-blue/20 focus:border-blue bg-surface text-sm w-full" onchange="onTestFilterChange()">
+                        <select id="filterTest" class="px-4 py-2.5 border border-border rounded-lg focus:ring-2 focus:ring-blue/20 focus:border-blue bg-surface text-sm w-full" onchange="onTestFilterChange()">
                             <option value="">Select Test</option>
                         </select>
                         <select id="filterTestDate" class="px-4 py-2.5 border border-border rounded-lg focus:ring-2 focus:ring-blue/20 focus:border-blue bg-surface text-sm w-full" onchange="filterStudents()">
@@ -503,7 +504,7 @@
                             <thead>
                                 <tr>
                                     <th>ID</th><th>Student Name</th><th>Section</th>
-                                     <th>Activities</th><th>Health Condition</th><th>Overall Performance</th><th>Actions</th>
+                                    <th>Activities</th><th>Health Condition</th><th>Overall Performance</th><th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="studentsTableBody">
@@ -578,7 +579,8 @@
                             <div class="space-y-3">
                                 <a href="addlesson.html" class="block text-white/70 hover:text-accent transition-colors text-sm"><i class="fas fa-book-open mr-2"></i>Lessons</a>
                                 <a href="monitoringactivities.html" class="block text-white/70 hover:text-accent transition-colors text-sm"><i class="fas fa-chart-bar mr-2"></i>Monitoring</a>
-                                <a href="grades.html" class="block text-white/70 hover:text-accent transition-colors text-sm"><i class="fas fa-chart-line mr-2"></i>Performance</a>                            </div>
+                                <a href="grades.html" class="block text-white/70 hover:text-accent transition-colors text-sm"><i class="fas fa-chart-line mr-2"></i>Performance</a>                            
+                            </div>
                         </div>
                     </div>
                     <div>
@@ -765,22 +767,23 @@
 <!-- ── SIDEBAR & HEADER JS ── -->
 <script>
     // Add caching at the top of your script
-const cache = {
-    students: new Map(),
-    testResults: new Map(),
-    sections: new Map(),
-    scheduledTests: new Map(),
+    const cache = {
+        students: new Map(),
+        testResults: new Map(),
+        sections: new Map(),
+        scheduledTests: new Map(),
+        
+        // Clear old cache after 5 minutes
+        clear: function() {
+            setTimeout(() => {
+                this.students.clear();
+                this.testResults.clear();
+                this.sections.clear();
+                this.scheduledTests.clear();
+            }, 300000);
+        }
+    };
     
-    // Clear old cache after 5 minutes
-    clear: function() {
-        setTimeout(() => {
-            this.students.clear();
-            this.testResults.clear();
-            this.sections.clear();
-            this.scheduledTests.clear();
-        }, 300000);
-    }
-};
     function updateHeaderDate() {
         const el = document.getElementById('headerDate');
         if (el) el.textContent = new Date().toLocaleDateString('en-US', { weekday:'short', year:'numeric', month:'short', day:'numeric' });
@@ -809,24 +812,24 @@ const cache = {
         if (dd && !e.target.closest('#profileCircle') && !dd.contains(e.target)) dd.classList.remove('show');
     });
 
-        function updateProfileUI(photoURL, displayName, email) {
-            const name = displayName || 'Professor';
-            const initial = name.charAt(0).toUpperCase();
+    function updateProfileUI(photoURL, displayName, email) {
+        const name = displayName || 'Professor';
+        const initial = name.charAt(0).toUpperCase();
 
-            // Use Google displayName directly — no splitting
-            document.getElementById('headerName').textContent = name;
-            document.getElementById('dropdownName').textContent = name;
-            document.getElementById('dropdownEmail').textContent = email || '';
+        // Use Google displayName directly — no splitting
+        document.getElementById('headerName').textContent = name;
+        document.getElementById('dropdownName').textContent = name;
+        document.getElementById('dropdownEmail').textContent = email || '';
 
-            const setAvatar = (id) => {
-                const el = document.getElementById(id);
-                if (!el) return;
-                if (photoURL) { el.innerHTML = `<img src="${photoURL}" class="w-full h-full object-cover rounded-full" alt="">`; }
-                else { el.textContent = initial; }
-            };
-            setAvatar('profileAvatarSmall');
-            setAvatar('profileDropdownAvatar');
-        }
+        const setAvatar = (id) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            if (photoURL) { el.innerHTML = `<img src="${photoURL}" class="w-full h-full object-cover rounded-full" alt="">`; }
+            else { el.textContent = initial; }
+        };
+        setAvatar('profileAvatarSmall');
+        setAvatar('profileDropdownAvatar');
+    }
     window.updateProfileUI = updateProfileUI;
 
     function showLogoutConfirmPopup() {
@@ -961,6 +964,7 @@ const cache = {
         addDoc, updateDoc, deleteDoc, doc, orderBy, serverTimestamp,
         limit, Timestamp, onSnapshot
     } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+    import { getNormCategory, getNormDoc, resolveTestKey, resolveAgeGroup, resolveGender, extractNumericResult } from './normLookup.js';
 
     const firebaseConfig = {
         apiKey: "AIzaSyAgaLunqEf2gs6dSpF_sz1hV5XQ5Wm52jo",
@@ -1036,66 +1040,41 @@ const cache = {
     }
 
     // ============================================================
-    // ⭐ NORM-BASED CLASSIFICATION - EXACTLY LIKE grades.html ⭐
+    // ⭐ NORM-BASED CLASSIFICATION WITH PRIORITY
     // ============================================================
 
-    function extractNumericResult(result) {
-        if (typeof result === 'object' && result !== null) {
-            return parseFloat(result.value || result.result || result.score || result.count || result.repetitions || result.time || 0) || 0;
+    const CATEGORY_ORDER = { 'Excellent': 5, 'Good': 4, 'Average': 3, 'Below Average': 2, 'Poor': 1 };
+    let normCache = new Map();
+
+    function _studentAge(student) {
+        if (!student) return 20;
+        if (student.birthday) {
+            try {
+                const bd = student.birthday.toDate ? student.birthday.toDate() : new Date(student.birthday);
+                const now = new Date();
+                let age = now.getFullYear() - bd.getFullYear();
+                if (now.getMonth() < bd.getMonth() || (now.getMonth() === bd.getMonth() && now.getDate() < bd.getDate())) age--;
+                if (!isNaN(age) && age > 0) return age;
+            } catch (_) {}
         }
-        if (typeof result === 'string') {
-            const match = result.match(/(\d+\.?\d*)/);
-            if (match) return parseFloat(match[1]);
-        }
-        return parseFloat(result) || 0;
+        return parseInt(student.age) || 20;
     }
 
-    // Norm category order (same as grades.html)
-    const CATEGORY_ORDER = { 'Excellent': 5, 'Good': 4, 'Average': 3, 'Below Average': 2, 'Poor': 1 };
-    
-    // Helper function to get age group from student data
+    function _ageGroup(age) {
+        if (age <= 18) return '15-18';
+        if (age <= 22) return '19-22';
+        if (age <= 26) return '23-26';
+        return '27-30';
+    }
+
+    function _genderKey(gender) {
+        const g = (gender || '').toString().toLowerCase();
+        return g.startsWith('f') ? 'female' : 'male';
+    }
+
     function getAgeGroupFromStudent(studentData) {
-        if (!studentData) return '19-22'; // default
-        
-        // If student has birthday
-        if (studentData.birthday) {
-            try {
-                let birthDate;
-                if (studentData.birthday.toDate) {
-                    birthDate = studentData.birthday.toDate();
-                } else {
-                    birthDate = new Date(studentData.birthday);
-                }
-                const today = new Date();
-                let age = today.getFullYear() - birthDate.getFullYear();
-                const m = today.getMonth() - birthDate.getMonth();
-                if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-                    age--;
-                }
-                
-                if (!isNaN(age) && age > 0) {
-                    if (age <= 18) return '15-18';
-                    if (age <= 22) return '19-22';
-                    if (age <= 26) return '23-26';
-                    return '27-30';
-                }
-            } catch (e) {
-                console.error('Error computing age from birthday:', e);
-            }
-        }
-        
-        // If student has age field
-        if (studentData.age) {
-            const age = parseInt(studentData.age);
-            if (!isNaN(age)) {
-                if (age <= 18) return '15-18';
-                if (age <= 22) return '19-22';
-                if (age <= 26) return '23-26';
-                return '27-30';
-            }
-        }
-        
-        return '19-22'; // default fallback
+        if (!studentData) return '19-22';
+        return _ageGroup(_studentAge(studentData));
     }
 
     function getCategoryClass(category) {
@@ -1120,138 +1099,167 @@ const cache = {
         }
     }
 
-function renderCategoryBadge(category) {
-    if (!category) {
-        return `<span class="category-badge category-default">— No Data Yet</span>`;
+    function renderCategoryBadge(category) {
+        if (!category) {
+            return `<span class="category-badge category-default">— No Data Yet</span>`;
+        }
+        const icon = getCategoryIcon(category);
+        const className = getCategoryClass(category);
+        return `<span class="category-badge ${className}">${icon} ${category}</span>`;
     }
-    const icon = getCategoryIcon(category);
-    const className = getCategoryClass(category);
-    return `<span class="category-badge ${className}">${icon} ${category}</span>`;
-}
 
-    function getPushUpCategory(genderKey, ageGroup, reps) {
-        if (genderKey === 'male') {
-            const norms = { '15-18':[40,31,21,11], '19-22':[38,28,18,9], '23-26':[35,25,16,8], '27-30':[32,23,14,6] };
-            const t = norms[ageGroup] || norms['19-22'];
-            if (reps >= t[0]) return 'Excellent';
-            if (reps >= t[1]) return 'Good';
-            if (reps >= t[2]) return 'Average';
-            if (reps >= t[3]) return 'Below Average';
-            return 'Poor';
-        } else {
-            const norms = { '15-18':[25,19,13,7], '19-22':[23,17,11,6], '23-26':[20,15,9,5], '27-30':[18,13,8,4] };
-            const t = norms[ageGroup] || norms['19-22'];
-            if (reps >= t[0]) return 'Excellent';
-            if (reps >= t[1]) return 'Good';
-            if (reps >= t[2]) return 'Average';
-            if (reps >= t[3]) return 'Below Average';
-            return 'Poor';
+    /**
+     * Get norm category with proper priority:
+     * 1. Student-specific norms (studentNorms)
+     * 2. Test-level norms (if testId provided)
+     * 3. Database default norms (fitnessNorms)
+     * 4. Fallback to normLookup.js
+     */
+async function getNormCategoryWithPriority(testName, result, testId, studentEmail, studentGender, studentAge) {
+    if (!testName) return 'Average';
+    
+    const testKey = resolveTestKey(testName);
+    if (!testKey) return 'Average';
+
+    // ── FIX: extract numeric value from any result shape ──
+    let numericResult = result;
+    if (typeof result === 'object' && result !== null) {
+        numericResult = result.repetitions ?? result.value ?? result.time ?? 
+                        result.distance ?? result.reps ?? result.count ?? 0;
+    }
+    const value = extractNumericResult(numericResult);
+    
+    // ── DEBUG (remove after fixing) ──
+    console.log(`[NormCheck] ${testName} | testKey=${testKey} | rawResult=`, result, 
+                `| value=${value} | gender=${studentGender} | age=${studentAge}`);
+    
+    // ... rest of function unchanged
+    const gender = _genderKey(studentGender);
+    const ageGroup = _ageGroup(studentAge);
+
+
+
+
+    // Create cache key
+    const cacheKey = `${studentEmail}|${testKey}|${gender}|${ageGroup}|${testId || 'none'}`;
+    if (normCache.has(cacheKey)) return normCache.get(cacheKey);
+
+    // 1️⃣ STUDENT-SPECIFIC NORMS (highest priority)
+    if (studentEmail) {
+        try {
+            const studentNormRef = doc(db, 'studentNorms', studentEmail, 'tests', testKey);
+            const studentNormSnap = await getDoc(studentNormRef);
+            
+            if (studentNormSnap.exists()) {
+                const nd = studentNormSnap.data();
+                const thresholds = nd.thresholds;
+                const lowerIsBetter = nd.lowerIsBetter ?? false;
+                
+                const order = ['Excellent', 'Good', 'Average', 'Below Average'];
+                for (const cat of order) {
+                    const threshold = thresholds[cat];
+                    if (threshold == null) continue;
+                    if (lowerIsBetter && value <= threshold) { normCache.set(cacheKey, cat); return cat; }
+                    if (!lowerIsBetter && value >= threshold) { normCache.set(cacheKey, cat); return cat; }
+                }
+                normCache.set(cacheKey, 'Poor');
+                return 'Poor';
+            }
+        } catch (error) {
+            console.warn('Error checking student norms:', error);
         }
     }
 
-    function getCurlUpCategory(genderKey, ageGroup, reps) {
-        if (genderKey === 'male') {
-            const norms = { '15-18':[50,41,31,21], '19-22':[47,38,28,19], '23-26':[44,35,25,17], '27-30':[40,32,22,15] };
-            const t = norms[ageGroup] || norms['19-22'];
-            if (reps >= t[0]) return 'Excellent';
-            if (reps >= t[1]) return 'Good';
-            if (reps >= t[2]) return 'Average';
-            if (reps >= t[3]) return 'Below Average';
-            return 'Poor';
-        } else {
-            const norms = { '15-18':[45,36,26,16], '19-22':[42,34,24,15], '23-26':[39,31,21,13], '27-30':[36,28,19,11] };
-            const t = norms[ageGroup] || norms['19-22'];
-            if (reps >= t[0]) return 'Excellent';
-            if (reps >= t[1]) return 'Good';
-            if (reps >= t[2]) return 'Average';
-            if (reps >= t[3]) return 'Below Average';
-            return 'Poor';
-        }
-    }
-
-    function getSitReachCategory(genderKey, ageGroup, cm) {
-        if (genderKey === 'male') {
-            const norms = { '15-18':[38,33,26,18], '19-22':[37,32,25,17], '23-26':[35.5,30.5,23.5,15.5], '27-30':[34,29,22,14] };
-            const t = norms[ageGroup] || norms['19-22'];
-            if (cm >= t[0]) return 'Excellent';
-            if (cm >= t[1]) return 'Good';
-            if (cm >= t[2]) return 'Average';
-            if (cm >= t[3]) return 'Below Average';
-            return 'Poor';
-        } else {
-            const norms = { '15-18':[39,34,27,19], '19-22':[38,33,26,18], '23-26':[37,32,25,17], '27-30':[36,31,24,16] };
-            const t = norms[ageGroup] || norms['19-22'];
-            if (cm >= t[0]) return 'Excellent';
-            if (cm >= t[1]) return 'Good';
-            if (cm >= t[2]) return 'Average';
-            if (cm >= t[3]) return 'Below Average';
-            return 'Poor';
-        }
-    }
-
-    function getStepTestCategory(genderKey, ageGroup, hr) {
-        if (genderKey === 'male') {
-            const norms = { '15-18':[84,97,108,118], '19-22':[79,89,105,116], '23-26':[80,90,106,117], '27-30':[81,91,107,118] };
-            const t = norms[ageGroup] || norms['19-22'];
-            if (hr <= t[0]) return 'Excellent';
-            if (hr <= t[1]) return 'Good';
-            if (hr <= t[2]) return 'Average';
-            if (hr <= t[3]) return 'Below Average';
-            return 'Poor';
-        } else {
-            const norms = { '15-18':[89,103,113,124], '19-22':[85,98,109,118], '23-26':[86,99,110,119], '27-30':[88,101,112,121] };
-            const t = norms[ageGroup] || norms['19-22'];
-            if (hr <= t[0]) return 'Excellent';
-            if (hr <= t[1]) return 'Good';
-            if (hr <= t[2]) return 'Average';
-            if (hr <= t[3]) return 'Below Average';
-            return 'Poor';
-        }
-    }
-
-    function getNormCategory(testName, result, genderKey = 'male', ageGroup = '19-22') {
-        const normalized = (testName || '').toLowerCase();
-        const value = extractNumericResult(result);
-
-        if (normalized.includes('push-up') || normalized.includes('pushup'))
-            return getPushUpCategory(genderKey, ageGroup, value);
-        if (normalized.includes('curl-up') || normalized.includes('curl up'))
-            return getCurlUpCategory(genderKey, ageGroup, value);
-        if (normalized.includes('sit-and-reach') || normalized.includes('sit and reach'))
-            return getSitReachCategory(genderKey, ageGroup, value);
-        if (normalized.includes('step test') || normalized.includes('3-minute'))
-            return getStepTestCategory(genderKey, ageGroup, value);
-
-        // For skinfold / other tests
-        if (normalized.includes('skinfold') || normalized.includes('skin fold')) {
-            if (typeof result === 'string') {
-                const classMatch = result.match(/\(([^)]+)\)/);
-                if (classMatch) {
-                    const cls = classMatch[1];
-                    if (cls === 'Athletic' || cls === 'Fitness') return 'Excellent';
-                    if (cls === 'Average') return 'Average';
-                    if (cls === 'Essential Fat') return 'Good';
-                    if (cls === 'Overfat') return 'Below Average';
-                    if (cls === 'Obese') return 'Poor';
+    // 2️⃣ TEST-LEVEL CUSTOM NORMS (from scheduledTests doc — set via addactivities.html)
+    if (testId) {
+        try {
+            // First check the in-memory scheduledTestsMap (already loaded, faster)
+            let testCustomNorms = null;
+            if (window.scheduledTestsMap) {
+                for (const tests of window.scheduledTestsMap.values()) {
+                    const matched = tests.find(t => t.id === testId);
+                    if (matched?.customNorms?.thresholds) {
+                        testCustomNorms = matched.customNorms;
+                        break;
+                    }
                 }
             }
-            return 'Average';
+            
+            // Fall back to direct Firestore fetch if not found in map
+            if (!testCustomNorms) {
+                const testSnap = await getDoc(doc(db, 'scheduledTests', testId));
+                if (testSnap.exists()) {
+                    const testData = testSnap.data();
+                    if (testData.customNorms?.thresholds) {
+                        testCustomNorms = testData.customNorms;
+                    }
+                }
+            }
+            
+            if (testCustomNorms?.thresholds) {
+                const lowerIsBetter = testCustomNorms.lowerIsBetter ?? false;
+                const order = ['Excellent', 'Good', 'Average', 'Below Average'];
+                for (const cat of order) {
+                    const threshold = testCustomNorms.thresholds[cat];
+                    if (threshold == null) continue;
+                    if (lowerIsBetter && value <= threshold) { normCache.set(cacheKey, cat); return cat; }
+                    if (!lowerIsBetter && value >= threshold) { normCache.set(cacheKey, cat); return cat; }
+                }
+                normCache.set(cacheKey, 'Poor');
+                return 'Poor';
+            }
+        } catch (error) {
+            console.warn('Error checking test-level norms:', error);
         }
-
-        // BMI
-        if (normalized.includes('bmi')) {
-            const bmi = extractNumericResult(result);
-            if (bmi >= 18.5 && bmi <= 24.9) return 'Excellent';
-            if ((bmi >= 17.0 && bmi < 18.5) || (bmi >= 25.0 && bmi < 27.0)) return 'Good';
-            if ((bmi >= 16.0 && bmi < 17.0) || (bmi >= 27.0 && bmi < 30.0)) return 'Average';
-            return 'Below Average';
-        }
-
-        return 'Average';
     }
 
+    // 3️⃣ DATABASE DEFAULT NORMS (fitnessNorms collection)
+    try {
+        const defaultNormRef = doc(db, 'fitnessNorms', `${testKey}_${gender}_${ageGroup}`);
+        const defaultNormSnap = await getDoc(defaultNormRef);
+        
+        if (defaultNormSnap.exists()) {
+            const nd = defaultNormSnap.data();
+            const thresholds = nd.thresholds;
+            const lowerIsBetter = nd.lowerIsBetter ?? false;
+            
+            const order = ['Excellent', 'Good', 'Average', 'Below Average'];
+            for (const cat of order) {
+                const threshold = thresholds[cat];
+                if (threshold == null) continue;
+                if (lowerIsBetter && value <= threshold) { normCache.set(cacheKey, cat); return cat; }
+                if (!lowerIsBetter && value >= threshold) { normCache.set(cacheKey, cat); return cat; }
+            }
+            normCache.set(cacheKey, 'Poor');
+            return 'Poor';
+        }
+    } catch (error) {
+        console.warn('Error checking default norms:', error);
+    }
+
+    // 4️⃣ FALLBACK TO normLookup.js
+    try {
+        const fallbackResult = await getNormCategory(db, {
+            testName,
+            result,
+            studentEmail: studentEmail || '',
+            gender: studentGender || 'male',
+            age: studentAge,
+        });
+        
+        if (fallbackResult) {
+            normCache.set(cacheKey, fallbackResult.category);
+            return fallbackResult.category;
+        }
+    } catch (error) {
+        console.warn('Error using fallback norms:', error);
+    }
+
+    return 'Average';
+}
+
     function getOverallCategory(categories) {
-    if (!categories || categories.length === 0) return null;
+        if (!categories || categories.length === 0) return null;
         const scores = categories.map(c => CATEGORY_ORDER[c] || 3);
         const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
         if (avg >= 4.5) return 'Excellent';
@@ -1264,7 +1272,7 @@ function renderCategoryBadge(category) {
     // ── Global state ──
     window.currentUser = null;
     let isPageVisible = true;
-let reconnectTimeout = null;
+    let reconnectTimeout = null;
     window.currentProfessor = null;
     window.sections = [];
     window.students = [];
@@ -1289,163 +1297,171 @@ let reconnectTimeout = null;
     let testResultsUnsubscribe = null;
     let testPermissionsUnsubscribe = null;
 
-onAuthStateChanged(auth, async (user) => {
-    const loadingScreen = document.getElementById('loadingScreen');
-    const mainContent = document.getElementById('mainContent');
-    if (user) {
-        try {
-            window.currentUser = user;
-            const professorsQuery = query(collection(db, 'professors'), where('email', '==', user.email));
-            const professorsSnapshot = await getDocs(professorsQuery);
-            if (!professorsSnapshot.empty) {
-                window.currentProfessor = { id: professorsSnapshot.docs[0].id, ...professorsSnapshot.docs[0].data() };
-            } else {
-                const usersQuery = query(collection(db, 'users'), where('email', '==', user.email), where('role', '==', 'professor'));
-                const usersSnapshot = await getDocs(usersQuery);
-                if (!usersSnapshot.empty) {
-                    window.currentProfessor = { id: usersSnapshot.docs[0].id, ...usersSnapshot.docs[0].data() };
+    onAuthStateChanged(auth, async (user) => {
+        const loadingScreen = document.getElementById('loadingScreen');
+        const mainContent = document.getElementById('mainContent');
+        
+        const loadingTimeout = setTimeout(() => {
+            loadingScreen.style.display = 'none';
+            mainContent.classList.remove('hidden');
+        }, 1500);
+
+        if (user) {
+            try {
+                window.currentUser = user;
+                const professorsQuery = query(collection(db, 'professors'), where('email', '==', user.email));
+                const professorsSnapshot = await getDocs(professorsQuery);
+                if (!professorsSnapshot.empty) {
+                    window.currentProfessor = { id: professorsSnapshot.docs[0].id, ...professorsSnapshot.docs[0].data() };
                 } else {
-                    window.currentProfessor = { email: user.email, name: user.displayName || user.email.split('@')[0], fullName: user.displayName || user.email.split('@')[0].toUpperCase() };
+                    const usersQuery = query(collection(db, 'users'), where('email', '==', user.email), where('role', '==', 'professor'));
+                    const usersSnapshot = await getDocs(usersQuery);
+                    if (!usersSnapshot.empty) {
+                        window.currentProfessor = { id: usersSnapshot.docs[0].id, ...usersSnapshot.docs[0].data() };
+                    } else {
+                        window.currentProfessor = { email: user.email, name: user.displayName || user.email.split('@')[0], fullName: user.displayName || user.email.split('@')[0].toUpperCase() };
+                    }
                 }
+                const profName = user.displayName || window.currentProfessor.fullName || window.currentProfessor.name || 'Professor';
+                updateProfileUI(user.photoURL, profName, user.email);
+                
+                // Set page as visible
+                isPageVisible = true;
+                
+
+                // Load initial data
+                await loadSections();
+                await loadScheduledTests();
+                await loadStudents();
+                
+                clearTimeout(loadingTimeout);
+                loadingScreen.style.display = 'none';
+                mainContent.classList.remove('hidden');
+                setupRealtimeUpdates();
+            
+            } catch (error) {
+                console.error('Error loading student management:', error);
+                clearTimeout(loadingTimeout);
+                loadingScreen.style.display = 'none';
+                mainContent.classList.remove('hidden');
+                showErrorModal('Error loading data: ' + error.message);
             }
-            const profName = user.displayName || window.currentProfessor.fullName || window.currentProfessor.name || 'Professor';
-            updateProfileUI(user.photoURL, profName, user.email);
-            
-            // Set page as visible
-            isPageVisible = true;
-            
-
-            // Load initial data
-            await loadSections();
-            await loadScheduledTests();
-            await loadStudents();
-            
-            loadingScreen.style.display = 'none';
-            mainContent.classList.remove('hidden');
-            // Setup realtime updates
-            setupRealtimeUpdates();
-        
-        } catch (error) {
-            console.error('Error loading student management:', error);
-            loadingScreen.style.display = 'none';
-            mainContent.classList.remove('hidden');
-            showErrorModal('Error loading data: ' + error.message);
+        } else {
+            clearTimeout(loadingTimeout);
+            window.location.href = '/login/index.html';
         }
-    } else {
-        window.location.href = '/login/index.html';
-    }
-});
+    });
 
-let isSectionsLoading = false;  // ADD THIS OUTSIDE the function (module scope)
+    let isSectionsLoading = false;  // ADD THIS OUTSIDE the function (module scope)
 
-async function loadSections() {
-    if (isSectionsLoading) return;   // ADD THIS GUARD
-    isSectionsLoading = true;
-    try {
-        window.sections = [];
-        let professorEmail = window.currentUser.email;
-        const nameVariations = new Set();
-        
-        // Collect professor name variations
-        if (window.currentProfessor) {
-            ['fullName','name','displayName'].forEach(field => { 
-                if (window.currentProfessor[field]) nameVariations.add(window.currentProfessor[field].toUpperCase().trim()); 
-            });
-        }
-        if (window.currentUser.displayName) nameVariations.add(window.currentUser.displayName.toUpperCase().trim());
-        
-        const profSnap = await getDocs(query(collection(db, 'professors'), where('email', '==', professorEmail)));
-        profSnap.forEach(d => { 
-            ['fullName','name','displayName'].forEach(field => { 
-                if (d.data()[field]) nameVariations.add(d.data()[field].toUpperCase().trim()); 
-            }); 
-        });
-        
-        const usersSnap = await getDocs(query(collection(db, 'users'), where('email', '==', professorEmail)));
-        usersSnap.forEach(d => { 
-            ['fullName','name','displayName'].forEach(field => { 
-                if (d.data()[field]) nameVariations.add(d.data()[field].toUpperCase().trim()); 
-            }); 
-        });
-        
-        nameVariations.add(professorEmail.split('@')[0].toUpperCase().trim());
-        nameVariations.delete('');
-        
-        const nameTokens = new Set();
-        nameVariations.forEach(name => { 
-            name.split(/[\s,\.]+/).forEach(word => { 
-                if (word.length >= 3) nameTokens.add(word); 
-            }); 
-        });
-        
-        const sectionsSnapshot = await getDocs(collection(db, 'sections'));
-        const seenSectionIds = new Set(); // Add this to prevent duplicates
-        
-        sectionsSnapshot.forEach(sectionDoc => {
-            // Skip if we've already processed this section ID
-            if (seenSectionIds.has(sectionDoc.id)) return;
-            seenSectionIds.add(sectionDoc.id);
+    async function loadSections() {
+        if (isSectionsLoading) return;   // ADD THIS GUARD
+        isSectionsLoading = true;
+        try {
+            window.sections = [];
+            let professorEmail = window.currentUser.email;
+            const nameVariations = new Set();
             
-            const data = sectionDoc.data();
-            const dbProfessorRaw = (data.professor || '').toString().trim();
-            const dbProfessor = dbProfessorRaw.toUpperCase();
-            const dbProfessorEmail = (data.professorEmail || '').toString().trim().toLowerCase();
-            let isMatch = false;
-            
-            if (dbProfessorEmail && dbProfessorEmail === professorEmail.toLowerCase()) isMatch = true;
-            if (!isMatch) { for (const nameVar of nameVariations) { if (!nameVar || nameVar.length < 3) continue; if (dbProfessor === nameVar) { isMatch = true; break; } } }
-            if (!isMatch) { for (const nameVar of nameVariations) { if (!nameVar || nameVar.length < 3) continue; if (dbProfessor.includes(nameVar) || nameVar.includes(dbProfessor)) { isMatch = true; break; } } }
-            if (!isMatch) { for (const nameVar of nameVariations) { if (!nameVar || nameVar.length < 3) continue; const lastName = nameVar.split(',')[0].trim(); if (lastName.length >= 3 && dbProfessor.includes(lastName)) { isMatch = true; break; } } }
-            if (!isMatch && dbProfessor.length >= 3) { const dbWords = dbProfessor.split(/[\s,\.]+/).filter(w => w.length >= 3); for (const dbWord of dbWords) { if (nameTokens.has(dbWord)) { isMatch = true; break; } } }
-            if (!isMatch) { const emailUsername = professorEmail.split('@')[0].toUpperCase(); if (emailUsername.length > 3 && dbProfessor.includes(emailUsername)) isMatch = true; }
-            
-            if (isMatch) {
-                const studentCount = Array.isArray(data.students) ? data.students.length : 0;
-                let schedule = 'Not Set';
-                if (data.time && data.day && data.room) schedule = `${data.time} / ${data.day} / ${data.room}`;
-                else if (data.schedule) schedule = data.schedule;
-                
-                let academicYear = '2025-2026';
-                if (data.academicYear) academicYear = data.academicYear;
-                else if (data.schoolYear) academicYear = data.schoolYear;
-                else if (data.year) academicYear = data.year;
-                
-                window.sections.push({ 
-                    id: sectionDoc.id, 
-                    name: data.name || 'Unnamed Section', 
-                    yearLevel: data.yearLevel || extractYearLevel(data.name), 
-                    studentCount: studentCount, 
-                    courseCode: data.courseCode || 'PE 3', 
-                    schedule: schedule, 
-                    createdYear: academicYear, 
-                    timeSlot: data.time || '', 
-                    days: data.day || data.days || '', 
-                    room: data.room || '', 
-                    semester: data.semester || '', 
-                    status: 'active', 
-                    professorName: data.professor || '', 
-                    description: data.description || '', 
-                    students: data.students || [] 
+            // Collect professor name variations
+            if (window.currentProfessor) {
+                ['fullName','name','displayName'].forEach(field => { 
+                    if (window.currentProfessor[field]) nameVariations.add(window.currentProfessor[field].toUpperCase().trim()); 
                 });
             }
-        });
-        
-        window.filteredSections = [...window.sections];
-        if (window.sections.length === 0) {
-            document.getElementById('sectionsTableBody').innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">⚠️</div><div class="font-semibold text-gray-700 mb-1">No Sections Assigned</div><div class="text-gray-500 text-sm">You have not been assigned to any sections yet.</div></div></td></tr>`;
-        } else { 
-            populateSectionsTable(); 
-            populateSectionFilters(); 
+            if (window.currentUser.displayName) nameVariations.add(window.currentUser.displayName.toUpperCase().trim());
+            
+            const profSnap = await getDocs(query(collection(db, 'professors'), where('email', '==', professorEmail)));
+            profSnap.forEach(d => { 
+                ['fullName','name','displayName'].forEach(field => { 
+                    if (d.data()[field]) nameVariations.add(d.data()[field].toUpperCase().trim()); 
+                }); 
+            });
+            
+            const usersSnap = await getDocs(query(collection(db, 'users'), where('email', '==', professorEmail)));
+            usersSnap.forEach(d => { 
+                ['fullName','name','displayName'].forEach(field => { 
+                    if (d.data()[field]) nameVariations.add(d.data()[field].toUpperCase().trim()); 
+                }); 
+            });
+            
+            nameVariations.add(professorEmail.split('@')[0].toUpperCase().trim());
+            nameVariations.delete('');
+            
+            const nameTokens = new Set();
+            nameVariations.forEach(name => { 
+                name.split(/[\s,\.]+/).forEach(word => { 
+                    if (word.length >= 3) nameTokens.add(word); 
+                }); 
+            });
+            
+            const sectionsSnapshot = await getDocs(collection(db, 'sections'));
+            const seenSectionIds = new Set(); // Add this to prevent duplicates
+            
+            sectionsSnapshot.forEach(sectionDoc => {
+                // Skip if we've already processed this section ID
+                if (seenSectionIds.has(sectionDoc.id)) return;
+                seenSectionIds.add(sectionDoc.id);
+                
+                const data = sectionDoc.data();
+                const dbProfessorRaw = (data.professor || '').toString().trim();
+                const dbProfessor = dbProfessorRaw.toUpperCase();
+                const dbProfessorEmail = (data.professorEmail || '').toString().trim().toLowerCase();
+                let isMatch = false;
+                
+                if (dbProfessorEmail && dbProfessorEmail === professorEmail.toLowerCase()) isMatch = true;
+                if (!isMatch) { for (const nameVar of nameVariations) { if (!nameVar || nameVar.length < 3) continue; if (dbProfessor === nameVar) { isMatch = true; break; } } }
+                if (!isMatch) { for (const nameVar of nameVariations) { if (!nameVar || nameVar.length < 3) continue; if (dbProfessor.includes(nameVar) || nameVar.includes(dbProfessor)) { isMatch = true; break; } } }
+                if (!isMatch) { for (const nameVar of nameVariations) { if (!nameVar || nameVar.length < 3) continue; const lastName = nameVar.split(',')[0].trim(); if (lastName.length >= 3 && dbProfessor.includes(lastName)) { isMatch = true; break; } } }
+                if (!isMatch && dbProfessor.length >= 3) { const dbWords = dbProfessor.split(/[\s,\.]+/).filter(w => w.length >= 3); for (const dbWord of dbWords) { if (nameTokens.has(dbWord)) { isMatch = true; break; } } }
+                if (!isMatch) { const emailUsername = professorEmail.split('@')[0].toUpperCase(); if (emailUsername.length > 3 && dbProfessor.includes(emailUsername)) isMatch = true; }
+                
+                if (isMatch) {
+                    const studentCount = Array.isArray(data.students) ? data.students.length : 0;
+                    let schedule = 'Not Set';
+                    if (data.time && data.day && data.room) schedule = `${data.time} / ${data.day} / ${data.room}`;
+                    else if (data.schedule) schedule = data.schedule;
+                    
+                    let academicYear = '2025-2026';
+                    if (data.academicYear) academicYear = data.academicYear;
+                    else if (data.schoolYear) academicYear = data.schoolYear;
+                    else if (data.year) academicYear = data.year;
+                    
+                    window.sections.push({ 
+                        id: sectionDoc.id, 
+                        name: data.name || 'Unnamed Section', 
+                        yearLevel: data.yearLevel || extractYearLevel(data.name), 
+                        studentCount: studentCount, 
+                        courseCode: data.courseCode || 'PE 3', 
+                        schedule: schedule, 
+                        createdYear: academicYear, 
+                        timeSlot: data.time || '', 
+                        days: data.day || data.days || '', 
+                        room: data.room || '', 
+                        semester: data.semester || '', 
+                        status: 'active', 
+                        professorName: data.professor || '', 
+                        description: data.description || '', 
+                        students: data.students || [] 
+                    });
+                }
+            });
+            
+            window.filteredSections = [...window.sections];
+            if (window.sections.length === 0) {
+                document.getElementById('sectionsTableBody').innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">⚠️</div><div class="font-semibold text-gray-700 mb-1">No Sections Assigned</div><div class="text-gray-500 text-sm">You have not been assigned to any sections yet.</div></div></td></tr>`;
+            } else { 
+                populateSectionsTable(); 
+                populateSectionFilters(); 
+            }
+            document.getElementById('sectionCount').textContent = window.sections.length;
+        } catch (error) {
+            console.error('Error loading sections:', error);
+            document.getElementById('sectionsTableBody').innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">⚠️</div><div class="font-semibold text-gray-700 mb-1">Error loading sections</div></div></td></tr>`;
+            showErrorModal('Error loading sections: ' + error.message);
+        } finally {
+            isSectionsLoading = false;  // Always resets
         }
-        document.getElementById('sectionCount').textContent = window.sections.length;
-    } catch (error) {
-        console.error('Error loading sections:', error);
-        document.getElementById('sectionsTableBody').innerHTML = `...error html...`;
-        showErrorModal('Error loading sections: ' + error.message);
-    } finally {
-        isSectionsLoading = false;  // Always resets
     }
-}
 
     function extractYearLevel(sectionName) {
         if (!sectionName) return 'N/A';
@@ -1457,156 +1473,167 @@ async function loadSections() {
         return 'N/A';
     }
 
-  window.loadStudents = async function() {
-    try {
-        const startTime = performance.now();
-        console.log('Loading students...');
-        
-        if (window.sections.length === 0) { 
-            updateStudentsTable([]); 
-            return; 
-        }
-        
-        // Clear old cache
-        cache.clear();
-        
-        window.students = [];
-        const seenStudentIds = new Set();
-
-        // ── 1. Batch fetch ALL student profiles (single query) ──
-        const studentsMap = new Map();
-        const studentsSnap = await getDocs(collection(db, 'students'));
-        studentsSnap.forEach(doc => {
-            const data = doc.data();
-            if (data.email) {
-                studentsMap.set(data.email, {
-                    birthday: data.birthday || null,
-                    age: data.age || null,
-                    gender: data.gender || 'male',
-                    medicalCondition: data.medicalCondition || null
-                });
-            }
-        });
-
-        // ── 2. Batch fetch ALL completed test results (single query) ──
-        const allResultsSnap = await getDocs(
-            query(collection(db, 'testResults'), where('status', '==', 'completed'))
-        );
-        
-        // Group results by studentEmail (O(1) lookup)
-        const resultsByEmail = new Map();
-        allResultsSnap.forEach(docSnap => {
-            const data = docSnap.data();
-            const email = data.studentEmail;
-            if (!email) return;
+    window.loadStudents = async function() {
+        try {
+            const startTime = performance.now();
+            console.log('Loading students...');
             
-            if (!resultsByEmail.has(email)) {
-                resultsByEmail.set(email, []);
+            if (window.sections.length === 0) { 
+                updateStudentsTable([]); 
+                return; 
             }
-            resultsByEmail.get(email).push({ 
-                id: docSnap.id, 
-                ...data,
-                // Pre-process result for faster access
-                testId: data.testId || docSnap.id,
-                testName: data.testName || 'Unknown Activity',
-                result: data.result || data.resultData || data.repetitions || '',
-                submittedAt: data.submittedAt
+            
+            // Clear old cache
+            cache.clear();
+            
+            window.students = [];
+            const seenStudentIds = new Set();
+
+            // ── 1. Batch fetch ALL student profiles (single query) ──
+            const studentsMap = new Map();
+            const studentsSnap = await getDocs(collection(db, 'students'));
+            studentsSnap.forEach(doc => {
+                const data = doc.data();
+                if (data.email) {
+                    studentsMap.set(data.email, {
+                        birthday: data.birthday || null,
+                        age: data.age || null,
+                        gender: data.gender || 'male',
+                        medicalCondition: data.medicalCondition || null
+                    });
+                }
             });
-        });
 
-        // ── 3. Build students array in O(n) without nested queries ──
-        for (const section of window.sections) {
-            if (!section.students?.length) continue;
-
-            for (const rawStudent of section.students) {
-                const studentEmail = rawStudent.email || '';
-                if (!studentEmail || seenStudentIds.has(studentEmail)) continue;
-                seenStudentIds.add(studentEmail);
-
-                // Parse name
-                let firstName = '', lastName = '', fullName = rawStudent.name || 'Unknown Student';
-                if (fullName.includes(',')) {
-                    const parts = fullName.split(',').map(p => p.trim());
-                    lastName = parts[0]; 
-                    firstName = parts.slice(1).join(' ');
-                } else {
-                    const nameParts = fullName.split(' ');
-                    firstName = nameParts[0] || ''; 
-                    lastName = nameParts.slice(1).join(' ') || '';
+            // ── 2. Batch fetch ALL completed test results (single query) ──
+            const allResultsSnap = await getDocs(
+                query(collection(db, 'testResults'), where('status', '==', 'completed'))
+            );
+            
+            // Group results by studentEmail (O(1) lookup)
+            const resultsByEmail = new Map();
+            for (const docSnap of allResultsSnap.docs) {
+                const data = docSnap.data();
+                const email = data.studentEmail;
+                if (!email) return;
+                
+                if (!resultsByEmail.has(email)) {
+                    resultsByEmail.set(email, []);
                 }
-
-                // Get student data from cache
-                const studentAgeData = studentsMap.get(studentEmail) || {};
-                const studentResults = resultsByEmail.get(studentEmail) || [];
-                
-                // Calculate categories in one pass
-                const bestCategoriesPerTest = new Map();
-                const testNames = new Set();
-                
-                for (const attempt of studentResults) {
-                    testNames.add(attempt.testName);
-                    
-                    const gender = (attempt.gender || studentAgeData.gender || '').toLowerCase();
-                    const genderKey = gender.startsWith('f') ? 'female' : 'male';
-                    const ageGroup = getAgeGroupFromStudent(studentAgeData);
-                    const category = getNormCategory(attempt.testName, attempt.result, genderKey, ageGroup);
-                    
-                    const testId = attempt.testId || attempt.testName;
-                    if (!bestCategoriesPerTest.has(testId) || 
-                        (CATEGORY_ORDER[category] || 3) > (CATEGORY_ORDER[bestCategoriesPerTest.get(testId)] || 0)) {
-                        bestCategoriesPerTest.set(testId, category);
-                    }
-                }
-
-                const uniqueCategories = Array.from(bestCategoriesPerTest.values());
-                const overallCategory = getOverallCategory(uniqueCategories);
-                
-                window.students.push({
-                    id: studentEmail,
-                    umakId: rawStudent.student_id || rawStudent.studentId || 'N/A',
-                    firstName: firstName || 'Unknown',
-                    lastName: lastName || '',
-                    fullName: fullName,
-                    email: studentEmail,
-                    section: section.name,
-                    yearLevel: section.yearLevel || extractYearLevel(section.name),
-                    totalAttempts: studentResults.length,
-                    uniqueTestCount: uniqueCategories.length,
-                    categories: uniqueCategories,
-                    overallCategory: overallCategory,
-                    overallScore: CATEGORY_ORDER[overallCategory] || 3,
-                    status: 'active',
-                    age: studentAgeData.age || null,
-                    birthday: studentAgeData.birthday || null,
-                    medicalCondition: studentAgeData.medicalCondition || null,
-                    testNames: Array.from(testNames), // Cache test names for filtering
-                    testResultsRaw: studentResults // Cache raw results
-                });
+resultsByEmail.get(email).push({ 
+    id: docSnap.id, 
+    ...data,
+    testId: data.testId || docSnap.id,
+    testName: data.testName || 'Unknown Activity',
+    result: data.result || data.resultData || data.repetitions || '',
+    submittedAt: data.submittedAt,
+    savedScore: data.score || data.category || null  // ← use stored score
+});
             }
+
+            // ── 3. Build students array with norm priority ──
+            for (const section of window.sections) {
+                if (!section.students?.length) continue;
+
+                for (const rawStudent of section.students) {
+                    const studentEmail = rawStudent.email || '';
+                    if (!studentEmail || seenStudentIds.has(studentEmail)) continue;
+                    seenStudentIds.add(studentEmail);
+
+                    // Parse name
+                    let firstName = '', lastName = '', fullName = rawStudent.name || 'Unknown Student';
+                    if (fullName.includes(',')) {
+                        const parts = fullName.split(',').map(p => p.trim());
+                        lastName = parts[0]; 
+                        firstName = parts.slice(1).join(' ');
+                    } else {
+                        const nameParts = fullName.split(' ');
+                        firstName = nameParts[0] || ''; 
+                        lastName = nameParts.slice(1).join(' ') || '';
+                    }
+
+                    // Get student data from cache
+                    const studentAgeData = studentsMap.get(studentEmail) || {};
+                    const studentResults = resultsByEmail.get(studentEmail) || [];
+                    
+                    // Calculate categories with norm priority
+                    const bestCategoriesPerTest = new Map();
+                    const testNames = new Set();
+                    
+                    for (const attempt of studentResults) {
+                        testNames.add(attempt.testName);
+                        
+                        const gender = studentAgeData.gender || 'male';
+                        const age = _studentAge(studentAgeData);
+                        
+// Use saved score from Firestore if available, else calculate
+const category = attempt.savedScore && attempt.savedScore !== '' 
+    ? attempt.savedScore 
+    : await getNormCategoryWithPriority(
+        attempt.testName, 
+        attempt.result,
+        attempt.testId,
+        studentEmail,
+        gender,
+        age
+    );
+console.log('[loadStudents] attempt.result =', attempt.result, '| category =', category);
+                        
+                        const testId = attempt.testId || attempt.testName;
+                        if (!bestCategoriesPerTest.has(testId) || 
+                            (CATEGORY_ORDER[category] || 3) > (CATEGORY_ORDER[bestCategoriesPerTest.get(testId)] || 0)) {
+                            bestCategoriesPerTest.set(testId, category);
+                        }
+                    }
+
+                    const uniqueCategories = Array.from(bestCategoriesPerTest.values());
+                    const overallCategory = getOverallCategory(uniqueCategories);
+                    
+                    window.students.push({
+                        id: studentEmail,
+                        umakId: rawStudent.student_id || rawStudent.studentId || 'N/A',
+                        firstName: firstName || 'Unknown',
+                        lastName: lastName || '',
+                        fullName: fullName,
+                        email: studentEmail,
+                        section: section.name,
+                        yearLevel: section.yearLevel || extractYearLevel(section.name),
+                        totalAttempts: studentResults.length,
+                        uniqueTestCount: uniqueCategories.length,
+                        categories: uniqueCategories,
+                        overallCategory: overallCategory,
+                        overallScore: CATEGORY_ORDER[overallCategory] || 3,
+                        status: 'active',
+                        age: studentAgeData.age || null,
+                        birthday: studentAgeData.birthday || null,
+                        medicalCondition: studentAgeData.medicalCondition || null,
+                        testNames: Array.from(testNames), // Cache test names for filtering
+                        testResultsRaw: studentResults // Cache raw results
+                    });
+                }
+            }
+            
+            window.filteredStudents = [...window.students];
+            window.currentPage = 1;
+
+            // Update UI
+            updateStudentsTable(window.filteredStudents);
+            // loadOverdueStudents() is now lazy — loads only when Overdue tab is clicked
+
+            // Update counts
+            document.getElementById('allStudentsCount').textContent = window.students.length;
+            
+            // Build filter dropdowns
+            buildFilterDropdowns();
+            
+            const endTime = performance.now();
+            console.log(`Students loaded in ${(endTime - startTime).toFixed(2)}ms`);
+            
+        } catch (error) {
+            console.error('Error loading students:', error);
+            updateStudentsTable([]);
+            showErrorModal('Error loading students: ' + error.message);
         }
-        
-        window.filteredStudents = [...window.students];
-        window.currentPage = 1;
-        
-        // Update UI
-        updateStudentsTable(window.filteredStudents);
-        await loadOverdueStudents();
-        
-        // Update counts
-        document.getElementById('allStudentsCount').textContent = window.students.length;
-        
-        // Build filter dropdowns
-        buildFilterDropdowns();
-        
-        const endTime = performance.now();
-        console.log(`Students loaded in ${(endTime - startTime).toFixed(2)}ms`);
-        
-    } catch (error) {
-        console.error('Error loading students:', error);
-        updateStudentsTable([]);
-        showErrorModal('Error loading students: ' + error.message);
-    }
-};
+    };
 
     function populateSectionsTable() {
         const tableBody = document.getElementById('sectionsTableBody');
@@ -1645,16 +1672,16 @@ async function loadSections() {
         }
         studentCount.textContent = students.length;
 
-             const activeTest = document.getElementById('filterTest')?.value || '';
-    const thead = document.querySelector('#studentsTable thead tr');
-    if (thead) {
-       if (activeTest) {
-        thead.innerHTML = `<th>ID</th><th>Student Name</th><th>Section</th><th>Activities</th><th>Health Condition</th><th>Test Result</th><th>Submitted At</th><th>Overall Performance</th><th>Actions</th>`;
-    } else {
-        thead.innerHTML = `<th>ID</th><th>Student Name</th><th>Section</th><th>Activities</th><th>Health Condition</th><th>Overall Performance</th><th>Actions</th>`;
-    }
-    }
-    
+        const activeTest = document.getElementById('filterTest')?.value || '';
+        const thead = document.querySelector('#studentsTable thead tr');
+        if (thead) {
+            if (activeTest) {
+                thead.innerHTML = `<th>ID</th><th>Student Name</th><th>Section</th><th>Activities</th><th>Health Condition</th><th>Test Result</th><th>Submitted At</th><th>Overall Performance</th><th>Actions</th>`;
+            } else {
+                thead.innerHTML = `<th>ID</th><th>Student Name</th><th>Section</th><th>Activities</th><th>Health Condition</th><th>Overall Performance</th><th>Actions</th>`;
+            }
+        }
+        
         if (displayStudents.length === 0) {
             tableBody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">👥</div><div class="font-semibold text-gray-700 mb-1">No Students Found</div><div class="text-gray-500 text-sm">Try adjusting your search or filters.</div></div></td></tr>`;
             return;
@@ -1664,57 +1691,58 @@ async function loadSections() {
         displayStudents.forEach(student => {
             const badge = renderCategoryBadge(student.overallCategory);
             
-        const healthDisplay = student.medicalCondition
-            ? `<span style="display:inline-flex;align-items:center;gap:5px;background:#fff7ed;border:1px solid #fed7aa;color:#92400e;font-weight:600;font-size:12px;padding:4px 10px;border-radius:20px;">🏥 ${student.medicalCondition}</span>`
-            : `<span style="color:#94a3b8;font-size:13px;">—</span>`;
-        const activeTestFilter = document.getElementById('filterTest')?.value || '';
-        const activeDateFilter = document.getElementById('filterTestDate')?.value || '';
+            const healthDisplay = student.medicalCondition
+                ? `<span style="display:inline-flex;align-items:center;gap:5px;background:#fff7ed;border:1px solid #fed7aa;color:#92400e;font-weight:600;font-size:12px;padding:4px 10px;border-radius:20px;">🏥 ${student.medicalCondition}</span>`
+                : `<span style="color:#94a3b8;font-size:13px;">—</span>`;
+            
+            const activeTestFilter = document.getElementById('filterTest')?.value || '';
+            const activeDateFilter = document.getElementById('filterTestDate')?.value || '';
 
-        let testDisplay = '';
-        let dateDisplay = '';
-        if (activeTestFilter && student.testResultsRaw) {
-           let rows = activeTestFilter ? student.testResultsRaw.filter(r => (r.testName || '') === activeTestFilter) : [];
-            if (activeTestFilter && activeDateFilter) {
-                // Filter by matching scheduled test deadline only when both are selected
-                rows = rows.filter(r => {
-                    const testId = r.testId || r.scheduledTestId;
-                    if (!testId) return false;
-                    if (window.scheduledTestsMap) {
-                        for (const tests of window.scheduledTestsMap.values()) {
-                            const matched = tests.find(t => t.id === testId);
-                            if (matched) return matched.deadline === activeDateFilter;
+            let testDisplay = '';
+            let dateDisplay = '';
+            if (activeTestFilter && student.testResultsRaw) {
+                let rows = activeTestFilter ? student.testResultsRaw.filter(r => (r.testName || '') === activeTestFilter) : [];
+                if (activeTestFilter && activeDateFilter) {
+                    // Filter by matching scheduled test deadline only when both are selected
+                    rows = rows.filter(r => {
+                        const testId = r.testId || r.scheduledTestId;
+                        if (!testId) return false;
+                        if (window.scheduledTestsMap) {
+                            for (const tests of window.scheduledTestsMap.values()) {
+                                const matched = tests.find(t => t.id === testId);
+                                if (matched) return matched.deadline === activeDateFilter;
+                            }
                         }
+                        return false;
+                    });
+                }
+                if (rows.length > 0) {
+                    const latest = rows[rows.length - 1];
+                    let resultVal = '—';
+                    if (latest.result !== undefined && latest.result !== null) {
+                        resultVal = typeof latest.result === 'object'
+                            ? (latest.result.value || latest.result.repetitions || latest.result.time || '—')
+                            : latest.result;
+                    } else if (latest.repetitions !== undefined) resultVal = latest.repetitions;
+                    testDisplay = `<strong>${activeTestFilter}</strong><br><small style="color:#64748b;">${resultVal} ${latest.testUnit || ''}</small>`;
+
+                    if (latest.submittedAt) {
+                        let d;
+                        if (typeof latest.submittedAt.toDate === 'function') d = latest.submittedAt.toDate();
+                        else if (latest.submittedAt.seconds) d = new Date(latest.submittedAt.seconds * 1000);
+                        else d = new Date(latest.submittedAt);
+                        const submittedStr = d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+                        const submittedTime = d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+                        dateDisplay = `${submittedStr}<br><small style="color:#64748b;">${submittedTime}</small>`;
                     }
-                    return false;
-                });
+                } else {
+                    // Student is in section but hasn't submitted — still show the row
+                    testDisplay = `<span style="display:inline-flex;align-items:center;gap:5px;background:#fef2f2;border:1px solid #fecaca;color:#991b1b;font-weight:600;font-size:12px;padding:4px 10px;border-radius:20px;">❌ Not Submitted</span>`;
+                    dateDisplay = `<span style="display:inline-flex;align-items:center;gap:5px;background:#fef9c3;border:1px solid #fde047;color:#854d0e;font-weight:600;font-size:12px;padding:4px 10px;border-radius:20px;">⏳ Pending</span>`;
+                }
             }
-           if (rows.length > 0) {
-            const latest = rows[rows.length - 1];
-            let resultVal = '—';
-            if (latest.result !== undefined && latest.result !== null) {
-                resultVal = typeof latest.result === 'object'
-                    ? (latest.result.value || latest.result.repetitions || latest.result.time || '—')
-                    : latest.result;
-            } else if (latest.repetitions !== undefined) resultVal = latest.repetitions;
-            testDisplay = `<strong>${activeTestFilter}</strong><br><small style="color:#64748b;">${resultVal} ${latest.testUnit || ''}</small>`;
 
-            if (latest.submittedAt) {
-                let d;
-                if (typeof latest.submittedAt.toDate === 'function') d = latest.submittedAt.toDate();
-                else if (latest.submittedAt.seconds) d = new Date(latest.submittedAt.seconds * 1000);
-                else d = new Date(latest.submittedAt);
-                const submittedStr = d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-                const submittedTime = d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-                dateDisplay = `${submittedStr}<br><small style="color:#64748b;">${submittedTime}</small>`;
-            }
-        } else {
-            // Student is in section but hasn't submitted — still show the row
-            testDisplay = `<span style="display:inline-flex;align-items:center;gap:5px;background:#fef2f2;border:1px solid #fecaca;color:#991b1b;font-weight:600;font-size:12px;padding:4px 10px;border-radius:20px;">❌ Not Submitted</span>`;
-            dateDisplay = `<span style="display:inline-flex;align-items:center;gap:5px;background:#fef9c3;border:1px solid #fde047;color:#854d0e;font-weight:600;font-size:12px;padding:4px 10px;border-radius:20px;">⏳ Pending</span>`;
-        }
-}
-
-rowsHTML += `<tr onclick="viewStudentDetails('${student.id}')" style="cursor:pointer;">
+            rowsHTML += `<tr onclick="viewStudentDetails('${student.id}')" style="cursor:pointer;">
                 <td data-label="ID"><strong>${student.umakId || 'N/A'}</strong></td>
                 <td data-label="Student Name">${student.firstName} ${student.lastName}</td>
                 <td data-label="Section">${student.section || 'N/A'}</td>
@@ -1723,7 +1751,8 @@ rowsHTML += `<tr onclick="viewStudentDetails('${student.id}')" style="cursor:poi
                 ${activeTestFilter ? `<td data-label="Test">${testDisplay}</td><td data-label="Date">${dateDisplay}</td>` : ''}
                 <td data-label="Overall">${badge}</td>
                 <td data-label="Actions"><div class="action-buttons"><button class="btn-action btn-view" onclick="event.stopPropagation(); viewStudentDetails('${student.id}')"><i class="fas fa-eye"></i> View</button></div></td>
-            </tr>`;       });
+            </tr>`;
+        });
         tableBody.innerHTML = rowsHTML;
         updateResponsiveViews();
     }
@@ -1815,7 +1844,7 @@ rowsHTML += `<tr onclick="viewStudentDetails('${student.id}')" style="cursor:poi
             
             // Calculate section statistics
             let totalAttempts = 0, studentsWithAttempts = 0;
-           sectionStudents.forEach(student => { 
+            sectionStudents.forEach(student => { 
                 if (student.uniqueTestCount > 0) { 
                     studentsWithAttempts++; 
                     totalAttempts += student.totalAttempts;
@@ -1862,162 +1891,187 @@ rowsHTML += `<tr onclick="viewStudentDetails('${student.id}')" style="cursor:poi
 
     window.closeViewSectionModal = function() { document.getElementById('viewSectionModal').style.display = 'none'; };
 
-  window.viewStudentDetails = async function(studentId) {
-    try {
-        window.currentStudentId = studentId;
-        const student = window.students.find(s => s.id === studentId);
-        if (!student) { showErrorModal('Student not found!'); return; }
+    window.viewStudentDetails = async function(studentId) {
+        try {
+            window.currentStudentId = studentId;
+            const student = window.students.find(s => s.id === studentId);
+            if (!student) { showErrorModal('Student not found!'); return; }
 
-        // Fetch completed test results
-        const attemptsQuery = query(
-            collection(db, 'testResults'),
-            where('studentEmail', '==', student.email),
-            where('status', '==', 'completed')
-        );
-        const attemptsSnapshot = await getDocs(attemptsQuery);
+            // Fetch completed test results
+            const attemptsQuery = query(
+                collection(db, 'testResults'),
+                where('studentEmail', '==', student.email),
+                where('status', '==', 'completed')
+            );
+            const attemptsSnapshot = await getDocs(attemptsQuery);
 
-        // Fetch scheduled tests for this student's section
-        const scheduledQuery = query(
-            collection(db, 'scheduledTests'),
-            where('section', '==', student.section)
-        );
-        const scheduledSnapshot = await getDocs(scheduledQuery);
+            // Fetch scheduled tests for this student's section
+            const scheduledQuery = query(
+                collection(db, 'scheduledTests'),
+                where('section', '==', student.section)
+            );
+            const scheduledSnapshot = await getDocs(scheduledQuery);
 
-        const studentAgeData = { birthday: student.birthday, age: student.age };
-        const medicalCondition = student.medicalCondition || null;
+            const studentAgeData = { birthday: student.birthday, age: student.age };
+            const medicalCondition = student.medicalCondition || null;
 
-        const bestCategoriesPerTest = new Map();
-        const allAttemptsByTest = new Map();
+            const bestCategoriesPerTest = new Map();
+            const allAttemptsByTest = new Map();
 
-        attemptsSnapshot.forEach(docSnap => {
-            const attempt = { id: docSnap.id, ...docSnap.data() };
-            const testId = attempt.testId || attempt.testName;
-            if (!allAttemptsByTest.has(testId)) {
-                allAttemptsByTest.set(testId, { testName: attempt.testName || 'Unknown Test', attempts: [] });
-            }
-            allAttemptsByTest.get(testId).attempts.push(attempt);
-
-            const gender = (attempt.gender || '').toLowerCase();
-            const genderKey = gender.startsWith('f') ? 'female' : 'male';
-            const ageGroup = getAgeGroupFromStudent(studentAgeData);
-            const category = getNormCategory(attempt.testName || '', attempt.result || attempt.resultData || attempt.repetitions || attempt, genderKey, ageGroup);
-
-            if (!bestCategoriesPerTest.has(testId) ||
-                (CATEGORY_ORDER[category] || 3) > (CATEGORY_ORDER[bestCategoriesPerTest.get(testId)] || 0)) {
-                bestCategoriesPerTest.set(testId, category);
-            }
-        });
-
-        // Build set of completed testIds
-        const completedTestIds = new Set();
-        attemptsSnapshot.forEach(docSnap => {
-            const d = docSnap.data();
-            if (d.testId) completedTestIds.add(d.testId);
-        });
-
-        // Build pending activities (scheduled but not completed)
-        const pendingActivities = [];
-        const now = new Date();
-        scheduledSnapshot.forEach(docSnap => {
-            const test = { id: docSnap.id, ...docSnap.data() };
-            if (!completedTestIds.has(test.id)) {
-                let deadlineDate = test.deadline ? new Date(test.deadline) : null;
-                if (deadlineDate && test.deadlineTime) {
-                    const [h, m] = test.deadlineTime.split(':').map(Number);
-                    deadlineDate.setHours(h, m, 0, 0);
+            for (const docSnap of attemptsSnapshot.docs) {
+                const attempt = { id: docSnap.id, ...docSnap.data() };
+                const testId = attempt.testId || attempt.testName;
+                if (!allAttemptsByTest.has(testId)) {
+                    allAttemptsByTest.set(testId, { testName: attempt.testName || 'Unknown Test', attempts: [] });
                 }
-                const isOverdue = deadlineDate && deadlineDate < now;
-                pendingActivities.push({
-                    testId: test.id,
-                    testName: test.testName || 'Unknown Activity',
-                    deadline: deadlineDate,
-                    deadlineString: formatDeadline(test.deadline, test.deadlineTime),
-                    isOverdue: isOverdue,
-                    testUnit: test.testUnit || '',
-                    testTarget: test.testTarget || 0
-                });
+                allAttemptsByTest.get(testId).attempts.push(attempt);
+
+                const gender = studentAgeData.gender || 'male';
+                const age = _studentAge(studentAgeData);
+                
+const category = (attempt.score || attempt.category) && (attempt.score || attempt.category) !== ''
+    ? (attempt.score || attempt.category)
+    : await getNormCategoryWithPriority(
+        attempt.testName || testName, 
+        attempt.result || attempt.resultData || attempt.repetitions || attempt, 
+        attempt.testId,
+        student.email,
+        gender,
+        age
+    );
+
+                if (!bestCategoriesPerTest.has(testId) ||
+                    (CATEGORY_ORDER[category] || 3) > (CATEGORY_ORDER[bestCategoriesPerTest.get(testId)] || 0)) {
+                    bestCategoriesPerTest.set(testId, category);
+                }
             }
-        });
 
-        const uniqueTestCount = bestCategoriesPerTest.size;
+            // Build set of completed testIds
+            const completedTestIds = new Set();
+            attemptsSnapshot.forEach(docSnap => {
+                const d = docSnap.data();
+                if (d.testId) completedTestIds.add(d.testId);
+            });
 
-        const initials = (student.firstName?.charAt(0) || '') + (student.lastName?.charAt(0) || '');
-        let sectionSchedule = 'Not Set';
-        const studentSection = window.sections.find(s => s.name === student.section);
-        if (studentSection) {
-            if (studentSection.timeSlot && studentSection.days && studentSection.room) sectionSchedule = `${studentSection.timeSlot} / ${studentSection.days} / ${studentSection.room}`;
-            else if (studentSection.schedule) sectionSchedule = studentSection.schedule;
-        }
+            // Build pending activities (scheduled but not completed)
+            const pendingActivities = [];
+            const now = new Date();
+            scheduledSnapshot.forEach(docSnap => {
+                const test = { id: docSnap.id, ...docSnap.data() };
+                if (!completedTestIds.has(test.id)) {
+                    let deadlineDate = test.deadline ? new Date(test.deadline) : null;
+                    if (deadlineDate && test.deadlineTime) {
+                        const [h, m] = test.deadlineTime.split(':').map(Number);
+                        deadlineDate.setHours(h, m, 0, 0);
+                    }
+                    const isOverdue = deadlineDate && deadlineDate < now;
+                    pendingActivities.push({
+                        testId: test.id,
+                        testName: test.testName || 'Unknown Activity',
+                        deadline: deadlineDate,
+                        deadlineString: formatDeadline(test.deadline, test.deadlineTime),
+                        isOverdue: isOverdue,
+                        testUnit: test.testUnit || '',
+                        testTarget: test.testTarget || 0
+                    });
+                }
+            });
 
-        const overallBadge = renderCategoryBadge(student.overallCategory);
+            const uniqueTestCount = bestCategoriesPerTest.size;
 
-        let html = `<div class="student-info-header"><div class="student-avatar">${initials || '??'}</div><div class="student-basic-info"><div class="student-name">${student.firstName || ''} ${student.lastName || ''}</div><div class="student-id">${student.umakId || 'N/A'} • ${student.section || 'N/A'}</div></div></div>
-        <div class="student-info-grid">
-            <div class="info-item"><div class="info-label">Email</div><div class="info-value" style="word-break:break-all; font-size:13px;">${student.email || 'N/A'}</div></div>
-            <div class="info-item"><div class="info-label">Year Level</div><div class="info-value">${student.yearLevel || 'N/A'}</div></div>
-            <div class="info-item"><div class="info-label">Section Schedule</div><div class="info-value">${sectionSchedule}</div></div>
-            <div class="info-item"><div class="info-label">Tests Taken</div><div class="info-value"><strong>${uniqueTestCount}</strong> completed${pendingActivities.length > 0 ? ` • <span style="color:#ef4444;">${pendingActivities.length} pending</span>` : ''}</div></div>
-            <div class="info-item"><div class="info-label">Overall</div><div class="info-value">${overallBadge}</div></div>
-            <div class="info-item"><div class="info-label">Status</div><div class="info-value"><span class="status-badge status-active">Active</span></div></div>
-        </div>
-        ${medicalCondition ? `
-        <div style="margin-top:16px; background:#fff7ed; border:1.5px solid #fed7aa; border-radius:10px; padding:14px 16px;">
-            <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
-                <span style="font-size:16px;">🏥</span>
-                <span style="font-weight:700; color:#92400e; font-size:13px; text-transform:uppercase; letter-spacing:0.5px;">Medical Condition</span>
+            const initials = (student.firstName?.charAt(0) || '') + (student.lastName?.charAt(0) || '');
+            let sectionSchedule = 'Not Set';
+            const studentSection = window.sections.find(s => s.name === student.section);
+            if (studentSection) {
+                if (studentSection.timeSlot && studentSection.days && studentSection.room) sectionSchedule = `${studentSection.timeSlot} / ${studentSection.days} / ${studentSection.room}`;
+                else if (studentSection.schedule) sectionSchedule = studentSection.schedule;
+            }
+
+            const overallBadge = renderCategoryBadge(student.overallCategory);
+
+            let html = `<div class="student-info-header"><div class="student-avatar">${initials || '??'}</div><div class="student-basic-info"><div class="student-name">${student.firstName || ''} ${student.lastName || ''}</div><div class="student-id">${student.umakId || 'N/A'} • ${student.section || 'N/A'}</div></div></div>
+            <div class="student-info-grid">
+                <div class="info-item"><div class="info-label">Email</div><div class="info-value" style="word-break:break-all; font-size:13px;">${student.email || 'N/A'}</div></div>
+                <div class="info-item"><div class="info-label">Year Level</div><div class="info-value">${student.yearLevel || 'N/A'}</div></div>
+                <div class="info-item"><div class="info-label">Section Schedule</div><div class="info-value">${sectionSchedule}</div></div>
+                <div class="info-item"><div class="info-label">Tests Taken</div><div class="info-value"><strong>${uniqueTestCount}</strong> completed${pendingActivities.length > 0 ? ` • <span style="color:#ef4444;">${pendingActivities.length} pending</span>` : ''}</div></div>
+                <div class="info-item"><div class="info-label">Overall</div><div class="info-value">${overallBadge}</div></div>
+                <div class="info-item"><div class="info-label">Status</div><div class="info-value"><span class="status-badge status-active">Active</span></div></div>
             </div>
-            <div style="color:#7c2d12; font-size:14px; line-height:1.6;">${medicalCondition}</div>
-        </div>` : ''}`;
-        document.getElementById('studentDetailsContent').innerHTML = html;
+            ${medicalCondition ? `
+            <div style="margin-top:16px; background:#fff7ed; border:1.5px solid #fed7aa; border-radius:10px; padding:14px 16px;">
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+                    <span style="font-size:16px;">🏥</span>
+                    <span style="font-weight:700; color:#92400e; font-size:13px; text-transform:uppercase; letter-spacing:0.5px;">Medical Condition</span>
+                </div>
+                <div style="color:#7c2d12; font-size:14px; line-height:1.6;">${medicalCondition}</div>
+            </div>` : ''}`;
+            document.getElementById('studentDetailsContent').innerHTML = html;
 
-        // ── PENDING ACTIVITIES SECTION ──
-        let pendingHTML = '';
-        if (pendingActivities.length > 0) {
-            // Sort: overdue first, then upcoming by deadline
-            pendingActivities.sort((a, b) => {
-                if (a.isOverdue && !b.isOverdue) return -1;
-                if (!a.isOverdue && b.isOverdue) return 1;
-                if (a.deadline && b.deadline) return a.deadline - b.deadline;
-                return 0;
-            });
+            // ── PENDING ACTIVITIES SECTION ──
+            let pendingHTML = '';
+            if (pendingActivities.length > 0) {
+                // Sort: overdue first, then upcoming by deadline
+                pendingActivities.sort((a, b) => {
+                    if (a.isOverdue && !b.isOverdue) return -1;
+                    if (!a.isOverdue && b.isOverdue) return 1;
+                    if (a.deadline && b.deadline) return a.deadline - b.deadline;
+                    return 0;
+                });
 
-            pendingHTML = `<div style="margin-bottom:20px;">
-                <h4 style="font-size:16px; font-weight:700; color:#0a1628; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
-                    <i class="fas fa-clock" style="color:#ef4444;"></i> Pending Activities
-                    <span style="background:#ef4444; color:white; font-size:11px; font-weight:700; padding:2px 8px; border-radius:12px;">${pendingActivities.length}</span>
-                </h4>
-                <div style="display:flex; flex-direction:column; gap:8px;">`;
+                pendingHTML = `<div style="margin-bottom:20px;">
+                    <h4 style="font-size:16px; font-weight:700; color:#0a1628; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+                        <i class="fas fa-clock" style="color:#ef4444;"></i> Pending Activities
+                        <span style="background:#ef4444; color:white; font-size:11px; font-weight:700; padding:2px 8px; border-radius:12px;">${pendingActivities.length}</span>
+                    </h4>
+                    <div style="display:flex; flex-direction:column; gap:8px;">`;
 
-            pendingActivities.forEach(act => {
-                const bgColor = act.isOverdue ? '#fef2f2' : '#fff7ed';
-                const borderColor = act.isOverdue ? '#fecaca' : '#fed7aa';
-                const textColor = act.isOverdue ? '#991b1b' : '#92400e';
-                const iconColor = act.isOverdue ? '#ef4444' : '#f59e0b';
-                const statusLabel = act.isOverdue
-                    ? `<span style="display:inline-flex;align-items:center;gap:4px;background:#fee2e2;border:1px solid #fecaca;color:#991b1b;font-size:11px;font-weight:700;padding:3px 8px;border-radius:12px;"><i class="fas fa-exclamation-circle"></i> Overdue</span>`
-                    : `<span style="display:inline-flex;align-items:center;gap:4px;background:#fef9c3;border:1px solid #fde047;color:#854d0e;font-size:11px;font-weight:700;padding:3px 8px;border-radius:12px;"><i class="fas fa-hourglass-half"></i> Pending</span>`;
+                pendingActivities.forEach(act => {
+                    const bgColor = act.isOverdue ? '#fef2f2' : '#fff7ed';
+                    const borderColor = act.isOverdue ? '#fecaca' : '#fed7aa';
+                    const textColor = act.isOverdue ? '#991b1b' : '#92400e';
+                    const iconColor = act.isOverdue ? '#ef4444' : '#f59e0b';
+                    const statusLabel = act.isOverdue
+                        ? `<span style="display:inline-flex;align-items:center;gap:4px;background:#fee2e2;border:1px solid #fecaca;color:#991b1b;font-size:11px;font-weight:700;padding:3px 8px;border-radius:12px;"><i class="fas fa-exclamation-circle"></i> Overdue</span>`
+                        : `<span style="display:inline-flex;align-items:center;gap:4px;background:#fef9c3;border:1px solid #fde047;color:#854d0e;font-size:11px;font-weight:700;padding:3px 8px;border-radius:12px;"><i class="fas fa-hourglass-half"></i> Pending</span>`;
 
-                pendingHTML += `<div style="background:${bgColor}; border:1.5px solid ${borderColor}; border-radius:10px; padding:12px 14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-                    <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:200px;">
-                        <i class="fas fa-clipboard-list" style="color:${iconColor}; font-size:16px; flex-shrink:0;"></i>
-                        <div>
-                            <div style="font-weight:700; color:${textColor}; font-size:14px;">${act.testName}</div>
-                            <div style="font-size:12px; color:#64748b; margin-top:2px;"><i class="fas fa-calendar-alt" style="margin-right:4px;"></i>Deadline: ${act.deadlineString}</div>
+                    pendingHTML += `<div style="background:${bgColor}; border:1.5px solid ${borderColor}; border-radius:10px; padding:12px 14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                        <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:200px;">
+                            <i class="fas fa-clipboard-list" style="color:${iconColor}; font-size:16px; flex-shrink:0;"></i>
+                            <div>
+                                <div style="font-weight:700; color:${textColor}; font-size:14px;">${act.testName}</div>
+                                <div style="font-size:12px; color:#64748b; margin-top:2px;"><i class="fas fa-calendar-alt" style="margin-right:4px;"></i>Deadline: ${act.deadlineString}</div>
+                            </div>
                         </div>
-                    </div>
-                    ${statusLabel}
-                </div>`;
-            });
+                        ${statusLabel}
+                    </div>`;
+                });
 
-            pendingHTML += `</div></div>`;
-        }
+                pendingHTML += `</div></div>`;
+            }
 
-        // ── COMPLETED ACTIVITIES SECTION ──
-        let attemptsHTML = '';
-        if (uniqueTestCount > 0) {
-            const testGroups = Array.from(allAttemptsByTest.entries()).map(([testId, group]) => {
-                group.attempts.sort((a, b) => {
-                    const getTs = (att) => {
+            // ── COMPLETED ACTIVITIES SECTION ──
+            let attemptsHTML = '';
+            if (uniqueTestCount > 0) {
+                const testGroups = Array.from(allAttemptsByTest.entries()).map(([testId, group]) => {
+                    group.attempts.sort((a, b) => {
+                        const getTs = (att) => {
+                            if (!att.submittedAt) return 0;
+                            if (typeof att.submittedAt.toMillis === 'function') return att.submittedAt.toMillis();
+                            if (att.submittedAt instanceof Date) return att.submittedAt.getTime();
+                            if (typeof att.submittedAt === 'string' || typeof att.submittedAt === 'number') return new Date(att.submittedAt).getTime();
+                            if (att.submittedAt.seconds) return att.submittedAt.seconds * 1000;
+                            return 0;
+                        };
+                        return getTs(b) - getTs(a);
+                    });
+                    return { testId, testName: group.testName, attempts: group.attempts, bestCategory: bestCategoriesPerTest.get(testId) };
+                });
+
+                testGroups.sort((a, b) => {
+                    const getLatest = (attempts) => {
+                        if (!attempts.length) return 0;
+                        const att = attempts[0];
                         if (!att.submittedAt) return 0;
                         if (typeof att.submittedAt.toMillis === 'function') return att.submittedAt.toMillis();
                         if (att.submittedAt instanceof Date) return att.submittedAt.getTime();
@@ -2025,91 +2079,102 @@ rowsHTML += `<tr onclick="viewStudentDetails('${student.id}')" style="cursor:poi
                         if (att.submittedAt.seconds) return att.submittedAt.seconds * 1000;
                         return 0;
                     };
-                    return getTs(b) - getTs(a);
+                    return getLatest(b.attempts) - getLatest(a.attempts);
                 });
-                return { testId, testName: group.testName, attempts: group.attempts, bestCategory: bestCategoriesPerTest.get(testId) };
-            });
 
-            testGroups.sort((a, b) => {
-                const getLatest = (attempts) => {
-                    if (!attempts.length) return 0;
-                    const att = attempts[0];
-                    if (!att.submittedAt) return 0;
-                    if (typeof att.submittedAt.toMillis === 'function') return att.submittedAt.toMillis();
-                    if (att.submittedAt instanceof Date) return att.submittedAt.getTime();
-                    if (typeof att.submittedAt === 'string' || typeof att.submittedAt === 'number') return new Date(att.submittedAt).getTime();
-                    if (att.submittedAt.seconds) return att.submittedAt.seconds * 1000;
-                    return 0;
-                };
-                return getLatest(b.attempts) - getLatest(a.attempts);
-            });
+                for (const { testName, attempts, bestCategory } of testGroups) {
+                    const totalAttemptsInTest = attempts.length;
+                    const bestBadge = renderCategoryBadge(bestCategory);
 
-            testGroups.forEach(({ testName, attempts, bestCategory }) => {
-                const totalAttemptsInTest = attempts.length;
-                const bestBadge = renderCategoryBadge(bestCategory);
+                    attemptsHTML += `<div style="margin-bottom:16px; border:1px solid #e2e8f0; border-radius:10px; overflow:hidden;">
+                        <div style="background:linear-gradient(90deg, rgba(10,22,40,0.9) 0%, rgba(30,77,140,0.9) 100%); padding:10px 14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                            <span style="color:white; font-weight:700; font-size:14px;"><i class="fas fa-clipboard-check" style="margin-right:6px;"></i>${testName}</span>
+                            <span style="color:rgba(255,255,255,0.8); font-size:12px;">Best: ${bestBadge} • ${totalAttemptsInTest} attempt${totalAttemptsInTest > 1 ? 's' : ''}</span>
+                        </div>`;
 
-                attemptsHTML += `<div style="margin-bottom:16px; border:1px solid #e2e8f0; border-radius:10px; overflow:hidden;">
-                    <div style="background:linear-gradient(90deg, rgba(10,22,40,0.9) 0%, rgba(30,77,140,0.9) 100%); padding:10px 14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-                        <span style="color:white; font-weight:700; font-size:14px;"><i class="fas fa-clipboard-check" style="margin-right:6px;"></i>${testName}</span>
-                        <span style="color:rgba(255,255,255,0.8); font-size:12px;">Best: ${bestBadge} • ${totalAttemptsInTest} attempt${totalAttemptsInTest > 1 ? 's' : ''}</span>
-                    </div>`;
+// Sort attempts oldest-first for correct attempt numbering
+const attemptsForNumbering = [...attempts].reverse();
+for (const [index, attempt] of attemptsForNumbering.entries()) {
+    const attemptNumber = index + 1;
+    let date = new Date();
+    if (attempt.submittedAt) {
+        if (typeof attempt.submittedAt.toDate === 'function') date = attempt.submittedAt.toDate();
+        else if (attempt.submittedAt instanceof Date) date = attempt.submittedAt;
+        else if (typeof attempt.submittedAt === 'string' || typeof attempt.submittedAt === 'number') date = new Date(attempt.submittedAt);
+        else if (attempt.submittedAt.seconds) date = new Date(attempt.submittedAt.seconds * 1000);
+    }
+    const formattedDate = date.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    const formattedTime = date.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
 
-                attempts.forEach((attempt, index) => {
-                    const attemptNumber = index + 1;
-                    let date = new Date();
-                    if (attempt.submittedAt) {
-                        if (typeof attempt.submittedAt.toDate === 'function') date = attempt.submittedAt.toDate();
-                        else if (attempt.submittedAt instanceof Date) date = attempt.submittedAt;
-                        else if (typeof attempt.submittedAt === 'string' || typeof attempt.submittedAt === 'number') date = new Date(attempt.submittedAt);
-                        else if (attempt.submittedAt.seconds) date = new Date(attempt.submittedAt.seconds * 1000);
-                    }
-                    const formattedDate = date.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-                    const formattedTime = date.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    const gender = studentAgeData.gender || 'male';
+    const age = _studentAge(studentAgeData);
+    
+// PALITAN NG:
+const category = (attempt.score || attempt.category) && (attempt.score || attempt.category) !== ''
+    ? (attempt.score || attempt.category)
+    : await getNormCategoryWithPriority(
+        attempt.testName || '', 
+        attempt.result || attempt.resultData || attempt.repetitions || attempt, 
+        attempt.testId,
+        attempt.studentEmail,
+        gender,
+        age
+    );
+    
+    const categoryBadge = renderCategoryBadge(category);
+// Find the attempt with the highest numeric result for this test group
+const bestAttempt = attempts.reduce((best, a) => {
+    const getVal = (r) => {
+        if (!r) return 0;
+        if (typeof r === 'number') return r;
+        if (typeof r === 'object') return parseFloat(r.repetitions || r.time || r.distance || r.value || 0);
+        return parseFloat(r) || 0;
+    };
+    const aVal = getVal(a.result ?? a.repetitions);
+    const bestVal = getVal(best.result ?? best.repetitions);
+    // For "lower is better" tests (time-based), reverse this
+    return aVal >= bestVal ? a : best;
+}, attempts[0]);
+const isBest = attempt.id === bestAttempt.id;
+    const bgColor = isBest ? '#f0fdf4' : (index % 2 === 0 ? '#ffffff' : '#f8fafc');
 
-                    const gender = (attempt.gender || '').toLowerCase();
-                    const genderKey = gender.startsWith('f') ? 'female' : 'male';
-                    const ageGroup = getAgeGroupFromStudent(studentAgeData);
-                    const category = getNormCategory(attempt.testName || testName, attempt.result || attempt.resultData || attempt.repetitions || attempt, genderKey, ageGroup);
-                    const categoryBadge = renderCategoryBadge(category);
-                    const isBest = category === bestCategory;
-                    const bgColor = isBest ? '#f0fdf4' : (index % 2 === 0 ? '#ffffff' : '#f8fafc');
+    let resultDisplay = '—';
+    if (attempt.result) {
+        if (typeof attempt.result === 'object') {
+            const val = attempt.result.repetitions || attempt.result.time || attempt.result.distance || attempt.result.value || 0;
+            resultDisplay = `${val} ${attempt.testUnit || ''}`;
+        } else resultDisplay = `${attempt.result} ${attempt.testUnit || ''}`;
+    } else if (attempt.repetitions) resultDisplay = `${attempt.repetitions} ${attempt.testUnit || ''}`;
 
-                    let resultDisplay = '—';
-                    if (attempt.result) {
-                        if (typeof attempt.result === 'object') {
-                            const val = attempt.result.repetitions || attempt.result.time || attempt.result.distance || attempt.result.value || 0;
-                            resultDisplay = `${val} ${attempt.testUnit || ''}`;
-                        } else resultDisplay = `${attempt.result} ${attempt.testUnit || ''}`;
-                    } else if (attempt.repetitions) resultDisplay = `${attempt.repetitions} ${attempt.testUnit || ''}`;
+    attemptsHTML += `<div style="background:${bgColor}; padding:12px 14px; border-top:1px solid #f1f5f9;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">
+            <div><div style="font-size:12px; color:#64748b; margin-bottom:2px;">Attempt ${attemptNumber} • ${formattedDate} at ${formattedTime}</div></div>
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <span style="font-weight:500;">${resultDisplay}</span>
+                ${categoryBadge}
+                ${isBest ? '<span style="color:#10b981; font-size:12px; font-weight:700;">🏆 Best</span>' : ''}
+                <button class="btn-action btn-view" style="padding:4px 8px; font-size:11px;" onclick="viewAttemptDetails('${attempt.id}')"><i class="fas fa-info-circle"></i> Details</button>
+            </div>
+        </div>
+    </div>`;
+}
+attemptsHTML += `</div>`;
+                }
+            }
 
-                    attemptsHTML += `<div style="background:${bgColor}; padding:12px 14px; border-top:1px solid #f1f5f9;">
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">
-                            <div><div style="font-size:12px; color:#64748b; margin-bottom:2px;">Attempt ${attemptNumber} • ${formattedDate} at ${formattedTime}</div></div>
-                            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                                <span style="font-weight:500;">${resultDisplay}</span>
-                                ${categoryBadge}
-                                ${isBest ? '<span style="color:#10b981; font-size:12px; font-weight:700;">🏆 Best</span>' : ''}
-                                <button class="btn-action btn-view" style="padding:4px 8px; font-size:11px;" onclick="viewAttemptDetails('${attempt.id}')"><i class="fas fa-info-circle"></i> Details</button>
-                            </div>
-                        </div>
-                    </div>`;
-                });
-                attemptsHTML += `</div>`;
-            });
-        }
+            // Combine pending + completed in the modal body
+            const completedSectionHeader = uniqueTestCount > 0
+                ? `<h4 class="text-lg font-bold text-navy mb-4" style="display:flex; align-items:center; gap:8px; margin-top: ${pendingActivities.length > 0 ? '8px' : '0'};"><i class="fas fa-history" style="color:#10b981;"></i> Completed Activities <span style="background:#10b981; color:white; font-size:11px; font-weight:700; padding:2px 8px; border-radius:12px;">${uniqueTestCount}</span></h4>`
+                : '';
+            const noActivityMsg = uniqueTestCount === 0 && pendingActivities.length === 0
+                ? `<div style="text-align:center; padding:40px; color:#64748b;"><div style="font-size:48px; opacity:0.3; margin-bottom:10px;">📋</div><div>No activities scheduled yet</div></div>`
+                : '';
 
-        // Combine pending + completed in the modal body
-        const completedSectionHeader = uniqueTestCount > 0
-            ? `<h4 class="text-lg font-bold text-navy mb-4" style="display:flex; align-items:center; gap:8px; margin-top: ${pendingActivities.length > 0 ? '8px' : '0'};"><i class="fas fa-history" style="color:#10b981;"></i> Completed Activities <span style="background:#10b981; color:white; font-size:11px; font-weight:700; padding:2px 8px; border-radius:12px;">${uniqueTestCount}</span></h4>`
-            : '';
-        const noActivityMsg = uniqueTestCount === 0 && pendingActivities.length === 0
-            ? `<div style="text-align:center; padding:40px; color:#64748b;"><div style="font-size:48px; opacity:0.3; margin-bottom:10px;">📋</div><div>No activities scheduled yet</div></div>`
-            : '';
-
-        document.getElementById('attemptsTableBody').innerHTML = pendingHTML + completedSectionHeader + attemptsHTML + noActivityMsg;
-        document.getElementById('viewStudentModal').style.display = 'flex';
-    } catch (error) { console.error('Error viewing student details:', error); showErrorModal('Error: ' + error.message); }
-};
+            document.getElementById('attemptsTableBody').innerHTML = pendingHTML + completedSectionHeader + attemptsHTML + noActivityMsg;
+            document.getElementById('viewStudentModal').style.display = 'flex';
+        } catch (error) { console.error('Error viewing student details:', error); showErrorModal('Error: ' + error.message); }
+    };
+    
     window.viewAttemptDetails = async function(attemptId) {
         try {
             const attemptRef = doc(db, 'testResults', attemptId);
@@ -2120,14 +2185,17 @@ rowsHTML += `<tr onclick="viewStudentDetails('${student.id}')" style="cursor:poi
             const student = window.students.find(s => s.email === attempt.studentEmail);
             const studentName = student ? `${student.firstName} ${student.lastName}` : attempt.studentName || 'Unknown Student';
 
-            const gender = (attempt.gender || '').toLowerCase();
-            const genderKey = gender.startsWith('f') ? 'female' : 'male';
+            const gender = attempt.gender || 'male';
+            const age = student ? _studentAge({ birthday: student.birthday, age: student.age }) : 20;
             
-            // Get age group from student data
-            const studentAgeData = student ? { birthday: student.birthday, age: student.age } : {};
-            const ageGroup = getAgeGroupFromStudent(studentAgeData);
-            
-            const category = getNormCategory(attempt.testName || '', attempt.result || attempt.resultData || attempt.repetitions || attempt, genderKey, ageGroup);
+            const category = await getNormCategoryWithPriority(
+                attempt.testName || '', 
+                attempt.result || attempt.resultData || attempt.repetitions || attempt, 
+                attempt.testId,
+                attempt.studentEmail,
+                gender,
+                age
+            );
             
             const categoryBadge = renderCategoryBadge(category);
 
@@ -2197,379 +2265,329 @@ rowsHTML += `<tr onclick="viewStudentDetails('${student.id}')" style="cursor:poi
         window.filteredSections = window.sections.filter(section => !searchTerm || section.name.toLowerCase().includes(searchTerm) || (section.courseCode && section.courseCode.toLowerCase().includes(searchTerm)) || (section.yearLevel && section.yearLevel.toLowerCase().includes(searchTerm)));
         if (window.innerWidth <= 768) populateMobileSections(window.filteredSections); else populateSectionsTable();
     };
-window.buildFilterDropdowns = function() {
-    // Build test filter dropdown from SCHEDULED TESTS (database)
-    const testFilter = document.getElementById('filterTest');
-    if (!testFilter) return;
     
-    // Get unique test names from scheduledTestsMap (database)
-    const testNames = new Set();
-    
-    if (window.scheduledTestsMap) {
-        window.scheduledTestsMap.forEach((tests, key) => {
-            const keyParts = key.split('_');
-            const keyTestName = keyParts[0];
-            if (keyTestName) {
-                testNames.add(keyTestName);
-            }
-        });
-    }
-    
-    // Also check if scheduledTestsMap is empty, fallback to student testNames
-    if (testNames.size === 0) {
-        window.students.forEach(student => {
-            if (student.testNames) {
-                student.testNames.forEach(name => testNames.add(name));
-            }
-        });
-    }
-    
-    // Sort and populate test filter
-    const sortedTests = Array.from(testNames).sort();
-    testFilter.innerHTML = '<option value="">Select Test</option>';
-    sortedTests.forEach(name => {
-        const opt = document.createElement('option');
-        opt.value = name;
-        opt.textContent = name;
-        testFilter.appendChild(opt);
-    });
-    
-    // Build section filter (if not already populated)
-    const sectionFilter = document.getElementById('filterSection');
-    if (sectionFilter && sectionFilter.children.length <= 1) {
-        sectionFilter.innerHTML = '<option value="">All Sections</option>';
-        const uniqueSections = new Set(window.students.map(s => s.section));
-        Array.from(uniqueSections).sort().forEach(section => {
-            const opt = document.createElement('option');
-            opt.value = section;
-            opt.textContent = section;
-            sectionFilter.appendChild(opt);
-        });
-    }
-};
-window.onTestFilterChange = function() {
-    const selectedTest = document.getElementById('filterTest').value;
-    const selectedSection = document.getElementById('filterSection').value;
-    const dateFilter = document.getElementById('filterTestDate');
-    
-    // Clear date filter
-    dateFilter.innerHTML = '<option value="">Select Date Range</option>';
-    
-    if (!selectedTest) {
-        filterStudents();
-        return;
-    }
-    
-    // Use scheduledTestsMap to get deadlines for this test
-    if (window.scheduledTestsMap) {
-        // Group tests by date range (start and end)
-        const dateRanges = new Map(); // key: date string, value: { startDate, endDate, count }
+    window.buildFilterDropdowns = function() {
+        // Build test filter dropdown from SCHEDULED TESTS (database)
+        const testFilter = document.getElementById('filterTest');
+        if (!testFilter) return;
         
-        // Loop through all scheduled tests
-        window.scheduledTestsMap.forEach((tests, key) => {
-            const keyParts = key.split('_');
-            const keyTestName = keyParts[0];
-            const keySection = keyParts.slice(1).join('_');
-            
-            // Match test name
-            if (keyTestName !== selectedTest) return;
-            
-            // Match section if selected - KEEP the selected section filter
-            if (selectedSection && keySection !== selectedSection) return;
-            
-            // Process each test for this key
-            tests.forEach(test => {
-                if (test.deadline) {
-                    const dateStr = test.deadline;
-                    
-                    // Find start date (createdAt) - use test creation date or startDate field
-                    let startDate = test.startDate || test.createdAt || test.deadline;
-                    if (test.createdAt) {
-                        if (test.createdAt.toDate) {
-                            startDate = test.createdAt.toDate().toISOString().split('T')[0];
-                        } else if (test.createdAt.seconds) {
-                            startDate = new Date(test.createdAt.seconds * 1000).toISOString().split('T')[0];
-                        }
-                    }
-                    
-                    if (!dateRanges.has(dateStr)) {
-                        dateRanges.set(dateStr, {
-                            deadline: dateStr,
-                            startDate: startDate,
-                            deadlineTime: test.deadlineTime || '23:59',
-                            count: 1,
-                            sections: [keySection]
-                        });
-                    } else {
-                        const existing = dateRanges.get(dateStr);
-                        existing.count++;
-                        if (!existing.sections.includes(keySection)) {
-                            existing.sections.push(keySection);
-                        }
-                    }
+        // Get unique test names from scheduledTestsMap (database)
+        const testNames = new Set();
+        
+        if (window.scheduledTestsMap) {
+            window.scheduledTestsMap.forEach((tests, key) => {
+                const keyParts = key.split('_');
+                const keyTestName = keyParts[0];
+                if (keyTestName) {
+                    testNames.add(keyTestName);
                 }
             });
-        });
+        }
         
-        // Sort dates chronologically
-        const sortedDates = Array.from(dateRanges.keys()).sort((a, b) => {
-            return new Date(a) - new Date(b);
-        });
+        // Also check if scheduledTestsMap is empty, fallback to student testNames
+        if (testNames.size === 0) {
+            window.students.forEach(student => {
+                if (student.testNames) {
+                    student.testNames.forEach(name => testNames.add(name));
+                }
+            });
+        }
         
-        // Populate date dropdown with ranges
-        sortedDates.forEach(dateStr => {
-            const range = dateRanges.get(dateStr);
-            const startDateObj = new Date(range.startDate + 'T00:00:00');
-            const endDateObj = new Date(dateStr + 'T00:00:00');
-            
-            const startLabel = startDateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-            const endLabel = endDateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-            
-            // Format as "Mar 10-13, 2026" or "Mar 10 - Apr 15, 2026"
-            let rangeLabel;
-            if (startDateObj.getMonth() === endDateObj.getMonth() && startDateObj.getFullYear() === endDateObj.getFullYear()) {
-                // Same month and year
-                rangeLabel = `${startDateObj.toLocaleDateString('en-US', { month: 'short' })} ${startDateObj.getDate()}-${endDateObj.getDate()}, ${endDateObj.getFullYear()}`;
-            } else {
-                // Different months
-                rangeLabel = `${startLabel} - ${endLabel}`;
-            }
-            
-            // Add time info and section count
-            const timeInfo = ` (Deadline: ${range.deadlineTime})`;
-            const sectionInfo = range.sections.length > 1 ? ` • ${range.sections.length} sections` : '';
-            
+        // Sort and populate test filter
+        const sortedTests = Array.from(testNames).sort();
+        testFilter.innerHTML = '<option value="">Select Test</option>';
+        sortedTests.forEach(name => {
             const opt = document.createElement('option');
-            opt.value = dateStr;
-            opt.textContent = rangeLabel + timeInfo + sectionInfo;
-            
-            // Add data attributes for debugging/filtering
-            opt.setAttribute('data-start', range.startDate);
-            opt.setAttribute('data-end', dateStr);
-            
-            dateFilter.appendChild(opt);
+            opt.value = name;
+            opt.textContent = name;
+            testFilter.appendChild(opt);
         });
         
-        // If no dates found, show a message
-        if (sortedDates.length === 0) {
-            const opt = document.createElement('option');
-            opt.value = '';
-            opt.textContent = 'No scheduled tests found';
-            opt.disabled = true;
-            dateFilter.appendChild(opt);
+        // Build section filter (if not already populated)
+        const sectionFilter = document.getElementById('filterSection');
+        if (sectionFilter && sectionFilter.children.length <= 1) {
+            sectionFilter.innerHTML = '<option value="">All Sections</option>';
+            const uniqueSections = new Set(window.students.map(s => s.section));
+            Array.from(uniqueSections).sort().forEach(section => {
+                const opt = document.createElement('option');
+                opt.value = section;
+                opt.textContent = section;
+                sectionFilter.appendChild(opt);
+            });
         }
-    }
+    };
     
-    // Important: Call filterStudents but PRESERVE the section filter
-    filterStudents();
-};
-
-
-window.filterStudents = function() {
-    const startTime = performance.now();
-    
-    const searchTerm = document.getElementById('searchStudents').value.toLowerCase().trim();
-    const sectionFilter = document.getElementById('filterSection').value;
-    const categoryFilter = document.getElementById('filterCategory').value;
-    const testFilter = document.getElementById('filterTest')?.value || '';
-    const dateFilter = document.getElementById('filterTestDate')?.value || '';
-
-    // Use filter() once instead of multiple passes
-    window.filteredStudents = window.students.filter(student => {
-        // Quick search (check name and ID)
-        if (searchTerm) {
-            const fullName = `${student.firstName} ${student.lastName}`.toLowerCase();
-            const id = (student.umakId || '').toLowerCase();
-            if (!fullName.includes(searchTerm) && !id.includes(searchTerm)) {
-                return false;
-            }
+    window.onTestFilterChange = function() {
+        const selectedTest = document.getElementById('filterTest').value;
+        const selectedSection = document.getElementById('filterSection').value;
+        const dateFilter = document.getElementById('filterTestDate');
+        
+        // Clear date filter
+        dateFilter.innerHTML = '<option value="">Select Date Range</option>';
+        
+        if (!selectedTest) {
+            filterStudents();
+            return;
         }
         
-        // Section filter
-        if (sectionFilter && student.section !== sectionFilter) {
-            return false;
-        }
-        
-        // Category filter
-        if (categoryFilter) {
-            if (categoryFilter === 'no-attempts') {
-                if (student.uniqueTestCount > 0) return false;
-            } else if (student.overallCategory !== categoryFilter) {
-                return false;
-            }
-        }
-        
-        // Test filter - OPTIMIZED: use cached testNames
-        if (testFilter) {
-            // Check if student has taken this test (using cached testNames)
-            const hasTakenTest = student.testNames && student.testNames.includes(testFilter);
+        // Use scheduledTestsMap to get deadlines for this test
+        if (window.scheduledTestsMap) {
+            // Group tests by date range (start and end)
+            const dateRanges = new Map(); // key: date string, value: { startDate, endDate, count }
             
-            if (dateFilter) {
-                // If date is selected, check if they have ANY submission within the range
-                // Since we only have the deadline date, we'll check submissions up to that date
-                if (!hasTakenTest) return false;
+            // Loop through all scheduled tests
+            window.scheduledTestsMap.forEach((tests, key) => {
+                const keyParts = key.split('_');
+                const keyTestName = keyParts[0];
+                const keySection = keyParts.slice(1).join('_');
                 
-                // Check if any result was submitted on or before the deadline
-                if (student.testResultsRaw) {
-                    const deadlineDate = new Date(dateFilter + 'T23:59:59');
-                    
-                    const hasSubmissionBeforeDeadline = student.testResultsRaw.some(result => {
-                        if (result.testName !== testFilter) return false;
+                // Match test name
+                if (keyTestName !== selectedTest) return;
+                
+                // Match section if selected - KEEP the selected section filter
+                if (selectedSection && keySection !== selectedSection) return;
+                
+                // Process each test for this key
+                tests.forEach(test => {
+                    if (test.deadline) {
+                        const dateStr = test.deadline;
                         
-                        let resultDate;
-                        if (result.submittedAt) {
-                            if (result.submittedAt.toDate) {
-                                resultDate = result.submittedAt.toDate();
-                            } else if (result.submittedAt.seconds) {
-                                resultDate = new Date(result.submittedAt.seconds * 1000);
-                            } else {
-                                resultDate = new Date(result.submittedAt);
+                        // Find start date (createdAt) - use test creation date or startDate field
+                        let startDate = test.startDate || test.createdAt || test.deadline;
+                        if (test.createdAt) {
+                            if (test.createdAt.toDate) {
+                                startDate = test.createdAt.toDate().toISOString().split('T')[0];
+                            } else if (test.createdAt.seconds) {
+                                startDate = new Date(test.createdAt.seconds * 1000).toISOString().split('T')[0];
                             }
-                            
-                            // Check if submission is on or before deadline
-                            return resultDate <= deadlineDate;
                         }
-                        return false;
-                    });
-                    
-                    if (!hasSubmissionBeforeDeadline) return false;
+                        
+                        if (!dateRanges.has(dateStr)) {
+                            dateRanges.set(dateStr, {
+                                deadline: dateStr,
+                                startDate: startDate,
+                                deadlineTime: test.deadlineTime || '23:59',
+                                count: 1,
+                                sections: [keySection]
+                            });
+                        } else {
+                            const existing = dateRanges.get(dateStr);
+                            existing.count++;
+                            if (!existing.sections.includes(keySection)) {
+                                existing.sections.push(keySection);
+                            }
+                        }
+                    }
+                });
+            });
+            
+            // Sort dates chronologically
+            const sortedDates = Array.from(dateRanges.keys()).sort((a, b) => {
+                return new Date(a) - new Date(b);
+            });
+            
+            // Populate date dropdown with ranges
+            sortedDates.forEach(dateStr => {
+                const range = dateRanges.get(dateStr);
+                const startDateObj = new Date(range.startDate + 'T00:00:00');
+                const endDateObj = new Date(dateStr + 'T00:00:00');
+                
+                const startLabel = startDateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                const endLabel = endDateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                
+                // Format as "Mar 10-13, 2026" or "Mar 10 - Apr 15, 2026"
+                let rangeLabel;
+                if (startDateObj.getMonth() === endDateObj.getMonth() && startDateObj.getFullYear() === endDateObj.getFullYear()) {
+                    // Same month and year
+                    rangeLabel = `${startDateObj.toLocaleDateString('en-US', { month: 'short' })} ${startDateObj.getDate()}-${endDateObj.getDate()}, ${endDateObj.getFullYear()}`;
                 } else {
+                    // Different months
+                    rangeLabel = `${startLabel} - ${endLabel}`;
+                }
+                
+                // Add time info and section count
+                const timeInfo = ` (Deadline: ${range.deadlineTime})`;
+                const sectionInfo = range.sections.length > 1 ? ` • ${range.sections.length} sections` : '';
+                
+                const opt = document.createElement('option');
+                opt.value = dateStr;
+                opt.textContent = rangeLabel + timeInfo + sectionInfo;
+                
+                // Add data attributes for debugging/filtering
+                opt.setAttribute('data-start', range.startDate);
+                opt.setAttribute('data-end', dateStr);
+                
+                dateFilter.appendChild(opt);
+            });
+            
+            // If no dates found, show a message
+            if (sortedDates.length === 0) {
+                const opt = document.createElement('option');
+                opt.value = '';
+                opt.textContent = 'No scheduled tests found';
+                opt.disabled = true;
+                dateFilter.appendChild(opt);
+            }
+        }
+        
+        // Important: Call filterStudents but PRESERVE the section filter
+        filterStudents();
+    };
+
+    window.filterStudents = function() {
+        if (window.isTabSwitching) return;  // ← ADD THIS LINE
+        const startTime = performance.now();
+        
+        const searchTerm = document.getElementById('searchStudents').value.toLowerCase().trim();
+        const sectionFilter = document.getElementById('filterSection').value;
+        const categoryFilter = document.getElementById('filterCategory').value;
+        const testFilter = document.getElementById('filterTest')?.value || '';
+        const dateFilter = document.getElementById('filterTestDate')?.value || '';
+
+        // Use filter() once instead of multiple passes
+        window.filteredStudents = window.students.filter(student => {
+            // Quick search (check name and ID)
+            if (searchTerm) {
+                const fullName = `${student.firstName} ${student.lastName}`.toLowerCase();
+                const id = (student.umakId || '').toLowerCase();
+                if (!fullName.includes(searchTerm) && !id.includes(searchTerm)) {
                     return false;
                 }
-            } else {
-                // No date filter, just check if they've taken the test
-                if (!hasTakenTest) return false;
             }
+            
+            // Section filter
+            if (sectionFilter && student.section !== sectionFilter) {
+                return false;
+            }
+            
+            // Category filter
+            if (categoryFilter) {
+                if (categoryFilter === 'no-attempts') {
+                    if (student.uniqueTestCount > 0) return false;
+                } else if (student.overallCategory !== categoryFilter) {
+                    return false;
+                }
+            }
+            
+            // Test filter - OPTIMIZED: use cached testNames
+            if (testFilter) {
+                // Check if student has taken this test (using cached testNames)
+                const hasTakenTest = student.testNames && student.testNames.includes(testFilter);
+                
+                if (dateFilter) {
+                    // If date is selected, check if they have ANY submission within the range
+                    // Since we only have the deadline date, we'll check submissions up to that date
+                    if (!hasTakenTest) return false;
+                    
+                    // Check if any result was submitted on or before the deadline
+                    if (student.testResultsRaw) {
+                        const deadlineDate = new Date(dateFilter + 'T23:59:59');
+                        
+                        const hasSubmissionBeforeDeadline = student.testResultsRaw.some(result => {
+                            if (result.testName !== testFilter) return false;
+                            
+                            let resultDate;
+                            if (result.submittedAt) {
+                                if (result.submittedAt.toDate) {
+                                    resultDate = result.submittedAt.toDate();
+                                } else if (result.submittedAt.seconds) {
+                                    resultDate = new Date(result.submittedAt.seconds * 1000);
+                                } else {
+                                    resultDate = new Date(result.submittedAt);
+                                }
+                                
+                                // Get start date from dropdown option
+                                const selectedOpt = document.getElementById('filterTestDate')
+                                    .querySelector(`option[value="${dateFilter}"]`);
+                                const startDate = selectedOpt?.getAttribute('data-start') || dateFilter;
+                                const startMs = new Date(startDate + 'T00:00:00').getTime();
+                                return resultDate.getTime() >= startMs && resultDate <= deadlineDate;
+                            }
+                            return false;
+                        });
+                        
+                        if (!hasSubmissionBeforeDeadline) return false;
+                    } else {
+                        return false;
+                    }
+                } else {
+                    // No date filter, just check if they've taken the test
+                    if (!hasTakenTest) return false;
+                }
+            }
+            
+            return true;
+        });
+        
+        window.currentPage = 1;
+        
+        // Update UI
+        if (window.innerWidth <= 768) {
+            populateMobileStudents(window.filteredStudents);
+        } else {
+            updateStudentsTable(window.filteredStudents);
         }
         
-        return true;
-    });
+        const endTime = performance.now();
+        console.log(`Filtered ${window.filteredStudents.length} students in ${(endTime - startTime).toFixed(2)}ms`);
+    };
     
-    window.currentPage = 1;
-    
-    // Update UI
-    if (window.innerWidth <= 768) {
-        populateMobileStudents(window.filteredStudents);
-    } else {
-        updateStudentsTable(window.filteredStudents);
-    }
-    
-    const endTime = performance.now();
-    console.log(`Filtered ${window.filteredStudents.length} students in ${(endTime - startTime).toFixed(2)}ms`);
-};
     window.previousPage = function() { if (window.currentPage > 1) { window.currentPage--; updateStudentsTable(window.filteredStudents); } };
     window.nextPage = function() { const totalPages = Math.ceil(window.filteredStudents.length / window.itemsPerPage); if (window.currentPage < totalPages) { window.currentPage++; updateStudentsTable(window.filteredStudents); } };
-window.exportStudents = function() {
-    // Use filteredStudents (currently displayed after filters) instead of all students
-    if (window.filteredStudents.length === 0) { 
-        showWarningModal('No students to export.', () => {}, () => {}); 
-        return; 
-    }
     
-    const testFilter = document.getElementById('filterTest')?.value || '';
-    const dateFilter = document.getElementById('filterTestDate')?.value || '';
-    const sectionFilter = document.getElementById('filterSection')?.value || '';
-    const categoryFilter = document.getElementById('filterCategory')?.value || '';
+    window.exportStudents = function() {
+        // Use filteredStudents (currently displayed after filters) instead of all students
+        if (window.filteredStudents.length === 0) { 
+            showWarningModal('No students to export.', () => {}, () => {}); 
+            return; 
+        }
+        
+        const testFilter = document.getElementById('filterTest')?.value || '';
+        const dateFilter = document.getElementById('filterTestDate')?.value || '';
+        const sectionFilter = document.getElementById('filterSection')?.value || '';
+        const categoryFilter = document.getElementById('filterCategory')?.value || '';
 
-    let csvRows = [];
+        let csvRows = [];
 
-    // Add metadata header with filter information
-    csvRows.push(['# Export Date:', new Date().toLocaleString()]);
-    csvRows.push(['# Filters Applied:', 
-        `Test: ${testFilter || 'All'}`,
-        `Date: ${dateFilter || 'All'}`,
-        `Section: ${sectionFilter || 'All'}`,
-        `Category: ${categoryFilter || 'All'}`
-    ]);
-    csvRows.push([]); // Empty row for spacing
-
-    if (testFilter) {
-        // Detailed export with test attempts - REMOVED Result and Submitted At columns
-        csvRows.push([
-            'ID',
-            'Student Name',
-            'Section',
-            'Year Level',
-            'Activities',
-            'Health Condition',
-            'Test Name',
-            'Attempt Number',
-            'Category',
-            'Overall Performance'
+        // Add metadata header with filter information
+        csvRows.push(['# Export Date:', new Date().toLocaleString()]);
+        csvRows.push(['# Filters Applied:', 
+            `Test: ${testFilter || 'All'}`,
+            `Date: ${dateFilter || 'All'}`,
+            `Section: ${sectionFilter || 'All'}`,
+            `Category: ${categoryFilter || 'All'}`
         ]);
+        csvRows.push([]); // Empty row for spacing
 
-        // Use filteredStudents instead of all students
-        window.filteredStudents.forEach(student => {
-            // Get ALL test results for this student
-            const studentResults = student.testResultsRaw || [];
-            
-            // Filter for the selected test
-            const allRowsForTest = studentResults
-                .filter(r => {
-                    const testName = (r.testName || '').toLowerCase();
-                    const filterTestLower = testFilter.toLowerCase();
-                    return testName.includes(filterTestLower) || filterTestLower.includes(testName);
-                })
-                .sort((a, b) => {
-                    // Sort by submitted date (oldest first for proper attempt numbering)
-                    const getTime = (item) => {
-                        if (!item.submittedAt) return 0;
-                        if (item.submittedAt.toDate) return item.submittedAt.toDate().getTime();
-                        if (item.submittedAt.seconds) return item.submittedAt.seconds * 1000;
-                        if (item.submittedAt instanceof Date) return item.submittedAt.getTime();
-                        return new Date(item.submittedAt).getTime() || 0;
-                    };
-                    return getTime(a) - getTime(b); // Oldest first for attempt numbering
-                });
+        if (testFilter) {
+            // Detailed export with test attempts - REMOVED Result and Submitted At columns
+            csvRows.push([
+                'ID',
+                'Student Name',
+                'Section',
+                'Year Level',
+                'Activities',
+                'Health Condition',
+                'Test Name',
+                'Attempt Number',
+                'Category',
+                'Overall Performance'
+            ]);
 
-            // Apply date filter if selected
-            let rowsToExport = [...allRowsForTest];
-            if (dateFilter) {
-                rowsToExport = rowsToExport.filter(r => {
-                    let resultDate;
-                    if (r.submittedAt) {
-                        if (r.submittedAt.toDate) {
-                            resultDate = r.submittedAt.toDate();
-                        } else if (r.submittedAt.seconds) {
-                            resultDate = new Date(r.submittedAt.seconds * 1000);
-                        } else {
-                            resultDate = new Date(r.submittedAt);
-                        }
-                        const dateStr = resultDate.toISOString().split('T')[0];
-                        return dateStr === dateFilter;
-                    }
-                    return false;
-                });
-            }
-
-            const healthCondition = student.medicalCondition || '—';
-            const activities = student.uniqueTestCount || 0;
-            const yearLevel = student.yearLevel || 'N/A';
-
-            if (rowsToExport.length === 0) {
-                // Student exists but no attempts for this test
-                csvRows.push([
-                    student.umakId || 'N/A',
-                    `${student.firstName || ''} ${student.lastName || ''}`.trim() || 'Unknown',
-                    student.section || 'N/A',
-                    yearLevel,
-                    activities,
-                    healthCondition,
-                    testFilter,
-                    '—', // Attempt number
-                    'No submission',
-                    student.overallCategory || 'N/A'
-                ]);
-            } else {
-                // Get all attempts for this test to calculate correct attempt numbers
-                // This includes ALL attempts, not just filtered ones
-                const allAttemptsForStudent = studentResults
+            // Use filteredStudents instead of all students
+            window.filteredStudents.forEach(student => {
+                // Get ALL test results for this student
+                const studentResults = student.testResultsRaw || [];
+                
+                // Filter for the selected test
+                const allRowsForTest = studentResults
                     .filter(r => {
                         const testName = (r.testName || '').toLowerCase();
                         const filterTestLower = testFilter.toLowerCase();
                         return testName.includes(filterTestLower) || filterTestLower.includes(testName);
                     })
                     .sort((a, b) => {
+                        // Sort by submitted date (oldest first for proper attempt numbering)
                         const getTime = (item) => {
                             if (!item.submittedAt) return 0;
                             if (item.submittedAt.toDate) return item.submittedAt.toDate().getTime();
@@ -2577,49 +2595,36 @@ window.exportStudents = function() {
                             if (item.submittedAt instanceof Date) return item.submittedAt.getTime();
                             return new Date(item.submittedAt).getTime() || 0;
                         };
-                        return getTime(a) - getTime(b);
+                        return getTime(a) - getTime(b); // Oldest first for attempt numbering
                     });
 
-                // One row per attempt
-                rowsToExport.forEach((r, index) => {
-                    // Find the correct attempt number by looking at ALL attempts
-                    const attemptIndex = allAttemptsForStudent.findIndex(a => a.id === r.id);
-                    const attemptNumber = attemptIndex !== -1 ? attemptIndex + 1 : index + 1;
+                // Apply date filter if selected
+                let rowsToExport = [...allRowsForTest];
+                if (dateFilter) {
+                    // Get the start date for this deadline from the dropdown option
+                    const selectedOpt = document.getElementById('filterTestDate')
+                        .querySelector(`option[value="${dateFilter}"]`);
+                    const startDate = selectedOpt?.getAttribute('data-start') || dateFilter;
+                    const startMs = new Date(startDate + 'T00:00:00').getTime();
+                    const endMs   = new Date(dateFilter + 'T23:59:59').getTime();
 
-                    // Get result value (but we're NOT including it in CSV anymore)
-                    let resultVal = '—';
-                    if (r.result !== undefined && r.result !== null) {
-                        if (typeof r.result === 'object') {
-                            resultVal = r.result.repetitions || r.result.time || r.result.distance || r.result.value || '—';
-                        } else {
-                            resultVal = r.result;
-                        }
-                    } else if (r.repetitions !== undefined) {
-                        resultVal = r.repetitions;
-                    }
-                    
-                    // Add unit if available
-                    if (r.testUnit && resultVal !== '—') {
-                        resultVal = `${resultVal} ${r.testUnit}`;
-                    }
+                    rowsToExport = rowsToExport.filter(r => {
+                        if (!r.submittedAt) return false;
+                        let resultDate;
+                        if (r.submittedAt.toDate)       resultDate = r.submittedAt.toDate();
+                        else if (r.submittedAt.seconds) resultDate = new Date(r.submittedAt.seconds * 1000);
+                        else                            resultDate = new Date(r.submittedAt);
+                        const ms = resultDate.getTime();
+                        return ms >= startMs && ms <= endMs;
+                    });
+                }
 
-                    // Get category for this attempt
-                    let category = '—';
-                    if (r.result) {
-                        // Get student age data
-                        const studentAgeData = {
-                            birthday: student.birthday,
-                            age: student.age
-                        };
-                        const gender = (r.gender || '').toLowerCase();
-                        const genderKey = gender.startsWith('f') ? 'female' : 'male';
-                        const ageGroup = getAgeGroupFromStudent(studentAgeData);
-                        category = getNormCategory(r.testName || testFilter, r.result, genderKey, ageGroup);
-                    }
+                const healthCondition = student.medicalCondition || '—';
+                const activities = student.uniqueTestCount || 0;
+                const yearLevel = student.yearLevel || 'N/A';
 
-                    // Get the actual test name
-                    const testNameActual = r.testName || testFilter;
-
+                if (rowsToExport.length === 0) {
+                    // Student exists but no attempts for this test
                     csvRows.push([
                         student.umakId || 'N/A',
                         `${student.firstName || ''} ${student.lastName || ''}`.trim() || 'Unknown',
@@ -2627,81 +2632,157 @@ window.exportStudents = function() {
                         yearLevel,
                         activities,
                         healthCondition,
-                        testNameActual,
-                        `Attempt ${attemptNumber}`,  // Attempt number
-                        category,      // Category for this attempt
+                        testFilter,
+                        '—', // Attempt number
+                        'No submission',
                         student.overallCategory || 'N/A'
                     ]);
-                });
-            }
-        });
+                } else {
+                    // Get all attempts for this test to calculate correct attempt numbers
+                    // This includes ALL attempts, not just filtered ones
+                    const allAttemptsForStudent = studentResults
+                        .filter(r => {
+                            const testName = (r.testName || '').toLowerCase();
+                            const filterTestLower = testFilter.toLowerCase();
+                            return testName.includes(filterTestLower) || filterTestLower.includes(testName);
+                        })
+                        .sort((a, b) => {
+                            const getTime = (item) => {
+                                if (!item.submittedAt) return 0;
+                                if (item.submittedAt.toDate) return item.submittedAt.toDate().getTime();
+                                if (item.submittedAt.seconds) return item.submittedAt.seconds * 1000;
+                                if (item.submittedAt instanceof Date) return item.submittedAt.getTime();
+                                return new Date(item.submittedAt).getTime() || 0;
+                            };
+                            return getTime(a) - getTime(b);
+                        });
 
-    } else {
-        // Summary export - NO test filter (just student list)
-        csvRows.push([
-            'ID',
-            'Student Name',
-            'Section',
-            'Year Level',
-            'Activities',
-            'Health Condition',
-            'Overall Performance'
-        ]);
+                    // One row per attempt
+                    rowsToExport.forEach((r, index) => {
+                        // Find the correct attempt number by looking at ALL attempts
+                        const attemptIndex = allAttemptsForStudent.findIndex(a => a.id === r.id);
+                        const attemptNumber = attemptIndex !== -1 ? attemptIndex + 1 : index + 1;
 
-        // Use filteredStudents directly
-        window.filteredStudents.forEach(student => {
+                        // Get result value (but we're NOT including it in CSV anymore)
+                        let resultVal = '—';
+                        if (r.result !== undefined && r.result !== null) {
+                            if (typeof r.result === 'object') {
+                                resultVal = r.result.repetitions || r.result.time || r.result.distance || r.result.value || '—';
+                            } else {
+                                resultVal = r.result;
+                            }
+                        } else if (r.repetitions !== undefined) {
+                            resultVal = r.repetitions;
+                        }
+                        
+                        // Add unit if available
+                        if (r.testUnit && resultVal !== '—') {
+                            resultVal = `${resultVal} ${r.testUnit}`;
+                        }
+
+                        // Get category for this attempt using norm priority
+                        let category = '—';
+                        if (r.result) {
+                            // Get student age data
+                            const studentAgeData = {
+                                birthday: student.birthday,
+                                age: student.age
+                            };
+                            const gender = r.gender || student.gender || 'male';
+                            const age = _studentAge(studentAgeData);
+                            
+                            // Use async function but we need to handle it
+                            // For CSV export, we'll use a synchronous fallback for now
+                            // This is a limitation of CSV export with async data
+                            category = getNormCategory(r.testName || testFilter, r.result, _genderKey(gender), _ageGroup(age));
+                        }
+
+                        // Get the actual test name
+                        const testNameActual = r.testName || testFilter;
+
+                        csvRows.push([
+                            student.umakId || 'N/A',
+                            `${student.firstName || ''} ${student.lastName || ''}`.trim() || 'Unknown',
+                            student.section || 'N/A',
+                            yearLevel,
+                            activities,
+                            healthCondition,
+                            testNameActual,
+                            `Attempt ${attemptNumber}`,  // Attempt number
+                            category,      // Category for this attempt
+                            student.overallCategory || 'N/A'
+                        ]);
+                    });
+                }
+            });
+
+        } else {
+            // Summary export - NO test filter (just student list)
             csvRows.push([
-                student.umakId || 'N/A',
-                `${student.firstName || ''} ${student.lastName || ''}`.trim() || 'Unknown',
-                student.section || 'N/A',
-                student.yearLevel || 'N/A',
-                student.uniqueTestCount || 0,
-                student.medicalCondition || '—',
-                student.overallCategory || 'N/A'
+                'ID',
+                'Student Name',
+                'Section',
+                'Year Level',
+                'Activities',
+                'Health Condition',
+                'Overall Performance'
             ]);
-        });
-    }
 
-    // Build filename with filter info
-    const timestamp = new Date().toISOString().split('T')[0];
-    let filename = `students_${timestamp}`;
+            // Use filteredStudents directly
+            window.filteredStudents.forEach(student => {
+                csvRows.push([
+                    student.umakId || 'N/A',
+                    `${student.firstName || ''} ${student.lastName || ''}`.trim() || 'Unknown',
+                    student.section || 'N/A',
+                    student.yearLevel || 'N/A',
+                    student.uniqueTestCount || 0,
+                    student.medicalCondition || '—',
+                    student.overallCategory || 'N/A'
+                ]);
+            });
+        }
+
+        // Build filename with filter info
+        const timestamp = new Date().toISOString().split('T')[0];
+        let filename = `students_${timestamp}`;
+        
+        if (testFilter) {
+            filename += `_${testFilter.replace(/\s+/g, '_')}`;
+        }
+        if (sectionFilter) {
+            filename += `_${sectionFilter.replace(/\s+/g, '_')}`;
+        }
+        if (dateFilter) {
+            filename += `_${dateFilter}`;
+        }
+        filename += '.csv';
+
+        // Build CSV content
+        const csvContent = csvRows.map(row => 
+            row.map(cell => {
+                // Handle cells that might contain commas or quotes
+                if (typeof cell === 'string' && (cell.includes(',') || cell.includes('"') || cell.includes('\n'))) {
+                    return `"${cell.replace(/"/g, '""')}"`;
+                }
+                return cell;
+            }).join(',')
+        ).join('\n');
+
+        // Download
+        const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', filename);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        const totalRows = csvRows.length - 3; // Subtract header rows
+        showSuccessModal(`Exported ${window.filteredStudents.length} students with ${totalRows} data rows successfully!`);
+    };
     
-    if (testFilter) {
-        filename += `_${testFilter.replace(/\s+/g, '_')}`;
-    }
-    if (sectionFilter) {
-        filename += `_${sectionFilter.replace(/\s+/g, '_')}`;
-    }
-    if (dateFilter) {
-        filename += `_${dateFilter}`;
-    }
-    filename += '.csv';
-
-    // Build CSV content
-    const csvContent = csvRows.map(row => 
-        row.map(cell => {
-            // Handle cells that might contain commas or quotes
-            if (typeof cell === 'string' && (cell.includes(',') || cell.includes('"') || cell.includes('\n'))) {
-                return `"${cell.replace(/"/g, '""')}"`;
-            }
-            return cell;
-        }).join(',')
-    ).join('\n');
-
-    // Download
-    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', filename);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    
-    const totalRows = csvRows.length - 3; // Subtract header rows
-    showSuccessModal(`Exported ${window.filteredStudents.length} students with ${totalRows} data rows successfully!`);
-};
     window.refreshData = async function(event) {
         try {
             const refreshBtn = event?.target?.closest('button');
@@ -2712,150 +2793,108 @@ window.exportStudents = function() {
         } catch (error) { showErrorModal('Error refreshing data. Please try again.'); }
     };
 
-function setupRealtimeUpdates() {
-    // Clean up existing listeners first
-    cleanupAllListeners();
-    
-    console.log('Setting up realtime updates...');
-    
-let sectionsFirstLoad = true;
-sectionsUnsubscribe = onSnapshot(collection(db, 'sections'), () => {
-    if (sectionsFirstLoad) { sectionsFirstLoad = false; return; } // skip initial fire
-    debouncedUpdate(async () => {
-        await loadSections();
-        await loadScheduledTests();
-        await loadStudents();
-    }, 1500);
-});
-// Change the scheduledTests listener to NOT reload sections:
-let scheduledFirstLoad = true;
-window.scheduledTestsUnsubscribe = onSnapshot(collection(db, 'scheduledTests'), () => {
-    if (scheduledFirstLoad) { scheduledFirstLoad = false; return; }
-    debouncedUpdate(async () => {
-        await loadScheduledTests();  // ← REMOVE loadSections() from here
-        await loadStudents();
-    }, 1500);
-});
-
-let resultsFirstLoad = true;
-testResultsUnsubscribe = onSnapshot(collection(db, 'testResults'), () => {
-    if (resultsFirstLoad) { resultsFirstLoad = false; return; }
-    const modalOpen = document.getElementById('studentTestsModal')?.style.display === 'flex' ||
-                     document.getElementById('viewStudentModal')?.style.display === 'flex';
-    if (modalOpen || !isPageVisible) return;
-    debouncedUpdate(async () => {
-        await loadStudents();
-        await loadOverdueStudents();
-    }, 2000);
-});
-    // Listen for test permissions changes
-    testPermissionsUnsubscribe = onSnapshot(collection(db, 'testPermissions'), async () => {
-        const modalOpen = document.getElementById('studentTestsModal')?.style.display === 'flex';
-        if (!modalOpen && isPageVisible) {
-            await loadOverdueStudents();
-        }
-    });
-}
-// Debouncing function
-let updateTimeout;
-function debouncedUpdate(callback, delay = 2000) {
-    clearTimeout(updateTimeout);
-    updateTimeout = setTimeout(() => {
-        if (isPageVisible) {
-            callback();
-        }
-    }, delay);
-}
-
-
-function cleanupAllListeners() {
-    console.log('Cleaning up listeners...');
-    if (sectionsUnsubscribe) { 
-        try { sectionsUnsubscribe(); } catch(e){} 
-        sectionsUnsubscribe = null; 
-    }
-    if (testResultsUnsubscribe) { 
-        try { testResultsUnsubscribe(); } catch(e){} 
-        testResultsUnsubscribe = null; 
-    }
-    if (testPermissionsUnsubscribe) { 
-        try { testPermissionsUnsubscribe(); } catch(e){} 
-        testPermissionsUnsubscribe = null; 
-    }
-    if (window.scheduledTestsUnsubscribe) { 
-        try { window.scheduledTestsUnsubscribe(); } catch(e){} 
-        window.scheduledTestsUnsubscribe = null; 
-    }
-    if (window.additionalListeners) {
-        window.additionalListeners.forEach(fn => { 
-            try { fn(); } catch(e){} 
-        });
-        window.additionalListeners = [];
-    }
-}
-
-// pagehide fires on mobile/Safari too (beforeunload doesn't always fire)
-window.addEventListener('pagehide', () => {
-    console.log('Page hidden - cleaning up');
-    cleanupAllListeners();
-});
-// Keep beforeunload for cleanup
-window.addEventListener('beforeunload', () => {
-    console.log('Page unloading - cleaning up');
-    cleanupAllListeners();
-});
-
-/// Improved visibility change handler
-document.addEventListener('visibilitychange', async () => {
-    isPageVisible = !document.hidden;
-    
-    if (document.hidden) {
-        console.log('Tab hidden - pausing realtime updates');
-        // Don't clean up listeners, just pause processing
-        // This keeps the connection alive but we won't process updates
-        clearTimeout(reconnectTimeout);
-    } else {
-        console.log('Tab visible - reconnecting realtime updates');
+    function setupRealtimeUpdates() {
+        // Clean up existing listeners first
+        cleanupAllListeners();
         
-        // Debounce reconnection to prevent multiple rapid reconnects
-        clearTimeout(reconnectTimeout);
-        reconnectTimeout = setTimeout(async () => {
-            if (window.currentUser) {
-                try {
-                    // Refresh data when tab becomes visible
-                    console.log('Refreshing data after tab visibility change');
-                    
-                    // Show loading indicator
-                    const refreshBtn = document.querySelector('button[onclick="refreshData()"]');
-                    if (refreshBtn) {
-                        refreshBtn.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> Refreshing...';
-                        refreshBtn.disabled = true;
-                    }
-                    
-                    // Reload all data
-                    await loadSections();
-                    await loadScheduledTests();
-                    await loadStudents();
-                    
-                    // Restore realtime listeners
-                    setupRealtimeUpdates();
+        console.log('Setting up realtime updates...');
+        
+        let sectionsFirstLoad = true;
+        sectionsUnsubscribe = onSnapshot(collection(db, 'sections'), () => {
+            if (sectionsFirstLoad) { sectionsFirstLoad = false; return; } // skip initial fire
+            debouncedUpdate(async () => {
+                await loadSections();
+                await loadScheduledTests();
+                await loadStudents();
+            }, 1500);
+        });
+        
+        // Change the scheduledTests listener to NOT reload sections:
+        let scheduledFirstLoad = true;
+        window.scheduledTestsUnsubscribe = onSnapshot(collection(db, 'scheduledTests'), () => {
+            if (scheduledFirstLoad) { scheduledFirstLoad = false; return; }
+            debouncedUpdate(async () => {
+                await loadScheduledTests();  // ← REMOVE loadSections() from here
+                await loadStudents();
+            }, 1500);
+        });
 
-                    // Reset button
-                    if (refreshBtn) {
-                        setTimeout(() => {
-                            refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
-                            refreshBtn.disabled = false;
-                        }, 1000);
-                    }
-                    
-                    console.log('Data refresh complete');
-                } catch (error) {
-                    console.error('Error refreshing data after tab visibility change:', error);
-                }
+        let resultsFirstLoad = true;
+        testResultsUnsubscribe = onSnapshot(collection(db, 'testResults'), () => {
+            if (resultsFirstLoad) { resultsFirstLoad = false; return; }
+            const modalOpen = document.getElementById('studentTestsModal')?.style.display === 'flex' ||
+                             document.getElementById('viewStudentModal')?.style.display === 'flex';
+            if (modalOpen || !isPageVisible) return;
+            debouncedUpdate(async () => {
+                await loadStudents();
+                await loadOverdueStudents();
+            }, 2000);
+        });
+        
+        // Listen for test permissions changes
+        testPermissionsUnsubscribe = onSnapshot(collection(db, 'testPermissions'), async () => {
+            const modalOpen = document.getElementById('studentTestsModal')?.style.display === 'flex';
+            if (!modalOpen && isPageVisible) {
+                await loadOverdueStudents();
             }
-        }, 300); // Wait 300ms before reconnecting
+        });
     }
-});
+    
+    // Debouncing function
+    let updateTimeout;
+    function debouncedUpdate(callback, delay = 2000) {
+        clearTimeout(updateTimeout);
+        updateTimeout = setTimeout(() => {
+            if (isPageVisible) {
+                callback();
+            }
+        }, delay);
+    }
+
+    function cleanupAllListeners() {
+        console.log('Cleaning up listeners...');
+        if (sectionsUnsubscribe) { 
+            try { sectionsUnsubscribe(); } catch(e){} 
+            sectionsUnsubscribe = null; 
+        }
+        if (testResultsUnsubscribe) { 
+            try { testResultsUnsubscribe(); } catch(e){} 
+            testResultsUnsubscribe = null; 
+        }
+        if (testPermissionsUnsubscribe) { 
+            try { testPermissionsUnsubscribe(); } catch(e){} 
+            testPermissionsUnsubscribe = null; 
+        }
+        if (window.scheduledTestsUnsubscribe) { 
+            try { window.scheduledTestsUnsubscribe(); } catch(e){} 
+            window.scheduledTestsUnsubscribe = null; 
+        }
+        if (window.additionalListeners) {
+            window.additionalListeners.forEach(fn => { 
+                try { fn(); } catch(e){} 
+            });
+            window.additionalListeners = [];
+        }
+    }
+
+    // pagehide fires on mobile/Safari too (beforeunload doesn't always fire)
+    window.addEventListener('pagehide', () => {
+        console.log('Page hidden - cleaning up');
+        cleanupAllListeners();
+    });
+    // Keep beforeunload for cleanup
+    window.addEventListener('beforeunload', () => {
+        console.log('Page unloading - cleaning up');
+        cleanupAllListeners();
+    });
+    // reconnectTimeout — TANGGALIN NA, hindi na kailangan
+
+    // Only update isPageVisible flag — no reload, no reconnect on tab switch.
+    // Listeners stay alive while the user is just switching browser tabs.
+    document.addEventListener('visibilitychange', () => {
+        isPageVisible = !document.hidden;
+        console.log(document.hidden ? 'Tab hidden - listeners still alive' : 'Tab visible - resuming updates');
+    });
 
     window.loadOverdueStudents = async function() {
         try {
@@ -2891,14 +2930,23 @@ document.addEventListener('visibilitychange', async () => {
                         where('status', '==', 'completed')
                     );
                     const resultsSnapshot = await getDocs(resultsQuery);
-                    resultsSnapshot.forEach(docSnap => {
+                    
+                    for (const docSnap of resultsSnapshot.docs) {
                         const data = docSnap.data();
                         const key = `${data.studentEmail}_${data.testId}`;
                         
                         // Keep the best result per test (based on category)
-                        const gender = (data.gender || '').toLowerCase();
-                        const genderKey = gender.startsWith('f') ? 'female' : 'male';
-                        const category = getNormCategory(data.testName || '', data.result || data.resultData || data.repetitions || data, genderKey, '19-22');
+                        const gender = data.gender || 'male';
+                        const age = 20; // Default age for this calculation
+                        
+                        const category = await getNormCategoryWithPriority(
+                            data.testName || '', 
+                            data.result || data.resultData || data.repetitions || data, 
+                            data.testId,
+                            data.studentEmail,
+                            gender,
+                            age
+                        );
                         
                         if (!completedResults.has(key) || 
                             (CATEGORY_ORDER[category] || 3) > (CATEGORY_ORDER[completedResults.get(key).category] || 0)) {
@@ -2910,7 +2958,7 @@ document.addEventListener('visibilitychange', async () => {
                                 status: data.status
                             });
                         }
-                    });
+                    }
                 }
 
                 // Check each student for overdue tests
@@ -2969,6 +3017,7 @@ document.addEventListener('visibilitychange', async () => {
             showErrorModal('Error loading overdue students: ' + error.message); 
         }
     };
+    
  window.loadScheduledTests = async function() {
     try {
         console.log('Loading scheduled tests...');
@@ -2985,7 +3034,6 @@ document.addEventListener('visibilitychange', async () => {
                 scheduledTestsMap.set(key, []);
             }
             
-            // Get start date (createdAt or startDate field)
             let startDate = data.startDate || null;
             if (!startDate && data.createdAt) {
                 if (data.createdAt.toDate) {
@@ -3000,14 +3048,14 @@ document.addEventListener('visibilitychange', async () => {
                 ...data,
                 startDate: startDate,
                 deadlineDate: data.deadline || '',
-                deadlineTime: data.deadlineTime || '23:59'
+                deadlineTime: data.deadlineTime || '23:59',
+                customNorms: data.customNorms || null  // ← IMPORTANT
             });
         });
         
         window.scheduledTestsMap = scheduledTestsMap;
         console.log('Scheduled tests loaded:', scheduledTestsMap.size, 'unique test-section combinations');
         
-        // After loading scheduled tests, rebuild the filter dropdowns
         buildFilterDropdowns();
         
     } catch (error) {
@@ -3015,6 +3063,7 @@ document.addEventListener('visibilitychange', async () => {
         window.scheduledTestsMap = new Map();
     }
 };
+    
     function formatDeadline(deadline, deadlineTime) {
         if (!deadline) return 'No deadline';
         const date = new Date(deadline);
@@ -3101,70 +3150,72 @@ document.addEventListener('visibilitychange', async () => {
         renderOverdueTable();
     };
 
-  window.enableOverdueTest = async function(studentEmail, testId, testName) {
-    showConfirmModal(`Enable "${testName}" for this student? They will be able to take this test even though it's overdue.`, async () => {
-        try {
-            const existingPermissionQuery = query(collection(db, 'testPermissions'), where('studentEmail', '==', studentEmail), where('testId', '==', testId));
-            const existingSnapshot = await getDocs(existingPermissionQuery);
-            if (!existingSnapshot.empty) { showWarningModal('This test is already enabled for this student!', () => {}, () => {}); return; }
+    window.enableOverdueTest = async function(studentEmail, testId, testName) {
+        showConfirmModal(`Enable "${testName}" for this student? They will be able to take this test even though it's overdue.`, async () => {
+            try {
+                const existingPermissionQuery = query(collection(db, 'testPermissions'), where('studentEmail', '==', studentEmail), where('testId', '==', testId));
+                const existingSnapshot = await getDocs(existingPermissionQuery);
+                if (!existingSnapshot.empty) { showWarningModal('This test is already enabled for this student!', () => {}, () => {}); return; }
 
-            await addDoc(collection(db, 'testPermissions'), {
-                studentEmail: studentEmail,
-                testId: testId,
-                testName: testName,
-                grantedBy: window.currentUser.email,
-                grantedByName: window.currentUser.displayName || window.currentUser.email,
-                grantedAt: serverTimestamp(),
-                reason: 'Overdue test enabled by professor',
-                status: 'active'
-            });
+                await addDoc(collection(db, 'testPermissions'), {
+                    studentEmail: studentEmail,
+                    testId: testId,
+                    testName: testName,
+                    grantedBy: window.currentUser.email,
+                    grantedByName: window.currentUser.displayName || window.currentUser.email,
+                    grantedAt: serverTimestamp(),
+                    reason: 'Overdue test enabled by professor',
+                    status: 'active'
+                });
 
-            // ✅ Optimistically update currentStudentTests in-place (no modal close)
-            window.currentStudentTests = window.currentStudentTests.map(t =>
-                (t.studentEmail === studentEmail && t.testId === testId)
-                    ? { ...t, isEnabled: true }
-                    : t
-            );
-            filterStudentTests(); // re-render table with updated data
+                // ✅ Optimistically update currentStudentTests in-place (no modal close)
+                window.currentStudentTests = window.currentStudentTests.map(t =>
+                    (t.studentEmail === studentEmail && t.testId === testId)
+                        ? { ...t, isEnabled: true }
+                        : t
+                );
+                filterStudentTests(); // re-render table with updated data
 
-            showSuccessModal('Test enabled! The student can now take this test.');
-        } catch (error) { showErrorModal('Error: ' + error.message); }
-    });
-};
-        window.disableOverdueTest = async function(studentEmail, testId, testName) {
-    showConfirmModal(`Disable "${testName}" for this student? They will no longer be able to take this overdue test.`, async () => {
-        try {
-            const existingPermissionQuery = query(
-                collection(db, 'testPermissions'),
-                where('studentEmail', '==', studentEmail),
-                where('testId', '==', testId)
-            );
-            const existingSnapshot = await getDocs(existingPermissionQuery);
-            if (existingSnapshot.empty) {
-                showWarningModal('No active permission found for this test.', () => {}, () => {});
-                return;
+                showSuccessModal('Test enabled! The student can now take this test.');
+            } catch (error) { showErrorModal('Error: ' + error.message); }
+        });
+    };
+    
+    window.disableOverdueTest = async function(studentEmail, testId, testName) {
+        showConfirmModal(`Disable "${testName}" for this student? They will no longer be able to take this overdue test.`, async () => {
+            try {
+                const existingPermissionQuery = query(
+                    collection(db, 'testPermissions'),
+                    where('studentEmail', '==', studentEmail),
+                    where('testId', '==', testId)
+                );
+                const existingSnapshot = await getDocs(existingPermissionQuery);
+                if (existingSnapshot.empty) {
+                    showWarningModal('No active permission found for this test.', () => {}, () => {});
+                    return;
+                }
+
+                // Delete all matching permission docs
+                const deletePromises = existingSnapshot.docs.map(docSnap =>
+                    deleteDoc(doc(db, 'testPermissions', docSnap.id))
+                );
+                await Promise.all(deletePromises);
+
+                // Optimistically update currentStudentTests in-place
+                window.currentStudentTests = window.currentStudentTests.map(t =>
+                    (t.studentEmail === studentEmail && t.testId === testId)
+                        ? { ...t, isEnabled: false }
+                        : t
+                );
+                filterStudentTests();
+
+                showSuccessModal('Test disabled. The student can no longer take this overdue test.');
+            } catch (error) {
+                showErrorModal('Error: ' + error.message);
             }
-
-            // Delete all matching permission docs
-            const deletePromises = existingSnapshot.docs.map(docSnap =>
-                deleteDoc(doc(db, 'testPermissions', docSnap.id))
-            );
-            await Promise.all(deletePromises);
-
-            // Optimistically update currentStudentTests in-place
-            window.currentStudentTests = window.currentStudentTests.map(t =>
-                (t.studentEmail === studentEmail && t.testId === testId)
-                    ? { ...t, isEnabled: false }
-                    : t
-            );
-            filterStudentTests();
-
-            showSuccessModal('Test disabled. The student can no longer take this overdue test.');
-        } catch (error) {
-            showErrorModal('Error: ' + error.message);
-        }
-    });
-};
+        });
+    };
+    
     window.setOverdueScore = function(studentEmail, testId, testName, testTarget, testUnit, studentName, currentCategory = null, currentResult = '', resultId = '') {
         window.openEditResultModal(studentEmail, testId, testName, testTarget, testUnit, studentName, currentCategory, currentResult, resultId);
     };
@@ -3207,10 +3258,19 @@ document.addEventListener('visibilitychange', async () => {
             const submitBtn = document.getElementById('btnSubmit');
             if (submitBtn) { submitBtn.disabled = true; submitBtn.innerHTML = '<i class="fas fa-hourglass-split"></i> Saving...'; }
             
-            // Calculate category using norm-based system
-            const gender = 'male'; // Default, could be fetched from student data
-            const genderKey = 'male';
-            const category = getNormCategory(editResultData.testName, newResult, genderKey, '19-22');
+            const student = window.students.find(s => s.email === editResultData.studentEmail);
+            const gender = student?.gender || 'male';
+            const age = _studentAge({ birthday: student?.birthday, age: student?.age });
+            
+            // Calculate category using norm-based system with priority
+            const category = await getNormCategoryWithPriority(
+                editResultData.testName, 
+                newResult, 
+                editResultData.testId,
+                editResultData.studentEmail,
+                gender,
+                age
+            );
 
             const now = new Date();
             let originalSubmittedAt = now;
@@ -3384,10 +3444,10 @@ document.addEventListener('visibilitychange', async () => {
                     <td data-label="Status">${hasCompleted ? '<span class="status-badge status-active">Completed</span>' : '<span class="status-badge" style="background:#fee2e2; color:#991b1b;">Pending</span>'}</td>
                     <td data-label="Deadline"><small style="color:#64748b;">${item.deadlineString}</small></td>
                     <td data-label="Category">${hasCompleted ? categoryBadge : '<span style="color:#64748b;">—</span>'}</td>
-                   <td data-label="Actions"><div class="action-buttons" style="display:flex; gap:8px; flex-wrap:wrap;">
-                    ${!hasCompleted && !isEnabled ? `<button class="btn-action btn-view" onclick="event.stopPropagation(); enableOverdueTest('${item.studentEmail}', '${item.testId}', '${item.testName}')"><i class="fas fa-unlock"></i> Enable</button>` : ''}
-                    ${!hasCompleted && isEnabled ? `<button class="btn-action" style="background:#ef4444; color:white;" onclick="event.stopPropagation(); disableOverdueTest('${item.studentEmail}', '${item.testId}', '${item.testName}')"><i class="fas fa-lock"></i> Disable</button>` : ''}
-                </div></td>
+                    <td data-label="Actions"><div class="action-buttons" style="display:flex; gap:8px; flex-wrap:wrap;">
+                        ${!hasCompleted && !isEnabled ? `<button class="btn-action btn-view" onclick="event.stopPropagation(); enableOverdueTest('${item.studentEmail}', '${item.testId}', '${item.testName}')"><i class="fas fa-unlock"></i> Enable</button>` : ''}
+                        ${!hasCompleted && isEnabled ? `<button class="btn-action" style="background:#ef4444; color:white;" onclick="event.stopPropagation(); disableOverdueTest('${item.studentEmail}', '${item.testId}', '${item.testName}')"><i class="fas fa-lock"></i> Disable</button>` : ''}
+                    </div></td>
                 </tr>`;
             });
         }
@@ -3434,21 +3494,31 @@ document.addEventListener('visibilitychange', async () => {
     window.changeFilter = changeFilter;
     window.toggleSortDropdown = toggleSortDropdown;
     window.changeSort = changeSort;
+    
+    window.isTabSwitching = false;
+
     window.switchTab = function(tab) {
+        window.isTabSwitching = true;
         window.currentTab = tab;
         const allTab = document.getElementById('allStudentsTab');
         const overdueTab = document.getElementById('overdueTab');
+        
         if (tab === 'all') {
             allTab.className = 'px-4 py-2.5 font-semibold text-[13px] text-blue border-b-2 border-blue transition-all';
             overdueTab.className = 'px-4 py-2.5 font-semibold text-[13px] text-text-muted hover:text-text-primary transition-all';
             document.getElementById('allStudentsView').classList.remove('hidden');
             document.getElementById('overdueView').classList.add('hidden');
+            // Just re-render current state, no re-filter
+            updateStudentsTable(window.filteredStudents);
         } else {
             overdueTab.className = 'px-4 py-2.5 font-semibold text-[13px] text-blue border-b-2 border-blue transition-all';
             allTab.className = 'px-4 py-2.5 font-semibold text-[13px] text-text-muted hover:text-text-primary transition-all';
             document.getElementById('overdueView').classList.remove('hidden');
             document.getElementById('allStudentsView').classList.add('hidden');
         }
+        
+        // Release flag after browser has processed any spurious events
+        setTimeout(() => { window.isTabSwitching = false; }, 100);
     };
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -3463,8 +3533,11 @@ document.addEventListener('visibilitychange', async () => {
                 if (formHint) { formHint.classList.remove('text-red-600'); formHint.textContent = 'Enter the student\'s achievement'; }
                 if (!isNaN(result) && result >= 0) {
                     const gender = 'male';
-                    const genderKey = 'male';
-                    const category = getNormCategory(editResultData.testName, result, genderKey, '19-22');
+                    const age = 20;
+                    
+                    // Use async but for preview we'll use synchronous version
+                    // This is a limitation but acceptable for preview
+                    const category = getNormCategory(editResultData.testName, result, 'male', '19-22');
                     
                     preview.style.display = 'block'; 
                     previewValue.innerHTML = renderCategoryBadge(category);
