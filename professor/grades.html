@@ -491,7 +491,7 @@
         const testKey=resolveTestKey(testName);if(!testKey)return'Average';
         const gender=_genderKey(studentGender),ageGroup=_ageGroup(studentAge);
         const value=typeof rawResult==='number'?rawResult:extractNumericResult(rawResult);
-        const ck=`${studentEmail}|${testKey}|${gender}|${ageGroup}|${testId||'none'}`;
+       const ck=`${studentEmail}|${testKey}|${gender}|${ageGroup}|${testId||'none'}|${value}`;
         if(_classifyCache.has(ck))return _classifyCache.get(ck);
         const set=cat=>{_classifyCache.set(ck,cat);return cat;};
         // 1. Student override
@@ -580,8 +580,11 @@
         await Promise.all(sc30.map(chunk=>getDocs(query(collection(db,'students'),where('section','in',chunk))).then(snap=>snap.forEach(d=>{const sd=d.data();if(sd.email)studentsMap.set(sd.email,sd);})).catch(()=>{})));
         if(!studentsMap.size){try{const all=await getDocs(collection(db,'students'));all.forEach(d=>{const sd=d.data();if(sd.email)studentsMap.set(sd.email,sd);});}catch(e){console.error(e);}}
         // 2. Load testResults in batched IN query (max 10 per call)
-        const allDocs=[];const sc10=[];for(let i=0;i<sectionNames.length;i+=10)sc10.push(sectionNames.slice(i,i+10));
-        await Promise.all(sc10.map(chunk=>getDocs(query(collection(db,'testResults'),where('section','in',chunk),where('status','==','completed'))).then(snap=>snap.forEach(d=>allDocs.push(d))).catch(e=>console.error('testResults batch error:',e))));
+        // 2. Load testResults by studentEmail (more reliable than section field)
+        const allDocs=[];
+        const studentEmails=Array.from(studentsMap.keys());
+        const em10=[];for(let i=0;i<studentEmails.length;i+=10)em10.push(studentEmails.slice(i,i+10));
+        await Promise.all(em10.map(chunk=>getDocs(query(collection(db,'testResults'),where('studentEmail','in',chunk),where('status','==','completed'))).then(snap=>snap.forEach(d=>allDocs.push(d))).catch(e=>console.error('testResults batch error:',e))));
         // 3. Deduplicate
         const seen=new Set();const unique=allDocs.filter(d=>{if(seen.has(d.id))return false;seen.add(d.id);return true;});
         // 4. Classify best per student+test
@@ -626,7 +629,10 @@
             let sd2=new Date();
             if(data.submittedAt){if(typeof data.submittedAt.toDate==='function')sd2=data.submittedAt.toDate();else if(data.submittedAt.seconds)sd2=new Date(data.submittedAt.seconds*1000);else if(typeof data.submittedAt==='string')sd2=new Date(data.submittedAt);}
             const entry={id:ds.id,studentName:data.studentName||'Unknown',section:data.section||'',testName,result:extractDisplayResult(data),category:cat,date:sd2.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}),dateObject:sd2,studentEmail:se,isSkinfold};
-            allAttempts.push(entry);
+            // Only add if not already present (guard against batched query overlap)
+            if(!allAttempts.some(a=>a.id===ds.id)){
+                allAttempts.push(entry);
+            }
             // Track best per test (for overall — skip skinfold)
             if(!isSkinfold){
                 const cs=CATEGORY_ORDER[cat]||3;
@@ -645,10 +651,18 @@
         const bestOnly=window._bestGrades||[];
         // Build instances from ALL attempts (for activity history display)
         allRaw.forEach(g=>{
-            const key=g.studentEmail||`${g.studentName}_${g.section}`.toLowerCase();
-            if(!map[key])map[key]={key,name:g.studentName,section:g.section,email:g.studentEmail,categories:[],instances:[]};
-            map[key].instances.push({name:g.testName,date:g.date,dateObject:g.dateObject,result:g.result,category:g.category,isSkinfold:g.isSkinfold});
-        });
+        const key=g.studentEmail||`${g.studentName}_${g.section}`.toLowerCase();
+        if(!map[key])map[key]={key,name:g.studentName,section:g.section,email:g.studentEmail,categories:[],instances:[]};
+        // Deduplicate by resultId to prevent duplicate entries
+        const alreadyExists=map[key].instances.some(i=>
+            i.name===g.testName &&
+            i.dateObject?.getTime()===g.dateObject?.getTime() &&
+            i.result===g.result
+        );
+        if(!alreadyExists){
+            map[key].instances.push({name:g.testName,date:g.date,dateObject:g.dateObject,result:g.result,category:g.category,isSkinfold:g.isSkinfold,id:g.id});
+        }
+    });
         // Build overall category from BEST non-skinfold attempts only
         bestOnly.forEach(g=>{
             const key=g.studentEmail||`${g.studentName}_${g.section}`.toLowerCase();
@@ -691,51 +705,66 @@
         document.getElementById('statTotal').textContent=total;document.getElementById('statExcellent').textContent=exc;document.getElementById('statGood').textContent=gd;document.getElementById('statMostCommon').textContent=mc;
     }
 
-    window.showDetail=function(key){
-        const g=currentFinalGrades.find(x=>x.key===key);if(!g)return;
-        const SKINFOLD_CATS=new Set(['Lean','Essential Fat','Athletic','Fitness','Overfat','Obese']);
-        document.getElementById('detailAvatar').textContent=(g.name||'?').charAt(0).toUpperCase();
-        document.getElementById('detailStudentName').textContent=g.name||'Student';
-        document.getElementById('detailStudentSection').textContent=`Section: ${g.section} • ${g.email||''}`;
-        document.getElementById('detailTotalAct').textContent=g.totalActivities;
-        document.getElementById('detailAvgCategory').innerHTML=renderCategoryBadge(g.overallCategory);
-        const cc={Excellent:'linear-gradient(135deg,#0e8a5f,#0a6646)',Good:'linear-gradient(135deg,#2d6fc4,#1e4d8c)',Average:'linear-gradient(135deg,#b07e16,#8a6010)','Below Average':'linear-gradient(135deg,#ea580c,#c2410c)',Poor:'linear-gradient(135deg,#c0392b,#922b21)','No Grades':'linear-gradient(135deg,#64748b,#475569)'};
-        document.getElementById('detailStatusCard').style.background=cc[g.overallCategory]||cc.Average;
-        document.getElementById('detailStatusText').textContent=g.overallCategory;
-        // Build best-per-test map (excluding skinfold from "best" logic for non-skinfold tests)
-        const bestMap={};
-        g.instances.forEach(act=>{
-            const isSkinfold=act.isSkinfold||((act.name||'').toLowerCase().includes('skinfold'))||SKINFOLD_CATS.has(act.category);
-            if(isSkinfold)return; // skinfold never gets "best" star
-            const mk=act.name;
-            if(!bestMap[mk]){bestMap[mk]={...act};}
-            else{
-                const ps=CATEGORY_ORDER[bestMap[mk].category]||0;
-                const cs=CATEGORY_ORDER[act.category]||0;
-                if(cs>ps)bestMap[mk]={...act};
-            }
-        });
-        // Mark best attempts in full list
-        const sorted=[...g.instances].sort((a,b)=>new Date(b.date)-new Date(a.date));
-        const attemptCount={};
-        const sortedWithAttempt=sorted.map(act=>{
-            const mk=act.name;
-            if(!attemptCount[mk])attemptCount[mk]=0;
-            attemptCount[mk]++;
-            const attemptNum=attemptCount[mk];
-            const isSkinfold=(act.name||'').toLowerCase().includes('skinfold')||SKINFOLD_CATS.has(act.category);
-           const isBest=!act.isSkinfold&&bestMap[mk]&&bestMap[mk].dateObject&&act.dateObject&&bestMap[mk].dateObject.getTime()===act.dateObject.getTime()&&bestMap[mk].result===act.result;
-            return{...act,attemptNum,isSkinfold,isBest};
-        });
-        document.getElementById('detailTableBody').innerHTML=sortedWithAttempt.map(act=>`
-            <tr style="${act.isBest?'background:#f0fdf4;':''}">
-                <td style="color:#64748b;">${esc(act.date||'—')}</td>
-                <td style="font-weight:600;color:#0a1628;">${esc(act.name)}<br><small style="color:#94a3b8;font-weight:400;">Attempt ${act.attemptNum}</small></td>
-                <td style="font-family:monospace;">${esc(String(act.result??'—'))}</td>
-                <td>${renderCategoryBadge(act.category)}${act.isBest&&!act.isSkinfold?'<br><small style="color:#059669;font-weight:700;font-size:10px;">★ Best</small>':''}</td>
-            </tr>`).join('');
-        document.getElementById('studentDetailModal').classList.add('open');
-    };
+   window.showDetail=function(key){
+    const g=currentFinalGrades.find(x=>x.key===key);if(!g)return;
+    const SKINFOLD_CATS=new Set(['Lean','Essential Fat','Athletic','Fitness','Overfat','Obese']);
+    document.getElementById('detailAvatar').textContent=(g.name||'?').charAt(0).toUpperCase();
+    document.getElementById('detailStudentName').textContent=g.name||'Student';
+    document.getElementById('detailStudentSection').textContent=`Section: ${g.section} • ${g.email||''}`;
+    document.getElementById('detailTotalAct').textContent=g.totalActivities;
+    document.getElementById('detailAvgCategory').innerHTML=renderCategoryBadge(g.overallCategory);
+    const cc={Excellent:'linear-gradient(135deg,#0e8a5f,#0a6646)',Good:'linear-gradient(135deg,#2d6fc4,#1e4d8c)',Average:'linear-gradient(135deg,#b07e16,#8a6010)','Below Average':'linear-gradient(135deg,#ea580c,#c2410c)',Poor:'linear-gradient(135deg,#c0392b,#922b21)','No Grades':'linear-gradient(135deg,#64748b,#475569)'};
+    document.getElementById('detailStatusCard').style.background=cc[g.overallCategory]||cc.Average;
+    document.getElementById('detailStatusText').textContent=g.overallCategory;
+
+    // Sort all instances newest first
+    const sorted=[...g.instances].sort((a,b)=>b.dateObject-a.dateObject);
+
+    // Compute attempt numbers per test (chronological = oldest is attempt 1)
+    const chronological=[...g.instances].sort((a,b)=>a.dateObject-b.dateObject);
+    const attemptCountChrono={};
+    const attemptNumMap=new Map();
+    chronological.forEach(act=>{
+        const mk=act.name;
+        if(!attemptCountChrono[mk])attemptCountChrono[mk]=0;
+        attemptCountChrono[mk]++;
+        // Use unique key: name + dateObject ms + result
+        attemptNumMap.set(`${mk}|${act.dateObject?.getTime()}|${act.result}`, attemptCountChrono[mk]);
+    });
+
+    // Find best per test (highest category rank, tiebreak by most recent)
+    const bestMap={};
+    sorted.forEach(act=>{
+        const isSkinfold=act.isSkinfold||((act.name||'').toLowerCase().includes('skinfold'))||SKINFOLD_CATS.has(act.category);
+        if(isSkinfold)return;
+        const mk=act.name;
+        const cs=CATEGORY_ORDER[act.category]||0;
+        const existing=bestMap[mk];
+        if(!existing){bestMap[mk]=act;}
+        else{
+            const ps=CATEGORY_ORDER[existing.category]||0;
+            // Higher rank wins; if tied, keep most recent (sorted newest first so first seen wins tie)
+            if(cs>ps)bestMap[mk]=act;
+        }
+    });
+
+    document.getElementById('detailTableBody').innerHTML=sorted.map(act=>{
+        const isSkinfold=act.isSkinfold||((act.name||'').toLowerCase().includes('skinfold'))||SKINFOLD_CATS.has(act.category);
+        const attemptNum=attemptNumMap.get(`${act.name}|${act.dateObject?.getTime()}|${act.result}`)||1;
+        // Best: same category rank and same attempt number
+        const best=bestMap[act.name];
+        const isBest=!isSkinfold&&best&&
+            (CATEGORY_ORDER[act.category]||0)===(CATEGORY_ORDER[best.category]||0)&&
+            attemptNum===attemptNumMap.get(`${best.name}|${best.dateObject?.getTime()}|${best.result}`);
+        return`<tr style="${isBest?'background:#f0fdf4;':''}">
+            <td style="color:#64748b;">${esc(act.date||'—')}</td>
+            <td style="font-weight:600;color:#0a1628;">${esc(act.name)}<br><small style="color:#94a3b8;font-weight:400;">Attempt ${attemptNum}</small></td>
+            <td style="font-family:monospace;">${esc(String(act.result??'—'))}</td>
+            <td>${renderCategoryBadge(act.category)}${isBest?'<br><small style="color:#059669;font-weight:700;font-size:10px;">★ Best</small>':''}</td>
+        </tr>`;
+    }).join('');
+    document.getElementById('studentDetailModal').classList.add('open');
+};
 
    window.applyFilters=function(){
         const sec=document.getElementById('filterSection').value,cf=document.getElementById('filterCategory').value,sort=document.getElementById('sortBy').value;

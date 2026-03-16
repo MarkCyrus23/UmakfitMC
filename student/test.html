@@ -576,11 +576,11 @@
 
             // Phase 3: process everything in parallel (no more Firestore calls)
             await Promise.all([
-                processTests(scheduledTests, testResults),
-                processTestHistory(testResults),
-                processPerformanceDashboard(testResults),
-                processNotifications(notifications)
-            ]);
+            processTests(scheduledTests, testResults),
+            processTestHistory(testResults),
+            processPerformanceDashboard(testResults),
+            processNotifications(notifications)
+        ]);
 
             // Setup real-time listeners AFTER initial load (so they don't duplicate work)
             setupLiveListeners(testResults);
@@ -868,27 +868,31 @@
         // ========== PROCESS: PERFORMANCE DASHBOARD ==========
         // Uses already-fetched testResults — no extra Firestore query
 
-        function processPerformanceDashboard(testResults) {
-            const testDates = [];
-            const allRanks = [];
-            let bestRank = 0, bestCat = null;
-            const seenTestIds = new Set();
+        async function processPerformanceDashboard(testResults) {
+        const testDates = [];
+        const bestCatPerTest = new Map();
+        let bestRank = 0, bestCat = null;
+        const seenTestIds = new Set();
 
-            testResults.forEach(result => {
-                const testId = result.testId || result.id;
-                const testDate = result.submittedAt?.toDate?.() || (result.submittedAt ? new Date(result.submittedAt) : new Date());
-                testDates.push(testDate);
-                const normCat = getNormCategory(result.testName, result.result ?? result.resultData ?? result.rawResult);
-                if (!normCat) return;
-                const rank = normCategoryRank(normCat);
-                if (!seenTestIds.has(testId)) { seenTestIds.add(testId); allRanks.push(rank); }
-                if (rank > bestRank) { bestRank = rank; bestCat = normCat; }
-            });
+            await Promise.all(testResults.map(async result => {
+            const testId = result.testId || result.id;
+            const testDate = result.submittedAt?.toDate?.() || (result.submittedAt ? new Date(result.submittedAt) : new Date());
+            testDates.push(testDate);
+            const normCat = await resolveNormCategoryForStudent(result.testName, result.result ?? result.resultData ?? result.rawResult, result.testId);
+            if (!normCat) return;
+            const rank = normCategoryRank(normCat);
+            seenTestIds.add(testId);
+            if (!bestCatPerTest.has(testId) || rank > normCategoryRank(bestCatPerTest.get(testId))) {
+                bestCatPerTest.set(testId, normCat);
+            }
+            if (rank > bestRank) { bestRank = rank; bestCat = normCat; }
+        }));
 
-            const testCount = seenTestIds.size;
-            const weekStreakCount = calculateWeekStreak(testDates);
-            let overallLabel = '--';
-            if (allRanks.length > 0) overallLabel = rankToCategory(allRanks.reduce((a, b) => a + b, 0) / allRanks.length);
+           const allRanks = Array.from(bestCatPerTest.values()).map(normCategoryRank);
+    const testCount = seenTestIds.size;
+    const weekStreakCount = calculateWeekStreak(testDates);
+    let overallLabel = '--';
+    if (allRanks.length > 0) overallLabel = rankToCategory(allRanks.reduce((a, b) => a + b, 0) / allRanks.length);
 
             document.getElementById('testsDone').textContent = testCount;
             document.getElementById('avgScore').textContent = overallLabel;
@@ -1014,25 +1018,25 @@
                     return true;
                 });
                 if (anyExpired) {
-                    const attemptsMap = buildAttemptsMapFromHistory();
-                    renderCategoryCards(attemptsMap);
-                    renderOverdueTests(overdueTests, allTestHistory);
-                }
+                const attemptsMap = await buildAttemptsMapFromHistory();
+                renderCategoryCards(attemptsMap);
+                renderOverdueTests(overdueTests, allTestHistory);
+            }
             }, 10000);
         }
 
-        function buildAttemptsMapFromHistory() {
-            const attemptsMap = new Map();
-            allTestHistory.forEach(r => {
-                if (!r.testId) return;
-                if (!attemptsMap.has(r.testId)) attemptsMap.set(r.testId, { attempts: 0, hasExcellent: false });
-                const e = attemptsMap.get(r.testId);
-                e.attempts++;
-                const normCat = getNormCategory(r.testName, r.result ?? r.resultData ?? r.rawResult);
-                if (normCat === 'Excellent') e.hasExcellent = true;
-            });
-            return attemptsMap;
-        }
+        async function buildAttemptsMapFromHistory() {
+    const attemptsMap = new Map();
+    await Promise.all(allTestHistory.map(async r => {
+        if (!r.testId) return;
+        if (!attemptsMap.has(r.testId)) attemptsMap.set(r.testId, { attempts: 0, hasExcellent: false });
+        const e = attemptsMap.get(r.testId);
+        e.attempts++;
+        const normCat = await resolveNormCategoryForStudent(r.testName, r.result ?? r.resultData ?? r.rawResult, r.testId);
+        if (normCat === 'Excellent') e.hasExcellent = true;
+    }));
+    return attemptsMap;
+}
 
         // ========== HELPERS ==========
 

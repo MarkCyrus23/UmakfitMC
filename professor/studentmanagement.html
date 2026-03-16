@@ -1120,12 +1120,18 @@
 
                     for (const r of results) {
                         testNames.add(r.testName);
-                        const cat = r.savedScore || await getNormCategoryWithPriority(r.testName, r.result, r.testId, email, profile.gender||'male', _studentAge(profile));
+                        // Never use savedScore/category — always re-classify from raw result value
+                        const rawVal = r.result ?? r.repetitions ?? r.resultData ?? null;
+                        const cat = await getNormCategoryWithPriority(r.testName, rawVal, r.testId, email, profile.gender||'male', _studentAge(profile));
+                        // Key by testId only — one entry per unique test, keep the best
                         const key = r.testId || r.testName;
-                        if (!bestCatPerTest.has(key) || (CATEGORY_ORDER[cat]||3) > (CATEGORY_ORDER[bestCatPerTest.get(key)]||0)) bestCatPerTest.set(key, cat);
+                        if (!bestCatPerTest.has(key) || (CATEGORY_ORDER[cat]||3) > (CATEGORY_ORDER[bestCatPerTest.get(key)]||0)) {
+                            bestCatPerTest.set(key, cat);
+                        }
                     }
 
-                    const categories     = Array.from(bestCatPerTest.values());
+                    // Overall = average rank of best attempt per unique test (matches studentgrades.html logic)
+                    const categories = Array.from(bestCatPerTest.values());
                     const overallCategory = getOverallCategory(categories);
 
                     newStudents.push({
@@ -1227,20 +1233,21 @@ function setupRealtimeUpdates() {
     function _genderKey(g) { return (g||'').toLowerCase().startsWith('f') ? 'female' : 'male'; }
 
     async function getNormCategoryWithPriority(testName, result, testId, studentEmail, studentGender, studentAge) {
-        const testKey = resolveTestKey(testName);
-        if (!testKey) return 'Average';
+    const testKey = resolveTestKey(testName);
+    if (!testKey) return 'Average';
 
-        let value = result;
-        if (typeof result === 'object' && result !== null) {
-            value = result.repetitions ?? result.value ?? result.time ?? result.distance ?? result.reps ?? result.count ?? 0;
-        }
-        value = extractNumericResult(value);
+    let value = result;
+    if (typeof result === 'object' && result !== null) {
+        value = result.repetitions ?? result.value ?? result.time ?? result.distance ?? result.reps ?? result.count ?? 0;
+    }
+    value = extractNumericResult(value);
 
-        const gender   = _genderKey(studentGender);
-        const ageGroup = _ageGroup(studentAge || 20);
-        const cacheKey = `${studentEmail}|${testKey}|${gender}|${ageGroup}|${testId||'none'}`;
+    const gender   = _genderKey(studentGender);
+    const ageGroup = _ageGroup(studentAge || 20);
+    // FIX: include numeric value in cache key so different attempt scores get different classifications
+    const cacheKey = `${studentEmail}|${testKey}|${gender}|${ageGroup}|${testId||'none'}|${value}`;
 
-        if (normCache.has(cacheKey)) return normCache.get(cacheKey);
+    if (normCache.has(cacheKey)) return normCache.get(cacheKey);
 
         const classify = (thresholds, lowerIsBetter) => {
             for (const cat of ['Excellent','Good','Average','Below Average']) {
@@ -1260,6 +1267,15 @@ function setupRealtimeUpdates() {
         }
 
         // 2️⃣ Test-level custom norms
+        // 2️⃣ Test-level norms (scheduledTestNorms subcollection — same as studentresult.html)
+        if (testId) {
+            try {
+                const snap = await getDoc(doc(db,'scheduledTestNorms',testId,'tests',testKey));
+                if (snap.exists()) { const r = classify(snap.data().thresholds, snap.data().lowerIsBetter??false); normCache.set(cacheKey,r); return r; }
+            } catch(_) {}
+        }
+
+        // 3️⃣ Test-level inline customNorms
         if (testId) {
             let cn = null;
             for (const tests of scheduledTestsMap.values()) {
@@ -1291,14 +1307,15 @@ function setupRealtimeUpdates() {
     }
 
     function getOverallCategory(cats) {
-        if (!cats?.length) return null;
-        const avg = cats.reduce((s, c) => s + (CATEGORY_ORDER[c]||3), 0) / cats.length;
-        if (avg >= 4.5) return 'Excellent';
-        if (avg >= 3.5) return 'Good';
-        if (avg >= 2.5) return 'Average';
-        if (avg >= 1.5) return 'Below Average';
-        return 'Poor';
-    }
+    if (!cats?.length) return null;
+    const RANK = { Excellent:5, Good:4, Average:3, 'Below Average':2, Poor:1 };
+    const avg = cats.reduce((s, c) => s + (RANK[c] || 3), 0) / cats.length;
+    if (avg >= 4.5) return 'Excellent';
+    if (avg >= 3.5) return 'Good';
+    if (avg >= 2.5) return 'Average';
+    if (avg >= 1.5) return 'Below Average';
+    return 'Poor';
+}
 
     function getCategoryClass(c) {
         return { Excellent:'category-excellent', Good:'category-good', Average:'category-average', 'Below Average':'category-below-average', Poor:'category-poor' }[c] || 'category-default';
@@ -1828,17 +1845,30 @@ allDocs.forEach(attempt => {
     allAttemptsByTest.get(key).attempts.push(attempt);
 });
 
-// Resolve all categories in PARALLEL
+// Resolve all categories in PARALLEL — DO NOT use savedScore/category across attempts
+// Each attempt gets its own fresh classification from its own result value
 const catResults = await Promise.all(allDocs.map(attempt => {
-    const savedCat = attempt.score || attempt.category;
+    // Only use savedScore if it was explicitly set for THIS specific attempt
+    // and was set by a professor override (isProfessorOverride), not carried over
+    const savedCat = attempt.isProfessorOverride 
+        ? (attempt.score || attempt.category)
+        : null;
     if (VALID_CATS.has(savedCat)) return Promise.resolve(savedCat);
-    return getNormCategoryWithPriority(attempt.testName||'', attempt.result||attempt.repetitions||attempt, attempt.testId, student.email, profile.gender, _studentAge(profile));
+    return getNormCategoryWithPriority(
+        attempt.testName||'', 
+        attempt.result||attempt.repetitions||attempt, 
+        attempt.testId, 
+        student.email, 
+        profile.gender, 
+        _studentAge(profile)
+    );
 }));
 
 allDocs.forEach((attempt, i) => {
     const key = attempt.testId || attempt.testName;
     const cat = catResults[i];
-    if (!bestPerTest.has(key)||(CATEGORY_ORDER[cat]||3)>(CATEGORY_ORDER[bestPerTest.get(key)]||0)) bestPerTest.set(key, cat);
+    if (!bestPerTest.has(key)||(CATEGORY_ORDER[cat]||3)>(CATEGORY_ORDER[bestPerTest.get(key)]||0)) 
+        bestPerTest.set(key, cat);
 });
 
         const completedIds = new Set(attSnap.docs.map(d=>d.data().testId).filter(Boolean));
@@ -1910,45 +1940,118 @@ allDocs.forEach((attempt, i) => {
         if (bestPerTest.size) {
             const groups = Array.from(allAttemptsByTest.entries()).map(([k,g]) => ({ testId:k, testName:g.testName, attempts:g.attempts, bestCat:bestPerTest.get(k) }));
             // Sort groups by latest attempt desc
-            const ts = att => att.submittedAt ? (att.submittedAt.toMillis?.()|| (att.submittedAt.seconds?att.submittedAt.seconds*1000:new Date(att.submittedAt).getTime())) : 0;
+            const ts = att => {
+            if (!att.submittedAt) return 0;
+            if (typeof att.submittedAt.toMillis === 'function') return att.submittedAt.toMillis();
+            if (att.submittedAt.seconds) return att.submittedAt.seconds * 1000 + (att.submittedAt.nanoseconds ? Math.floor(att.submittedAt.nanoseconds / 1e6) : 0);
+            if (att.submittedAt instanceof Date) return att.submittedAt.getTime();
+            return new Date(att.submittedAt).getTime();
+        };
             groups.sort((a,b) => ts(b.attempts[0])-ts(a.attempts[0]));
 
             for (const { testName, attempts, bestCat } of groups) {
-                const sorted = [...attempts].sort((a,b) => ts(b)-ts(a));
+               const sorted = [...attempts].sort((a, b) => {
+                // Primary: attemptNumber field
+                const anA = a.attemptNumber ?? a.attempt ?? 0;
+                const anB = b.attemptNumber ?? b.attempt ?? 0;
+                if (anA !== anB) return anB - anA;
+                // Secondary: full timestamp including nanoseconds
+                const tsA = a.submittedAt?.seconds ?? 0;
+                const tsB = b.submittedAt?.seconds ?? 0;
+                if (tsA !== tsB) return tsB - tsA;
+                const nsA = a.submittedAt?.nanoseconds ?? 0;
+                const nsB = b.submittedAt?.nanoseconds ?? 0;
+                if (nsA !== nsB) return nsB - nsA;
+                // Tertiary: doc ID lexicographic order (guaranteed unique)
+                return (b.id || '').localeCompare(a.id || '');
+            });
                 completedHTML += `<div style="margin-bottom:16px;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;">
                     <div style="background:linear-gradient(90deg,rgba(10,22,40,.9) 0%,rgba(30,77,140,.9) 100%);padding:10px 14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
                         <span style="color:white;font-weight:700;font-size:14px;"><i class="fas fa-clipboard-check" style="margin-right:6px;"></i>${esc(testName)}</span>
                         <span style="color:rgba(255,255,255,.8);font-size:12px;">Best: ${renderCategoryBadge(bestCat)} • ${sorted.length} attempt${sorted.length>1?'s':''}</span>
                     </div>`;
-                const forNum = [...sorted].reverse();
-                const bestAttempt = attempts.reduce((best,a) => {
-                    const v = r => { if(!r) return 0; if(typeof r==='number') return r; if(typeof r==='object') return parseFloat(r.repetitions||r.time||r.distance||r.value||0); return parseFloat(r)||0; };
-                    return v(a.result??a.repetitions)>=v(best.result??best.repetitions)?a:best;
+               const forNum = [...sorted].reverse();
+                const _getNumVal = r => {
+                    if (r == null) return 0;
+                    if (typeof r === 'number') return r;
+                    if (typeof r === 'object') return parseFloat(r.repetitions ?? r.reps ?? r.value ?? r.time ?? r.distance ?? r.count ?? 0) || 0;
+                    return parseFloat(r) || 0;
+                };
+               const bestAttempt = attempts.reduce((best, a) => {
+                    const valA = _getNumVal(a.result ?? a.repetitions ?? a.resultData);
+                    const valB = _getNumVal(best.result ?? best.repetitions ?? best.resultData);
+                    if (valA > valB) return a;
+                    if (valB > valA) return best;
+                    // Tiebreak by timestamp then doc ID
+                    const tsA = (a.submittedAt?.seconds ?? 0) * 1e9 + (a.submittedAt?.nanoseconds ?? 0);
+                    const tsB = (best.submittedAt?.seconds ?? 0) * 1e9 + (best.submittedAt?.nanoseconds ?? 0);
+                    return tsA >= tsB ? a : best;
                 }, attempts[0]);
 
- // Pre-resolve all attempt categories in parallel BEFORE building HTML
-const attemptCats = await Promise.all(forNum.map(att => {
-    const savedCat = att.score || att.category;
-    if (VALID_CATS.has(savedCat)) return Promise.resolve(savedCat);
-    return getNormCategoryWithPriority(att.testName||'', att.result||att.repetitions||att, att.testId, att.studentEmail, profile.gender, _studentAge(profile));
-}));
+        // Pre-resolve all attempt categories in parallel BEFORE building HTML
+        // Each attempt is classified independently from its own result value
+        const attemptCats = await Promise.all(forNum.map(att => {
+            // Only trust savedScore if this was a professor override for THIS attempt
+            const savedCat = att.isProfessorOverride ? (att.score || att.category) : null;
+            if (VALID_CATS.has(savedCat)) return Promise.resolve(savedCat);
+            // Always re-classify from the raw result value
+            const rawVal = att.result ?? att.repetitions ?? att.resultData ?? null;
+            return getNormCategoryWithPriority(
+                att.testName||'', 
+                rawVal, 
+                att.testId, 
+                student.email, 
+                profile.gender, 
+                _studentAge(profile)
+            );
+        }));
 
 for (const [i, att] of forNum.entries()) {
     const num = i+1;
-    let d = new Date();
-    if (att.submittedAt) { if(att.submittedAt.toDate) d=att.submittedAt.toDate(); else if(att.submittedAt.seconds) d=new Date(att.submittedAt.seconds*1000); else d=new Date(att.submittedAt); }
+    // Fix: properly resolve submission date per attempt
+    let d = null;
+if (att.submittedAt) {
+    try {
+        if (typeof att.submittedAt.toDate === 'function') {
+            d = att.submittedAt.toDate();
+        } else if (att.submittedAt?.seconds != null) {
+            d = new Date(att.submittedAt.seconds * 1000 + Math.floor((att.submittedAt.nanoseconds ?? 0) / 1e6));
+        } else if (att.submittedAt instanceof Date) {
+            d = att.submittedAt;
+        } else if (typeof att.submittedAt === 'string' || typeof att.submittedAt === 'number') {
+            d = new Date(att.submittedAt);
+        }
+    } catch (_) { d = null; }
+}
+    const dateStr = d && !isNaN(d.getTime())
+        ? `${d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})} at ${d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'})}`
+        : 'Date not recorded';
+
     const cat = attemptCats[i];
 
-                    let rv = '—';
-                    if (att.result!=null) rv = typeof att.result==='object' ? `${att.result.repetitions||att.result.time||att.result.distance||att.result.value||0} ${att.testUnit||''}` : `${att.result} ${att.testUnit||''}`;
-                    else if (att.repetitions!=null) rv = `${att.repetitions} ${att.testUnit||''}`;
-                    const isBest = att.id===bestAttempt.id;
-                    const bg = isBest ? '#f0fdf4' : (i%2===0?'#ffffff':'#f8fafc');
+    // Fix: resolve result value per attempt — check all possible fields
+    let rv = '—';
+   const attUnit = att.testUnit || att.unit || '';
+    // Extract the raw numeric/string value from whichever field is populated
+    const rawResult = att.result ?? att.repetitions ?? att.resultData ?? null;
+    if (rawResult != null) {
+        if (typeof rawResult === 'object' && rawResult !== null) {
+            // Object result — pick the first populated field
+            const v = rawResult.repetitions ?? rawResult.reps ?? rawResult.value
+                   ?? rawResult.time ?? rawResult.distance ?? rawResult.count ?? 0;
+            rv = `${v}${attUnit ? ' ' + attUnit : ''}`;
+        } else {
+            rv = `${rawResult}${attUnit ? ' ' + attUnit : ''}`;
+        }
+    }
 
- completedHTML += `<div style="background:${bg};padding:10px 14px;border-top:1px solid #f1f5f9;">
+    const isBest = att.id === bestAttempt.id;
+    const bg = isBest ? '#f0fdf4' : (i % 2 === 0 ? '#ffffff' : '#f8fafc');
+
+    completedHTML += `<div style="background:${bg};padding:10px 14px;border-top:1px solid #f1f5f9;">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
         <div style="flex:1;min-width:0;">
-            <div style="font-size:11px;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Attempt ${num} • ${d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})} at ${d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>
+            <div style="font-size:11px;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Attempt ${num} • ${dateStr}</div>
             <div style="font-weight:600;font-size:13px;color:#1e293b;margin-top:2px;">${rv}</div>
         </div>
         <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
@@ -1979,7 +2082,13 @@ for (const [i, att] of forNum.entries()) {
             const d = await getDoc(doc(db,'testResults',attemptId));
             if (!d.exists()) { window.showErrorModal('Attempt not found!'); return; }
             const attempt = d.data();
-            const date    = attempt.submittedAt?.toDate ? attempt.submittedAt.toDate() : attempt.submittedAt?.seconds ? new Date(attempt.submittedAt.seconds*1000) : new Date();
+            const date = attempt.submittedAt
+    ? (typeof attempt.submittedAt.toDate === 'function'
+        ? attempt.submittedAt.toDate()
+        : attempt.submittedAt.seconds != null
+            ? new Date(attempt.submittedAt.seconds * 1000 + Math.floor((attempt.submittedAt.nanoseconds ?? 0) / 1e6))
+            : new Date(attempt.submittedAt))
+    : new Date();
             const student = students.find(s=>s.email===attempt.studentEmail);
             const sName   = student ? `${student.firstName} ${student.lastName}` : attempt.studentName||'Unknown';
             const cat     = await getNormCategoryWithPriority(attempt.testName||'', attempt.result||attempt.repetitions||attempt, attempt.testId, attempt.studentEmail, attempt.gender||'male', _studentAge({ birthday:student?.birthday, age:student?.age }));
