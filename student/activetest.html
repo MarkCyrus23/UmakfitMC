@@ -327,14 +327,131 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // ========== STATE ==========
         let currentUser = null, studentData = null, currentTest = null;
         let timerInterval = null, metronomeInterval = null, metronomeAudioCtx = null;
         let startTime = 0, elapsedTime = 0, isRunning = false, isPaused = false;
         let _notifUnsub = null, unsubscribeTestDeletion = null;
+        let normCache = new Map(); // ✅ Same norm cache pattern as dashboard
 
         const STEP_TEST_BPM = 90;
         const METRONOME_MS = 60000 / STEP_TEST_BPM;
         const STEP_TEST_DURATION = 180;
+
+        // ========== HELPERS (mirrored from dashboard) ==========
+
+        function _studentAge() {
+            if (!studentData) return 20;
+            if (studentData.birthday) {
+                try {
+                    const bd = studentData.birthday.toDate ? studentData.birthday.toDate() : new Date(studentData.birthday);
+                    const now = new Date();
+                    let age = now.getFullYear() - bd.getFullYear();
+                    if (now.getMonth() < bd.getMonth() || (now.getMonth() === bd.getMonth() && now.getDate() < bd.getDate())) age--;
+                    if (!isNaN(age) && age > 0) return age;
+                } catch(_) {}
+            }
+            return parseInt(studentData?.age) || 20;
+        }
+
+        function _genderKey() {
+            const g = (studentData?.gender || '').toString().toLowerCase();
+            return g.startsWith('f') ? 'female' : 'male';
+        }
+
+        function _ageGroup() {
+            const age = _studentAge();
+            if (age <= 18) return '15-18';
+            if (age <= 22) return '19-22';
+            if (age <= 26) return '23-26';
+            return '27-30';
+        }
+
+        // ========== NORM LOOKUP WITH PRIORITY + CACHE (mirrored from dashboard) ==========
+
+        async function getNormCategoryWithPriority(testName, result, testId = null) {
+            if (!studentData || !testName) return null;
+            const testKey = resolveTestKey(testName);
+            if (!testKey) return null;
+            const gender = _genderKey();
+            const ageGroup = _ageGroup();
+            const value = extractNumericResult(result);
+            const cacheKey = `${studentData?.email}|${testKey}|${gender}|${ageGroup}|${testId || 'none'}`;
+            if (normCache.has(cacheKey)) return normCache.get(cacheKey);
+
+            function applyThresholds(nd, value) {
+                const lowerIsBetter = nd.lowerIsBetter ?? false;
+                const order = ['Excellent', 'Good', 'Average', 'Below Average'];
+                for (const cat of order) {
+                    const threshold = nd.thresholds[cat];
+                    if (threshold == null) continue;
+                    if (lowerIsBetter && value <= threshold) return cat;
+                    if (!lowerIsBetter && value >= threshold) return cat;
+                }
+                return 'Poor';
+            }
+
+            // 1. Student-specific norms
+            try {
+                const snap = await getDoc(doc(db, 'studentNorms', studentData.email, 'tests', testKey));
+                if (snap.exists()) {
+                    const cat = applyThresholds(snap.data(), value);
+                    normCache.set(cacheKey, cat);
+                    return cat;
+                }
+            } catch(_) {}
+
+            // 2. Test-level norms (scheduledTestNorms subcollection)
+            if (testId) {
+                try {
+                    const snap = await getDoc(doc(db, 'scheduledTestNorms', testId, 'tests', testKey));
+                    if (snap.exists()) {
+                        const cat = applyThresholds(snap.data(), value);
+                        normCache.set(cacheKey, cat);
+                        return cat;
+                    }
+                } catch(_) {}
+            }
+
+            // 3. Test-level inline customNorms
+            if (testId) {
+                try {
+                    const snap = await getDoc(doc(db, 'scheduledTests', testId));
+                    if (snap.exists() && snap.data().customNorms?.thresholds) {
+                        const cat = applyThresholds(snap.data().customNorms, value);
+                        normCache.set(cacheKey, cat);
+                        return cat;
+                    }
+                } catch(_) {}
+            }
+
+            // 4. Default database norms
+            try {
+                const snap = await getDoc(doc(db, 'fitnessNorms', `${testKey}_${gender}_${ageGroup}`));
+                if (snap.exists()) {
+                    const cat = applyThresholds(snap.data(), value);
+                    normCache.set(cacheKey, cat);
+                    return cat;
+                }
+            } catch(_) {}
+
+            // 5. Fallback normLookup.js
+            try {
+                const fb = await getNormCategory(db, {
+                    testName, result,
+                    studentEmail: studentData?.email || '',
+                    gender: studentData?.gender || 'male',
+                    age: _studentAge()
+                });
+                if (fb) { normCache.set(cacheKey, fb.category); return fb.category; }
+            } catch(_) {}
+
+            return null;
+        }
+
+        function mapNormCategoryToScore(cat) {
+            return { Excellent:100, Good:90, Average:80, 'Below Average':70, Poor:60 }[cat] || 75;
+        }
 
         // ========== METRONOME ==========
 
@@ -355,14 +472,22 @@
         function stopMetronome() { if (metronomeInterval) { clearInterval(metronomeInterval); metronomeInterval = null; } }
         function isStepTest() { return currentTest && ((currentTest.testName||'').toLowerCase().includes('step test') || (currentTest.testName||'').toLowerCase().includes('3-minute')); }
 
-        // ========== NOTIFICATIONS ==========
+        // ========== NOTIFICATIONS (parallel, same as dashboard) ==========
+
+        async function fetchNotifications(section, email) {
+            if (!section || section === 'Not Assigned') return [];
+            try {
+                const snap = await getDocs(query(collection(db,'notifications'), where('section','==',section), where('studentEmail','==',email)));
+                return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            } catch(e) { return []; }
+        }
 
         async function checkUnreadNotifications() {
             try {
-                if (!studentData?.section) return;
-                const snap = await getDocs(query(collection(db,'notifications'), where('section','==',studentData.section), where('studentEmail','==',studentData.email)));
+                if (!studentData?.section || !studentData?.email) return;
+                const notifications = await fetchNotifications(studentData.section, studentData.email);
                 const read = JSON.parse(localStorage.getItem(`readNotifications_${studentData.email}`) || '[]');
-                let unread = 0; snap.forEach(d => { if (!read.includes(d.id)) unread++; });
+                const unread = notifications.filter(n => !read.includes(n.id)).length;
                 ['navNotificationCount','navNotificationCountMobile'].forEach(id => {
                     const el = document.getElementById(id); if (!el) return;
                     if (unread > 0) { el.textContent = unread; el.classList.remove('hidden'); } else el.classList.add('hidden');
@@ -374,12 +499,18 @@
             try {
                 const bodyId = isMobile ? 'notificationDropdownBodyMobile' : 'notificationDropdownBody';
                 const body = document.getElementById(bodyId); if (!body) return;
-                if (!studentData?.section) { body.innerHTML = `<div class="py-6 px-8 text-center text-gray-400"><i class="bi bi-bell-slash text-5xl block mb-3"></i><p class="text-gray-600 text-sm">No section assigned</p></div>`; return; }
-                const snap = await getDocs(query(collection(db,'notifications'), where('section','==',studentData.section), where('studentEmail','==',studentData.email)));
+                if (!studentData?.section) {
+                    body.innerHTML = `<div class="py-6 px-8 text-center text-gray-400"><i class="bi bi-bell-slash text-5xl block mb-3"></i><p class="text-gray-600 text-sm">No section assigned</p></div>`;
+                    return;
+                }
+                const notifications = await fetchNotifications(studentData.section, studentData.email);
                 const read = JSON.parse(localStorage.getItem(`readNotifications_${studentData.email}`) || '[]');
-                if (!snap.empty) {
+                if (notifications.length > 0) {
                     const seen = new Set(); const unique = [];
-                    snap.forEach(d => { const n = d.data(); const k = `${n.title}|${n.message}|${n.createdAt?.toDate?.().getTime()||''}`; if (!seen.has(k)) { seen.add(k); unique.push({id:d.id,...n}); } });
+                    notifications.forEach(n => {
+                        const k = `${n.title}|${n.message}|${n.createdAt?.toDate?.().getTime()||''}`;
+                        if (!seen.has(k)) { seen.add(k); unique.push(n); }
+                    });
                     unique.sort((a,b) => (b.createdAt?.toDate?.() || new Date(0)) - (a.createdAt?.toDate?.() || new Date(0)));
                     const unreadIds = unique.filter(n => !read.includes(n.id)).map(n => n.id);
                     let html = '';
@@ -463,7 +594,11 @@
             if (!isRunning) {
                 window.activeTestId = await createActiveTestDocument();
                 isRunning = true; isPaused = false; startTime = Date.now() - elapsedTime;
-                if (isStepTest()) { document.getElementById('minutes').textContent = '03'; document.getElementById('seconds').textContent = '00'; document.getElementById('milliseconds').textContent = '00'; }
+                if (isStepTest()) {
+                    document.getElementById('minutes').textContent = '03';
+                    document.getElementById('seconds').textContent = '00';
+                    document.getElementById('milliseconds').textContent = '00';
+                }
                 timerInterval = setInterval(updateTimer, 1000);
                 if (isStepTest()) startMetronome();
                 document.getElementById('startBtn').style.display = 'none';
@@ -471,7 +606,7 @@
                 document.getElementById('stopBtn').style.display = 'inline-flex';
                 document.getElementById('resetBtn').style.display = 'none';
                 updateStatus('running', 'Test in Progress');
-                await updateActiveTestProgress(10);
+                updateActiveTestProgress(10);
             }
         };
 
@@ -482,7 +617,7 @@
                 document.getElementById('startBtn').style.display = 'inline-flex';
                 document.getElementById('startBtn').innerHTML = '<i class="bi bi-play-fill"></i> Resume';
                 updateStatus('paused', 'Test Paused');
-                await updateActiveTestProgress(50);
+                updateActiveTestProgress(50);
             }
         };
 
@@ -495,8 +630,11 @@
                 document.getElementById('resetBtn').style.display = 'inline-flex';
                 document.getElementById('submitBtn').disabled = false;
                 updateStatus('completed', 'Test Completed');
-                await updateActiveTestProgress(100);
-                await completeActiveTest();
+                // ✅ Fire-and-forget in parallel — no need to await sequentially
+                Promise.all([
+                    updateActiveTestProgress(100),
+                    completeActiveTest()
+                ]).catch(() => {});
                 const timerValue = `${document.getElementById('minutes').textContent}:${document.getElementById('seconds').textContent}`;
                 const durationInput = document.getElementById('durationInput');
                 const timeInput = document.getElementById('timeInput');
@@ -683,7 +821,7 @@
             const s3 = parseFloat(document.getElementById('site3Input')?.value) || 0;
             if (!sex || !s1 || !s2 || !s3) return;
             const sum = s1 + s2 + s3;
-            const age = (studentData && studentData.age && studentData.age > 0) ? parseInt(studentData.age) : 20;
+            const age = _studentAge();
             const bf = lookupBodyFat(sum, age, sex);
             if (bf === null) { document.getElementById('bodyFatResult').style.display = 'none'; return; }
             const cls = window.getBodyFatClassification(bf, sex);
@@ -725,86 +863,14 @@
             }
         };
 
-        // ========== NORM-BASED SCORING ==========
-
-        function _studentAge() {
-            if (!studentData) return 20;
-            if (studentData.birthday) {
-                try {
-                    const bd = studentData.birthday.toDate ? studentData.birthday.toDate() : new Date(studentData.birthday);
-                    const now = new Date();
-                    let age = now.getFullYear() - bd.getFullYear();
-                    if (now.getMonth() < bd.getMonth() || (now.getMonth() === bd.getMonth() && now.getDate() < bd.getDate())) age--;
-                    if (!isNaN(age) && age > 0) return age;
-                } catch(_) {}
-            }
-            return parseInt(studentData.age) || 20;
-        }
-
-        /**
-         * Resolve norm category with priority:
-         * 1. Student-specific norms (studentNorms)
-         * 2. Test-level norms (scheduledTestNorms subcollection)
-         * 3. Firestore default norms (fitnessNorms)
-         * 4. normLookup.js fallback
-         */
-        async function resolveNormCategoryForScore(testName, result, scheduledTestId) {
-            const testKey = resolveTestKey(testName); if (!testKey) return null;
-            const gender = resolveGender(studentData?.gender || 'male');
-            const ageGroup = resolveAgeGroup(_studentAge());
-            const value = extractNumericResult(result);
-
-            if (studentData?.email) {
-                try {
-                    const snap = await getDoc(doc(db, 'studentNorms', studentData.email, 'tests', testKey));
-                    if (snap.exists()) {
-                        const nd = snap.data(); const lib = nd.lowerIsBetter ?? false;
-                        const order = ['Excellent','Good','Average','Below Average']; let cat = 'Poor';
-                        for (const c of order) { const t = nd.thresholds[c]; if (t == null) continue; if (lib && value <= t) { cat = c; break; } if (!lib && value >= t) { cat = c; break; } }
-                        return { category: cat, source: 'student' };
-                    }
-                } catch(e) {}
-            }
-
-            if (scheduledTestId) {
-                try {
-                    const snap = await getDoc(doc(db, 'scheduledTestNorms', scheduledTestId, 'tests', testKey));
-                    if (snap.exists()) {
-                        const nd = snap.data(); const lib = nd.lowerIsBetter ?? false;
-                        const order = ['Excellent','Good','Average','Below Average']; let cat = 'Poor';
-                        for (const c of order) { const t = nd.thresholds[c]; if (t == null) continue; if (lib && value <= t) { cat = c; break; } if (!lib && value >= t) { cat = c; break; } }
-                        return { category: cat, source: 'test' };
-                    }
-                } catch(e) {}
-            }
-
-            try {
-                const snap = await getDoc(doc(db, 'fitnessNorms', `${testKey}_${gender}_${ageGroup}`));
-                if (snap.exists()) {
-                    const nd = snap.data(); const lib = nd.lowerIsBetter ?? false;
-                    const order = ['Excellent','Good','Average','Below Average']; let cat = 'Poor';
-                    for (const c of order) { const t = nd.thresholds[c]; if (t == null) continue; if (lib && value <= t) { cat = c; break; } if (!lib && value >= t) { cat = c; break; } }
-                    return { category: cat, source: 'default' };
-                }
-            } catch(e) {}
-
-            try {
-                const fb = await getNormCategory(db, { testName, result, studentEmail: studentData?.email || '', gender: studentData?.gender || 'male', age: _studentAge() });
-                if (fb) return { category: fb.category, source: 'fallback' };
-            } catch(e) {}
-
-            return null;
-        }
-
-        function mapNormCategoryToScore(cat) {
-            return { Excellent:100, Good:90, Average:80, 'Below Average':70, Poor:60 }[cat] || 75;
-        }
+        // ========== SCORE CALCULATION (uses unified norm lookup with cache) ==========
 
         async function calculateScoreWithNorms(testName, rawResult, testTarget, scheduledTestId) {
             const n = testName.toLowerCase();
             if (n.includes('skinfold')) return calculateScoreWithTarget(testName, rawResult, testTarget);
-            const normResult = await resolveNormCategoryForScore(testName, rawResult, scheduledTestId);
-            if (normResult) return mapNormCategoryToScore(normResult.category);
+            // ✅ Uses the same getNormCategoryWithPriority as dashboard (cached)
+            const normCat = await getNormCategoryWithPriority(testName, rawResult, scheduledTestId);
+            if (normCat) return mapNormCategoryToScore(normCat);
             return calculateScoreWithTarget(testName, rawResult, testTarget);
         }
 
@@ -830,7 +896,7 @@
             return 75;
         }
 
-        // ========== SUBMIT ==========
+        // ========== SUBMIT (parallel Firestore writes) ==========
 
         window.submitTest = async function() {
             if (!currentTest || !studentData) { showErrorPopup('Missing required data. Please reload the page and try again.'); return; }
@@ -880,16 +946,21 @@
 
             const notes = document.getElementById('notesField').value;
             const timerValue = `${document.getElementById('minutes').textContent}:${document.getElementById('seconds').textContent}.${document.getElementById('milliseconds').textContent}`;
-            const calculatedScore = await calculateScoreWithNorms(currentTest.testName, rawResult, currentTest.testTarget, currentTest.id);
 
             try {
                 document.getElementById('submitBtn').disabled = true;
                 document.getElementById('submitBtn').innerHTML = `<span class="btn-text-one"><i class="bi bi-hourglass-split"></i> Submitting...</span><span class="btn-text-two"><i class="bi bi-hourglass-split"></i> Submitting...</span>`;
 
-                const attSnap = await getDocs(query(collection(db,'testResults'), where('testId','==',currentTest.id), where('studentEmail','==',studentData.email)));
+                // ✅ Run score calculation and attempt count query in parallel
+                const [calculatedScore, attSnap] = await Promise.all([
+                    calculateScoreWithNorms(currentTest.testName, rawResult, currentTest.testTarget, currentTest.id),
+                    getDocs(query(collection(db,'testResults'), where('testId','==',currentTest.id), where('studentEmail','==',studentData.email)))
+                ]);
+
                 const currentAttempts = attSnap.size;
                 const isFirst = currentAttempts === 0;
 
+                // ✅ Write result, then fire student/test counter updates in parallel
                 const docRef = await addDoc(collection(db,'testResults'), {
                     testId: currentTest.id,
                     testName: currentTest.testName,
@@ -910,8 +981,11 @@
                     status: 'completed'
                 });
 
-                if (studentData.studentId) await updateDoc(doc(db,'students',studentData.studentId), { testsDone: increment(1), lastTestDate: serverTimestamp() });
-                if (isFirst) await updateDoc(doc(db,'scheduledTests',currentTest.id), { completedStudents: increment(1) });
+                // ✅ Fire post-submit updates in parallel (non-blocking for UX)
+                const postSubmitUpdates = [];
+                if (studentData.studentId) postSubmitUpdates.push(updateDoc(doc(db,'students',studentData.studentId), { testsDone: increment(1), lastTestDate: serverTimestamp() }));
+                if (isFirst) postSubmitUpdates.push(updateDoc(doc(db,'scheduledTests',currentTest.id), { completedStudents: increment(1) }));
+                Promise.all(postSubmitUpdates).catch(e => console.warn('Post-submit update error:', e));
 
                 showSuccessPopup(calculatedScore, currentAttempts + 1, currentTest.attemptsAllowed || 1, docRef.id, currentTest.id);
             } catch(error) {
@@ -922,11 +996,19 @@
             }
         };
 
+        // ✅ Map norm score → display label + color (consistent with studentresult.html)
+        function _scoreToNormDisplay(score) {
+            if (score >= 100) return { label:'Excellent', color:'#059669', bg:'#f0fdf4', border:'#86efac' };
+            if (score >= 90)  return { label:'Good',      color:'#2563eb', bg:'#eff6ff', border:'#93c5fd' };
+            if (score >= 80)  return { label:'Average',   color:'#d97706', bg:'#fffbeb', border:'#fcd34d' };
+            if (score >= 70)  return { label:'Below Average', color:'#dc2626', bg:'#fef2f2', border:'#fca5a5' };
+            return                   { label:'Poor',      color:'#dc2626', bg:'#fef2f2', border:'#fca5a5' };
+        }
+
         function showSuccessPopup(score, attempt, totalAttempts, resultId, testId) {
             const overlay = document.createElement('div');
             overlay.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-[99999] p-4';
-            let scoreColor = '#ea4335';
-            if (score >= 90) scoreColor = '#34a853'; else if (score >= 80) scoreColor = '#1a73e8'; else if (score >= 70) scoreColor = '#fbbc04';
+            const { label, color, bg, border } = _scoreToNormDisplay(score);
             overlay.innerHTML = `
                 <style>@keyframes checkDraw{0%{stroke-dashoffset:100}100%{stroke-dashoffset:0}}@keyframes slideUp{from{opacity:0;transform:translateY(24px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}</style>
                 <div class="bg-white rounded-3xl px-8 pt-10 pb-8 max-w-sm w-full shadow-2xl text-center font-inter" style="animation:slideUp .35s cubic-bezier(.4,0,.2,1)">
@@ -935,7 +1017,10 @@
                     </div>
                     <div class="text-xl font-semibold text-gray-900 mb-1">Test Submitted</div>
                     <div class="text-sm text-gray-500 mb-5">Your results have been recorded</div>
-                    <div class="inline-block px-6 py-2 rounded-full text-2xl font-bold mb-3" style="background:${scoreColor}18;color:${scoreColor};">${score}</div>
+                    <div class="inline-flex items-center gap-2 px-6 py-2.5 rounded-full font-bold text-base uppercase tracking-wide mb-3"
+                         style="background:${bg};color:${color};border:2px solid ${border};">
+                        <i class="bi bi-star-fill"></i> ${label}
+                    </div>
                     <div class="text-xs text-gray-400 mb-7">Attempt ${attempt} of ${totalAttempts}</div>
                     <div class="h-px bg-gray-200 -mx-8 mb-5"></div>
                     <button id="viewResultBtn" class="w-full py-3 px-6 rounded-full border-0 bg-blue-600 text-white text-sm font-medium cursor-pointer hover:bg-blue-700 transition-colors">View Results</button>
@@ -960,7 +1045,7 @@
             document.body.appendChild(overlay);
         }
 
-        // ========== LOAD TEST DATA ==========
+        // ========== LOAD TEST DATA (parallel) ==========
 
         async function loadTestData() {
             const p = new URLSearchParams(window.location.search);
@@ -970,7 +1055,10 @@
                 const snap = await getDoc(doc(db, 'scheduledTests', testId));
                 if (!snap.exists()) { showErrorOnLoad('Test not found. It may have been deleted or expired.'); return; }
                 currentTest = { id: snap.id, ...snap.data() };
-                if (!currentTest.professorId || !currentTest.professorEmail) { currentTest.professorId = 'default-professor-id'; currentTest.professorEmail = 'professor@umak.edu.ph'; }
+                if (!currentTest.professorId || !currentTest.professorEmail) {
+                    currentTest.professorId = 'default-professor-id';
+                    currentTest.professorEmail = 'professor@umak.edu.ph';
+                }
                 document.getElementById('testName').textContent = currentTest.testName;
                 document.getElementById('testSubtitle').textContent = `Section: ${currentTest.section} • Deadline: ${new Date(currentTest.deadline).toLocaleDateString()}`;
                 setupTestInputs(currentTest.testName);
@@ -1002,14 +1090,29 @@
             else el.textContent = 'Follow the test protocol as instructed. Complete the test according to proper form and technique. Record your results in the input field below when finished.';
         }
 
+        // ========== LOAD STUDENT DATA (same pattern as dashboard) ==========
+
         async function loadStudentData(user) {
             try {
                 const snap = await getDocs(query(collection(db,'students'), where('email','==',user.email)));
-                studentData = { displayName: user.displayName || user.email.split('@')[0] || 'Student', email: user.email, section: 'Not Assigned' };
-                if (!snap.empty) { snap.forEach(d => { studentData = { ...studentData, ...d.data(), studentId: d.id, age: d.data().age || 20 }; }); }
+                studentData = {
+                    displayName: user.displayName || user.email.split('@')[0] || 'Student',
+                    email: user.email,
+                    section: 'Not Assigned',
+                    age: 20,
+                    gender: 'male',
+                    birthday: null
+                };
+                if (!snap.empty) {
+                    snap.forEach(d => {
+                        studentData = { ...studentData, ...d.data(), studentId: d.id };
+                    });
+                }
                 return studentData;
             } catch(e) { console.error(e); return null; }
         }
+
+        // ========== ACTIVE TEST DOCUMENT ==========
 
         async function createActiveTestDocument() {
             try {
@@ -1026,12 +1129,15 @@
             } catch(e) { console.error(e); return null; }
         }
 
-        async function updateActiveTestProgress(progress, metrics = {}) {
-            try { if (window.activeTestId) await updateDoc(doc(db,'activeTests',window.activeTestId), { progress, metrics, lastUpdate: serverTimestamp() }); } catch(e) {}
+        // ✅ Fire-and-forget — no await needed on callers for non-critical updates
+        function updateActiveTestProgress(progress, metrics = {}) {
+            if (!window.activeTestId) return;
+            updateDoc(doc(db,'activeTests',window.activeTestId), { progress, metrics, lastUpdate: serverTimestamp() }).catch(() => {});
         }
 
-        async function completeActiveTest() {
-            try { if (window.activeTestId) await updateDoc(doc(db,'activeTests',window.activeTestId), { status: 'completed', completedAt: serverTimestamp() }); } catch(e) {}
+        function completeActiveTest() {
+            if (!window.activeTestId) return Promise.resolve();
+            return updateDoc(doc(db,'activeTests',window.activeTestId), { status: 'completed', completedAt: serverTimestamp() }).catch(() => {});
         }
 
         // ========== TEST DELETION LISTENER ==========
@@ -1104,7 +1210,8 @@
             document.getElementById('logoutCancelBtn').addEventListener('click', () => overlay.remove());
             overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
             document.getElementById('logoutConfirmBtn').addEventListener('click', async () => {
-                const btn = document.getElementById('logoutConfirmBtn'); btn.textContent = 'Logging out...'; btn.disabled = true; btn.style.opacity = '.7';
+                const btn = document.getElementById('logoutConfirmBtn');
+                btn.textContent = 'Logging out...'; btn.disabled = true; btn.style.opacity = '.7';
                 try { await signOut(auth); window.location.href = '../login/index.html'; }
                 catch(e) { overlay.remove(); alert('Error logging out. Please try again.'); }
             });
@@ -1117,13 +1224,21 @@
                 try {
                     currentUser = user;
                     updateProfileUI();
-                    await loadStudentData(user);
+
+                    // ✅ Load student data and test data in parallel
+                    await Promise.all([
+                        loadStudentData(user),
+                        loadTestData()
+                    ]);
+
+                    // ✅ Setup notifications and check unread in parallel after student data ready
                     setupNotificationListener();
-                    await checkUnreadNotifications();
-                    await loadTestData();
+                    checkUnreadNotifications(); // fire-and-forget
+
                     document.getElementById('loadingScreen').style.display = 'none';
                     document.getElementById('mainContent').style.display = 'block';
 
+                    // Event listeners
                     document.getElementById('notificationBellBtn')?.addEventListener('click', toggleNotificationDropdown);
                     document.getElementById('notificationBellBtnMobile')?.addEventListener('click', toggleNotificationDropdown);
                     document.getElementById('closeNotificationBtn')?.addEventListener('click', e => { e.stopPropagation(); closeNotificationDropdown(); });
@@ -1132,6 +1247,11 @@
                         if (!event.target.closest('#notificationBellBtn') && !event.target.closest('#notificationBellBtnMobile') &&
                             !event.target.closest('#notificationDropdown') && !event.target.closest('#notificationDropdownMobile')) {
                             closeNotificationDropdown();
+                        }
+                        if (!event.target.closest('#profilePictureBtn') && !event.target.closest('#profilePictureBtnMobile') &&
+                            !event.target.closest('#profileDropdown') && !event.target.closest('#profileDropdownMobile')) {
+                            document.getElementById('profileDropdown')?.classList.add('hidden');
+                            document.getElementById('profileDropdownMobile')?.classList.add('hidden');
                         }
                     });
                 } catch(e) { showErrorOnLoad('Error: ' + (e.message || 'Unknown error occurred')); }
