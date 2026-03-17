@@ -106,6 +106,10 @@
             #studentDetailModal .p-6{padding:1rem !important}
             .detail-table th,.detail-table td{font-size:11px !important;padding:10px 8px !important}
         }
+        .pagination-btn{display:inline-flex;align-items:center;justify-content:center;height:36px;min-width:36px;padding:0 10px;border-radius:8px;border:1px solid #e1e6ef;background:white;color:#374151;font-size:13px;font-weight:500;cursor:pointer;transition:all 0.2s;}
+        .pagination-btn:hover:not(:disabled){border-color:#2d6fc4;color:#2d6fc4;background:#f0f6ff;}
+        .pagination-btn.active{background:#2d6fc4;border-color:#2d6fc4;color:white;font-weight:700;}
+        .pagination-btn:disabled{opacity:0.4;cursor:not-allowed;}
     </style>
 </head>
 <body class="font-sans bg-surface text-text-primary min-h-screen m-0 p-0">
@@ -297,7 +301,7 @@
                         <div class="w-[52px] h-[52px] rounded-2xl bg-accent/15 border border-accent/25 flex items-center justify-center text-accent text-[22px] flex-shrink-0"><i class="fas fa-graduation-cap"></i></div>
                         <div>
                             <div class="text-xs text-white/50 uppercase tracking-[2px] mb-1">Faculty Member</div>
-                            <div class="font-display text-2xl font-bold text-white mb-1">Grades Management</div>
+                            <div class="font-display text-2xl font-bold text-white mb-1">Performance Management</div>
                             <div class="text-[13px] text-white/45">View student performance across all sections</div>
                         </div>
                     </div>
@@ -367,11 +371,15 @@
                         <div class="text-gray-500 text-sm">No grades match your current filters, or no activities have been completed yet.</div>
                     </div>
                 </div>
-                <div id="tableWrapper" class="hidden overflow-x-auto">
+                  <div id="tableWrapper" class="hidden overflow-x-auto">
                     <table class="grades-table">
                         <thead><tr><th style="width:40px">#</th><th>Student Name</th><th>Section</th><th>Activities</th><th>Overall Performance</th><th>Action</th></tr></thead>
                         <tbody id="gradesTableBody"></tbody>
                     </table>
+                </div>
+                <div id="paginationBottom" class="hidden px-6 py-3 border-t border-border flex items-center justify-between flex-wrap gap-2 bg-surface">
+                    <div class="text-sm text-text-muted" id="paginationInfo">Showing 1–10 of 0 students</div>
+                    <div class="flex items-center gap-1.5" id="paginationControls"></div>
                 </div>
             </div>
         </div>
@@ -673,18 +681,35 @@
             const overall=s.categories.length?getOverallCategory(s.categories):'No Grades';
             return{...s,overallCategory:overall,overallScore:CATEGORY_ORDER[overall]||0,totalActivities:s.instances.length};
         }).sort((a,b)=>(a.name||'').localeCompare(b.name||''));
-        filteredFinalGrades=[...currentFinalGrades];renderTable(filteredFinalGrades);updateStats(filteredFinalGrades);
+        filteredFinalGrades=[...currentFinalGrades];window._filteredGradesRef=filteredFinalGrades;_currentPage=1;renderTable(filteredFinalGrades,1);updateStats(filteredFinalGrades);
     }
 
-    function renderTable(grades){
+    let _currentPage=1;
+    const _pageSize=10;
+
+    function renderTable(grades,page){
         const loading=document.getElementById('tableLoading'),empty=document.getElementById('tableEmpty'),wrapper=document.getElementById('tableWrapper'),body=document.getElementById('gradesTableBody'),count=document.getElementById('tableCount');
+        const pTop=document.getElementById('paginationBottom');
         loading.style.display='none';
-        if(!grades.length){empty.classList.remove('hidden');wrapper.classList.add('hidden');count.textContent='0 students';return;}
+        if(!grades.length){
+            empty.classList.remove('hidden');wrapper.classList.add('hidden');
+            if(pTop)pTop.classList.add('hidden');
+            count.textContent='0 students';return;
+        }
+        _currentPage=page||_currentPage;
+        const total=grades.length,tp=Math.max(1,Math.ceil(total/_pageSize));
+        if(_currentPage>tp)_currentPage=tp;
+        const si=(_currentPage-1)*_pageSize,ei=Math.min(si+_pageSize,total);
         empty.classList.add('hidden');wrapper.classList.remove('hidden');
-        count.textContent=`${grades.length} student${grades.length!==1?'s':''}`;
-        body.innerHTML=grades.map((g,i)=>`
+        if(pTop)pTop.classList.remove('hidden');
+        count.textContent=`${total} student${total!==1?'s':''}`;
+        // Info text
+        const info=document.getElementById('paginationInfo');
+        if(info)info.textContent=`Showing ${si+1}–${ei} of ${total} student${total!==1?'s':''}`;
+        // Rows
+        body.innerHTML=grades.slice(si,ei).map((g,i)=>`
             <tr data-key="${esc(g.key)}" onclick="showDetail(this.dataset.key)">
-                <td data-label="#" style="color:#64748b;font-family:monospace;">${i+1}</td>
+                <td data-label="#" style="color:#64748b;font-family:monospace;">${si+i+1}</td>
                 <td data-label="Student">
                     <div style="display:flex;align-items:center;gap:8px;max-width:100%;">
                         <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#1e4d8c,#2d6fc4);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:12px;flex-shrink:0;">${esc((g.name||'?').charAt(0).toUpperCase())}</div>
@@ -696,7 +721,26 @@
                 <td data-label="Overall Performance">${renderCategoryBadge(g.overallCategory)}</td>
                 <td data-label="Action"><button onclick="event.stopPropagation();showDetail(this.closest('tr').dataset.key)" style="padding:6px 12px;border:none;border-radius:20px;font-weight:600;font-size:11px;cursor:pointer;background:linear-gradient(135deg,#4a5a72,#2d3d52);color:white;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;"><i class="fas fa-eye" style="font-size:11px;"></i> View</button></td>
             </tr>`).join('');
+        // Pagination controls
+        renderPaginationControls(grades,_currentPage,tp);
     }
+
+    function renderPaginationControls(grades,cp,tp){
+        const ctrl=document.getElementById('paginationControls');if(!ctrl)return;
+        const pages=[];
+        if(tp<=7){for(let i=1;i<=tp;i++)pages.push(i);}
+        else{pages.push(1);if(cp>3)pages.push('…');for(let i=Math.max(2,cp-1);i<=Math.min(tp-1,cp+1);i++)pages.push(i);if(cp<tp-2)pages.push('…');pages.push(tp);}
+        ctrl.innerHTML=`
+            <button class="pagination-btn" ${cp===1?'disabled':''} onclick="_goToPage(${cp-1},window._filteredGradesRef)">‹</button>
+            ${pages.map(p=>p==='…'?`<span style="padding:0 4px;color:#94a3b8;font-size:16px;line-height:36px;">…</span>`:`<button class="pagination-btn ${p===cp?'active':''}" onclick="_goToPage(${p},window._filteredGradesRef)">${p}</button>`).join('')}
+            <button class="pagination-btn" ${cp===tp?'disabled':''} onclick="_goToPage(${cp+1},window._filteredGradesRef)">›</button>`;
+    }
+
+    window._goToPage=function(page,grades){
+        if(!grades)return;
+        _currentPage=page;
+        renderTable(grades,page);
+    };
 
     function updateStats(grades){
         const total=grades.length,exc=grades.filter(g=>g.overallCategory==='Excellent').length,gd=grades.filter(g=>g.overallCategory==='Good').length;
@@ -774,7 +818,7 @@
         else if(sort==='worst')filtered.sort((a,b)=>a.overallScore-b.overallScore);
         else if(sort==='name-desc')filtered.sort((a,b)=>(b.name||'').localeCompare(a.name||''));
         else filtered.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
-        filteredFinalGrades=filtered;renderTable(filtered);updateStats(filtered);
+        filteredFinalGrades=filtered;window._filteredGradesRef=filtered;_currentPage=1;renderTable(filtered,1);updateStats(filtered);
     };
 
     window.recalculateGrades=async function(){

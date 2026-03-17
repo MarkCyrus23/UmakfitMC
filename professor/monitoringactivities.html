@@ -330,7 +330,7 @@
                 </div>
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
                     <div style="background:linear-gradient(135deg,#1e4d8c,#2d6fc4); border-radius:12px; padding:10px 12px; text-align:center;">
-                        <div style="font-size:10px; color:rgba(255,255,255,0.5); text-transform:uppercase; letter-spacing:0.8px; margin-bottom:5px;">Best Category</div>
+                        <div style="font-size:10px; color:rgba(255,255,255,0.5); text-transform:uppercase; letter-spacing:0.8px; margin-bottom:5px;">Best Performance</div>
                         <div id="studentDetailsBestCategory" style="display:flex; justify-content:center;">—</div>
                     </div>
                     <div style="background:linear-gradient(135deg,#0e8a5f,#0a6646); border-radius:12px; padding:10px 12px; text-align:center;">
@@ -890,43 +890,80 @@
     }
 
     async function classifyResult(testName, rawResult, testId, studentEmail, studentGender, studentAge) {
-        // 0. Already-stored category on the record (zero cost)
         if (!testName) return 'Average';
         const testKey = resolveTestKey(testName);
         if (!testKey) return 'Average';
 
         const gender   = _genderKey(studentGender);
         const ageGroup = _ageGroup(studentAge);
-        const value    = typeof rawResult === 'number' ? rawResult : extractNumericResult(rawResult);
 
-        const cacheKey = `${studentEmail}|${testKey}|${gender}|${ageGroup}|${testId || 'none'}`;
+        let value = rawResult;
+        if (typeof rawResult === 'object' && rawResult !== null) {
+            value = rawResult.repetitions ?? rawResult.reps ?? rawResult.value
+                 ?? rawResult.time ?? rawResult.distance ?? rawResult.count ?? 0;
+        }
+        value = extractNumericResult(value);
+
+        const cacheKey = `${studentEmail}|${testKey}|${gender}|${ageGroup}|${testId||'none'}|${value}`;
         if (_classifyCache.has(cacheKey)) return _classifyCache.get(cacheKey);
 
         const set = cat => { _classifyCache.set(cacheKey, cat); return cat; };
+
+        const applyThresholds = (nd) => {
+            if (!nd?.thresholds) return null;
+            const lowerIsBetter = nd.lowerIsBetter ?? false;
+            for (const cat of ['Excellent', 'Good', 'Average', 'Below Average']) {
+                const t = nd.thresholds[cat];
+                if (t == null) continue;
+                if (lowerIsBetter ? value <= t : value >= t) return cat;
+            }
+            return 'Poor';
+        };
 
         // 1. Student-specific norm override
         if (studentEmail) {
             try {
                 const snap = await getDoc(doc(db, 'studentNorms', studentEmail, 'tests', testKey));
-                if (snap.exists()) { const cat = _applyThresholds(snap.data(), value); return set(cat); }
+                if (snap.exists()) {
+                    const cat = applyThresholds(snap.data());
+                    if (cat) return set(cat);
+                }
             } catch (_) {}
         }
 
-        // 2. Test-level norm (data already in memory via allTests — skip Firestore when possible)
+        // 2. Test-level norm (scheduledTestNorms subcollection)
         if (testId) {
-            const testObj = allTests.find(t => t.id === testId);
-            if (testObj?.norms?.[testKey]) {
-                const cat = _applyThresholds(testObj.norms[testKey], value);
-                return set(cat);
-            }
-            // Fallback: Firestore read (only if not in allTests)
             try {
                 const snap = await getDoc(doc(db, 'scheduledTestNorms', testId, 'tests', testKey));
-                if (snap.exists()) { const cat = _applyThresholds(snap.data(), value); return set(cat); }
+                if (snap.exists()) {
+                    const cat = applyThresholds(snap.data());
+                    if (cat) return set(cat);
+                }
             } catch (_) {}
         }
 
-        // 3. Default fitnessNorms — shared cache so the same doc is read at most once per page load (FIX #4)
+        // 3. Test-level inline customNorms (from allTests in memory first, then Firestore)
+        if (testId) {
+            let cn = null;
+            const testObj = allTests.find(t => t.id === testId);
+            if (testObj?.customNorms?.thresholds) {
+                cn = testObj.customNorms;
+            }
+            if (!cn) {
+                try {
+                    const snap = await getDoc(doc(db, 'scheduledTests', testId));
+                    if (snap.exists() && snap.data().customNorms?.thresholds) {
+                        cn = snap.data().customNorms;
+                    }
+                } catch (_) {}
+            }
+            if (cn?.thresholds) {
+                const cat = applyThresholds(cn);
+                if (cat) return set(cat);
+            }
+        }
+
+        // 4. Default fitnessNorms — shared cache
         const normKey = `${testKey}_${gender}_${ageGroup}`;
         if (!_defaultNormCache.has(normKey)) {
             try {
@@ -935,11 +972,19 @@
             } catch (_) { _defaultNormCache.set(normKey, null); }
         }
         const cached = _defaultNormCache.get(normKey);
-        if (cached) { const cat = _applyThresholds(cached, value); return set(cat); }
+        if (cached) {
+            const cat = applyThresholds(cached);
+            if (cat) return set(cat);
+        }
 
-        // 4. normLookup.js fallback
+        // 5. normLookup.js fallback
         try {
-            const r = await getNormCategory(db, { testName, result: rawResult, studentEmail: studentEmail || '', gender: studentGender || 'male', age: studentAge });
+            const r = await getNormCategory(db, {
+                testName, result: rawResult,
+                studentEmail: studentEmail || '',
+                gender: studentGender || 'male',
+                age: studentAge
+            });
             if (r?.category) return set(r.category);
         } catch (_) {}
 
@@ -1671,25 +1716,88 @@
         document.getElementById('studentDetailsBestCategory').innerHTML = renderCategoryBadge(td.bestCategory);
         document.getElementById('studentDetailsStatus').innerHTML  = '<span class="text-green-300">Completed</span>';
 
-        const sorted = [...td.attempts].sort((a,b) => b.submittedAt - a.submittedAt);
-        document.getElementById('studentTestAttempts').innerHTML = sorted.map(a => {
-            const isBest = a.category === td.bestCategory;
-            return `
-            <div style="border-radius:12px;border:1px solid ${isBest?'rgba(14,138,95,0.3)':'#e1e6ef'};background:${isBest?'rgba(212,240,230,0.3)':'#f4f6fa'};padding:12px;margin-bottom:6px;">
-                <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap;">
-                    <span style="font-size:13px;font-weight:700;color:#0a1628;">Attempt ${a.attemptNumber}</span>
-                    ${isBest ? '<span style="font-size:10px;background:#d4f0e6;color:#0e8a5f;padding:2px 7px;border-radius:99px;font-weight:700;">Best</span>' : ''}
-                    ${a.isProfessorOverride ? '<span style="font-size:10px;background:#d6eaf8;color:#1a6fa8;padding:2px 7px;border-radius:99px;font-weight:700;">Override</span>' : ''}
-                    <span style="font-size:10px;color:#8a98ae;margin-left:auto;">${esc(a.formattedDate)}</span>
-                </div>
-                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                    <span style="font-size:11px;color:#4a5a72;background:white;padding:3px 10px;border-radius:99px;border:1px solid #e1e6ef;font-weight:600;">
-                        <i class="fas fa-chart-bar" style="font-size:9px;margin-right:3px;"></i>${esc(String(a.result))} ${esc(a.testUnit||'')}
-                    </span>
-                    ${renderCategoryBadge(a.category)}
-                </div>
-            </div>`;
-        }).join('') || '<div class="text-center py-4 text-text-muted text-sm">No attempt details</div>';
+        const sorted = [...td.attempts].sort((a, b) => {
+            const anA = a.attemptNumber ?? 0;
+            const anB = b.attemptNumber ?? 0;
+            if (anA !== anB) return anB - anA;
+            return b.submittedAt - a.submittedAt;
+        });
+
+        const VALID_CATS = new Set(['Excellent','Good','Average','Below Average','Poor']);
+        const studentAge    = _studentAge(student);
+        const studentGender = student?.gender || 'male';
+
+        // Resolve all attempt categories in parallel from raw result values
+        Promise.all(sorted.map(a => {
+            // Only trust isProfessorOverride stored category
+            const savedCat = a.isProfessorOverride ? a.category : null;
+            if (VALID_CATS.has(savedCat)) return Promise.resolve(savedCat);
+            return classifyResult(
+                a.testName || currentTestData.test.name,
+                a.result,
+                testId,
+                email,
+                studentGender,
+                studentAge
+            );
+        })).then(attemptCats => {
+            // Recalculate best category from independently classified attempts
+            const bestCat = attemptCats.reduce((best, cat) => {
+                return (CATEGORY_ORDER[cat] || 3) > (CATEGORY_ORDER[best] || 0) ? cat : best;
+            }, attemptCats[0] || 'Average');
+
+            document.getElementById('studentDetailsBestCategory').innerHTML = renderCategoryBadge(bestCat);
+
+            document.getElementById('studentTestAttempts').innerHTML = sorted.map((a, i) => {
+                const cat    = attemptCats[i];
+                const isBest = cat === bestCat;
+
+                // Resolve result display
+                let rv = '—';
+                const rawResult = a.result;
+                const unit = a.testUnit || '';
+                if (rawResult != null) {
+                    if (typeof rawResult === 'object' && rawResult !== null) {
+                        const v = rawResult.repetitions ?? rawResult.reps ?? rawResult.value
+                               ?? rawResult.time ?? rawResult.distance ?? rawResult.count ?? 0;
+                        rv = `${v}${unit ? ' ' + unit : ''}`;
+                    } else {
+                        rv = `${rawResult}${unit ? ' ' + unit : ''}`;
+                    }
+                }
+
+                // Resolve date
+                let dateStr = 'Date not recorded';
+                if (a.submittedAt) {
+                    try {
+                        let d;
+                        if (a.submittedAt instanceof Date) d = a.submittedAt;
+                        else if (typeof a.submittedAt.toDate === 'function') d = a.submittedAt.toDate();
+                        else if (a.submittedAt?.seconds != null) d = new Date(a.submittedAt.seconds * 1000 + Math.floor((a.submittedAt.nanoseconds ?? 0) / 1e6));
+                        else d = new Date(a.submittedAt);
+                        if (d && !isNaN(d.getTime())) {
+                            dateStr = `${d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})} at ${d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'})}`;
+                        }
+                    } catch(_) {}
+                }
+
+                return `
+                <div style="border-radius:12px;border:1px solid ${isBest?'rgba(14,138,95,0.3)':'#e1e6ef'};background:${isBest?'rgba(212,240,230,0.3)':'#f4f6fa'};padding:12px;margin-bottom:6px;">
+                    <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap;">
+                        <span style="font-size:13px;font-weight:700;color:#0a1628;">Attempt ${a.attemptNumber || (sorted.length - i)}</span>
+                        ${isBest ? '<span style="font-size:10px;background:#d4f0e6;color:#0e8a5f;padding:2px 7px;border-radius:99px;font-weight:700;">Best</span>' : ''}
+                        ${a.isProfessorOverride ? '<span style="font-size:10px;background:#d6eaf8;color:#1a6fa8;padding:2px 7px;border-radius:99px;font-weight:700;">Override</span>' : ''}
+                        <span style="font-size:10px;color:#8a98ae;margin-left:auto;">${esc(dateStr)}</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                        <span style="font-size:11px;color:#4a5a72;background:white;padding:3px 10px;border-radius:99px;border:1px solid #e1e6ef;font-weight:600;">
+                            <i class="fas fa-chart-bar" style="font-size:9px;margin-right:3px;"></i>${esc(rv)}
+                        </span>
+                        ${renderCategoryBadge(cat)}
+                    </div>
+                </div>`;
+            }).join('') || '<div class="text-center py-4 text-text-muted text-sm">No attempt details</div>';
+        });
 
         document.getElementById('studentDetailsModal').classList.add('open');
     };

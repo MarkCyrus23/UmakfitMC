@@ -783,11 +783,10 @@
                 const isViewOnly = test.isViewOnly === true;
                 const isProfessorEnabled = cachedTestPermissions.has(test.id) || test.professorEnabled === true;
                 html += `
-                <div class="bg-white border-2 ${isCompleted ? 'border-green-200' : isProfessorEnabled ? 'border-blue-200' : isViewOnly ? 'border-gray-200' : 'border-red-300'} rounded-xl p-4 hover:shadow-md transition-all overdue-test-card">
-                    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
+                        <div class="bg-white border-2 ${isCompleted ? 'border-gray-300' : isProfessorEnabled ? 'border-blue-200' : isViewOnly ? 'border-gray-200' : 'border-red-300'} rounded-xl p-4 hover:shadow-md transition-all overdue-test-card">                    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
                         <div class="flex-1 min-w-0">
                             <div class="flex items-start gap-3 mb-2">
-                                <div class="flex-shrink-0 w-10 h-10 ${isCompleted ? 'bg-green-500' : isProfessorEnabled ? 'bg-blue-500' : isViewOnly ? 'bg-gray-400' : 'bg-red-500'} rounded-lg flex items-center justify-center">
+                              <div class="flex-shrink-0 w-10 h-10 ${isCompleted ? 'bg-gray-400' : isProfessorEnabled ? 'bg-blue-500' : isViewOnly ? 'bg-gray-400' : 'bg-red-500'} rounded-lg flex items-center justify-center">
                                     <i class="bi bi-${isCompleted ? 'check-circle-fill' : isProfessorEnabled ? 'unlock-fill' : isViewOnly ? 'eye-fill' : 'exclamation-triangle-fill'} text-white"></i>
                                 </div>
                                 <div class="flex-1">
@@ -804,7 +803,7 @@
                             </div>
                         </div>
                         <div class="w-full lg:w-auto lg:min-w-[140px]">
-                            ${isCompleted ? `<div class="w-full px-4 py-2.5 bg-green-500 text-white rounded-lg font-bold text-sm text-center"><i class="bi bi-check-circle-fill mr-1"></i> Done</div>` : isViewOnly ? `<div class="w-full px-4 py-2.5 bg-gray-200 text-gray-500 rounded-lg font-semibold text-sm text-center cursor-not-allowed"><i class="bi bi-eye-slash mr-1"></i> View Only</div>` : isProfessorEnabled ? `<button onclick="startOverdueTest('${test.id}', '${encodeURIComponent(test.testName)}')" class="w-full px-4 py-2.5 bg-blue-500 text-white rounded-lg font-bold text-sm hover:bg-blue-600 hover:shadow-md transition-all flex items-center justify-center gap-2"><i class="bi bi-${completion.attempts > 0 ? 'arrow-clockwise' : 'play-fill'}"></i> ${completion.attempts > 0 ? 'Retry' : 'Take Test'}</button>` : `<div class="w-full px-4 py-2.5 bg-gray-100 text-gray-500 rounded-lg font-semibold text-sm text-center border border-gray-200"><i class="bi bi-lock-fill mr-1"></i> Locked</div>`}
+                            ${isCompleted ? `<div class="w-full px-4 py-2.5 bg-gray-300 text-gray-600 rounded-lg font-bold text-sm text-center"><i class="bi bi-check-circle-fill mr-1"></i> Done</div>`: isViewOnly ? `<div class="w-full px-4 py-2.5 bg-gray-200 text-gray-500 rounded-lg font-semibold text-sm text-center cursor-not-allowed"><i class="bi bi-eye-slash mr-1"></i> View Only</div>` : isProfessorEnabled ? `<button onclick="startOverdueTest('${test.id}', '${encodeURIComponent(test.testName)}')" class="w-full px-4 py-2.5 bg-blue-500 text-white rounded-lg font-bold text-sm hover:bg-blue-600 hover:shadow-md transition-all flex items-center justify-center gap-2"><i class="bi bi-${completion.attempts > 0 ? 'arrow-clockwise' : 'play-fill'}"></i> ${completion.attempts > 0 ? 'Retry' : 'Take Test'}</button>` : `<div class="w-full px-4 py-2.5 bg-gray-100 text-gray-500 rounded-lg font-semibold text-sm text-center border border-gray-200"><i class="bi bi-lock-fill mr-1"></i> Locked</div>`}
                         </div>
                     </div>
                 </div>`;

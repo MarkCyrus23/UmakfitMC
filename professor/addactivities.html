@@ -721,33 +721,6 @@
             </div>
             <div class="form-group"><label class="form-label">Deadline Date <span class="text-danger">*</span></label><input type="date" class="form-control" id="editTestDeadline" required></div>
             <div class="form-group"><label class="form-label">Deadline Time <span class="text-danger">*</span></label><input type="time" class="form-control" id="editTestDeadlineTime" required></div>
-            <!-- Edit Norm Panel -->
-            <div id="editNormCustomPanel" class="hidden">
-                <div class="flex items-center justify-between mb-2">
-                    <label class="form-label mb-0 flex items-center gap-2">
-                        <i class="fas fa-sliders-h text-purple-600"></i> Scoring Norms
-                        <span id="editNormSourceBadge" class="norm-source-badge norm-source-fallback">fallback</span>
-                        <span id="editNormLowerTag" class="norm-lower-tag hidden">lower is better</span>
-                    </label>
-                    <button type="button" onclick="toggleEditNormPanel()" id="editNormToggleBtn" class="text-xs px-3 py-1 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-lg font-semibold transition-all flex items-center gap-1">
-                        <i class="fas fa-chevron-down" id="editNormToggleIcon"></i> Customize Norms
-                    </button>
-                </div>
-                <div id="editNormEditorWrapper" class="hidden">
-                    <div class="norm-panel">
-                        <div class="norm-panel-title"><i class="fas fa-ruler-combined"></i> Threshold Values</div>
-                        <div class="norm-grid">
-                        <div class="norm-field"><label>⭐ Excellent</label><input type="number" id="editNormExcellent" step="0.5" min="0" max="9999" oninput="validateNormInput(this)"></div>
-                        <div class="norm-field"><label>👍 Good</label><input type="number" id="editNormGood" step="0.5" min="0" max="9999" oninput="validateNormInput(this)"></div>
-                        <div class="norm-field"><label>📊 Average</label><input type="number" id="editNormAverage" step="0.5" min="0" max="9999" oninput="validateNormInput(this)"></div>
-                        <div class="norm-field"><label>📉 Below Average</label><input type="number" id="editNormBelowAverage" step="0.5" min="0" max="9999" oninput="validateNormInput(this)"></div>
-                    </div>
-                        <div class="flex gap-2 mt-3">
-                            <button type="button" onclick="resetEditNormsToDefault()" class="text-xs px-3 py-1.5 bg-white border border-purple-300 text-purple-600 rounded-lg hover:bg-purple-50 transition-all"><i class="fas fa-undo mr-1"></i> Reset to Default</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
             <input type="hidden" id="editAttemptsAllowed" value="2">
             <input type="hidden" id="editTestId">
         </div>
@@ -1975,33 +1948,27 @@ function readScheduleNorms() {
     return { thresholds:{Excellent:e,Good:g,Average:a,'Below Average':b}, lowerIsBetter:window._schedulePendingNorm?.lowerIsBetter??false, source:'test-custom' };
 }
 
-// ── Norm Panel (Edit Modal) ───────────────────────────────────────
-window._editPendingNorm = null;
+        // ── Norm Panel (Edit Modal) ───────────────────────────────────────
+        window._editPendingNorm = null;
 
-async function loadEditNormPanel(testData) {
-    const tt=testData?.testName||'', panel=document.getElementById('editNormCustomPanel');
-    if (!tt||tt.toLowerCase().includes('skinfold')) { panel.classList.add('hidden'); return; }
-    panel.classList.remove('hidden');
-    let norm = testData?.customNorms?.thresholds ? {...testData.customNorms,source:'test-custom'} : await getDefaultThresholds(resolveTestKey(tt),'male','19-22');
-    if (!norm) { panel.classList.add('hidden'); return; }
-    window._editPendingNorm = { thresholds:{...norm.thresholds}, lowerIsBetter:norm.lowerIsBetter??false, source:norm.source };
-    document.getElementById('editNormExcellent').value    = norm.thresholds.Excellent??'';
-    document.getElementById('editNormGood').value         = norm.thresholds.Good??'';
-    document.getElementById('editNormAverage').value      = norm.thresholds.Average??'';
-    document.getElementById('editNormBelowAverage').value = norm.thresholds['Below Average']??'';
-    const badge=document.getElementById('editNormSourceBadge'); badge.textContent=norm.source; badge.className=`norm-source-badge norm-source-${norm.source==='db'?'db':norm.source==='test-custom'?'custom':'fallback'}`;
-    norm.lowerIsBetter ? document.getElementById('editNormLowerTag').classList.remove('hidden') : document.getElementById('editNormLowerTag').classList.add('hidden');
-}
+        async function loadEditNormPanel(testData) {
+            // Norm panel removed — just store pending norm silently for saveEditTest
+            const tt = testData?.testName || '';
+            if (!tt || tt.toLowerCase().includes('skinfold')) { window._editPendingNorm = null; return; }
+            const norm = testData?.customNorms?.thresholds
+                ? { ...testData.customNorms, source: 'test-custom' }
+                : await getDefaultThresholds(resolveTestKey(tt), 'male', '19-22');
+            window._editPendingNorm = norm
+                ? { thresholds: { ...norm.thresholds }, lowerIsBetter: norm.lowerIsBetter ?? false, source: norm.source }
+                : null;
+        }
 
-window.toggleEditNormPanel  = function() { const w=document.getElementById('editNormEditorWrapper'); w.classList.toggle('hidden'); document.getElementById('editNormToggleIcon').className=w.classList.contains('hidden')?'fas fa-chevron-down':'fas fa-chevron-up'; };
-window.resetEditNormsToDefault = async function() { const tt=document.getElementById('editTestName').value; if(!tt) return; const n=await getDefaultThresholds(resolveTestKey(tt),'male','19-22'); if(!n) return; document.getElementById('editNormExcellent').value=n.thresholds.Excellent??''; document.getElementById('editNormGood').value=n.thresholds.Good??''; document.getElementById('editNormAverage').value=n.thresholds.Average??''; document.getElementById('editNormBelowAverage').value=n.thresholds['Below Average']??''; window._editPendingNorm={...n,thresholds:{...n.thresholds}}; };
+        window.toggleEditNormPanel     = function() {};
+        window.resetEditNormsToDefault = async function() {};
 
-function readEditNorms() {
-    const tt=document.getElementById('editTestName').value; if(!tt||tt.toLowerCase().includes('skinfold')) return null;
-    const e=parseFloat(document.getElementById('editNormExcellent').value), g=parseFloat(document.getElementById('editNormGood').value), a=parseFloat(document.getElementById('editNormAverage').value), b=parseFloat(document.getElementById('editNormBelowAverage').value);
-    if ([e,g,a,b].some(isNaN)) return window._editPendingNorm;
-    return { thresholds:{Excellent:e,Good:g,Average:a,'Below Average':b}, lowerIsBetter:window._editPendingNorm?.lowerIsBetter??false, source:'test-custom' };
-}
+        function readEditNorms() {
+            return window._editPendingNorm || null;
+        }
 
         // ── Per-student Norm Modal ────────────────────────────────────────
         window._studentCustomNorms = new Map();
