@@ -977,11 +977,11 @@
                 showAlert(err.message || 'Error loading profile.', 'error');
                 setTimeout(async () => {
                     await signOut(auth);
-                    window.location.href = '../login/index.html';
+                    window.location.href = '/login/index.html';
                 }, 2500);
             }
         } else {
-            window.location.href = '../login/index.html';
+            window.location.href = '/login/index.html';
         }
     });
 
@@ -1252,7 +1252,7 @@
             btn.style.opacity = '0.7';
             try {
                 await signOut(auth);
-                window.location.href = '../login/index.html';
+                window.location.href = '/login/index.html';
             } catch (err) {
                 console.error('Logout error:', err);
                 overlay.remove();

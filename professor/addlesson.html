@@ -622,8 +622,10 @@
     let currentUser=null,currentProfessor=null,assignedSections=[],allLessons=[],filteredLessons=[],editingLessonId=null,selectedFiles=[],activeSectionFilter=null;
 
  // AFTER:
-// Keep portal locked until auth is verified (prevents URL-typing bypass).
-const loadingTimeout = setTimeout(() => {}, 2500);
+const loadingTimeout = setTimeout(() => {
+    document.getElementById('loadingScreen').style.display='none';
+    document.getElementById('mainContent').style.display='block';
+}, 1500);
 
 const unsubscribeAuth = onAuthStateChanged(auth, async user => {
     if(user){
@@ -645,7 +647,7 @@ const unsubscribeAuth = onAuthStateChanged(auth, async user => {
         }
     }else{
         clearTimeout(loadingTimeout);
-        window.location.href='../login/index.html';
+        window.location.href='/login/index.html';
     }
 });
 
@@ -657,7 +659,7 @@ window.addEventListener('beforeunload', () => { unsubscribeAuth(); });
         if(!ps.empty){currentProfessor={id:ps.docs[0].id,...ps.docs[0].data(),email};}
         else{
             const us=await getDocs(query(collection(db,'users'),where('email','==',email)));
-            if(!us.empty){const ud=us.docs[0].data();if(ud.role&&ud.role!=='professor'){await signOut(auth);window.location.href='../login/index.html';return;}currentProfessor={id:us.docs[0].id,...ud,email};}
+            if(!us.empty){const ud=us.docs[0].data();if(ud.role&&ud.role!=='professor'){await signOut(auth);window.location.href='/login/index.html';return;}currentProfessor={id:us.docs[0].id,...ud,email};}
             else{currentProfessor={id:user.uid,email,name:user.displayName};}
         }
         window.currentProfessor=currentProfessor;
@@ -1067,7 +1069,7 @@ window.addEventListener('beforeunload', () => { unsubscribeAuth(); });
         overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove();});
         document.getElementById('logoutConfirmBtn').addEventListener('click',async()=>{
             const cb=document.getElementById('logoutConfirmBtn');cb.textContent='Logging out...';cb.disabled=true;cb.style.opacity='0.7';
-            try{await signOut(auth);window.location.href='../login/index.html';}
+            try{await signOut(auth);window.location.href='/login/index.html';}
             catch(err){console.error(err);overlay.remove();alert('Error logging out. Please try again.');}
         });
     }

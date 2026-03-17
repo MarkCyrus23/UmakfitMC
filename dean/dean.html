@@ -1061,10 +1061,11 @@
 
 let currentUser = null, deanData = null;
 
-// Keep portal locked until auth is verified (prevents URL-typing bypass).
+// Fast loading: max 800ms, then show page regardless
 const loadingTimeout = setTimeout(() => {
-    // no-op: stay on loading screen until role check completes
-}, 2500);
+    document.getElementById('loadingScreen').style.display = 'none';
+    document.getElementById('mainContent').style.display = 'block';
+}, 800);
     let allAccounts = [], filteredAccounts = [];
     let preAssessments = [], postAssessments = [];
     let currentUserToEdit = null;
@@ -1333,7 +1334,7 @@ unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
                 clearTimeout(loadingTimeout);
                 await showDeanAlert('This account is not authorized to access the dean dashboard.', {title:'Access Denied',type:'error',confirmText:'Return to Login'});
                 await auth.signOut();
-                window.location.href = '../login/index.html';
+                window.location.href = '/login/index.html';
                 return;
             }
             await updateProfileDisplay(userData||{email:user.email,name:'Dean',role:'dean'});
@@ -1359,7 +1360,7 @@ unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
         }
     } else {
         clearTimeout(loadingTimeout);
-        window.location.href = '../login/index.html';
+        window.location.href = '/login/index.html';
     }
 });
 
@@ -1403,7 +1404,7 @@ window.addEventListener('beforeunload', () => {
         document.getElementById('logoutConfirmBtn').addEventListener('click', async () => {
             const btn = document.getElementById('logoutConfirmBtn');
             btn.textContent = 'Signing Out...'; btn.disabled = true; btn.style.opacity = '0.7';
-            try { await auth.signOut(); window.location.href = '../login/index.html'; }
+            try { await auth.signOut(); window.location.href = '/login/index.html'; }
             catch(err) { console.error(err); btn.textContent='Sign Out'; btn.disabled=false; btn.style.opacity='1'; }
         });
     }
@@ -2850,7 +2851,7 @@ window.deleteSection = async function(sectionName) {
                 if (data.umakId) studentUmakIds.add(data.umakId.trim().toUpperCase());
             }
         });
-        
+
         const totalStudents = studentUids.size;
         updateStatus(`Found ${totalStudents} student(s)`, 'Deleting BMI records...');
 

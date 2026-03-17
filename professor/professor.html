@@ -547,16 +547,15 @@
     let activeSectionFilter = null;
 
     // ── Auth gate ──────────────────────────────────────────────────────────────
-    // Keep portal locked until auth is verified (prevents URL-typing bypass).
     const loadingTimeout = setTimeout(() => {
-        const sub = document.getElementById('loadingSubText');
-        if (sub) sub.textContent = 'Still checking access...';
-    }, 2500);
+        document.getElementById('loadingScreen').style.display = 'none';
+        document.getElementById('mainContent').style.display   = 'block';
+    }, 1500);
 
     onAuthStateChanged(auth, async user => {
         if (!user) {
             clearTimeout(loadingTimeout);
-            window.location.href = '../login/index.html';
+            window.location.href = '/login/index.html';
             return;
         }
 
@@ -579,7 +578,7 @@
             clearTimeout(loadingTimeout);
             document.getElementById('loadingScreen').style.display = 'none';
             window.showAlert(err.message || 'Error loading dashboard.', 'error');
-            setTimeout(async () => { await signOut(auth); window.location.href = '../login/index.html'; }, 2500);
+            setTimeout(async () => { await signOut(auth); window.location.href = '/login/index.html'; }, 2500);
         }
     });
 
@@ -989,7 +988,7 @@
                 clearInterval(window._headerDateInterval);
                 if (window._unsubActivities) { try { window._unsubActivities(); } catch(e) {} }
                 await signOut(auth);
-                window.location.href = '../login/index.html';
+                window.location.href = '/login/index.html';
             } catch (err) {
                 console.error('Logout error:', err);
                 overlay.remove();

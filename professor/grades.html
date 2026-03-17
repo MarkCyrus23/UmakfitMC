@@ -524,10 +524,9 @@
         if(d.repetitions!=null)return String(d.repetitions);return'-';
     }
 
-    // Keep portal locked until auth is verified (prevents URL-typing bypass).
-    const _loadingTimeout=setTimeout(()=>{},2500);
+    const _loadingTimeout=setTimeout(()=>{document.getElementById('loadingScreen').style.display='none';document.getElementById('mainContent').style.display='block';},1500);
     let _authUnsub=onAuthStateChanged(auth,async user=>{
-        if(!user){clearTimeout(_loadingTimeout);window.location.href='../login/index.html';return;}
+        if(!user){clearTimeout(_loadingTimeout);window.location.href='/login/index.html';return;}
         try{
             currentUser=user;
             clearTimeout(_loadingTimeout);
@@ -848,7 +847,7 @@
         document.getElementById('profileDropdown')?.classList.remove('show');
         document.getElementById('logoutCancelBtn').onclick=()=>overlay.remove();
         overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove();});
-        document.getElementById('logoutConfirmBtn').onclick=async()=>{const btn=document.getElementById('logoutConfirmBtn');btn.textContent='Logging out...';btn.disabled=true;btn.style.opacity='0.7';try{_cleanup();await signOut(auth);window.location.href='../login/index.html';}catch(err){console.error(err);overlay.remove();alert('Error logging out.');}};
+        document.getElementById('logoutConfirmBtn').onclick=async()=>{const btn=document.getElementById('logoutConfirmBtn');btn.textContent='Logging out...';btn.disabled=true;btn.style.opacity='0.7';try{_cleanup();await signOut(auth);window.location.href='/login/index.html';}catch(err){console.error(err);overlay.remove();alert('Error logging out.');}};
     }
     window.handleLogout=async function(e){if(e){e.preventDefault();e.stopPropagation();}showLogoutConfirmPopup();};
 </script>

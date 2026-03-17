@@ -1944,10 +1944,10 @@ async function processAndUpdateStats(testResults) {
         const loadingScreen = document.getElementById('loadingScreen');
         const mainContent = document.getElementById('mainContent');
 
-        // Keep portal locked until auth is verified (prevents URL-typing bypass).
         const loadingTimeout = setTimeout(() => {
-            // no-op: stay on loading screen until role check completes
-        }, 2500);
+            loadingScreen.classList.add('hidden');
+            mainContent.classList.remove('hidden');
+        }, 1500);
 
         unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
             if (user) {

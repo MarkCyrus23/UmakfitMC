@@ -770,7 +770,7 @@
                 clearInterval(window._headerDateInterval);
                 cleanupAllListeners();
                 await signOut(auth);
-                window.location.href = '../login/index.html';
+                window.location.href = '/login/index.html';
             } catch (err) {
                 overlay.remove();
                 alert('Error logging out. Please try again.');
@@ -907,13 +907,15 @@
     // ═══════════════════════════════════════════════════════════════
     //  AUTH GATE
     // ═══════════════════════════════════════════════════════════════
-    // Keep portal locked until auth is verified (prevents URL-typing bypass).
-    const _loadingTimeout = setTimeout(() => {}, 2500);
+    const _loadingTimeout = setTimeout(() => {
+        document.getElementById('loadingScreen').style.display = 'none';
+        document.getElementById('mainContent').classList.remove('hidden');
+    }, 1500);
 
     onAuthStateChanged(auth, async user => {
         if (!user) {
             clearTimeout(_loadingTimeout);
-            window.location.href = '../login/index.html';
+            window.location.href = '/login/index.html';
             return;
         }
         currentUser = user;
