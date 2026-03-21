@@ -1246,7 +1246,7 @@ async function resolveAssignedSections(userEmail) {
         let match  = spel === profEmail;
         if (!match) for (const v of nameVariants) { if(v.length>=3&&(spl===v||spl.includes(v)||v.includes(spl))){match=true;break;} }
         if (!match) { const dbWords=spl.split(/[\s,\.]+/).filter(w=>w.length>=3); match=dbWords.some(w=>nameTokens.has(w)); }
-        if (match) { seen.add(d.id); filtered.docs.push(d); }
+        if (match && !data.archived) { seen.add(d.id); filtered.docs.push(d); }
     });
     return _buildSectionsArray(filtered);
 }
@@ -1257,6 +1257,7 @@ function _buildSectionsArray(snap) {
     snap.docs.forEach(d => {
         const sd = d.data();
         if (!sd.name || seen.has(sd.name)) return;
+        if (sd.archived) return; // skip archived sections
         seen.add(sd.name);
         result.push({
             section: sd.name,

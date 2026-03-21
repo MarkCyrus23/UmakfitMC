@@ -1092,11 +1092,12 @@
 
         const fastResults = await Promise.all(fastQueries);
         fastResults.forEach(snap => snap.forEach(d => {
-            if (addedIds.has(d.id)) return;
-            addedIds.add(d.id);
-            const data = d.data();
-            assignedSections.push({ id:d.id, name:data.name||'Unnamed', courseCode:data.courseCode||'PE', students:data.students||[], studentCount:(data.students||[]).length, ...data });
-        }));
+        if (addedIds.has(d.id)) return;
+        const data = d.data();
+        if (data.archived) return; // skip archived
+        addedIds.add(d.id);
+        assignedSections.push({ id:d.id, name:data.name||'Unnamed', courseCode:data.courseCode||'PE', students:data.students||[], studentCount:(data.students||[]).length, ...data });
+            }));
 
         // ── Fallback: name-based full scan (only if fast paths found nothing) ──
         if (!assignedSections.length) {
@@ -1116,7 +1117,7 @@
                 let isMatch  = false;
                 for (const v of nameVariations) { if (v.length >= 3 && (dbProf === v || dbProf.includes(v) || v.includes(dbProf))) { isMatch = true; break; } }
                 if (!isMatch) { const dbW = dbProf.split(/[\s,\.]+/).filter(w => w.length >= 3); for (const w of dbW) { if (nameTokens.has(w)) { isMatch = true; break; } } }
-                if (isMatch) { addedIds.add(d.id); assignedSections.push({ id:d.id, name:data.name||'Unnamed', courseCode:data.courseCode||'PE', students:data.students||[], studentCount:(data.students||[]).length, ...data }); }
+                if (isMatch && !data.archived) { addedIds.add(d.id); assignedSections.push({ id:d.id, name:data.name||'Unnamed', courseCode:data.courseCode||'PE', students:data.students||[], studentCount:(data.students||[]).length, ...data }); }
             });
         }
 
@@ -1176,9 +1177,9 @@
 
         function parseTest(d) {
             const data = d.data();
+            // Only show tests whose section is NOT archived (i.e. in assignedSections)
             const inSection = sectionNames.has(data.section);
-            const isMine    = (data.professorEmail || '').toLowerCase() === profEmail;
-            if (!inSection && !isMine) return;
+            if (!inSection) return; // archived sections are already excluded from sectionNames
 
             let deadline;
             if (data.deadlineDateTime)           deadline = new Date(data.deadlineDateTime);

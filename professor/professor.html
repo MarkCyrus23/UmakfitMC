@@ -658,7 +658,7 @@
         const directSnap = await getDocs(
             query(collection(db, 'sections'), where('professorEmail', '==', profEmail))
         );
-        directSnap.forEach(d => sectionDocs.push({ id: d.id, ...d.data() }));
+        directSnap.forEach(d => { if (!d.data().archived) sectionDocs.push({ id: d.id, ...d.data() }); });
 
         // ── Fallback: name-based scan (only if direct query returns nothing) ───
         if (sectionDocs.length === 0) {
@@ -730,14 +730,14 @@
 
             // Check email match first (cheap)
             if (dbEmail && dbEmail === profEmail) {
-                matched.push({ id: d.id, ...data });
+                if (!data.archived) matched.push({ id: d.id, ...data });
                 return;
             }
 
             // Name-based matching
             for (const v of nameVariations) {
                 if (v.length >= 3 && (dbProf === v || dbProf.includes(v) || v.includes(dbProf))) {
-                    matched.push({ id: d.id, ...data });
+                    if (!data.archived) matched.push({ id: d.id, ...data });
                     return;
                 }
             }
@@ -745,7 +745,7 @@
             // Token-based matching (last resort)
             const dbWords = dbProf.split(/[\s,\.]+/).filter(w => w.length >= 3);
             if (dbWords.some(w => nameTokens.has(w))) {
-                matched.push({ id: d.id, ...data });
+                if (!data.archived) matched.push({ id: d.id, ...data });
             }
         });
 

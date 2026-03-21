@@ -644,14 +644,14 @@
         if(profUid)fq.push(getDocs(query(collection(db,'sections'),where('professorId','==',profUid))));
         fq.push(getDocs(query(collection(db,'sections'),where('professorEmail','==',profEmail))));
         const results=await Promise.all(fq);
-        results.forEach(snap=>snap.forEach(d=>{const n=d.data().name;if(!n||addedNames.has(n))return;addedNames.add(n);assignedSections.push({id:d.id,section:n});}));
+        results.forEach(snap=>snap.forEach(d=>{const data=d.data();const n=data.name;if(!n||addedNames.has(n)||data.archived)return;addedNames.add(n);assignedSections.push({id:d.id,section:n});}));
         if(!assignedSections.length){
             const nv=new Set();['fullName','name','displayName'].forEach(f=>{if(currentProfessor[f])nv.add(currentProfessor[f].toUpperCase().trim());});
             if(currentUser.displayName)nv.add(currentUser.displayName.toUpperCase().trim());
             nv.add(profEmail.split('@')[0].toUpperCase().trim());nv.delete('');
             const nt=new Set();nv.forEach(n=>n.split(/[\s,\.]+/).forEach(w=>{if(w.length>=3)nt.add(w);}));
             const secSnap=await getDocs(collection(db,'sections'));
-            secSnap.forEach(d=>{const data=d.data();const dbProf=(data.professor||'').toString().trim().toUpperCase();if(!data.name||addedNames.has(data.name))return;let m=false;for(const v of nv){if(v.length>=3&&(dbProf===v||dbProf.includes(v)||v.includes(dbProf))){m=true;break;}}if(!m){const dw=dbProf.split(/[\s,\.]+/).filter(w=>w.length>=3);for(const w of dw){if(nt.has(w)){m=true;break;}}}if(m){addedNames.add(data.name);assignedSections.push({id:d.id,section:data.name});}});
+            secSnap.forEach(d=>{const data=d.data();const dbProf=(data.professor||'').toString().trim().toUpperCase();if(!data.name||addedNames.has(data.name))return;let m=false;for(const v of nv){if(v.length>=3&&(dbProf===v||dbProf.includes(v)||v.includes(dbProf))){m=true;break;}}if(!m){const dw=dbProf.split(/[\s,\.]+/).filter(w=>w.length>=3);for(const w of dw){if(nt.has(w)){m=true;break;}}}if(m&&!data.archived){addedNames.add(data.name);assignedSections.push({id:d.id,section:data.name});}});
         }
         const sel=document.getElementById('filterSection');sel.innerHTML='<option value="">All Sections</option>';
         assignedSections.forEach(s=>{const o=document.createElement('option');o.value=s.section;o.textContent=s.section;sel.appendChild(o);});

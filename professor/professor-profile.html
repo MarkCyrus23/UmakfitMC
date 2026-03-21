@@ -1086,9 +1086,9 @@
                 if (eu.length > 3 && dbProf.includes(eu)) isMatch = true;
             }
 
-            if (isMatch) {
-                const sData = data.students || [];
-                sections.push({
+            if (isMatch && !data.archived) {
+            const sData = data.students || [];
+            sections.push({
                     id:           d.id,
                     name:         data.name        || 'Unnamed Section',
                     courseCode:   data.courseCode  || 'PE',

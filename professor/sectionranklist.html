@@ -1046,20 +1046,22 @@ window.addEventListener('pagehide', () => {
             try {
                 const q1 = await getDocs(query(collection(db,'sections'), where('professorId','==',profUid)));
                 q1.forEach(d => {
-                    if (addedIds.has(d.id)) return;
-                    addedIds.add(d.id);
-                    const data = d.data();
-                    assignedSections.push({ id:d.id, name:data.name||'Unnamed', courseCode:data.courseCode||'PE', students:data.students||[], studentCount:(data.students||[]).length, yearLevel:data.yearLevel||'', professor:data.professor||'', ...data });
-                });
+            if (addedIds.has(d.id)) return;
+            const data = d.data();
+            if (data.archived) return;
+            addedIds.add(d.id);
+            assignedSections.push({ id:d.id, name:data.name||'Unnamed', courseCode:data.courseCode||'PE', students:data.students||[], studentCount:(data.students||[]).length, yearLevel:data.yearLevel||'', professor:data.professor||'', ...data });
+            });
             } catch(e) {}
         }
 
         try {
             const q2 = await getDocs(query(collection(db,'sections'), where('professorEmail','==',profEmail)));
             q2.forEach(d => {
-                if (addedIds.has(d.id)) return;
-                addedIds.add(d.id);
-                const data = d.data();
+                 if (addedIds.has(d.id)) return;
+                    const data = d.data();
+                    if (data.archived) return;
+                    addedIds.add(d.id);
                 assignedSections.push({ id:d.id, name:data.name||'Unnamed', courseCode:data.courseCode||'PE', students:data.students||[], studentCount:(data.students||[]).length, yearLevel:data.yearLevel||'', professor:data.professor||'', ...data });
             });
         } catch(e) {}
@@ -1077,8 +1079,8 @@ window.addEventListener('pagehide', () => {
             if (!isMatch && dbProf.length>=3) { const dbW=dbProf.split(/[\s,\.]+/).filter(w=>w.length>=3); for (const w of dbW) { if (nameTokens.has(w)) { isMatch=true; break; } } }
             if (!isMatch) { const eu=profEmail.split('@')[0].toUpperCase(); if (eu.length>3 && dbProf.includes(eu)) isMatch=true; }
 
-            if (isMatch) {
-                addedIds.add(d.id);
+                if (isMatch && !data.archived) {
+        addedIds.add(d.id);
                 assignedSections.push({ id:d.id, name:data.name||'Unnamed', courseCode:data.courseCode||'PE', students:data.students||[], studentCount:(data.students||[]).length, yearLevel:data.yearLevel||'', professor:data.professor||'', ...data });
             }
         });

@@ -706,7 +706,7 @@ window.addEventListener('beforeunload', () => { unsubscribeAuth(); });
             if(!isMatch)for(const v of nameVariations){if(v&&v.length>=3){const ln=v.split(',')[0].trim();if(ln.length>=3&&dbProf.includes(ln)){isMatch=true;break;}}}
             if(!isMatch&&dbProf.length>=3){const words=dbProf.split(/[\s,\.]+/).filter(w=>w.length>=3);for(const w of words){if(nameTokens.has(w)){isMatch=true;break;}}}
             if(!isMatch){const eu=profEmail.split('@')[0].toUpperCase();if(eu.length>3&&dbProf.includes(eu))isMatch=true;}
-            if(isMatch){const students=Array.isArray(data.students)?data.students:[];assignedSections.push({id:d.id,section:data.name||'Unnamed Section',courseCode:data.courseCode||'',time:data.time||'',day:data.day||'',room:data.room||'',students:students.length,studentList:students});}
+            if(isMatch && !data.archived){const students=Array.isArray(data.students)?data.students:[];assignedSections.push({id:d.id,section:data.name||'Unnamed Section',courseCode:data.courseCode||'',time:data.time||'',day:data.day||'',room:data.room||'',students:students.length,studentList:students});}
         });
         const sel=document.getElementById('lessonSection');
         if(!sel)return;

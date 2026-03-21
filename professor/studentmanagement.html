@@ -189,6 +189,23 @@
         }
         .email-cell { max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
         @media (max-width: 768px) { .email-cell { max-width:100%; white-space:normal; word-break:break-all; } }
+        /* ── THREE-DOTS MENU ── */
+        .dots-menu-wrapper { position: relative; display: inline-block; }
+        .dots-btn { background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px; width: 32px; height: 32px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; color: #475569; transition: all 0.2s; flex-shrink: 0; }
+        .dots-btn:hover { background: #e2e8f0; color: #1e293b; }
+        .dots-dropdown { position: absolute; right: 0; top: 38px; background: white; border: 1px solid #e2e8f0; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); z-index: 2100; min-width: 160px; overflow: hidden; }
+        .dots-dropdown.hidden { display: none; }
+        .dots-item { display: flex; align-items: center; gap: 8px; padding: 10px 14px; font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.15s; color: #1e293b; }
+        .dots-item:hover { background: #f8fafc; }
+        .dots-item.archive-item { color: #b07e16; }
+        .dots-item.archive-item:hover { background: #fef3d4; }
+        .dots-item.unarchive-item { color: #0e8a5f; }
+        .dots-item.unarchive-item:hover { background: #d4f0e6; }
+
+        /* ── ARCHIVED TAB ── */
+        .archived-section-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 12px; border-left: 4px solid #f59e0b; opacity: 0.85; }
+        .archived-section-card-row { display: flex; justify-content: space-between; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #f1f5f9; }
+        .archived-section-card-row:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
     </style>
 </head>
 <body class="bg-surface">
@@ -368,14 +385,35 @@
             <!-- My Sections -->
             <div class="bg-white rounded-2xl shadow-sm border border-border p-6 mb-7">
                 <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-3">
-                    <h3 class="text-navy font-display font-bold text-xl flex items-center gap-2">
-                        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[#7c3aed] to-[#6d28d9] flex items-center justify-center text-white text-[13px]"><i class="fas fa-layer-group"></i></div>
-                        My Assigned Sections
-                    </h3>
-                    <button class="bg-surface hover:bg-border text-text-secondary font-semibold py-2 px-4 rounded-lg flex items-center gap-2 transition-all border border-border text-sm" onclick="refreshData(event)">
-                        <i class="fas fa-sync-alt"></i> Refresh
-                    </button>
-                </div>
+    <h3 class="text-navy font-display font-bold text-xl flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[#7c3aed] to-[#6d28d9] flex items-center justify-center text-white text-[13px]"><i class="fas fa-layer-group"></i></div>
+        My Assigned Sections
+        </h3>
+        <div class="flex gap-2">
+            <button class="bg-warning-bg hover:bg-yellow-200 text-warning font-semibold py-2 px-4 rounded-lg flex items-center gap-2 transition-all border border-warning/30 text-sm" onclick="switchSectionsTab('archived')">
+                <i class="fas fa-archive"></i> Archived <span id="archivedCount" class="bg-warning text-white text-xs font-bold px-2 py-0.5 rounded-full">0</span>
+            </button>
+            <button class="bg-surface hover:bg-border text-text-secondary font-semibold py-2 px-4 rounded-lg flex items-center gap-2 transition-all border border-border text-sm" onclick="refreshData(event)">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+        </div>
+    </div>
+    <!-- Section tabs -->
+    <div class="flex gap-1 mb-4 border-b border-border">
+        <button id="activeSectionsTab" class="px-4 py-2 font-semibold text-[13px] text-blue border-b-2 border-blue transition-all" onclick="switchSectionsTab('active')">
+            Active Sections (<span id="activeSectionCount">0</span>)
+        </button>
+        <button id="archivedSectionsTab" class="px-4 py-2 font-semibold text-[13px] text-text-muted hover:text-text-primary transition-all" onclick="switchSectionsTab('archived')">
+            Archived (<span id="archivedSectionCount">0</span>)
+        </button>
+    </div>
+    <!-- Archived sections view -->
+    <div id="archivedSectionsView" class="hidden">
+        <div id="archivedSectionsContainer"></div>
+        <div class="mt-4 text-sm text-text-muted">Showing <span id="archivedSectionCountDisplay" class="font-semibold text-text-primary">0</span> archived sections</div>
+    </div>
+    <!-- Active sections view -->
+    <div id="activeSectionsView">
                 <div class="mb-4">
                     <input type="text" id="searchSections" placeholder="Search sections..."
                         class="w-full px-4 py-2.5 border border-border rounded-lg focus:ring-2 focus:ring-blue/20 focus:border-blue bg-surface text-sm transition-all"
@@ -394,7 +432,7 @@
                 <div class="mobile-sections-container" id="mobileSectionsContainer" style="display:none;"></div>
                 <div class="mt-4 text-sm text-text-muted">Showing <span id="sectionCount" class="font-semibold text-text-primary">0</span> sections</div>
             </div>
-
+            </div>
             <!-- Student List -->
             <div class="bg-white rounded-2xl shadow-sm border border-border p-6 mb-7">
                 <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-3">
@@ -965,15 +1003,22 @@
             // ── Primary: indexed email query ────────────────────────
             let sectionDocs = [];
             const directSnap = await getDocs(query(collection(db,'sections'), where('professorEmail','==',profEmail)));
-            directSnap.forEach(d => sectionDocs.push({ id:d.id, ...d.data() }));
+            directSnap.forEach(d => { if (!d.data().removedByProfessor) sectionDocs.push({ id:d.id, ...d.data() }); });
 
             // ── Fallback: name-based scan (legacy records) ──────────
             if (sectionDocs.length === 0) {
                 sectionDocs = await _fallbackSectionScan(profEmail);
             }
 
-            sections = sectionDocs.map(_normaliseSection);
+            const allDocs = sectionDocs.map(_normaliseSection);
+            archivedSections = allDocs.filter(s => s.archived);
+            sections = allDocs.filter(s => !s.archived);
             filteredSections = [...sections];
+
+            // Update counts
+            document.getElementById('activeSectionCount').textContent = sections.length;
+            document.getElementById('archivedSectionCount').textContent = archivedSections.length;
+            document.getElementById('archivedCount').textContent = archivedSections.length;
 
             document.getElementById('sectionCount').textContent = sections.length;
 
@@ -993,6 +1038,7 @@
         if (data.time && data.day && data.room) schedule = `${data.time} / ${data.day} / ${data.room}`;
         else if (data.schedule) schedule = data.schedule;
         return {
+            archived:    data.archived || false,
             id:          data.id,
             name:        data.name        || 'Unnamed Section',
             yearLevel:   data.yearLevel   || extractYearLevel(data.name),
@@ -1031,7 +1077,7 @@
             let match = dbEmail && dbEmail === profEmail;
             if (!match) { for (const v of nameVariations) { if (v.length >= 3 && (dbProf === v || dbProf.includes(v) || v.includes(dbProf))) { match=true; break; } } }
             if (!match) { const words = dbProf.split(/[\s,\.]+/).filter(w => w.length >= 3); match = words.some(w => nameTokens.has(w)); }
-            if (match) matched.push({ id:d.id, ...data });
+            if (match && !data.removedByProfessor) matched.push({ id:d.id, ...data });
         });
         return matched;
     }
@@ -1356,13 +1402,150 @@ function setupRealtimeUpdates() {
                 <td><span style="font-family:monospace;background:#f4f6fa;padding:4px 8px;border-radius:4px;">${esc(s.courseCode||'N/A')}</span></td>
                 <td>${sched}</td>
                 <td><strong style="color:#0a1628;">${esc(s.createdYear)}</strong></td>
-                <td><button class="btn-action btn-view" onclick="viewSectionDetails('${s.id}')"><i class="fas fa-eye"></i> View</button></td>
-            </tr>`;
+<td>
+    <div style="display:flex;align-items:center;gap:6px;">
+        <button class="btn-action btn-view" onclick="viewSectionDetails('${s.id}')"><i class="fas fa-eye"></i> View</button>
+        <div class="dots-menu-wrapper">
+            <button class="dots-btn" onclick="toggleDotsMenu(event,'dotsmenu_${s.id}')">⋮</button>
+            <div class="dots-dropdown hidden" id="dotsmenu_${s.id}">
+            <div class="dots-item archive-item" onclick="archiveSection('${s.id}','${esc(s.name)}')"><i class="fas fa-archive"></i> Archive</div>
+            <div class="dots-item danger" onclick="removeSection('${s.id}','${esc(s.name)}')"><i class="fas fa-trash-alt"></i> Remove</div>
+        </div>
+        </div>
+    </div>
+</td>            </tr>`;
         }).join('');
         updateResponsiveViews();
     }
-
     // ═══════════════════════════════════════════════════════════════
+//  ARCHIVE / UNARCHIVE
+// ═══════════════════════════════════════════════════════════════
+let archivedSections = [];
+
+window.toggleDotsMenu = function(event, menuId) {
+    event.stopPropagation();
+    // Close all other menus
+    document.querySelectorAll('.dots-dropdown').forEach(m => {
+        if (m.id !== menuId) m.classList.add('hidden');
+    });
+    document.getElementById(menuId)?.classList.toggle('hidden');
+};
+document.addEventListener('click', () => {
+    document.querySelectorAll('.dots-dropdown').forEach(m => m.classList.add('hidden'));
+});
+
+window.archiveSection = function(sectionId, sectionName) {
+    window.showConfirmModal(
+        `Archive "${sectionName}"? Students can still access the system but won't see any scheduled tests from this section. Only you can restore it.`,
+        async () => {
+            try {
+                await updateDoc(doc(db, 'sections', sectionId), {
+                    archived: true,
+                    archivedAt: serverTimestamp(),
+                    archivedBy: currentUser.email
+                });
+                window.showSuccessModal(`"${sectionName}" has been archived.`);
+                await loadSections();
+                await window.loadStudents();
+                await window.loadOverdueStudents();
+            } catch(err) { window.showErrorModal('Error: ' + err.message); }
+        }
+    );
+};
+
+window.unarchiveSection = function(sectionId, sectionName) {
+    window.showConfirmModal(
+        `Restore "${sectionName}"? It will become visible again everywhere.`,
+        async () => {
+            try {
+                await updateDoc(doc(db, 'sections', sectionId), {
+                    archived: false,
+                    archivedAt: null,
+                    archivedBy: null
+                });
+                await loadSections();
+                await window.loadStudents();
+                await window.loadOverdueStudents();
+                // Switch back to active tab so the restored section is immediately visible
+                window.switchSectionsTab('active');
+                window.showSuccessModal(`"${sectionName}" has been restored successfully.`);
+            } catch(err) { window.showErrorModal('Error: ' + err.message); }
+        }
+    );
+};
+                window.removeSection = function(sectionId, sectionName) {
+    window.showConfirmModal(
+        `⚠️ Remove "${sectionName}" from your portal? The section stays in the system — the secretary can still see it. This cannot be undone by you.`,
+        async () => {
+            try {
+                await updateDoc(doc(db, 'sections', sectionId), {
+                    removedByProfessor: true,
+                    removedByProfessorEmail: currentUser.email,
+                    removedByProfessorAt: serverTimestamp()
+                });
+                window.showSuccessModal(`"${sectionName}" has been removed from your portal.`);
+                await loadSections();
+                await window.loadStudents();
+                await window.loadOverdueStudents();
+            } catch(err) { window.showErrorModal('Error: ' + err.message); }
+        }
+    );
+};
+window.switchSectionsTab = function(tab) {
+    const activeTab     = document.getElementById('activeSectionsTab');
+    const archivedTab   = document.getElementById('archivedSectionsTab');
+    const activeView    = document.getElementById('activeSectionsView');
+    const archivedView  = document.getElementById('archivedSectionsView');
+
+    if (tab === 'archived') {
+        activeTab.className    = 'px-4 py-2 font-semibold text-[13px] text-text-muted hover:text-text-primary transition-all';
+        archivedTab.className  = 'px-4 py-2 font-semibold text-[13px] text-blue border-b-2 border-blue transition-all';
+        activeView.classList.add('hidden');
+        archivedView.classList.remove('hidden');
+        renderArchivedSections();
+    } else {
+        activeTab.className    = 'px-4 py-2 font-semibold text-[13px] text-blue border-b-2 border-blue transition-all';
+        archivedTab.className  = 'px-4 py-2 font-semibold text-[13px] text-text-muted hover:text-text-primary transition-all';
+        archivedView.classList.add('hidden');
+        activeView.classList.remove('hidden');
+    }
+};
+
+function renderArchivedSections() {
+    const container = document.getElementById('archivedSectionsContainer');
+    document.getElementById('archivedSectionCountDisplay').textContent = archivedSections.length;
+    if (!archivedSections.length) {
+        container.innerHTML = `<div class="empty-state"><div class="empty-icon">📦</div><div class="font-semibold text-gray-700 mb-1">No Archived Sections</div><div class="text-gray-500 text-sm">Archived sections will appear here.</div></div>`;
+        return;
+    }
+    container.innerHTML = archivedSections.map(s => `
+        <div class="archived-section-card">
+            <div class="archived-section-card-row">
+                <span class="font-bold text-navy text-sm">${esc(s.name)}</span>
+                <span class="text-xs text-warning font-semibold bg-warning-bg px-2 py-0.5 rounded-full">📦 Archived</span>
+            </div>
+            <div class="archived-section-card-row">
+                <span class="text-xs text-text-muted">Year Level</span>
+                <span class="text-sm font-medium">${esc(s.yearLevel || 'N/A')}</span>
+            </div>
+            <div class="archived-section-card-row">
+                <span class="text-xs text-text-muted">Students</span>
+                <span class="text-sm font-medium">${s.studentCount}</span>
+            </div>
+            <div class="archived-section-card-row">
+                <span class="text-xs text-text-muted">Course Code</span>
+                <span class="text-sm font-medium">${esc(s.courseCode || 'N/A')}</span>
+            </div>
+            <div class="archived-section-card-row" style="border-bottom:none;padding-bottom:0;margin-bottom:0;">
+                <span></span>
+                <button class="btn-action unarchive-item" style="background:#d4f0e6;color:#0e8a5f;border:1px solid #a7f3d0;" onclick="unarchiveSection('${s.id}','${esc(s.name)}')">
+                    <i class="fas fa-undo"></i> Restore
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+    // ═════════════    ══════════════════════════════════════════════════
     //  RENDER — STUDENTS TABLE
     // ═══════════════════════════════════════════════════════════════
     function updateStudentsTable(list) {
@@ -1462,7 +1645,16 @@ function setupRealtimeUpdates() {
                 <div class="section-card-row"><span class="section-card-label">Academic Year</span><span class="section-card-value">${esc(s.createdYear)}</span></div>
                 <div class="section-card-row" style="border-bottom:none;padding-bottom:0;margin-bottom:0;">
                     <span class="section-card-label">Actions</span>
-                    <span class="section-card-value"><button class="btn-action btn-view" onclick="viewSectionDetails('${s.id}')"><i class="fas fa-eye"></i> View</button></span>
+                    <span class="section-card-value" style="display:flex;align-items:center;gap:6px;justify-content:flex-end;">
+                        <button class="btn-action btn-view" onclick="viewSectionDetails('${s.id}')"><i class="fas fa-eye"></i> View</button>
+                        <div class="dots-menu-wrapper">
+                            <button class="dots-btn" onclick="toggleDotsMenu(event,'mobile_dotsmenu_${s.id}')">⋮</button>
+                            <div class="dots-dropdown hidden" id="mobile_dotsmenu_${s.id}">
+                                <div class="dots-item archive-item" onclick="archiveSection('${s.id}','${esc(s.name)}')"><i class="fas fa-archive"></i> Archive</div>
+                                <div class="dots-item danger" onclick="removeSection('${s.id}','${esc(s.name)}')"><i class="fas fa-trash-alt"></i> Remove</div>
+                            </div>
+                        </div>
+                    </span>
                 </div>
             </div>`;
         }).join('');
