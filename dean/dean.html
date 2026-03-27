@@ -2252,28 +2252,31 @@ async function loadStudentRankings() {
                 return db - da;
             });
             
-            // Create UNIQUE tests map (keep highest score per test type)
-            const uniqueTestMap = new Map();
-            studentTests.forEach(t => {
-                const testKey = t.testNameKey;
-                const existing = uniqueTestMap.get(testKey);
-                const currentScore = t.score || 0;
-                
-                if (!existing || currentScore > (existing.score || 0)) {
-                    uniqueTestMap.set(testKey, {
-                        name: t.testName,
-                        testKey: testKey,
-                        score: currentScore,
-                        type: (t.type || t.testType || '').toLowerCase(),
-                        date: t.submittedAt
-                    });
-                }
-            });
+   // Deduplicate by testId — keep highest-ranked attempt (mirrors modal + studentgrades.html)
+const NORM_RANK_MAP = { 'Excellent': 5, 'Good': 4, 'Average': 3, 'Below Average': 2, 'Poor': 1 };
+const uniqueTestMap = new Map();
+studentTests.forEach(t => {
+    const groupKey = t.testId || t.scheduledTestId || t.testName;
+    const currentRank = NORM_RANK_MAP[t.category] || (t.score || 0);
+    const existing = uniqueTestMap.get(groupKey);
+    const existingRank = existing ? (NORM_RANK_MAP[existing.category] || (existing.score || 0)) : -1;
+if (!existing || currentRank > existingRank) {
+        uniqueTestMap.set(groupKey, {
+            name: t.testName,
+            testKey: t.testNameKey,
+            score: t.score || 0,
+            category: t.category,
+            type: (t.type || t.testType || '').toLowerCase(),
+            date: t.submittedAt,
+            submittedAt: t.submittedAt
+        });
+    }
+});
             
             const uniqueTests = Array.from(uniqueTestMap.values());
-            data.uniqueTests = uniqueTests;
-            data.testsTaken = uniqueTests.length;
-            data.hasData = uniqueTests.length > 0;
+data.uniqueTests = uniqueTests;
+data.testsTaken = uniqueTests.length;
+data.hasData = uniqueTests.length > 0;
             
             // Calculate scores from UNIQUE tests only
             if (uniqueTests.length > 0) {
@@ -2348,13 +2351,12 @@ async function loadStudentRankings() {
         Object.values(stuData).forEach(d => {
             if (d.section && d.section !== 'N/A') studentSections.add(d.section);
         });
-
-        const withData = studentRankings.filter(s => s.hasData)
-            .sort((a, b) => {
-                if (b.testsTaken !== a.testsTaken) return b.testsTaken - a.testsTaken;
-                if (b.avgScore !== a.avgScore) return b.avgScore - a.avgScore;
-                return a.name.localeCompare(b.name);
-            });
+const withData = studentRankings.filter(s => s.hasData)
+.sort((a, b) => {
+        if (b.testsTaken !== a.testsTaken) return b.testsTaken - a.testsTaken;
+        if (b.avgScore !== a.avgScore) return b.avgScore - a.avgScore;
+        return a.name.localeCompare(b.name);
+    });
         const withoutData = studentRankings.filter(s => !s.hasData)
             .sort((a, b) => a.name.localeCompare(b.name));
         studentRankings = [...withData, ...withoutData];
@@ -2476,17 +2478,15 @@ tbody.innerHTML = filteredStudentRankings.map(s => {
 
     // Top student = rank #1 in the table (same sort as renderStudentRankingTable)
     // Sort: most tests first, then highest avgScore, then alphabetical
-    const sorted = [...withData].sort((a, b) => {
-        if (b.testsTaken !== a.testsTaken) return b.testsTaken - a.testsTaken;
-        if (b.avgScore !== a.avgScore) return b.avgScore - a.avgScore;
-        return a.name.localeCompare(b.name);
-    });
-
+const sorted = [...withData].sort((a, b) => {
+    if (b.testsTaken !== a.testsTaken) return b.testsTaken - a.testsTaken;
+    if (b.avgScore !== a.avgScore) return b.avgScore - a.avgScore;
+    return a.name.localeCompare(b.name);
+});
     if (sorted.length > 0) {
         const top = sorted[0];
         document.getElementById('topStudentName').textContent = top.name;
         const rt = getScoreRating(top.avgScore);
-        document.getElementById('topStudentScore').textContent = rt.text + ' — ' + top.testsTaken + ' test' + (top.testsTaken !== 1 ? 's' : '');
     } else {
         document.getElementById('topStudentName').textContent = '—';
         document.getElementById('topStudentScore').textContent = 'No data yet';
@@ -2499,7 +2499,7 @@ tbody.innerHTML = filteredStudentRankings.map(s => {
     window.exportStudentRankingReport = function() {
         if(!filteredStudentRankings.length) { showAlert('studentRankingAlert','No data to export.','error'); return; }
         let csv="Rank,Student Name,Section,Student ID,Tests Taken,BMI Avg (Pre),Post-Test Avg,Improvement,Performance,Rating\n";
-        filteredStudentRankings.forEach((s,i)=>csv+=`${i+1},${s.name},${s.section},${s.id},${s.testsTaken},${s.bmiAvg?s.bmiAvg.toFixed(2):'N/A'},${s.postTestAvg},${s.improvement},${s.avgScore},${getScoreRating(s.avgScore).text}\n`);
+document.getElementById('topStudentScore').textContent = rt.text + ' — ' + top.testsTaken + ' test' + (top.testsTaken !== 1 ? 's' : '');
         downloadCSV(csv,`student_rankings_${new Date().toISOString().split('T')[0]}.csv`);
         showAlert('studentRankingAlert','Report exported!','success');
     };
@@ -2779,13 +2779,15 @@ const normRanks = dedupedTests.map(t => NORM_RANK_MAP[t.normCategory] ?? 3).filt
     });
 
     // Attempt counter per testName (for Attempt N label)
-    const attemptCounter = {};
+ const attemptCounter = {};
 
-    const testRows = sortedTests.length ? sortedTests.map(t => {
-        const testName = t.testName || 'Unknown';
-        if (!attemptCounter[testName]) attemptCounter[testName] = 0;
-        attemptCounter[testName]++;
-        const attemptNum = attemptCounter[testName];
+const testRows = sortedTests.length ? sortedTests.map(t => {
+    const testName = t.testName || 'Unknown';
+    // Group by the scheduled test's doc ID so attempts are per-assignment, not per-name.
+    const attemptKey = t.testId || t.scheduledTestId || t.testName;
+    if (!attemptCounter[attemptKey]) attemptCounter[attemptKey] = 0;
+    attemptCounter[attemptKey]++;
+    const attemptNum = attemptCounter[attemptKey];
 
         const normCat = getNormCatForTest(t);
         const normCls = normCat === 'Excellent' ? 'score-excellent'
@@ -2859,7 +2861,7 @@ const normRanks = dedupedTests.map(t => NORM_RANK_MAP[t.normCategory] ?? 3).filt
             <div class="detail-block"><div class="detail-block-label">Full Name</div><div class="detail-block-val">${s.name}</div></div>
             <div class="detail-block"><div class="detail-block-label">Student ID</div><div class="detail-block-val" style="font-family:'DM Mono',monospace;font-size:13px;">${s.id}</div></div>
             <div class="detail-block"><div class="detail-block-label">Section</div><div class="detail-block-val">${s.section}</div></div>
-            <div class="detail-block"><div class="detail-block-label">Tests Taken</div><div class="detail-block-val">${rawTests.length || s.testsTaken || 0}</div></div>
+<div class="detail-block"><div class="detail-block-label">Tests Taken</div><div class="detail-block-val">${s.testsTaken || 0}</div></div>
             <div class="detail-block">
                 <div class="detail-block-label">Overall Performance</div>
                 <div class="detail-block-val">
@@ -2879,7 +2881,7 @@ const normRanks = dedupedTests.map(t => NORM_RANK_MAP[t.normCategory] ?? 3).filt
         </div>
         <div style="font-size:15px;font-weight:700;color:#0a1628;margin-bottom:12px;display:flex;align-items:center;gap:8px;">
             <div style="width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,#1e4d8c,#2d6fc4);display:flex;align-items:center;justify-content:center;color:white;font-size:12px;"><i class="fas fa-history"></i></div>
-            Recent Test Results (${dedupedTests.length} unique test${dedupedTests.length !== 1 ? 's' : ''}, ${rawTests.length} total attempt${rawTests.length !== 1 ? 's' : ''})
+Recent Test Results (${rawTests.length} test${rawTests.length !== 1 ? 's' : ''})
         </div>
         <div class="overflow-x-auto">
             <table class="custom-table">
