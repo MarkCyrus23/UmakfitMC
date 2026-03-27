@@ -558,6 +558,11 @@
                     <i class="fas fa-clipboard-list"></i> All Tests
                     <span id="testsBadge" style="display:none; position:absolute; top:-6px; right:-6px; background:#b07e16; color:white; font-size:10px; font-weight:700; min-width:18px; height:18px; padding:0 4px; border-radius:999px; align-items:center; justify-content:center; line-height:1; border:2px solid white; box-shadow:0 1px 4px rgba(0,0,0,0.18);">0</span>
                 </button>
+                 <button id="tabActivityBtn" onclick="window.switchTab('activity')" class="tab-btn flex items-center gap-2 px-5 py-2.5 rounded-lg text-[13px] font-semibold text-text-secondary transition-all">
+
+            <i class="fas fa-sign-in-alt"></i> Activity Log
+
+        </button>
             </div>
 
             <!-- Overview Tab -->
@@ -622,7 +627,54 @@
                     </div>
                 </div>
             </div>
-
+<div id="activityTab" style="display:none;">
+  <div class="bg-white rounded-2xl border border-border shadow-sm p-6">
+    <div class="flex flex-wrap items-center justify-between gap-4 mb-5">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-purple to-[#4c1d95]
+             flex items-center justify-center text-white text-[13px]">
+          <i class="fas fa-clock"></i>
+        </div>
+        <span class="text-[15px] font-semibold text-navy">Student Last Login Activity</span>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        <select id="activitySectionFilter" onchange="window.applyActivityFilters()"
+          class="px-3 py-2 border border-border rounded-lg text-[13px] font-medium
+                 text-text-primary bg-surface cursor-pointer focus:outline-none focus:border-blue">
+          <option value="">All Sections</option>
+        </select>
+        <select id="activitySortBy" onchange="window.applyActivityFilters()"
+          class="px-3 py-2 border border-border rounded-lg text-[13px] font-medium
+                 text-text-primary bg-surface cursor-pointer focus:outline-none focus:border-blue">
+          <option value="recent">Most Recent First</option>
+          <option value="oldest">Oldest First</option>
+          <option value="name">Name A–Z</option>
+          <option value="section">By Section</option>
+        </select>
+        <div class="relative">
+          <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-xs"></i>
+          <input type="text" id="activitySearch" placeholder="Search student..."
+            oninput="window.applyActivityFilters()"
+            class="pl-8 pr-3 py-2 border border-border rounded-lg text-[13px]
+                   focus:outline-none focus:border-blue w-[180px]">
+        </div>
+        <button onclick="window.refreshActivity()"
+          class="inline-flex items-center gap-1.5 px-3 py-2 bg-gradient-to-br
+                 from-purple to-[#4c1d95] text-white rounded-lg text-[13px]
+                 font-semibold hover:-translate-y-px hover:shadow-lg transition-all">
+          <i class="fas fa-sync-alt text-xs"></i> Refresh
+        </button>
+      </div>
+    </div>
+    <div id="activitySummaryRow" class="grid grid-cols-3 gap-3 mb-5"></div>
+    <div id="activityTableWrap">
+      <div class="flex items-center justify-center py-10 gap-3 text-text-muted">
+        <div class="spinner-sm"></div>
+        <span class="text-sm">Loading activity data...</span>
+      </div>
+    </div>
+  </div>
+</div>
         </div>
 
         <!-- Footer -->
@@ -731,17 +783,20 @@
     window.closeConfirmModal = () => document.getElementById('confirmModal').classList.remove('open');
 
     // ─── TABS ───
-    window.switchTab = function(tab) {
-        const isOverview = tab === 'overview';
-        document.getElementById('overviewTab').style.display = isOverview ? 'block' : 'none';
-        document.getElementById('testsTab').style.display    = isOverview ? 'none'  : 'block';
-        document.getElementById('tabOverviewBtn').classList.toggle('active', isOverview);
-        document.getElementById('tabTestsBtn').classList.toggle('active', !isOverview);
-        if (!isOverview && window._populateTestFilters && window._renderAllTests) {
-            window._populateTestFilters();
-            window._renderAllTests();
-        }
-    };
+window.switchTab = function(tab) {
+    const isOverview = tab === 'overview';
+    const isTests    = tab === 'tests';
+    const isActivity = tab === 'activity';
+    document.getElementById('overviewTab').style.display  = isOverview  ? 'block' : 'none';
+    document.getElementById('testsTab').style.display     = isTests     ? 'block' : 'none';
+    document.getElementById('activityTab').style.display  = isActivity  ? 'block' : 'none';
+    document.getElementById('tabOverviewBtn').classList.toggle('active', isOverview);
+    document.getElementById('tabTestsBtn').classList.toggle('active', isTests);
+    document.getElementById('tabActivityBtn').classList.toggle('active', isActivity);
+    if (isTests && window._populateTestFilters && window._renderAllTests) {
+        window._populateTestFilters(); window._renderAllTests();
+    }
+if (isActivity && window.loadActivityTab) window.loadActivityTab();};
 
     // ─── TOAST ───
     let toastTimer = null;
@@ -1555,6 +1610,161 @@
         filterSection = filterName = filterStatus = filterDate = '';
         renderAllTests();
     };
+    // ── ACTIVITY TAB ──────────────────────────────────────────
+let _activityData = [];
+let _activityFiltered = [];
+
+window.loadActivityTab = async function loadActivityTab() {
+        const wrap = document.getElementById('activityTableWrap');
+    wrap.innerHTML = `<div class="flex items-center justify-center py-10 gap-3 text-text-muted">
+        <div class="spinner-sm"></div><span class="text-sm">Loading...</span></div>`;
+
+    const myEmails = new Set(allStudents.map(s => s.email || s.uniqueId).filter(Boolean));
+    const secFilter = document.getElementById('activitySectionFilter');
+
+    // Populate section dropdown (once)
+    if (secFilter.options.length <= 1) {
+        [...new Set(allStudents.map(s => s.section).filter(Boolean))].sort()
+            .forEach(s => { const o = document.createElement('option'); o.value = s; o.textContent = s; secFilter.appendChild(o); });
+    }
+
+  // Fetch lastLogin from students collection — batch query by email
+    _activityData = [];
+    const emailList = allStudents.map(s => s.email || s.uniqueId).filter(Boolean);
+    const firestoreLoginMap = new Map();
+    const emailChunks = [];
+    for (let i = 0; i < emailList.length; i += 10) emailChunks.push(emailList.slice(i, i + 10));
+    await Promise.all(emailChunks.map(chunk =>
+        getDocs(query(collection(db, 'students'), where('email', 'in', chunk)))
+            .then(snap => snap.forEach(d => {
+                const data = d.data();
+                if (data.email) firestoreLoginMap.set(data.email, data.lastLogin || null);
+            }))
+            .catch(e => console.error('activity fetch error:', e))
+    ));
+    allStudents.forEach(student => {
+        const email = student.email || student.uniqueId || '';
+        if (!email) return;
+        const raw = firestoreLoginMap.get(email) || student.lastLogin || null;
+        let lastLogin = null;
+        if (raw) {
+            try { lastLogin = raw.toDate ? raw.toDate() : new Date(raw); if (isNaN(lastLogin)) lastLogin = null; } catch(_) {}
+        }
+        _activityData.push({
+            name:     student.name || email.split('@')[0],
+            email,
+            section:  student.section || '—',
+            lastLogin
+        });
+    });
+
+    applyActivityFilters();
+}
+
+window.applyActivityFilters = function() {
+    const sec    = document.getElementById('activitySectionFilter')?.value || '';
+    const sort   = document.getElementById('activitySortBy')?.value || 'recent';
+    const search = (document.getElementById('activitySearch')?.value || '').toLowerCase();
+
+    _activityFiltered = _activityData
+        .filter(s => (!sec || s.section === sec) && (!search || s.name.toLowerCase().includes(search) || s.email.toLowerCase().includes(search)));
+
+    _activityFiltered.sort((a, b) => {
+        if (sort === 'name')    return a.name.localeCompare(b.name);
+        if (sort === 'section') return a.section.localeCompare(b.section);
+        const ta = a.lastLogin?.getTime() || 0;
+        const tb = b.lastLogin?.getTime() || 0;
+        return sort === 'oldest' ? ta - tb : tb - ta;
+    });
+
+    renderActivityTable();
+};
+
+function renderActivityTable() {
+    const now   = new Date();
+    const total = _activityFiltered.length;
+    const active24 = _activityFiltered.filter(s => s.lastLogin && (now - s.lastLogin) < 86400000).length;
+    const never    = _activityFiltered.filter(s => !s.lastLogin).length;
+
+    // Summary row
+    document.getElementById('activitySummaryRow').innerHTML = `
+    <div class="bg-gradient-to-br from-purple to-[#4c1d95] rounded-xl p-4 text-white text-center">
+        <div class="text-2xl font-bold font-mono">${total}</div>
+        <div class="text-[11px] opacity-60 mt-1 uppercase tracking-wide">Students shown</div>
+    </div>
+    <div class="bg-gradient-to-br from-success to-[#0a6646] rounded-xl p-4 text-white text-center">
+        <div class="text-2xl font-bold font-mono">${active24}</div>
+        <div class="text-[11px] opacity-60 mt-1 uppercase tracking-wide">Active last 24h</div>
+    </div>
+    <div class="bg-gradient-to-br from-danger to-[#922b21] rounded-xl p-4 text-white text-center">
+        <div class="text-2xl font-bold font-mono">${never}</div>
+        <div class="text-[11px] opacity-60 mt-1 uppercase tracking-wide">Never logged in</div>
+    </div>`;
+
+    if (!_activityFiltered.length) {
+        document.getElementById('activityTableWrap').innerHTML =
+            `<div class="text-center py-10 text-text-muted">
+                <i class="fas fa-user-clock text-3xl mb-2 opacity-40"></i>
+                <div class="text-sm">No students match your filters</div>
+            </div>`;
+        return;
+    }
+
+    const rows = _activityFiltered.map(s => {
+        let badge, dateStr = '—';
+        if (!s.lastLogin) {
+            badge = `<span style="display:inline-flex;align-items:center;gap:3px;background:#fce8e6;color:#c0392b;
+                       font-size:10px;font-weight:700;padding:3px 9px;border-radius:99px;border:1px solid rgba(192,57,43,0.2);">
+                       <i class="fas fa-times" style="font-size:9px;"></i> Never</span>`;
+        } else {
+            const diff = now - s.lastLogin;
+            const mins  = Math.floor(diff / 60000);
+            const hours = Math.floor(diff / 3600000);
+            const days  = Math.floor(diff / 86400000);
+            dateStr = s.lastLogin.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) +
+                      ' ' + s.lastLogin.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+            if (diff < 300000)          badge = `<span style="display:inline-flex;align-items:center;gap:3px;background:#d4f0e6;color:#0e8a5f;font-size:10px;font-weight:700;padding:3px 9px;border-radius:99px;border:1px solid rgba(14,138,95,0.2);"><i class="fas fa-circle" style="font-size:7px;"></i> Online</span>`;
+            else if (diff < 3600000)   badge = `<span style="display:inline-flex;align-items:center;gap:3px;background:#d4f0e6;color:#0e8a5f;font-size:10px;font-weight:700;padding:3px 9px;border-radius:99px;">${mins}m ago</span>`;
+            else if (diff < 86400000)  badge = `<span style="display:inline-flex;align-items:center;gap:3px;background:#d6eaf8;color:#1a6fa8;font-size:10px;font-weight:700;padding:3px 9px;border-radius:99px;">${hours}h ago</span>`;
+            else if (diff < 604800000) badge = `<span style="display:inline-flex;align-items:center;gap:3px;background:#fef3d4;color:#b07e16;font-size:10px;font-weight:700;padding:3px 9px;border-radius:99px;">${days}d ago</span>`;
+            else                        badge = `<span style="display:inline-flex;align-items:center;gap:3px;background:#fce8e6;color:#c0392b;font-size:10px;font-weight:700;padding:3px 9px;border-radius:99px;">${days}d ago</span>`;
+        }
+        const init = esc(s.name).charAt(0).toUpperCase();
+        return `<tr class="border-b border-border hover:bg-surface transition-all">
+            <td class="py-3 px-4">
+                <div class="flex items-center gap-3">
+                    <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#1e4d8c,#2d6fc4);
+                        display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:12px;flex-shrink:0;">${init}</div>
+                    <div><div class="text-[13px] font-semibold text-navy">${esc(s.name)}</div>
+                        <div class="text-[11px] text-text-muted">${esc(s.email)}</div></div>
+                </div>
+            </td>
+            <td class="py-3 px-4">
+                <span class="inline-block bg-info-bg text-blue text-[11px] font-semibold px-2 py-0.5 rounded">${esc(s.section)}</span>
+            </td>
+<td class="py-3 px-4 text-[12px] text-text-secondary font-mono">${dateStr}</td>
+        </tr>`;
+    }).join('');
+
+    document.getElementById('activityTableWrap').innerHTML = `
+        <div class="overflow-x-auto rounded-xl border border-border">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-surface border-b border-border">
+                   <th class="py-2.5 px-4 text-[12px] font-semibold text-text-secondary">Student</th>
+                    <th class="py-2.5 px-4 text-[12px] font-semibold text-text-secondary">Section</th>
+                    <th class="py-2.5 px-4 text-[12px] font-semibold text-text-secondary">Last Login</th>
+                </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+        </table></div>`;
+}
+
+window.refreshActivity = async function() {
+    _activityData = []; _activityFiltered = [];
+    await loadActivityTab();
+    window.showToast('Done', 'Activity data refreshed', 'success');
+};
 
     // ─────────────────────────────────────────────────────────────────
     //  TEST DETAIL MODAL

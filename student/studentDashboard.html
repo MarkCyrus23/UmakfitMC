@@ -927,13 +927,21 @@
             };
 
             // Update hero immediately with basic info
-            document.getElementById('studentName').textContent = studentData.displayName;
-            document.getElementById('studentCourse').textContent = studentData.course;
-            document.getElementById('studentSection').textContent = studentData.section;
-            document.getElementById('studentId').textContent = studentData.studentId;
-            updateProfileUI();
-            if (!rawStudent) showProfileIncompleteNotification();
+// Update hero immediately with basic info
+document.getElementById('studentName').textContent = studentData.displayName;
+document.getElementById('studentCourse').textContent = studentData.course;
+document.getElementById('studentSection').textContent = studentData.section;
+document.getElementById('studentId').textContent = studentData.studentId;
+updateProfileUI();
+if (!rawStudent) showProfileIncompleteNotification();
 
+// Update last login (fire-and-forget)
+if (rawStudent?._ref) {
+    updateDoc(rawStudent._ref, {
+        previousLogin: rawStudent.lastLogin || new Date().toISOString(),
+        lastLogin: new Date().toISOString()
+    }).catch(() => {});
+}
             // Phase 2: Fetch all data in parallel
             const [testResults, scheduledTests, notifications, sectionStudents] = await Promise.all([
                 fetchAllTestResults(studentData.email),

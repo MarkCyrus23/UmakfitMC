@@ -456,7 +456,7 @@
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-        import { getFirestore, collection, query, where, getDocs, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { getFirestore, collection, query, where, getDocs, onSnapshot, doc, updateDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
         const firebaseConfig = {
             apiKey: "AIzaSyAgaLunqEf2gs6dSpF_sz1hV5XQ5Wm52jo",
@@ -704,14 +704,26 @@
 
         // ========== STUDENT DATA ==========
 
-        async function loadStudentData(user) {
-            try {
-                const snap = await getDocs(query(collection(db,'students'), where('email','==',user.email)));
-                if (!snap.empty) snap.forEach(d => { studentData = d.data(); });
-                return studentData;
-            } catch(e){ console.error(e); return null; }
+async function loadStudentData(user) {
+    try {
+        const snap = await getDocs(query(collection(db,'students'), where('email','==',user.email)));
+        if (!snap.empty) {
+            snap.forEach(d => {
+                studentData = d.data();
+                updateLastLogin(d.id);
+            });
         }
-
+        return studentData;
+    } catch(e){ console.error(e); return null; }
+}
+async function updateLastLogin(docId) {
+    try {
+        await updateDoc(doc(db, 'students', docId), {
+            previousLogin: studentData?.lastLogin || new Date().toISOString(),
+            lastLogin: new Date().toISOString()
+        });
+    } catch(e) { console.error('updateLastLogin error:', e); }
+}
         // ========== LESSONS ==========
 
         function renderLessonCard(lesson) {
