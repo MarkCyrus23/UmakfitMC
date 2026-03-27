@@ -963,40 +963,50 @@
  // Replace the processAndUpdateStats function with this updated version
 async function processAndUpdateStats(testResults) {
     try {
-        const seenTestIds = new Set();
-        const uniqueResults = [];
-        testResults.forEach(r => {
-            if (!seenTestIds.has(r.testId || r.id)) {
-                seenTestIds.add(r.testId || r.id);
-                uniqueResults.push(r);
+        // Deduplicate: keep only the best-performing attempt per testId (matches studentgrades.html logic)
+        const testGroups = {};
+        for (const result of testResults) {
+            const testId = result.testId || result.scheduledTestId || result.testName;
+            const normCat = await getNormCategoryWithPriority(result.testName, result.result ?? result.resultData, result.testId);
+            const rank = normCat ? (NORM_RANKS[normCat] ?? 3) : 0;
+            const dateObj = result.submittedAt?.toDate?.() || (result.submittedAt ? new Date(result.submittedAt) : new Date(0));
+
+            if (!testGroups[testId]) {
+                testGroups[testId] = { result, normCat, rank, dateObj };
+            } else {
+                const existingRank = testGroups[testId].rank;
+                if (rank > existingRank || (rank === existingRank && dateObj > testGroups[testId].dateObj)) {
+                    testGroups[testId] = { result, normCat, rank, dateObj };
+                }
             }
-        });
+        }
 
-        // Batch norm lookups in parallel
-        const normCats = await batchGetNormCategories(uniqueResults);
+        const uniqueResults = Object.values(testGroups);
+        const allRanks = uniqueResults.map(r => r.rank).filter(r => r > 0);
 
-        const categoryScores = { 'Excellent':5, 'Good':4, 'Average':3, 'Below Average':2, 'Poor':1 };
-        let totalScore = 0, bestCategory = '--', bestScore = 0;
-
-        normCats.forEach(cat => {
-            if (!cat) return;
-            const s = categoryScores[cat] || 3;
-            totalScore += s;
-            if (s > bestScore) { bestScore = s; bestCategory = cat; }
-        });
-
-        const validCount = normCats.filter(Boolean).length;
-        const avgScore = validCount > 0 ? (totalScore / validCount) : 0;
-        
-        // Convert numeric average to descriptive label
         let avgLabel = '--';
-        if (avgScore >= 4.5) avgLabel = 'Excellent';
-        else if (avgScore >= 3.5) avgLabel = 'Good';
-        else if (avgScore >= 2.5) avgLabel = 'Average';
-        else if (avgScore >= 1.5) avgLabel = 'Below Average';
-        else if (avgScore > 0) avgLabel = 'Poor';
+        let bestCategory = '--';
+        let bestRank = 0;
 
-        document.getElementById('testsDone').textContent = seenTestIds.size;
+        if (allRanks.length > 0) {
+            const avgRank = allRanks.reduce((a, b) => a + b, 0) / allRanks.length;
+
+            // rankToCategory logic matching studentgrades.html
+            if (avgRank >= 4.5) avgLabel = 'Excellent';
+            else if (avgRank >= 3.5) avgLabel = 'Good';
+            else if (avgRank >= 2.5) avgLabel = 'Average';
+            else if (avgRank >= 1.5) avgLabel = 'Below Average';
+            else avgLabel = 'Poor';
+
+            uniqueResults.forEach(r => {
+                if (r.rank > bestRank) {
+                    bestRank = r.rank;
+                    bestCategory = r.normCat || '--';
+                }
+            });
+        }
+
+        document.getElementById('testsDone').textContent = uniqueResults.length;
         document.getElementById('avgScore').textContent = avgLabel;
         document.getElementById('bestScore').textContent = bestCategory;
         document.getElementById('bestScoreTest')?.classList.add('hidden');
@@ -1067,80 +1077,104 @@ async function processAndUpdateStats(testResults) {
 
         // ========== CLASS RANKING (parallel norm lookups) ==========
 
-        async function calculateClassRanking(myResults, sectionStudents) {
-            try {
-                if (!studentData?.section || studentData.section === 'Not Assigned') {
-                    document.getElementById('classRanking').textContent = '--';
-                    document.getElementById('classRankingDetails').textContent = 'No section assigned';
-                    return;
-                }
-                if (sectionStudents.length === 0) {
-                    document.getElementById('classRanking').textContent = 'No Data';
-                    document.getElementById('classRankingDetails').textContent = 'No students found in section';
-                    return;
-                }
-
-                const CATEGORY_ORDER = { 'Excellent':5,'Good':4,'Average':3,'Below Average':2,'Poor':1 };
-                const emails = sectionStudents.map(s => s.email).filter(Boolean);
-
-                // Fetch results for all section students in chunks of 30 (Firestore 'in' limit)
-                const chunkSize = 30;
-                const allResultsSnap = [];
-                for (let i = 0; i < emails.length; i += chunkSize) {
-                    const chunk = emails.slice(i, i + chunkSize);
-                    try {
-                        const snap = await getDocs(query(
-                            collection(db, 'testResults'),
-                            where('studentEmail', 'in', chunk),
-                            where('status', '==', 'completed')
-                        ));
-                        snap.docs.forEach(d => allResultsSnap.push({ id: d.id, ...d.data() }));
-                    } catch (_) {}
-                }
-
-                // Group by student
-                const resultsByStudent = new Map();
-                allResultsSnap.forEach(r => {
-                    if (!resultsByStudent.has(r.studentEmail)) resultsByStudent.set(r.studentEmail, []);
-                    resultsByStudent.get(r.studentEmail).push(r);
-                });
-
-                // Process ALL students' norm lookups in parallel
-                const studentScorePromises = Array.from(resultsByStudent.entries()).map(async ([email, results]) => {
-                    // Batch norm lookups for this student
-                    const normCats = await batchGetNormCategories(results);
-                    const seenTests = new Set();
-                    let totalScore = 0, count = 0;
-                    results.forEach((r, i) => {
-                        const testKey = r.testId || r.id;
-                        const cat = normCats[i];
-                        if (!cat || seenTests.has(testKey)) return;
-                        seenTests.add(testKey);
-                        totalScore += CATEGORY_ORDER[cat] || 3;
-                        count++;
-                    });
-                    return { email, avgScore: count > 0 ? totalScore / count : 0 };
-                });
-
-                const studentAverages = await Promise.all(studentScorePromises);
-                studentAverages.sort((a, b) => b.avgScore - a.avgScore);
-
-                const myRank = studentAverages.findIndex(s => s.email === studentData.email) + 1;
-                const total = studentAverages.length;
-
-                if (myRank > 0) {
-                    document.getElementById('classRanking').textContent = `#${myRank} of ${total}`;
-                    const pct = Math.round(((total - myRank + 1) / total) * 100);
-                    document.getElementById('classRankingDetails').textContent = `Top ${pct}% in your section`;
-                } else {
-                    document.getElementById('classRanking').textContent = 'Not Ranked';
-                    document.getElementById('classRankingDetails').textContent = 'Complete tests to get ranked';
-                }
-            } catch (_) {
-                document.getElementById('classRanking').textContent = 'Error';
-                document.getElementById('classRankingDetails').textContent = 'Unable to calculate ranking';
+       async function calculateClassRanking(myResults, sectionStudents) {
+        try {
+            if (!studentData?.section || studentData.section === 'Not Assigned') {
+                document.getElementById('classRanking').textContent = '--';
+                document.getElementById('classRankingDetails').textContent = 'No section assigned';
+                return;
             }
+            if (sectionStudents.length === 0) {
+                document.getElementById('classRanking').textContent = 'No Data';
+                document.getElementById('classRankingDetails').textContent = 'No students found in section';
+                return;
+            }
+
+            const CATEGORY_ORDER = { 'Excellent': 5, 'Good': 4, 'Average': 3, 'Below Average': 2, 'Poor': 1 };
+
+            const emails = sectionStudents.map(s => s.email).filter(Boolean);
+            const chunkSize = 30;
+            const allResultsSnap = [];
+
+            for (let i = 0; i < emails.length; i += chunkSize) {
+                const chunk = emails.slice(i, i + chunkSize);
+                try {
+                    const snap = await getDocs(query(
+                        collection(db, 'testResults'),
+                        where('studentEmail', 'in', chunk),
+                        where('status', '==', 'completed')
+                    ));
+                    snap.docs.forEach(d => allResultsSnap.push({ id: d.id, ...d.data() }));
+                } catch (_) {}
+            }
+
+            // Group by student
+            const resultsByStudent = new Map();
+            allResultsSnap.forEach(r => {
+                if (!resultsByStudent.has(r.studentEmail)) resultsByStudent.set(r.studentEmail, []);
+                resultsByStudent.get(r.studentEmail).push(r);
+            });
+
+            // Ensure current student is included even if no results yet
+            if (!resultsByStudent.has(studentData.email)) {
+                resultsByStudent.set(studentData.email, []);
+            }
+
+            // Score each student using same logic as sectionranklist.html:
+            // deduplicate by best attempt per testId, then composite = categoryScore*0.6 + completionRate*0.4
+            const totalAssignedForSection = Math.max(
+                ...Array.from(resultsByStudent.values()).map(r => new Set(r.map(x => x.testId || x.id)).size),
+                1
+            );
+
+            const studentScorePromises = Array.from(resultsByStudent.entries()).map(async ([email, results]) => {
+                // Deduplicate: keep best attempt per testId (same as sectionranklist.html bestMap logic)
+                const bestMap = new Map();
+                const normCats = await batchGetNormCategories(results);
+
+                results.forEach((r, i) => {
+                    const groupKey = r.testId || r.scheduledTestId || r.testName || 'unknown';
+                    const cat = normCats[i];
+                    const catScore = CATEGORY_ORDER[cat] || 3;
+                    if (!bestMap.has(groupKey) || catScore > (CATEGORY_ORDER[bestMap.get(groupKey).cat] || 0)) {
+                        bestMap.set(groupKey, { cat, catScore });
+                    }
+                });
+
+                const uniqueResults = Array.from(bestMap.values());
+                const activitiesCount = uniqueResults.length;
+                const categoryScore = activitiesCount > 0
+                    ? uniqueResults.reduce((sum, r) => sum + r.catScore, 0) / activitiesCount
+                    : 0;
+
+                // Use same composite formula as sectionranklist.html
+                const completionRate = activitiesCount / totalAssignedForSection;
+                const compositeScore = (categoryScore / 5) * 0.6 + completionRate * 0.4;
+
+                return { email, compositeScore, activitiesCount };
+            });
+
+            const studentAverages = await Promise.all(studentScorePromises);
+
+            // Sort descending by composite score — same as sectionranklist.html
+            studentAverages.sort((a, b) => b.compositeScore - a.compositeScore);
+
+            const total = sectionStudents.length;
+            const myRank = studentAverages.findIndex(s => s.email === studentData.email) + 1;
+
+            if (myRank > 0) {
+                document.getElementById('classRanking').textContent = `#${myRank} of ${total}`;
+                const pct = Math.round(((total - myRank + 1) / total) * 100);
+                document.getElementById('classRankingDetails').textContent = `Top ${pct}% in your section`;
+            } else {
+                document.getElementById('classRanking').textContent = 'Not Ranked';
+                document.getElementById('classRankingDetails').textContent = 'Complete tests to get ranked';
+            }
+        } catch (_) {
+            document.getElementById('classRanking').textContent = 'Error';
+            document.getElementById('classRankingDetails').textContent = 'Unable to calculate ranking';
         }
+    }
 
         // ========== STRONGEST CATEGORY (parallel) ==========
 
@@ -1256,9 +1290,10 @@ async function processAndUpdateStats(testResults) {
                 const isStudentSelected = test.selectedStudents?.length ? test.selectedStudents.includes(studentData.email) : true;
                 let deadline = test.deadlineDateTime ? new Date(test.deadlineDateTime) : (() => { const dt = new Date(test.deadline); dt.setHours(23, 59, 59, 999); return dt; })();
                 if (deadline < now) return;
-                const s = testStatusMap.get(test.id);
+               const s = testStatusMap.get(test.id);
                 const isViewOnly = !isStudentSelected;
                 if (!s || s.attempts === 0) { upcoming.push({ ...test, isViewOnly }); }
+                else if (s.bestNorm === 'Excellent') { /* hide — already achieved Excellent */ }
                 else if (test.attemptsAllowed === 0 || s.attempts < test.attemptsAllowed) { upcoming.push({ ...test, isViewOnly }); }
             });
 

@@ -343,10 +343,10 @@
                             class="px-3.5 py-2 border border-border rounded-lg font-sans text-[13px] text-text-primary bg-surface cursor-pointer focus:outline-none focus:border-blue transition-all min-w-[180px]">
                             <option value="">All Sections</option>
                         </select>
+                        <!-- CHANGED: Removed "Lecture" option from the filter dropdown -->
                         <select id="lessonTypeFilter" onchange="filterLessons()"
                             class="px-3.5 py-2 border border-border rounded-lg font-sans text-[13px] text-text-primary bg-surface cursor-pointer focus:outline-none focus:border-blue transition-all">
                             <option value="all">All Types</option>
-                            <option value="lecture">Lecture</option>
                             <option value="reading">Reading Material</option>
                             <option value="video">Video Lesson</option>
                         </select>
@@ -442,11 +442,10 @@
                     </div>
                 </div>
 
-                <!-- Lesson Type -->
+                <!-- CHANGED: Lesson Type — removed "Lecture", only Reading Material and Video Lesson -->
                 <div class="mb-5">
                     <label class="form-label">Lesson Type</label>
-                    <select id="lessonType" class="form-input">
-                        <option value="lecture">Lecture</option>
+                    <select id="lessonType" class="form-input" onchange="handleLessonTypeChange()">
                         <option value="reading">Reading Material</option>
                         <option value="video">Video Lesson</option>
                     </select>
@@ -463,9 +462,9 @@
                     </div>
                 </div>
 
-                <!-- YouTube Video Link -->
-                <div class="mb-5">
-                    <label class="form-label">YouTube Video Link <span style="text-transform:none;letter-spacing:0;font-weight:400;color:#8a98ae;">(Optional — required if no file uploaded)</span></label>
+                <!-- CHANGED: YouTube Video Link — only shown when Video Lesson is selected -->
+                <div id="youtubeLinkSection" class="mb-5" style="display:none;">
+                    <label class="form-label">YouTube Video Link <span style="color:#c0392b;text-transform:none;letter-spacing:0;font-weight:400;">*</span></label>
                     <input type="url" id="youtubeLink" class="form-input" placeholder="https://www.youtube.com/watch?v=...">
                     <div class="text-[11px] text-text-muted mt-1.5">📹 Paste a full YouTube URL to embed a video in the lesson.</div>
                     <div id="youtubeLinkError" class="error-message hidden mt-1"><i class="fas fa-exclamation-circle"></i> <span></span></div>
@@ -476,7 +475,9 @@
                 <div class="grid grid-cols-2 gap-4 mb-5 max-[500px]:grid-cols-1">
                     <div>
                         <label class="form-label">Publish Date</label>
-                        <input type="date" id="publishDate" class="form-input">
+                        <input type="date" id="publishDate" class="form-input"
+                            onchange="clearFieldError('publishDate','publishDateError')">
+                        <div id="publishDateError" class="error-message hidden mt-1"><i class="fas fa-exclamation-circle"></i> <span></span></div>
                     </div>
                     <div>
                         <label class="form-label">Status</label>
@@ -487,9 +488,9 @@
                     </div>
                 </div>
 
-                <!-- Upload Files -->
-                <div class="mb-2">
-                    <label class="form-label">Upload Files <span style="text-transform:none;letter-spacing:0;font-weight:400;color:#8a98ae;">(Optional — required if no YouTube link)</span></label>
+                <!-- CHANGED: Upload Files — only shown when Reading Material is selected -->
+                <div id="uploadFilesSection" class="mb-2">
+                    <label class="form-label">Upload Files <span style="color:#c0392b;text-transform:none;letter-spacing:0;font-weight:400;">*</span></label>
                     <input type="file" id="lessonFiles" class="form-input" multiple accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png" style="padding:8px 14px;cursor:pointer;">
                     <div class="text-[11px] text-text-muted mt-1.5">📎 Supported: PDF, Word, PowerPoint, Images — max 50 MB per file.</div>
                     <div id="lessonFilesError" class="error-message hidden mt-1"><i class="fas fa-exclamation-circle"></i> <span></span></div>
@@ -565,14 +566,14 @@
         if(field) field.classList.remove('border-danger');
         if(errDiv) errDiv.classList.add('hidden');
     };
-    function clearAllErrors(){
-        ['lessonTitle','lessonSection','youtubeLink','lessonFiles'].forEach(id=>{
-            const el=document.getElementById(id);if(el)el.classList.remove('border-danger');
-        });
-        ['lessonTitleError','lessonSectionError','youtubeLinkError','lessonFilesError'].forEach(id=>{
-            const el=document.getElementById(id);if(el)el.classList.add('hidden');
-        });
-    }
+   function clearAllErrors(){
+    ['lessonTitle','lessonSection','youtubeLink','lessonFiles','publishDate'].forEach(id=>{
+        const el=document.getElementById(id);if(el)el.classList.remove('border-danger');
+    });
+    ['lessonTitleError','lessonSectionError','youtubeLinkError','lessonFilesError','publishDateError'].forEach(id=>{
+        const el=document.getElementById(id);if(el)el.classList.add('hidden');
+    });
+}
 
     function resetCharCounters(){
         [['titleCounter',1000],['descCounter',2000]].forEach(([id,max])=>{
@@ -610,6 +611,47 @@
     function formatFileSize(b){if(!b)return'0 B';const k=1024,s=['B','KB','MB','GB'],i=Math.floor(Math.log(b)/Math.log(k));return(b/Math.pow(k,i)).toFixed(1)+' '+s[i];}
     function getFileIcon(n){const e=(n||'').split('.').pop().toLowerCase();const m={pdf:'fas fa-file-pdf',doc:'fas fa-file-word',docx:'fas fa-file-word',ppt:'fas fa-file-powerpoint',pptx:'fas fa-file-powerpoint',jpg:'fas fa-file-image',jpeg:'fas fa-file-image',png:'fas fa-file-image',gif:'fas fa-file-image',mp4:'fas fa-file-video',zip:'fas fa-file-archive',rar:'fas fa-file-archive'};return m[e]||'fas fa-file';}
     async function fileToBase64(f){return new Promise((r,j)=>{const rd=new FileReader();rd.readAsDataURL(f);rd.onload=()=>r(rd.result);rd.onerror=e=>j(e);});}
+
+    // CHANGED: Toggle YouTube link and file upload sections based on lesson type
+    window.handleLessonTypeChange = function() {
+        const type = document.getElementById('lessonType').value;
+        const ytSection = document.getElementById('youtubeLinkSection');
+        const fileSection = document.getElementById('uploadFilesSection');
+
+        if (type === 'video') {
+            ytSection.style.display = 'block';
+            fileSection.style.display = 'none';
+            // Clear file-related errors when switching to video
+            clearFieldError('lessonFiles', 'lessonFilesError');
+        } else {
+            // reading material
+            ytSection.style.display = 'none';
+            fileSection.style.display = 'block';
+            // Clear YouTube-related state when switching to reading
+            const ytInput = document.getElementById('youtubeLink');
+            if (ytInput) ytInput.value = '';
+            const ytPreview = document.getElementById('youtubePreview');
+            if (ytPreview) ytPreview.innerHTML = '';
+            clearFieldError('youtubeLink', 'youtubeLinkError');
+        }
+    };
+        // Add this after handleLessonTypeChange function
+document.addEventListener('DOMContentLoaded', function() {
+    const publishDateInput = document.getElementById('publishDate');
+    if (publishDateInput) {
+        publishDateInput.addEventListener('change', function() {
+            const selectedDate = new Date(this.value);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            if (selectedDate < today) {
+                showFieldError('publishDate', 'publishDateError', 'Publish date cannot be in the past');
+                this.classList.add('border-danger');
+            } else {
+                clearFieldError('publishDate', 'publishDateError');
+            }
+        });
+    }
+});
 </script>
 
 <!-- FIREBASE MODULE SCRIPT -->
@@ -623,38 +665,41 @@
     const app=initializeApp(firebaseConfig), auth=getAuth(app), db=getFirestore(app);
     let currentUser=null,currentProfessor=null,assignedSections=[],allLessons=[],filteredLessons=[],editingLessonId=null,selectedFiles=[],activeSectionFilter=null;
 
- // AFTER:
-const loadingTimeout = setTimeout(() => {
-    document.getElementById('loadingScreen').style.display='none';
-    document.getElementById('mainContent').style.display='block';
-}, 1500);
+    const loadingTimeout = setTimeout(() => {
+        document.getElementById('loadingScreen').style.display='none';
+        document.getElementById('mainContent').style.display='block';
+    }, 1500);
 
-const unsubscribeAuth = onAuthStateChanged(auth, async user => {
-    if(user){
-        try{
-            currentUser=user;
-            // Show page immediately
-            clearTimeout(loadingTimeout);
-            document.getElementById('loadingScreen').style.display='none';
-            document.getElementById('mainContent').style.display='block';
-            // Load data in background
-            await loadProfessorData(user);
-            setupUI(user);
-            await loadAssignedSections();
-            await loadLessons();
+    const unsubscribeAuth = onAuthStateChanged(auth, async user => {
+        if(user){
+            try{
+                currentUser=user;
+                clearTimeout(loadingTimeout);
+                document.getElementById('loadingScreen').style.display='none';
+                document.getElementById('mainContent').style.display='block';
+                await loadProfessorData(user);
+                setupUI(user);
+                await loadAssignedSections();
+                await loadLessons();
+            await checkAndPublishScheduled();
+            setInterval(async()=>{
+                await loadLessons();
+                await checkAndPublishScheduled();
+            }, 5*60*1000);
             initListeners();
-        }catch(err){
-            console.error(err);
-            showAlert(err.message||'Error loading page.','error');
+            }catch(err){
+                console.error(err);
+                showAlert(err.message||'Error loading page.','error');
+            }
+        }else{
+            clearTimeout(loadingTimeout);
+            window.location.href='/login/index.html';
         }
-    }else{
-        clearTimeout(loadingTimeout);
-        window.location.href='/login/index.html';
-    }
-});
+    });
 
-window.addEventListener('pagehide', () => { unsubscribeAuth(); });
-window.addEventListener('beforeunload', () => { unsubscribeAuth(); });
+    window.addEventListener('pagehide', () => { unsubscribeAuth(); });
+    window.addEventListener('beforeunload', () => { unsubscribeAuth(); });
+
     async function loadProfessorData(user){
         const email=user.email.toLowerCase();
         const ps=await getDocs(query(collection(db,'professors'),where('email','==',email)));
@@ -732,7 +777,7 @@ window.addEventListener('beforeunload', () => { unsubscribeAuth(); });
         catch(e){const snap=await getDocs(query(collection(db,'lessons'),where('professorEmail','==',currentProfessor.email)));snap.forEach(d=>allLessons.push({id:d.id,...d.data(),createdAt:d.data().createdAt?.toDate()||new Date(),publishDate:d.data().publishDate?.toDate()||null}));allLessons.sort((a,b)=>b.createdAt-a.createdAt);}
         updateStats();applyFilters();
     }
-
+    
     function updateStats(){
         document.getElementById('statTotalLessons').textContent=allLessons.length;
         document.getElementById('statPublished').textContent=allLessons.filter(l=>l.status==='published').length;
@@ -756,7 +801,8 @@ window.addEventListener('beforeunload', () => { unsubscribeAuth(); });
         if(filteredLessons.length===0)document.getElementById('noLessonsMsgText').textContent=(sf||tf!=='all')?'No lessons match your current filters. Try adjusting your filters.':'Click "Create New Lesson" above to get started!';
     }
 
-    const LESSON_TYPE_CFG={lecture:{icon:'fas fa-chalkboard',color:'bg-purple-bg text-[#7c3aed]',label:'Lecture'},reading:{icon:'fas fa-book-open',color:'bg-info-bg text-blue',label:'Reading Material'},video:{icon:'fab fa-youtube',color:'bg-danger-bg text-danger',label:'Video Lesson'}};
+    // CHANGED: Removed 'lecture' from LESSON_TYPE_CFG
+    const LESSON_TYPE_CFG={reading:{icon:'fas fa-book-open',color:'bg-info-bg text-blue',label:'Reading Material'},video:{icon:'fab fa-youtube',color:'bg-danger-bg text-danger',label:'Video Lesson'}};
 
     function displayLessons(lessons){
         const grid=document.getElementById('lessonsGrid'),empty=document.getElementById('noLessonsMsg');
@@ -770,7 +816,8 @@ window.addEventListener('beforeunload', () => { unsubscribeAuth(); });
             const badgeIcon=st==='published'?'<i class="fas fa-check-circle text-[10px]"></i>':st==='scheduled'?'<i class="fas fa-clock text-[10px]"></i>':'<i class="fas fa-pencil-alt text-[10px]"></i>';
             const badgeTxt=st==='published'?'Published':st==='scheduled'?'Scheduled':'Draft';
             const fileCount=lesson.materials?.length||0,hasYT=lesson.youtubeVideoId?.trim();
-            const typeCfg=LESSON_TYPE_CFG[lesson.type]||LESSON_TYPE_CFG.lecture;
+            // CHANGED: fallback to 'reading' if type is 'lecture' or unknown for display purposes
+            const typeCfg=LESSON_TYPE_CFG[lesson.type]||LESSON_TYPE_CFG.reading;
             const cardAccent=st==='published'?'border-t-success':st==='scheduled'?'border-t-info':'border-t-[#c5cfe0]';
             return `<div class="lesson-card bg-white rounded-2xl border border-border border-t-4 ${cardAccent} shadow-sm flex flex-col">
                 <div class="p-5 pb-3.5">
@@ -846,6 +893,7 @@ window.addEventListener('beforeunload', () => { unsubscribeAuth(); });
     }
     window.removeSelectedFile=i=>{selectedFiles.splice(i,1);renderFilePreview();};
 
+    // CHANGED: showAddLessonModal now defaults to 'reading' and triggers type change handler
     window.showAddLessonModal=function(){
         editingLessonId=null;selectedFiles=[];
         document.getElementById('modalTitle').textContent='Create New Lesson';
@@ -856,6 +904,9 @@ window.addEventListener('beforeunload', () => { unsubscribeAuth(); });
         document.getElementById('sectionStudentInfo').textContent='';
         document.getElementById('youtubePreview').innerHTML='';
         document.getElementById('publishDate').value=new Date().toISOString().split('T')[0];
+        // Default to reading material
+        document.getElementById('lessonType').value='reading';
+        handleLessonTypeChange();
         clearAllErrors();
         resetCharCounters();
         document.getElementById('lessonModal').classList.add('open');
@@ -872,9 +923,11 @@ window.addEventListener('beforeunload', () => { unsubscribeAuth(); });
         const section=document.getElementById('lessonSection').value;
         const type   =document.getElementById('lessonType').value;
         const desc   =document.getElementById('lessonDescription').value.trim();
-        const ytLink =document.getElementById('youtubeLink').value.trim();
         const pubDate=document.getElementById('publishDate').value;
         const status =document.getElementById('lessonStatus').value;
+
+        // CHANGED: Only read ytLink if video type is selected
+        const ytLink = type === 'video' ? document.getElementById('youtubeLink').value.trim() : '';
 
         clearAllErrors();
         let hasError=false;
@@ -887,24 +940,39 @@ window.addEventListener('beforeunload', () => { unsubscribeAuth(); });
         if(!section){showFieldError('lessonSection','lessonSectionError','Please select a section');hasError=true;}
 
         // Optional char limit: Description
+       // Optional char limit: Description
         if(desc.length>2000){document.getElementById('lessonDescription').classList.add('border-danger');hasError=true;}
 
-        // YouTube format check (only if filled)
-        if(ytLink&&!extractYouTubeId(ytLink)){
-            showFieldError('youtubeLink','youtubeLinkError','Invalid YouTube URL. Use https://www.youtube.com/watch?v=...');
-            hasError=true;
+        // Publish date: cannot be in the past
+        if(pubDate){
+            const selectedDate = new Date(pubDate);
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            if(selectedDate < today){
+                showFieldError('publishDate','publishDateError','Publish date cannot be in the past');
+                hasError=true;
+            }
         }
 
-        // YouTube OR File required
-        const ytValid=!!(ytLink&&extractYouTubeId(ytLink));
-        const hasNewFiles=selectedFiles.length>0;
-        let existingFiles=0;
-        if(editingLessonId){const ex=allLessons.find(l=>l.id===editingLessonId);existingFiles=ex?.materials?.length||0;}
-
-        if(!ytValid&&!hasNewFiles&&existingFiles===0){
-            showFieldError('youtubeLink','youtubeLinkError','Provide a YouTube link OR upload at least one file');
-            showFieldError('lessonFiles','lessonFilesError','Provide a YouTube link OR upload at least one file');
-            hasError=true;
+        // CHANGED: Validation logic based on type
+        if(type === 'video'){
+            // YouTube is required for video lessons
+            if(!ytLink){
+                showFieldError('youtubeLink','youtubeLinkError','YouTube link is required for Video Lessons');
+                hasError=true;
+            } else if(!extractYouTubeId(ytLink)){
+                showFieldError('youtubeLink','youtubeLinkError','Invalid YouTube URL. Use https://www.youtube.com/watch?v=...');
+                hasError=true;
+            }
+        } else {
+            // File is required for reading material
+            const hasNewFiles=selectedFiles.length>0;
+            let existingFiles=0;
+            if(editingLessonId){const ex=allLessons.find(l=>l.id===editingLessonId);existingFiles=ex?.materials?.length||0;}
+            if(!hasNewFiles&&existingFiles===0){
+                showFieldError('lessonFiles','lessonFilesError','Please upload at least one file for Reading Material');
+                hasError=true;
+            }
         }
 
         if(hasError){
@@ -925,18 +993,32 @@ window.addEventListener('beforeunload', () => { unsubscribeAuth(); });
         btn.disabled=true;btn.textContent='Saving…';
         try{
             const newFiles=[];
-            for(const f of selectedFiles){
-                if(f.size>50*1024*1024){newFiles.push({name:f.name,data:'',size:f.size,type:f.type,uploadedAt:new Date().toISOString(),note:'Too large'});continue;}
-                try{const b64=await fileToBase64(f);newFiles.push({name:f.name,data:b64,size:f.size,type:f.type||'application/octet-stream',uploadedAt:new Date().toISOString()});}
-                catch(e){showAlert(`Failed to process: ${f.name}`,'error');}
+            // CHANGED: Only process files for reading material type
+            if(type === 'reading'){
+                for(const f of selectedFiles){
+                    if(f.size>50*1024*1024){newFiles.push({name:f.name,data:'',size:f.size,type:f.type,uploadedAt:new Date().toISOString(),note:'Too large'});continue;}
+                    try{const b64=await fileToBase64(f);newFiles.push({name:f.name,data:b64,size:f.size,type:f.type||'application/octet-stream',uploadedAt:new Date().toISOString()});}
+                    catch(e){showAlert(`Failed to process: ${f.name}`,'error');}
+                }
             }
-            const ytId=extractYouTubeId(ytLink);
+            const ytId=type === 'video' ? extractYouTubeId(ytLink) : '';
             const profName=currentProfessor.fullName||currentProfessor.name||currentUser.displayName||'Professor';
-            const data={title,section,type,description:desc,youtubeLink:ytLink||'',youtubeVideoId:ytId||'',publishDate:pubDate?new Date(pubDate):new Date(),status,professorEmail:currentProfessor.email,professorName:profName,professorId:currentProfessor.id,updatedAt:serverTimestamp()};
+           // Auto-schedule: if publish date is future and status is published, set to scheduled
+            let resolvedStatus = status;
+            if(pubDate && status === 'published'){
+                const selectedDate = new Date(pubDate);
+                const today = new Date();
+                today.setHours(0,0,0,0);
+                if(selectedDate > today) resolvedStatus = 'scheduled';
+            }
+            const data={title,section,type,description:desc,youtubeLink:ytLink||'',youtubeVideoId:ytId||'',publishDate:pubDate?new Date(pubDate):new Date(),status:resolvedStatus,professorEmail:currentProfessor.email,professorName:profName,professorId:currentProfessor.id,updatedAt:serverTimestamp()};
             if(editingLessonId){
                 const ref=doc(db,'lessons',editingLessonId);
                 const existing=await getDoc(ref);
-                data.materials=[...(existing.exists()?(existing.data().materials||[]):[]),...newFiles];
+                // CHANGED: Only carry existing files for reading material
+                data.materials=type === 'reading'
+                    ? [...(existing.exists()?(existing.data().materials||[]):[]),...newFiles]
+                    : [];
                 data.createdAt=existing.data()?.createdAt||serverTimestamp();
                 await updateDoc(ref,data);
             }else{
@@ -954,12 +1036,32 @@ window.addEventListener('beforeunload', () => { unsubscribeAuth(); });
             btn.disabled=false;btn.textContent=editingLessonId?'Update Lesson':'Create Lesson';
         }
     }
-
+        async function checkAndPublishScheduled(){
+            const today=new Date();
+            today.setHours(0,0,0,0);
+            const scheduledLessons=allLessons.filter(l=>
+                l.status==='scheduled' &&
+                l.publishDate &&
+                new Date(l.publishDate)<=today
+            );
+            if(!scheduledLessons.length)return;
+            for(const lesson of scheduledLessons){
+                try{
+                    await updateDoc(doc(db,'lessons',lesson.id),{
+                        status:'published',
+                        updatedAt:serverTimestamp()
+                    });
+                    await createNotification(lesson,lesson.id);
+                }catch(e){console.error('Auto-publish error:',e);}
+            }
+            await loadLessons();
+        }
     async function createNotification(lessonData,lessonId){
         try{await addDoc(collection(db,'notifications'),{type:'new_lesson',title:`New Lesson: ${lessonData.title}`,message:`A new ${lessonData.type} lesson "${lessonData.title}" has been published for ${lessonData.section}.`,section:lessonData.section,lessonId,lessonTitle:lessonData.title,professorEmail:currentProfessor.email,isRead:false,createdAt:serverTimestamp()});}
         catch(e){console.error('Notification error:',e);}
     }
 
+    // CHANGED: editLesson now correctly shows the right section based on saved type
     window.editLesson=async function(id){
         const lesson=allLessons.find(l=>l.id===id);
         if(!lesson){showAlert('Lesson not found.','error');return;}
@@ -968,7 +1070,9 @@ window.addEventListener('beforeunload', () => { unsubscribeAuth(); });
         document.getElementById('saveLessonBtn').textContent='Update Lesson';
         document.getElementById('lessonTitle').value=lesson.title||'';
         document.getElementById('lessonSection').value=lesson.section||'';
-        document.getElementById('lessonType').value=lesson.type||'lecture';
+        // CHANGED: Map old 'lecture' type to 'reading' for backwards compatibility
+        const lessonType = lesson.type === 'lecture' ? 'reading' : (lesson.type || 'reading');
+        document.getElementById('lessonType').value=lessonType;
         document.getElementById('lessonDescription').value=lesson.description||'';
         clearAllErrors();
         if(lesson.title)updateCharCount(document.getElementById('lessonTitle'),'titleCounter',1000);else resetCharCounters();
@@ -977,7 +1081,9 @@ window.addEventListener('beforeunload', () => { unsubscribeAuth(); });
         document.getElementById('lessonStatus').value=lesson.status||'draft';
         document.getElementById('lessonId').value=id;
         if(lesson.publishDate)document.getElementById('publishDate').value=lesson.publishDate.toISOString().split('T')[0];
-        if(lesson.youtubeLink)showYTPreview(lesson.youtubeLink);
+        // CHANGED: Apply type-based visibility BEFORE showing YouTube preview
+        handleLessonTypeChange();
+        if(lesson.youtubeLink && lessonType === 'video')showYTPreview(lesson.youtubeLink);
         window.updateSectionInfo();
         const c=document.getElementById('filePreviewContainer');
         const mats=lesson.materials||[];
