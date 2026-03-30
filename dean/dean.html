@@ -1421,21 +1421,22 @@ window.addEventListener('beforeunload', () => {
 async function loadTestResults() {
     try {
         // Step 1: Load all students to get real age + gender
-        const studentAgeGenderMap = {};
+        const studentProfileMap = {}; // email/umakId → { ageGroup, genderKey, gender, age, birthday }
+ 
         try {
             const stuSnap = await db.collection('students').get();
             stuSnap.forEach(d => {
                 const data = d.data();
-                const email = (data.email || '').toLowerCase().trim();
+                const email  = (data.email || '').toLowerCase().trim();
                 const umakId = (data.umakId || data.studentId || '').trim();
-
-                // Compute age from birthday
+ 
                 let ageGroup = '19-22';
+                let age = parseInt(data.age) || 0;
                 if (data.birthday) {
                     try {
                         let birthDate = data.birthday.toDate ? data.birthday.toDate() : new Date(data.birthday);
                         const today = new Date();
-                        let age = today.getFullYear() - birthDate.getFullYear();
+                        age = today.getFullYear() - birthDate.getFullYear();
                         const m = today.getMonth() - birthDate.getMonth();
                         if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
                         if (!isNaN(age) && age > 0) {
@@ -1445,32 +1446,38 @@ async function loadTestResults() {
                             else ageGroup = '27-30';
                         }
                     } catch(e) {}
+                } else if (age > 0) {
+                    if (age <= 18) ageGroup = '15-18';
+                    else if (age <= 22) ageGroup = '19-22';
+                    else if (age <= 26) ageGroup = '23-26';
+                    else ageGroup = '27-30';
                 }
-
-                const gender = (data.gender || '').toLowerCase();
+ 
+                const gender    = (data.gender || '').toLowerCase();
                 const genderKey = gender.startsWith('f') ? 'female' : 'male';
-
-                const record = { ageGroup, genderKey };
-                if (email) studentAgeGenderMap[email] = record;
-                if (umakId) studentAgeGenderMap[umakId.toUpperCase()] = record;
-                if (d.id) studentAgeGenderMap[d.id] = record;
+ 
+                const record = { ageGroup, genderKey, gender: data.gender || '', age, birthday: data.birthday || null };
+                if (email)  studentProfileMap[email]              = record;
+                if (umakId) studentProfileMap[umakId.toUpperCase()] = record;
+                if (d.id)   studentProfileMap[d.id]               = record;
             });
-        } catch(e) { console.warn('Could not load students collection for age/gender:', e); }
-
-        // Also check users collection (students may be stored there)
+        } catch(e) { console.warn('Could not load students collection:', e); }
+ 
+        // Also check users collection
         try {
             const usersSnap = await db.collection('users').where('role', '==', 'student').get();
             usersSnap.forEach(d => {
-                const data = d.data();
-                const email = (data.email || '').toLowerCase().trim();
+                const data   = d.data();
+                const email  = (data.email || '').toLowerCase().trim();
                 const umakId = (data.umakId || data.studentId || '').replace(/^student_/i, '').trim();
-
+ 
                 let ageGroup = '19-22';
+                let age = parseInt(data.age) || 0;
                 if (data.birthday) {
                     try {
                         let birthDate = data.birthday.toDate ? data.birthday.toDate() : new Date(data.birthday);
                         const today = new Date();
-                        let age = today.getFullYear() - birthDate.getFullYear();
+                        age = today.getFullYear() - birthDate.getFullYear();
                         const m = today.getMonth() - birthDate.getMonth();
                         if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
                         if (!isNaN(age) && age > 0) {
@@ -1480,61 +1487,129 @@ async function loadTestResults() {
                             else ageGroup = '27-30';
                         }
                     } catch(e) {}
+                } else if (age > 0) {
+                    if (age <= 18) ageGroup = '15-18';
+                    else if (age <= 22) ageGroup = '19-22';
+                    else if (age <= 26) ageGroup = '23-26';
+                    else ageGroup = '27-30';
                 }
-
-                const gender = (data.gender || '').toLowerCase();
+ 
+                const gender    = (data.gender || '').toLowerCase();
                 const genderKey = gender.startsWith('f') ? 'female' : 'male';
-
-                // Only write if not already set from students collection
-                const record = { ageGroup, genderKey };
-                if (email && !studentAgeGenderMap[email]) studentAgeGenderMap[email] = record;
-                if (umakId && !studentAgeGenderMap[umakId.toUpperCase()]) studentAgeGenderMap[umakId.toUpperCase()] = record;
-                if (d.id && !studentAgeGenderMap[d.id]) studentAgeGenderMap[d.id] = record;
+                const record    = { ageGroup, genderKey, gender: data.gender || '', age, birthday: data.birthday || null };
+ 
+                if (email  && !studentProfileMap[email])              studentProfileMap[email]              = record;
+                if (umakId && !studentProfileMap[umakId.toUpperCase()]) studentProfileMap[umakId.toUpperCase()] = record;
+                if (d.id   && !studentProfileMap[d.id])               studentProfileMap[d.id]               = record;
             });
-        } catch(e) { console.warn('Could not load users collection for age/gender:', e); }
-
-        // Step 2: Load testResults and apply real age/gender per student
+        } catch(e) { console.warn('Could not load users collection:', e); }
+ 
+        // Step 2: Pre-fetch all DB norm documents and scheduledTest docs (batch, one round-trip each)
+        const _normDocCache   = new Map(); // "fitnessNorms/{key}" or "studentNorms/{email}/tests/{testKey}"
+        const _schedTestCache = new Map(); // testId → scheduledTest data
+ 
+        // Step 3: Load all testResults
         const q = await db.collection('testResults').orderBy('submittedAt', 'desc').get();
         testResults = [];
-
+ 
+        // Collect unique keys we'll need for norm lookups
+        const normKeysNeeded   = new Set();
+        const schedIdsNeeded   = new Set();
+        const studentEmailsNeeded = new Set();
+        const rawDocs = [];
+ 
         q.forEach(doc => {
             const data = doc.data();
-
-            // Try to find this student's age/gender from our map
+            rawDocs.push({ id: doc.id, data });
+ 
             const emailKey = (data.studentEmail || data.email || '').toLowerCase().trim();
             const umakKey  = (data.umakId || data.studentId || '').trim().toUpperCase();
             const uidKey   = (data.studentId || data.uid || '').trim();
-
-            const studentInfo = studentAgeGenderMap[emailKey]
-                             || studentAgeGenderMap[umakKey]
-                             || studentAgeGenderMap[uidKey]
+ 
+            const studentInfo = studentProfileMap[emailKey]
+                             || studentProfileMap[umakKey]
+                             || studentProfileMap[uidKey]
                              || null;
-
-            // Fall back to data stored on the test result itself only if no student record found
-            let ageGroup, genderKey;
-            if (studentInfo) {
-                ageGroup  = studentInfo.ageGroup;
-                genderKey = studentInfo.genderKey;
-            } else {
-                const gender = (data.gender || '').toLowerCase();
-                genderKey = gender.startsWith('f') ? 'female' : 'male';
-                // Use ageGroup stored on test doc if available, else default
-                ageGroup = data.ageGroup || '19-22';
+ 
+            const genderKey = studentInfo?.genderKey || ((data.gender || '').toLowerCase().startsWith('f') ? 'female' : 'male');
+            const ageGroup  = studentInfo?.ageGroup  || data.ageGroup || '19-22';
+            const testKey   = _resolveTestKey(data.testName || '');
+ 
+            if (testKey) {
+                normKeysNeeded.add(`${testKey}_${genderKey}_${ageGroup}`);
+                if (emailKey) studentEmailsNeeded.add(`${emailKey}|${testKey}`);
             }
-
-            const category  = getNormCategory(data.testName, data.result, genderKey, ageGroup);
+            if (data.testId) schedIdsNeeded.add(data.testId);
+        });
+ 
+        // Batch fetch default norm docs
+        await Promise.all(Array.from(normKeysNeeded).map(async key => {
+            try {
+                const snap = await db.collection('fitnessNorms').doc(key).get();
+                if (snap.exists) _normDocCache.set(`default:${key}`, snap.data());
+            } catch(e) {}
+        }));
+ 
+        // Batch fetch scheduledTest docs (for customNorms)
+        await Promise.all(Array.from(schedIdsNeeded).map(async testId => {
+            try {
+                const snap = await db.collection('scheduledTests').doc(testId).get();
+                if (snap.exists) _schedTestCache.set(testId, snap.data());
+            } catch(e) {}
+        }));
+ 
+        // Batch fetch student-specific norm docs
+        await Promise.all(Array.from(studentEmailsNeeded).map(async combo => {
+            const [email, testKey] = combo.split('|');
+            if (!email || !testKey) return;
+            try {
+                const snap = await db.collection('studentNorms').doc(email).collection('tests').doc(testKey).get();
+                if (snap.exists) _normDocCache.set(`student:${email}:${testKey}`, snap.data());
+            } catch(e) {}
+        }));
+ 
+        // Step 4: Process each result using the same priority as studentgrades.html
+        rawDocs.forEach(({ id, data }) => {
+            const emailKey = (data.studentEmail || data.email || '').toLowerCase().trim();
+            const umakKey  = (data.umakId || data.studentId || '').trim().toUpperCase();
+            const uidKey   = (data.studentId || data.uid || '').trim();
+ 
+            const studentInfo = studentProfileMap[emailKey]
+                             || studentProfileMap[umakKey]
+                             || studentProfileMap[uidKey]
+                             || null;
+ 
+            const genderKey = studentInfo?.genderKey || ((data.gender || '').toLowerCase().startsWith('f') ? 'female' : 'male');
+            const ageGroup  = studentInfo?.ageGroup  || data.ageGroup || '19-22';
+ 
+            // Resolve category using the SAME priority chain as studentgrades.html:
+            // 1. Student-specific norms
+            // 2. Test-level customNorms (from scheduledTest doc)
+            // 3. Default fitnessNorms from DB
+            // 4. Hardcoded fallback
+            const category = _resolveNormCategory({
+                testName:    data.testName || '',
+                result:      data.result || data.resultData || data.repetitions || '',
+                testId:      data.testId  || null,
+                studentEmail: emailKey,
+                genderKey,
+                ageGroup,
+                normDocCache:   _normDocCache,
+                schedTestCache: _schedTestCache,
+            });
+ 
             const normScore = CATEGORY_ORDER[category] || 3;
-
+ 
             testResults.push({
-                id: doc.id,
+                id,
                 ...data,
-                score: normScore,
+                score:     normScore,
                 category,
                 genderKey,
-                ageGroup  // store resolved ageGroup for debugging
+                ageGroup,
             });
         });
-
+ 
         return testResults;
     } catch(e) {
         console.error('loadTestResults error:', e);
@@ -1542,7 +1617,68 @@ async function loadTestResults() {
         return [];
     }
 }
-
+            function _resolveTestKey(testName) {
+    const tl = (testName || '').toLowerCase();
+    if (tl.includes('push'))                              return 'pushup';
+    if (tl.includes('curl'))                              return 'curlup';
+    if (tl.includes('sit') && tl.includes('reach'))      return 'sitreach';
+    if (tl.includes('step') || tl.includes('3-minute'))  return 'steptest';
+    if (tl.includes('skinfold') || tl.includes('skin fold')) return 'skinfold';
+    return null;
+}
+ 
+// Apply a threshold object — matches normLookup.js applyThresholds()
+function _applyThresholds(thresholds, value, lowerIsBetter) {
+    for (const cat of ['Excellent', 'Good', 'Average', 'Below Average']) {
+        const threshold = thresholds[cat];
+        if (threshold == null) continue;
+        if ( lowerIsBetter && value <= threshold) return cat;
+        if (!lowerIsBetter && value >= threshold) return cat;
+    }
+    return 'Poor';
+}
+ 
+// Full priority-chain norm resolver — same order as studentgrades.html
+function _resolveNormCategory({ testName, result, testId, studentEmail, genderKey, ageGroup, normDocCache, schedTestCache }) {
+    const testKey = _resolveTestKey(testName);
+    const value   = extractNumericResult(result);
+ 
+    // Skinfold — body composition categories, not standard norms
+    if ((testName || '').toLowerCase().includes('skinfold')) {
+        const raw = String(result || '').toLowerCase();
+        for (const cat of ['lean', 'essential fat', 'athletic', 'fitness', 'average', 'overfat', 'obese']) {
+            if (raw.includes(cat)) return cat.charAt(0).toUpperCase() + cat.slice(1);
+        }
+        return 'Average';
+    }
+ 
+    if (!testKey) return getNormCategory(testName, result, genderKey, ageGroup); // final fallback
+ 
+    // 1. Student-specific norms (highest priority — set by professor per student)
+    if (studentEmail) {
+        const stuNorm = normDocCache.get(`student:${studentEmail}:${testKey}`);
+        if (stuNorm?.thresholds) {
+            return _applyThresholds(stuNorm.thresholds, value, stuNorm.lowerIsBetter ?? false);
+        }
+    }
+ 
+    // 2. Test-level custom norms (set by professor when scheduling/editing the test)
+    if (testId) {
+        const schedData = schedTestCache.get(testId);
+        if (schedData?.customNorms?.thresholds) {
+            return _applyThresholds(schedData.customNorms.thresholds, value, schedData.customNorms.lowerIsBetter ?? false);
+        }
+    }
+ 
+    // 3. Default DB norms (from fitnessNorms collection, gender+age specific)
+    const defaultNorm = normDocCache.get(`default:${testKey}_${genderKey}_${ageGroup}`);
+    if (defaultNorm?.thresholds) {
+        return _applyThresholds(defaultNorm.thresholds, value, defaultNorm.lowerIsBetter ?? false);
+    }
+ 
+    // 4. Hardcoded fallback (existing getNormCategory function — unchanged)
+    return getNormCategory(testName, result, genderKey, ageGroup);
+}
     async function loadDashboardStats() {
         try {
             const snap = await db.collection('users').get();
@@ -2799,30 +2935,46 @@ document.getElementById('topStudentScore').textContent = rt.text + ' — ' + top
     }
 
  function getNormCatForTest(t) {
-        const testKey = resolveTestKey(t.testName);
-        const value = extractNumericResult(t.result || t.resultData);
-
-        if (testKey) {
-            // 1. Student-specific norms
-            const stuNorm = normDocCache.get(`student:${testKey}`);
-            if (stuNorm?.thresholds) return applyThresholds(stuNorm, value);
-
-            // 2. customNorms on scheduledTest
-            if (t.testId) {
-                const sched = normDocCache.get(`scheduled:${t.testId}`);
-                if (sched?.customNorms?.thresholds) return applyThresholds(sched.customNorms, value);
-            }
-
-            // 3. Default fitnessNorms
-            const defNorm = normDocCache.get(`default:${testKey}`);
-            if (defNorm?.thresholds) return applyThresholds(defNorm, value);
+    const testKey = resolveTestKey(t.testName);
+    const value   = extractNumericResult(t.result || t.resultData);
+ 
+    // Skinfold
+    if ((t.testName || '').toLowerCase().includes('skinfold')) {
+        const raw = String(t.result || t.resultData || '');
+        const m   = raw.match(/\(([^)]+)\)/);
+        if (m) {
+            const cls = m[1];
+            if (cls === 'Athletic' || cls === 'Fitness') return 'Excellent';
+            if (cls === 'Essential Fat') return 'Good';
+            if (cls === 'Average')       return 'Average';
+            if (cls === 'Overfat')       return 'Below Average';
+            if (cls === 'Obese')         return 'Poor';
         }
-
-        // 4. Always fallback to hardcoded norms — never return null
-        return getNormCategory(t.testName, t.result || t.resultData, stuGender, stuAgeGroup) || 'Average';
+        return 'Average';
     }
+ 
+    if (!testKey) return getNormCategory(t.testName, t.result || t.resultData, stuGender, stuAgeGroup);
+ 
+    // 1. Student-specific norms
+    const stuNorm = normDocCache.get(`student:${testKey}`);
+    if (stuNorm?.thresholds) return applyThresholds(stuNorm, value);
+ 
+    // 2. customNorms on scheduledTest (set via addactivities.html)
+    if (t.testId) {
+        const sched = normDocCache.get(`scheduled:${t.testId}`);
+        if (sched?.customNorms?.thresholds) return applyThresholds(sched.customNorms, value);
+    }
+ 
+    // 3. Default fitnessNorms from DB
+    const defNorm = normDocCache.get(`default:${testKey}`);
+    if (defNorm?.thresholds) return applyThresholds(defNorm, value);
+ 
+    // 4. Hardcoded fallback
+    return getNormCategory(t.testName, t.result || t.resultData, stuGender, stuAgeGroup) || 'Average';
+}
 
-    // ── Deduplicate: best attempt per testId (same as studentgrades.html) ──
+
+
     const testGroups = {};
     rawTests.forEach(t => {
         const groupKey = t.testId || t.scheduledTestId || t.testName;
@@ -2840,18 +2992,17 @@ document.getElementById('topStudentScore').textContent = rt.text + ' — ' + top
     });
     const dedupedTests = Object.values(testGroups);
 
-    // ── Compute overall performance (mirrors rankToCategory in studentgrades.html) ──
-const normRanks = dedupedTests.map(t => NORM_RANK_MAP[t.normCategory] ?? 3).filter(r => r > 0);
-    const overallAvg = normRanks.length ? normRanks.reduce((a,b) => a+b, 0) / normRanks.length : 0;
-
-    function rankToCategory(rank) {
-        if (rank >= 4.5) return 'Excellent';
-        if (rank >= 3.5) return 'Good';
-        if (rank >= 2.5) return 'Average';
-        if (rank >= 1.5) return 'Below Average';
-        return 'Poor';
-    }
-    const overallCat    = overallAvg > 0 ? rankToCategory(overallAvg) : null;
+    // ── Use the SAME overallCategory already computed in loadStudentRankings()
+    //    so the modal always matches the ranking table. ──
+    const overallCat = s.overallCategory || (() => {
+        const normRanks = dedupedTests.map(t => NORM_RANK_MAP[t.normCategory] ?? 3).filter(r => r > 0);
+        const avg = normRanks.length ? normRanks.reduce((a,b) => a+b, 0) / normRanks.length : 0;
+        if (avg >= 4.5) return 'Excellent';
+        if (avg >= 3.5) return 'Good';
+        if (avg >= 2.5) return 'Average';
+        if (avg >= 1.5) return 'Below Average';
+        return avg > 0 ? 'Poor' : null;
+    })();
     const overallRating = overallCat ? getScoreRating(NORM_RANK_MAP[overallCat]) : null;
 
     // ── Fetch BMI pre/post ──
