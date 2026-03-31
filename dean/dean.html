@@ -867,14 +867,14 @@
                 <div class="p-6">
                     <div id="classlistAlert" style="display:none;"></div>
 
-                    <input type="file" id="deanStudentCsvInput" accept=".csv" onchange="handleDeanStudentFileSelect(event)" style="display:none;">
+                    <input type="file" id="deanStudentCsvInput" accept=".csv,.pdf" onchange="handleDeanStudentFileSelect(event)" style="display:none;">
 
                     <div class="p-6 rounded-2xl border border-border bg-surface text-center">
                         <div class="w-16 h-16 rounded-2xl bg-info-bg flex items-center justify-center mx-auto mb-4 text-blue text-[26px]"><i class="fas fa-cloud-upload-alt"></i></div>
                         <div class="font-display text-lg font-bold text-navy mb-2">Import Student Classlist</div>
-                        <div class="text-sm text-text-muted max-w-md mx-auto mb-5 leading-relaxed">Upload an official UMak classlist CSV. This will update/create section rosters and student records.</div>
+                        <div class="text-sm text-text-muted max-w-md mx-auto mb-5 leading-relaxed">Upload an official UMak classlist CSV or PDF. This will update/create section rosters and student records.</div>
                         <label for="deanStudentCsvInput" class="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-br from-royal to-blue text-white rounded-xl text-[13px] font-semibold cursor-pointer hover:-translate-y-px hover:shadow-lg transition-all">
-                            <i class="fas fa-upload"></i> Choose CSV File
+                            <i class="fas fa-upload"></i> Choose CSV or PDF File
                         </label>
                         <div class="mt-2.5 text-xs text-text-muted" id="deanStudentFileName">No file chosen</div>
                     </div>
@@ -890,6 +890,15 @@
                                 <thead><tr><th>Name</th><th>Student ID</th><th>Email</th><th>Section</th><th>Course Code</th><th>Professor</th></tr></thead>
                                 <tbody id="deanPreviewTableBody"></tbody>
                             </table>
+                        </div>
+                        <div class="flex items-center justify-between mt-3 flex-wrap gap-2.5">
+                            <div class="flex items-center gap-2.5">
+                                <label for="deanPreviewSectionFilter" class="text-[12px] text-text-muted font-semibold">Section:</label>
+                                <select id="deanPreviewSectionFilter" onchange="onDeanPreviewSectionChange()" class="px-3 py-2 border border-border rounded-lg text-[13px] text-text-primary bg-surface font-sans focus:outline-none focus:border-blue">
+                                    <option value="all">All Sections</option>
+                                </select>
+                            </div>
+                            <div id="deanPreviewPagination" class="flex items-center gap-1.5"></div>
                         </div>
                         <div class="flex justify-between items-center mt-3.5 flex-wrap gap-2.5">
                             <div id="deanPreviewCountLabel" class="text-[13px] text-text-muted"></div>
@@ -1146,6 +1155,8 @@ const loadingTimeout = setTimeout(() => {
     let studentRankings = [], filteredStudentRankings = [];
     let studentSections = new Set();
     let deanCurrentImportData = null;
+    let deanPreviewCurrentPage = 1;
+    const deanPreviewPageSize = 20;
     let activityLogs = [], filteredActivityLogs = [];
 
 const CATEGORY_ORDER = { 'Excellent': 5, 'Good': 4, 'Average': 3, 'Below Average': 2, 'Poor': 1 };
@@ -4280,12 +4291,14 @@ window.handleDeanStudentFileSelect = function(event) {
     const nameEl = document.getElementById('deanStudentFileName');
     if (nameEl) nameEl.textContent = file ? file.name : 'No file chosen';
     if (!file) return;
-    if (!/\.csv$/i.test(file.name)) {
-        showDeanAlert('Please upload a CSV file.', { title: 'Invalid File', type: 'error' });
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (ext !== 'csv' && ext !== 'pdf') {
+        showDeanAlert('Please upload a CSV or PDF file.', { title: 'Invalid File', type: 'error' });
         cancelDeanImport();
         return;
     }
-    parseDeanStudentCSV(file);
+    if (ext === 'pdf') parseDeanPDF(file);
+    else parseDeanStudentCSV(file);
 };
 
 function parseDeanStudentCSV(file) {
@@ -4375,11 +4388,7 @@ function parseDeanStudentCSV(file) {
             }
 
             if (!studentData.length) throw new Error('No valid student data found in CSV.');
-            deanCurrentImportData = {
-                data: studentData,
-                metadata: { professorName, courseCode, section, courseTitle, timeSchedule, daySchedule, roomSchedule, yearLevel, academicYear }
-            };
-            showDeanPreviewTable(studentData, deanCurrentImportData.metadata);
+            buildDeanImportPreview(studentData, { professorName, courseCode, section, courseTitle, timeSchedule, daySchedule, roomSchedule, yearLevel, academicYear });
         } catch (err) {
             console.error('Dean CSV parse error:', err);
             showDeanAlert(err.message || 'Failed to parse CSV file.', { title: 'Parse Error', type: 'error' });
@@ -4393,7 +4402,168 @@ function parseDeanStudentCSV(file) {
     reader.readAsText(file);
 }
 
-function showDeanPreviewTable(data, meta) {
+async function parseDeanPDF(file) {
+    try {
+        if (!window.pdfjsLib) {
+            await new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+            window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
+
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        let fullText = '';
+        for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const content = await page.getTextContent();
+            fullText += content.items.map(item => item.str).join(' ') + '\n';
+        }
+        parseDeanPDFText(fullText);
+    } catch (err) {
+        console.error('Dean PDF parse error:', err);
+        showDeanAlert('Failed to read PDF file. Please use an official UMak classlist PDF.', { title: 'PDF Error', type: 'error' });
+        cancelDeanImport();
+    }
+}
+
+function parseDeanPDFText(text) {
+    try {
+        const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+        const blockStartIndices = [];
+        for (let i = 0; i < lines.length; i++) {
+            if (/course\s*code[:\s]/i.test(lines[i]) && /[A-Z]{2}\s*\d/i.test(lines[i])) blockStartIndices.push(i);
+        }
+        if (!blockStartIndices.length) blockStartIndices.push(0);
+
+        const sectionBlocks = [];
+        for (let b = 0; b < blockStartIndices.length; b++) {
+            const start = blockStartIndices[b];
+            const end = b + 1 < blockStartIndices.length ? blockStartIndices[b + 1] : lines.length;
+            sectionBlocks.push(lines.slice(start, end).join('\n'));
+        }
+
+        const allStudentData = [];
+        for (const blockText of sectionBlocks) {
+            const blockLines = blockText.split('\n').map(l => l.trim()).filter(Boolean);
+            let professorName = '', courseCode = '', section = '', courseTitle = '';
+            let timeSchedule = '', daySchedule = '', roomSchedule = '';
+            let yearLevel = '', academicYear = '';
+
+            for (const line of blockLines) {
+                if (/faculty/i.test(line)) {
+                    const m = line.match(/Faculty[:\s]+(?:Prof\.\s*)?([A-Z][A-Z,.\s]+?)(?:\s+Units|\s+\d+\.)/i);
+                    if (m) professorName = m[1].trim();
+                }
+                if (/course\s*code/i.test(line)) {
+                    const m = line.match(/Course\s*Code[:\s]+([A-Z]+\s*\d+[A-Z]*)/i);
+                    if (m) courseCode = m[1].trim();
+                }
+                if (/section/i.test(line) && /time/i.test(line)) {
+                    const ms = line.match(/Section[:\s]+([A-Z0-9][A-Z0-9\-]*(?:\s+(?!Time|Days|Room)[A-Z0-9]+)*)/i);
+                    if (ms) {
+                        section = ms[1].trim();
+                        const ym = section.match(/^([IVX]+)-/);
+                        if (ym) yearLevel = ({ I: '1', II: '2', III: '3', IV: '4' })[ym[1]] || '';
+                    }
+                    const sm = line.match(/Time[\/\s]+Days[\/\s]+Room[:\s]+(.+?)(?:\s{2,}|$)/i);
+                    if (sm) {
+                        const parts = sm[1].trim().split('/').map(p => p.trim());
+                        timeSchedule = parts[0] || '';
+                        daySchedule = parts[1] || '';
+                        roomSchedule = parts[2] || '';
+                    }
+                }
+                if (/course\s*title/i.test(line)) {
+                    const m = line.match(/Course\s*Title[:\s]+(.+?)(?:\s{3,}|$)/i);
+                    if (m) courseTitle = m[1].trim();
+                }
+                if (/A\.Y\./i.test(line)) {
+                    const m = line.match(/A\.Y\.\s*(\d{4}-\d{4})/i);
+                    if (m) academicYear = `A.Y. ${m[1]}`;
+                }
+            }
+            if (!section || !courseCode) continue;
+
+            const emailRegex = /\b([a-z][a-z0-9]+\.[a-zA-Z0-9\-]+@umak\.edu\.ph)\b/gi;
+            const blockEmailMatches = [...blockText.matchAll(emailRegex)];
+            for (const match of blockEmailMatches) {
+                const email = match[1].toLowerCase();
+                const emailIdx = blockText.toLowerCase().indexOf(email.toLowerCase());
+                if (emailIdx === -1) continue;
+
+                const before = blockText.substring(Math.max(0, emailIdx - 250), emailIdx).trim();
+                const idMatch = before.match(/([AaKk]\d{5,})\s*$/);
+                const studentId = idMatch ? idMatch[1].toUpperCase() : '';
+                const nameChunk = idMatch ? before.substring(0, before.lastIndexOf(idMatch[0])).trim() : before;
+                const nameMatch = nameChunk.match(/([A-ZÁÉÍÓÚÑÜ][A-ZÁÉÍÓÚÑÜ\s,.']+(?:,\s*[A-ZÁÉÍÓÚÑÜ][A-ZÁÉÍÓÚÑÜ\s.]+))[\s]*$/);
+                const name = nameMatch ? nameMatch[1].replace(/\s+/g, ' ').trim() : '';
+                if (!name) continue;
+
+                allStudentData.push({
+                    name, student_id: studentId, email, section,
+                    course_code: courseCode, course_title: courseTitle,
+                    professor: professorName, time: timeSchedule, day: daySchedule, room: roomSchedule,
+                    year_level: yearLevel, academic_year: academicYear
+                });
+            }
+        }
+
+        if (!allStudentData.length) throw new Error('No student rows were found in the PDF.');
+        buildDeanImportPreview(allStudentData, {});
+    } catch (err) {
+        console.error('Dean PDF text parse error:', err);
+        showDeanAlert(err.message || 'Failed to parse PDF data.', { title: 'Parse Error', type: 'error' });
+        cancelDeanImport();
+    }
+}
+
+async function buildDeanImportPreview(studentData, fallbackMeta) {
+    const first = studentData[0] || {};
+    const meta = {
+        professorName: first.professor || fallbackMeta.professorName || '',
+        courseCode: first.course_code || fallbackMeta.courseCode || '',
+        section: first.section || fallbackMeta.section || '',
+        courseTitle: first.course_title || fallbackMeta.courseTitle || '',
+        timeSchedule: first.time || fallbackMeta.timeSchedule || '',
+        daySchedule: first.day || fallbackMeta.daySchedule || '',
+        roomSchedule: first.room || fallbackMeta.roomSchedule || '',
+        yearLevel: first.year_level || fallbackMeta.yearLevel || '',
+        academicYear: first.academic_year || fallbackMeta.academicYear || ''
+    };
+
+    const sectionCounts = {};
+    studentData.forEach(r => {
+        const sec = (r.section || 'Unspecified Section').trim();
+        sectionCounts[sec] = (sectionCounts[sec] || 0) + 1;
+    });
+    const sectionEntries = Object.entries(sectionCounts);
+    const details = sectionEntries
+        .map(([sec, count]) => `• <strong>${sec}</strong>: ${count} student${count !== 1 ? 's' : ''}`)
+        .join('<br>');
+    const confirmed = await showDeanConfirm(
+        `Found <strong>${sectionEntries.length}</strong> section${sectionEntries.length !== 1 ? 's' : ''} and <strong>${studentData.length}</strong> total students.<br><br>${details}<br><br>Continue to preview list?`,
+        { title: 'Found Section(s)', type: 'info', confirmText: 'Continue to Preview', cancelText: 'Cancel' }
+    );
+    if (!confirmed) {
+        cancelDeanImport();
+        return;
+    }
+
+    deanCurrentImportData = { data: studentData, metadata: meta };
+    deanPreviewCurrentPage = 1;
+    populateDeanSectionFilter(studentData);
+    showDeanPreviewTable();
+}
+
+function showDeanPreviewTable() {
+    if (!deanCurrentImportData || !Array.isArray(deanCurrentImportData.data)) return;
+    const data = deanCurrentImportData.data;
+    const meta = deanCurrentImportData.metadata || {};
     const metaEl = document.getElementById('deanPreviewMeta');
     if (metaEl) {
         metaEl.innerHTML = `
@@ -4407,9 +4577,16 @@ function showDeanPreviewTable(data, meta) {
         `;
     }
 
+    const selectedSection = document.getElementById('deanPreviewSectionFilter')?.value || 'all';
+    const filteredRows = selectedSection === 'all' ? data : data.filter(r => (r.section || '') === selectedSection);
+    const totalPages = Math.max(1, Math.ceil(filteredRows.length / deanPreviewPageSize));
+    if (deanPreviewCurrentPage > totalPages) deanPreviewCurrentPage = 1;
+    const start = (deanPreviewCurrentPage - 1) * deanPreviewPageSize;
+    const pageRows = filteredRows.slice(start, start + deanPreviewPageSize);
+
     const tbody = document.getElementById('deanPreviewTableBody');
     if (tbody) {
-        tbody.innerHTML = data.slice(0, 25).map(r => `
+        tbody.innerHTML = pageRows.map(r => `
             <tr>
                 <td data-label="Name" style="font-weight:600;color:#0a1628;">${r.name || '—'}</td>
                 <td data-label="Student ID" style="font-family:'DM Mono',monospace;font-size:12px;">${r.student_id || '—'}</td>
@@ -4418,15 +4595,57 @@ function showDeanPreviewTable(data, meta) {
                 <td data-label="Course Code" style="font-size:13px;">${r.course_code || '—'}</td>
                 <td data-label="Professor" style="font-size:13px;">${r.professor || '—'}</td>
             </tr>
-        `).join('') + (data.length > 25 ? `<tr><td colspan="6" style="text-align:center;color:#8a98ae;font-style:italic;">… and ${data.length - 25} more students</td></tr>` : '');
+        `).join('');
     }
 
     const label = document.getElementById('deanPreviewCountLabel');
-    if (label) label.textContent = `Showing ${Math.min(data.length, 25)} of ${data.length} students`;
+    if (label) {
+        if (!filteredRows.length) label.textContent = 'Showing 0 students';
+        else label.textContent = `Showing ${start + 1}-${Math.min(start + pageRows.length, filteredRows.length)} of ${filteredRows.length} students`;
+    }
+    renderDeanPreviewPagination(totalPages);
     const sec = document.getElementById('deanPreviewSection');
     if (sec) sec.style.display = 'block';
     sec && sec.scrollIntoView({ behavior: 'smooth' });
 }
+
+function populateDeanSectionFilter(rows) {
+    const sel = document.getElementById('deanPreviewSectionFilter');
+    if (!sel) return;
+    const uniqueSections = [...new Set(rows.map(r => (r.section || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+    sel.innerHTML = '<option value="all">All Sections</option>' + uniqueSections.map(s => `<option value="${s}">${s}</option>`).join('');
+}
+
+function renderDeanPreviewPagination(totalPages) {
+    const wrap = document.getElementById('deanPreviewPagination');
+    if (!wrap) return;
+    if (totalPages <= 1) { wrap.innerHTML = ''; return; }
+    const cur = deanPreviewCurrentPage;
+    let pages = [];
+    for (let i = 1; i <= totalPages; i++) {
+        if (i === 1 || i === totalPages || Math.abs(i - cur) <= 1) pages.push(i);
+        else if (pages[pages.length - 1] !== '...') pages.push('...');
+    }
+    wrap.innerHTML = pages.map(p => p === '...'
+        ? `<span style="padding:0 6px;color:#8a98ae;">...</span>`
+        : `<button onclick="goToDeanPreviewPage(${p})" style="width:32px;height:32px;border-radius:8px;border:1px solid ${p === cur ? '#2d6fc4' : '#e1e6ef'};background:${p === cur ? '#2d6fc4' : '#fff'};color:${p === cur ? '#fff' : '#4a5a72'};font-size:12px;font-weight:${p === cur ? '700' : '500'};cursor:pointer;">${p}</button>`
+    ).join('') + `<button onclick="goToDeanPreviewPage(${cur + 1})" ${cur === totalPages ? 'disabled' : ''} style="height:32px;padding:0 10px;border-radius:8px;border:1px solid #e1e6ef;background:${cur === totalPages ? '#f4f6fa' : '#fff'};color:${cur === totalPages ? '#c5cfe0' : '#4a5a72'};font-size:12px;cursor:${cur === totalPages ? 'not-allowed' : 'pointer'};">Next</button>`;
+}
+
+window.goToDeanPreviewPage = function(page) {
+    const selectedSection = document.getElementById('deanPreviewSectionFilter')?.value || 'all';
+    const data = (deanCurrentImportData?.data || []);
+    const filteredRows = selectedSection === 'all' ? data : data.filter(r => (r.section || '') === selectedSection);
+    const totalPages = Math.max(1, Math.ceil(filteredRows.length / deanPreviewPageSize));
+    if (page < 1 || page > totalPages) return;
+    deanPreviewCurrentPage = page;
+    showDeanPreviewTable();
+};
+
+window.onDeanPreviewSectionChange = function() {
+    deanPreviewCurrentPage = 1;
+    showDeanPreviewTable();
+};
 
 window.cancelDeanImport = function() {
     const input = document.getElementById('deanStudentCsvInput');
@@ -4444,11 +4663,6 @@ window.processDeanImport = async function() {
         return;
     }
     const meta = deanCurrentImportData.metadata || {};
-    const sectionName = (meta.section || (deanCurrentImportData.data[0] && deanCurrentImportData.data[0].section) || '').trim();
-    if (!sectionName) {
-        await showDeanAlert('Missing section name in CSV.', { title: 'Validation Error', type: 'error' });
-        return;
-    }
 
     const btn = document.getElementById('deanProcessImportBtn');
     if (btn) btn.disabled = true;
@@ -4463,10 +4677,21 @@ window.processDeanImport = async function() {
                 console.error('Dean import row error:', e);
             }
         }
-        await deanUpdateSectionRoster(sectionName, deanCurrentImportData.data, meta);
+        const rowsBySection = {};
+        for (const row of deanCurrentImportData.data) {
+            const sec = (row.section || '').trim();
+            if (!sec) continue;
+            if (!rowsBySection[sec]) rowsBySection[sec] = [];
+            rowsBySection[sec].push(row);
+        }
+        const sections = Object.keys(rowsBySection);
+        if (!sections.length) throw new Error('Missing section name in imported data.');
+        for (const sectionName of sections) {
+            await deanUpdateSectionRoster(sectionName, rowsBySection[sectionName], meta);
+        }
 
         await showDeanAlert(
-            `Import complete.<br><br><strong>${successCount}</strong> student record(s) processed${errorCount ? `, <strong>${errorCount}</strong> failed.` : '.'}`,
+            `Import complete.<br><br><strong>${successCount}</strong> student record(s) processed in <strong>${sections.length}</strong> section(s)${errorCount ? `, <strong>${errorCount}</strong> failed.` : '.'}`,
             { title: 'Import Complete', type: errorCount ? 'warning' : 'success' }
         );
         cancelDeanImport();

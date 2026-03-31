@@ -403,6 +403,27 @@
                 </div>
             </div>
 
+            <div class="bg-white rounded-2xl border border-border shadow-sm mb-6 overflow-hidden">
+                <div class="px-6 py-4 border-b border-border flex items-center justify-between gap-3 flex-wrap">
+                    <div class="flex items-center gap-2.5 text-[15px] font-semibold text-navy">
+                        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[#8b6914] to-accent flex items-center justify-center text-white text-[13px]">
+                            <i class="fas fa-history"></i>
+                        </div>
+                        Recent Activity
+                    </div>
+                    <button onclick="loadRecentActivity()" class="inline-flex items-center gap-2 px-4 py-2 bg-transparent text-text-secondary border border-border rounded-xl text-[13px] font-medium cursor-pointer hover:border-blue hover:text-blue transition-all">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </div>
+                <div class="p-6">
+                    <div id="recentActivityEmpty" class="py-8 text-center text-text-muted">
+                        <div class="text-3xl text-border-strong mb-3"><i class="fas fa-history"></i></div>
+                        <div class="text-sm">No recent activity yet.</div>
+                    </div>
+                    <div id="recentActivityList" class="space-y-3"></div>
+                </div>
+            </div>
+
         </div>
 
         <!-- Footer -->
@@ -523,7 +544,7 @@
 <script type="module">
     import { initializeApp }       from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
     import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-    import { getFirestore, doc, getDoc, collection, query, where, getDocs, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+    import { getFirestore, doc, getDoc, collection, query, where, getDocs, onSnapshot, orderBy, limit } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
     const firebaseConfig = {
         apiKey: "AIzaSyAgaLunqEf2gs6dSpF_sz1hV5XQ5Wm52jo",
@@ -547,6 +568,7 @@
     let totalActivities  = 0;
     let allActivities    = [];
     let activeSectionFilter = null;
+    let recentActivityLogs = [];
 
     // ── Auth gate ──────────────────────────────────────────────────────────────
     const loadingTimeout = setTimeout(() => {
@@ -573,7 +595,7 @@
             setupUI();
 
             // Fire both in parallel — no sequential await
-            await Promise.all([loadSections(), loadActivities()]);
+            await Promise.all([loadSections(), loadActivities(), loadRecentActivity()]);
 
         } catch (err) {
             console.error('Dashboard init error:', err);
@@ -774,6 +796,61 @@
             // Refresh filter view if one is active
             if (activeSectionFilter) updateStatsForFilter(activeSectionFilter);
         }, err => console.error('Activities listener error:', err));
+    }
+
+    async function loadRecentActivity() {
+        try {
+            const snap = await getDocs(query(collection(db, 'activityLogs'), orderBy('timestamp', 'desc'), limit(10)));
+            recentActivityLogs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            renderRecentActivity();
+        } catch (err) {
+            console.error('Recent activity load error:', err);
+        }
+    }
+    window.loadRecentActivity = loadRecentActivity;
+
+    function getTimeAgo(date) {
+        if (!date) return 'Unknown time';
+        const sec = Math.floor((Date.now() - date.getTime()) / 1000);
+        if (sec < 60) return 'Just now';
+        if (sec < 3600) return `${Math.floor(sec / 60)} minute(s) ago`;
+        if (sec < 86400) return `${Math.floor(sec / 3600)} hour(s) ago`;
+        if (sec < 2592000) return `${Math.floor(sec / 86400)} day(s) ago`;
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    function renderRecentActivity() {
+        const wrap = document.getElementById('recentActivityList');
+        const empty = document.getElementById('recentActivityEmpty');
+        if (!wrap || !empty) return;
+
+        if (!recentActivityLogs.length) {
+            wrap.innerHTML = '';
+            empty.classList.remove('hidden');
+            return;
+        }
+
+        empty.classList.add('hidden');
+        wrap.innerHTML = recentActivityLogs.map(log => {
+            const when = log.timestamp?.toDate ? log.timestamp.toDate() : null;
+            const sec = log.sectionName || log.sectionId || 'N/A';
+            const actor = log.changedByName || log.secretaryName || 'System';
+            const fromP = log.fromProfessor || '';
+            const toP = log.toProfessor || '';
+            const movement = fromP || toP ? `<div class="text-[12px] text-text-secondary mt-1">${fromP || 'Unassigned'} <span class="text-text-muted mx-1">→</span> ${toP || 'Unassigned'}</div>` : '';
+            return `
+                <div class="p-3.5 rounded-xl border border-border bg-surface">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <div class="text-[13px] font-semibold text-navy">${escapeHtml(sec)}</div>
+                            <div class="text-[12px] text-text-muted mt-0.5">Updated by ${escapeHtml(actor)}</div>
+                            ${movement}
+                        </div>
+                        <div class="text-[11px] text-text-muted whitespace-nowrap">${escapeHtml(getTimeAgo(when))}</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
     }
 
     // ── Section filter ─────────────────────────────────────────────────────────
