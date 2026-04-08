@@ -343,11 +343,7 @@
                 </div>
             </div>
 
-            <div class="flex gap-2.5 flex-wrap mb-6">
-                <button onclick="refreshDashboardData()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-transparent text-text-secondary border border-border rounded-xl font-sans text-[13px] font-medium cursor-pointer transition-all hover:border-blue hover:text-blue hover:bg-info-bg/40">
-                    <i class="fas fa-sync-alt"></i> Refresh Dashboard
-                </button>
-            </div>
+           
             <!-- ═══ PERFORMANCE OVERVIEW ═══ -->
 <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-7">
 
@@ -537,10 +533,7 @@
                         <select class="px-3.5 py-2 border border-border rounded-lg text-[13px] text-text-primary bg-surface cursor-pointer focus:outline-none focus:border-blue font-sans" id="collegeFilter" onchange="filterRankings()">
                             <option value="all">All Colleges</option>
                         </select>
-                        <div class="relative flex items-center">
-                            <i class="fas fa-search absolute left-3 text-text-muted text-[13px] pointer-events-none"></i>
-                            <input type="text" class="pl-9 pr-3.5 py-2 border border-border rounded-lg text-[13px] text-text-primary bg-surface w-[220px] focus:outline-none focus:border-blue focus:ring-2 focus:ring-blue/10 focus:bg-white transition-all font-sans" id="searchRankings" placeholder="Search sections…" onkeyup="filterRankings()">
-                        </div>
+                       
                     </div>
                 </div>
                 <div class="overflow-x-auto">
@@ -1518,23 +1511,74 @@ const CATEGORY_ORDER = { 'Excellent': 5, 'Good': 4, 'Average': 3, 'Below Average
     window.showActivityHistory = function() { hideAllPages(); document.getElementById('activityHistoryPage').classList.add('active'); setActiveNav('nav-activity'); loadActivityLogs(); };
 
     // ─── AUTH ───
-  let unsubscribeAuth = null;
+  // Replace the auth state listener with this enhanced version
+let unsubscribeAuth = null;
 unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
     if (user) {
         try {
             currentUser = user;
             let deanFound = false, userData = null;
-            try { const d = await db.collection('deans').doc(user.uid).get(); if (d.exists&&d.data().role==='dean') { userData=d.data(); deanFound=true; } } catch(e){}
-            if (!deanFound) { try { const d = await db.collection('users').doc(user.uid).get(); if (d.exists&&['dean','head_admin'].includes(d.data().role)) { userData=d.data(); deanFound=true; } } catch(e){} }
-            if (!deanFound) { try { const key=user.email.toLowerCase().replace(/\./g,'_'); const d=await db.collection('users').doc(key).get(); if (d.exists&&['dean','head_admin'].includes(d.data().role)) { userData=d.data(); deanFound=true; } } catch(e){} }
+            
+            // Clear any cached data
+            deanData = null;
+            
+            // First, check if user exists in deans collection (highest priority)
+            try { 
+                const d = await db.collection('deans').doc(user.uid).get(); 
+                if (d.exists && (d.data().role === 'dean' || d.data().role === 'head_admin')) { 
+                    userData = d.data(); 
+                    deanFound = true; 
+                } 
+            } catch(e){}
+            
+            // If not in deans, check users collection
+            if (!deanFound) { 
+                try { 
+                    const d = await db.collection('users').doc(user.uid).get(); 
+                    if (d.exists && ['dean','head_admin'].includes(d.data().role)) { 
+                        userData = d.data(); 
+                        deanFound = true; 
+                    } 
+                } catch(e){} 
+            }
+            
+            // If still not found, try by email
+            if (!deanFound) { 
+                try { 
+                    const emailKey = user.email.toLowerCase().replace(/\./g,'_'); 
+                    const d = await db.collection('users').doc(emailKey).get(); 
+                    if (d.exists && ['dean','head_admin'].includes(d.data().role)) { 
+                        userData = d.data(); 
+                        deanFound = true; 
+                    } 
+                } catch(e){} 
+            }
+            
+            // Also check by email query (last resort)
+            if (!deanFound) {
+                try {
+                    const querySnap = await db.collection('users')
+                        .where('email', '==', user.email.toLowerCase())
+                        .where('role', 'in', ['dean', 'head_admin'])
+                        .limit(1)
+                        .get();
+                    if (!querySnap.empty) {
+                        userData = querySnap.docs[0].data();
+                        deanFound = true;
+                    }
+                } catch(e) {}
+            }
+            
             if (!deanFound) {
                 clearTimeout(loadingTimeout);
-                await showDeanAlert('This account is not authorized to access the dean dashboard.', {title:'Access Denied',type:'error',confirmText:'Return to Login'});
+                await showDeanAlert('This account is not authorized to access the dean dashboard.', 
+                    {title:'Access Denied', type:'error', confirmText:'Return to Login'});
                 await auth.signOut();
                 window.location.href = '/login/index.html';
                 return;
             }
-            await updateProfileDisplay(userData||{email:user.email,name:'Dean',role:'dean'});
+            
+            await updateProfileDisplay(userData || {email: user.email, name: 'Dean', role: 'dean'});
             await loadTestResults();
             await loadDashboardStats();
             await loadPreAssessments();
@@ -1545,7 +1589,6 @@ unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
             await loadTopSections();
             await loadStudentRankings();
 
-            // ✅ Clear loading immediately once auth confirmed
             clearTimeout(loadingTimeout);
             document.getElementById('loadingScreen').style.display = 'none';
             document.getElementById('mainContent').style.display = 'block';
@@ -2026,14 +2069,17 @@ Object.values(bestPerStudentTest).forEach(t => {
             allColleges.add(college);
 
             const stuCount = (secStudents[name] instanceof Set ? secStudents[name].size : secStudents[name]) || 0;
+// Use the actual enrolled count from the sections collection (meta.studentCount),
+// NOT the set of students who submitted tests — that inflates the count.
+const enrolledCount = meta.studentCount > 0 ? meta.studentCount : stuCount;
 
-            sectionRankings.push({
-                name,
-                college,
-                professor: meta.professor,
-                professorEmail: meta.professorEmail || '',
-                professorId: meta.professorId || '',
-                studentCount: Math.max(stuCount, meta.studentCount || 0),
+sectionRankings.push({
+    name,
+    college,
+    professor: meta.professor,
+    professorEmail: meta.professorEmail || '',
+    professorId: meta.professorId || '',
+    studentCount: enrolledCount,
                 preTestCount: data.pre.length,
                 postTestCount: data.post.length,
                 preTestAvg: parseFloat(preAvg.toFixed(2)),
@@ -2259,76 +2305,28 @@ async function loadTopSections() {
 
     window.refreshSectionRanking = function() { loadTestResults().then(()=>loadSectionRankings()); };
     window.exportRankingReport = function() {
-        if(!sectionRankings.length) { showAlert('rankingAlert','No data to export.','error'); return; }
-        let csv="Rank,Section,College,Professor,Students,Pre-Test Avg,Post-Test Avg,Improvement,Avg Score,Total Tests\n";
-        sectionRankings.forEach((s,i)=>csv+=`${i+1},${s.name},${s.college},${s.professor||'Unassigned'},${s.studentCount},${s.preTestAvg},${s.postTestAvg},${s.improvement},${s.avgScore},${s.totalTests}\n`);
-        downloadCSV(csv,`section_rankings_${new Date().toISOString().split('T')[0]}.csv`);
-        showAlert('rankingAlert','Report exported successfully!','success');
-    };
-window.viewSectionDetails = async function(sectionName) {
-    const s = sectionRankings.find(r => r.name === sectionName); 
+    if (!filteredRankings.length) { showAlert('rankingAlert', 'No data to export.', 'error'); return; }
+    let csv = "Rank,Section,College,Professor,Students,Tests Taken,Avg Performance\n";
+    let rankCounter = 0;
+    filteredRankings.forEach(s => {
+        if (s.hasData) rankCounter++;
+        const rank = s.hasData ? rankCounter : '—';
+        const perf = s.hasData && s.avgScore > 0 ? getScoreRating(s.avgScore).text : 'No result yet';
+        const tests = s.hasData ? (s.totalTests || 0) : '—';
+        csv += `${rank},"${s.name}","${s.college}","${s.professor || 'Unassigned'}",${s.studentCount},${tests},"${perf}"\n`;
+    });
+    downloadCSV(csv, `section_rankings_${new Date().toISOString().split('T')[0]}.csv`);
+};
+
+ window.viewSectionDetails = async function(sectionName) {
+    const s = sectionRankings.find(r => r.name === sectionName);
     if (!s) return;
-    
+
     const rank = sectionRankings.findIndex(r => r.name === sectionName) + 1;
     const rc = rank <= 3 ? `rank-${rank}` : 'rank-other';
 
     document.getElementById('sectionDetailsTitle').textContent = `Section: ${sectionName}`;
-    
-    // Build BMI blocks
-    let bmiPreBlock = '';
-    let bmiPostBlock = '';
-    let bmiImprovBlock = '';
-    
-    if (s.bmiPreAvg !== null && s.bmiPreAvg > 0) {
-        bmiPreBlock = `
-            <div class="detail-block">
-                <div class="detail-block-label">📊 Pre-Assessment BMI</div>
-                <div class="detail-block-val">
-                    <strong style="font-family:'DM Mono',monospace; font-size:24px;">${s.bmiPreAvg.toFixed(2)}</strong>
-                    <span class="bmi-pill ${getBMICategoryClass(s.bmiPreCategory)}" style="margin-left:12px; font-size:12px;">${getBMICategoryDisplay(s.bmiPreCategory)}</span>
-                    <div style="font-size:11px; color:#8a98ae; margin-top:6px;">
-                        <i class="fas fa-users"></i> ${s.bmiPreCount} student(s) assessed
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-    
-    if (s.bmiPostAvg !== null && s.bmiPostAvg > 0) {
-        bmiPostBlock = `
-            <div class="detail-block">
-                <div class="detail-block-label">📈 Post-Assessment BMI</div>
-                <div class="detail-block-val">
-                    <strong style="font-family:'DM Mono',monospace; font-size:24px;">${s.bmiPostAvg.toFixed(2)}</strong>
-                    <span class="bmi-pill ${getBMICategoryClass(s.bmiPostCategory)}" style="margin-left:12px; font-size:12px;">${getBMICategoryDisplay(s.bmiPostCategory)}</span>
-                    <div style="font-size:11px; color:#8a98ae; margin-top:6px;">
-                        <i class="fas fa-users"></i> ${s.bmiPostCount} student(s) assessed
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-    
-    if (s.bmiImprovement !== null && s.bmiPreAvg !== null && s.bmiPostAvg !== null) {
-        const changeClass = s.bmiImprovement < 0 ? 'trend-up' : (s.bmiImprovement > 0 ? 'trend-down' : 'trend-neutral');
-        const changeIcon = s.bmiImprovement < 0 ? 'arrow-down' : (s.bmiImprovement > 0 ? 'arrow-up' : 'minus');
-        const changeText = s.bmiImprovement < 0 ? '↓ Improvement (Weight Loss)' : (s.bmiImprovement > 0 ? '↑ Weight Gain' : 'No Change');
-        
-        bmiImprovBlock = `
-            <div class="detail-block">
-                <div class="detail-block-label">⚖️ BMI Change (Pre → Post)</div>
-                <div class="detail-block-val ${changeClass}" style="font-size:28px; font-weight:700;">
-                    <i class="fas fa-${changeIcon}" style="font-size:20px; margin-right:8px;"></i>
-                    ${s.bmiImprovement > 0 ? '+' : ''}${s.bmiImprovement.toFixed(2)}
-                </div>
-                <div style="font-size:12px; color:#8a98ae; margin-top:4px;">
-                    ${changeText}
-                </div>
-            </div>
-        `;
-    }
-    
-    // Build the full modal content
+
     document.getElementById('sectionDetailsContent').innerHTML = `
         <div class="detail-grid">
             <div class="detail-block">
@@ -2355,35 +2353,10 @@ window.viewSectionDetails = async function(sectionName) {
                 <div class="detail-block-label">📝 Total Test Results</div>
                 <div class="detail-block-val big">${s.totalTests || 0}</div>
             </div>
-            
-            ${bmiPreBlock}
-            ${bmiPostBlock}
-            ${bmiImprovBlock}
-            
-            <div class="detail-block">
-                <div class="detail-block-label">📋 Pre-Test Performance</div>
-                <div class="detail-block-val">
-                    ${s.preTestAvg > 0
-                        ? `<span class="score-pill ${getScoreRating(s.preTestAvg).cls}" style="font-size:14px;">${getScoreRating(s.preTestAvg).text}</span>
-                           <div style="font-size:13px; color:#8a98ae; margin-top:6px;">${s.preTestCount} test(s) • Avg: ${s.preTestAvg.toFixed(1)} pts</div>`
-                        : '<span style="color:#8a98ae;">No pre-test data available</span>'}
-                </div>
-            </div>
-            
-            <div class="detail-block">
-                <div class="detail-block-label">📊 Post-Test Performance</div>
-                <div class="detail-block-val">
-                    ${s.postTestAvg > 0
-                        ? `<span class="score-pill ${getScoreRating(s.postTestAvg).cls}" style="font-size:14px;">${getScoreRating(s.postTestAvg).text}</span>
-                           <div style="font-size:13px; color:#8a98ae; margin-top:6px;">${s.postTestCount} test(s) • Avg: ${s.postTestAvg.toFixed(1)} pts</div>`
-                        : '<span style="color:#8a98ae;">No post-test data available</span>'}
-                </div>
-            </div>
-            
             <div class="detail-block">
                 <div class="detail-block-label">🏆 Overall Performance</div>
                 <div class="detail-block-val big">
-                    ${s.avgScore > 0 
+                    ${s.avgScore > 0
                         ? `<span class="score-pill ${getScoreRating(s.avgScore).cls}" style="font-size:18px; padding:8px 20px;">${getScoreRating(s.avgScore).text}</span>`
                         : '—'}
                 </div>
@@ -2394,7 +2367,6 @@ window.viewSectionDetails = async function(sectionName) {
                 </div>
                 ` : ''}
             </div>
-            
             <div class="detail-block">
                 <div class="detail-block-label">🎖️ Overall Rank</div>
                 <div class="detail-block-val">
@@ -2405,41 +2377,18 @@ window.viewSectionDetails = async function(sectionName) {
                 </div>
             </div>
         </div>
-        
+
         ${!s.hasData ? `
         <div class="info-note" style="margin-top:20px;">
             <i class="fas fa-info-circle"></i>
             <span>This section has no assessment data yet. Scores will appear once students complete fitness tests.</span>
         </div>
         ` : ''}
-        
-        ${s.preScores.length > 0 || s.postScores.length > 0 ? `
-        <div style="margin-top:28px;">
-            <div style="font-size:14px; font-weight:700; color:#0a1628; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
-                <i class="fas fa-chart-line"></i> Performance Distribution
-            </div>
-            <div style="background:#f4f6fa; border-radius:12px; padding:16px;">
-                <div style="margin-bottom:12px;">
-                    <div style="font-size:12px; color:#8a98ae; margin-bottom:4px;">Pre-Test Scores (${s.preScores.length} students)</div>
-                    <div style="height:8px; background:#e1e6ef; border-radius:4px; overflow:hidden;">
-                        <div style="width:${(s.preTestAvg / 5) * 100}%; height:100%; background:linear-gradient(90deg,#2d6fc4,#1e4d8c); border-radius:4px;"></div>
-                    </div>
-                    <div style="font-size:13px; font-weight:600; margin-top:4px;">Avg: ${s.preTestAvg.toFixed(1)}/5</div>
-                </div>
-                <div>
-                    <div style="font-size:12px; color:#8a98ae; margin-bottom:4px;">Post-Test Scores (${s.postScores.length} students)</div>
-                    <div style="height:8px; background:#e1e6ef; border-radius:4px; overflow:hidden;">
-                        <div style="width:${(s.postTestAvg / 5) * 100}%; height:100%; background:linear-gradient(90deg,#0e8a5f,#0a6647); border-radius:4px;"></div>
-                    </div>
-                    <div style="font-size:13px; font-weight:600; margin-top:4px;">Avg: ${s.postTestAvg.toFixed(1)}/5</div>
-                </div>
-            </div>
-        </div>
-        ` : ''}
     `;
-    
+
     document.getElementById('sectionDetailsModal').style.display = 'flex';
 };
+    
     window.closeSectionDetailsModal = function() { document.getElementById('sectionDetailsModal').style.display='none'; };
 async function loadStudentRankings() {
     try {
@@ -2945,12 +2894,19 @@ const sorted = [...withData].sort((a, b) => {
 
     window.refreshStudentRanking = function() { loadTestResults().then(()=>loadStudentRankings()); };
     window.exportStudentRankingReport = function() {
-        if(!filteredStudentRankings.length) { showAlert('studentRankingAlert','No data to export.','error'); return; }
-        let csv="Rank,Student Name,Section,Student ID,Tests Taken,BMI Avg (Pre),Post-Test Avg,Improvement,Performance,Rating\n";
-document.getElementById('topStudentScore').textContent = rt.text + ' — ' + top.testsTaken + ' test' + (top.testsTaken !== 1 ? 's' : '');
-        downloadCSV(csv,`student_rankings_${new Date().toISOString().split('T')[0]}.csv`);
-        showAlert('studentRankingAlert','Report exported!','success');
-    };
+    if (!filteredStudentRankings.length) { showAlert('studentRankingAlert', 'No data to export.', 'error'); return; }
+    let csv = "Rank,Student Name,Section,Student ID,Tests Taken,Avg Performance,Top Category\n";
+    let rankCounter = 0;
+    filteredStudentRankings.forEach(s => {
+        if (s.hasData) rankCounter++;
+        const rank = s.hasData ? rankCounter : '—';
+        const perf = s.hasData && s.overallCategory ? s.overallCategory : 'No result yet';
+        const topCat = s.hasData && s.bestTestCategory ? `${s.bestTestCategory}${s.bestTestName ? ' (' + s.bestTestName + ')' : ''}` : '—';
+        const tests = s.hasData ? (s.testsTaken || 0) : '—';
+        csv += `${rank},"${s.name}","${s.section}","${s.id}",${tests},"${perf}","${topCat}"\n`;
+    });
+    downloadCSV(csv, `student_rankings_${new Date().toISOString().split('T')[0]}.csv`);
+};
 
    window.viewStudentDetails = async function(studentId) {
     const s = studentRankings.find(r => r.id === studentId);
@@ -3253,10 +3209,12 @@ const testRows = sortedTests.length ? sortedTests.map(t => {
     const attemptNum = attemptCounter[attemptKey];
 
         const normCat = getNormCatForTest(t);
-        const normCls = normCat === 'Excellent' ? 'score-excellent'
-                      : normCat === 'Good'      ? 'score-good'
-                      : (normCat === 'Below Average' || normCat === 'Poor') ? 'score-poor'
-                      : 'score-fair';
+        const normCls = normCat === 'Excellent'     ? 'score-excellent'
+              : normCat === 'Good'           ? 'score-good'
+              : normCat === 'Average'        ? 'score-fair'
+              : normCat === 'Below Average'  ? 'score-poor'
+              : normCat === 'Poor'           ? 'score-poor'
+              : 'score-fair';
 
         const gk = t.testId || t.scheduledTestId || t.testName;
         const isBest = bestByGroup[gk] === t.id;
@@ -3350,11 +3308,11 @@ Recent Test Results (${rawTests.length} test${rawTests.length !== 1 ? 's' : ''})
             <table class="custom-table">
                 <thead style="background:linear-gradient(90deg,rgba(10,22,40,0.92) 0%,rgba(30,77,140,0.92) 100%);">
                     <tr>
-                        <th style="color:white;font-weight:600;font-size:13px;padding:14px 16px;text-align:left;white-space:nowrap;">Date & Time</th>
-                        <th style="color:white;font-weight:600;font-size:13px;padding:14px 16px;text-align:left;">Test Name</th>
-                        <th style="color:white;font-weight:600;font-size:13px;padding:14px 16px;text-align:center;">Performance</th>
-                        <th style="color:white;font-weight:600;font-size:13px;padding:14px 16px;text-align:center;">Score</th>
-                        <th style="color:white;font-weight:600;font-size:13px;padding:14px 16px;text-align:center;">Attempt</th>
+                        <th style="color:black;font-weight:600;font-size:13px;padding:14px 16px;text-align:left;white-space:nowrap;">Date & Time</th>
+                        <th style="color:black;font-weight:600;font-size:13px;padding:14px 16px;text-align:left;">Test Name</th>
+                        <th style="color:black;font-weight:600;font-size:13px;padding:14px 16px;text-align:center;">Performance</th>
+                        <th style="color:black;font-weight:600;font-size:13px;padding:14px 16px;text-align:center;">Score</th>
+                        <th style="color:black;font-weight:600;font-size:13px;padding:14px 16px;text-align:center;">Attempt</th>
                     </tr>
                 </thead>
                 <tbody>${testRows}</tbody>
@@ -3808,32 +3766,239 @@ window.goToAccountsPage = function(page) {
     };
     window.filterAccountsByRole = function() { filterAccounts(); };
 
-    window.showEditRoleModal = function(uid,docId,name,email,role) {
-        currentUserToEdit={id:uid,docId,name,email,currentRole:role};
-        document.getElementById('editRoleUserName').textContent=name;
-        document.getElementById('editRoleUserEmail').textContent=email;
-        document.getElementById('editRoleCurrentRole').textContent=role.charAt(0).toUpperCase()+role.slice(1);
-        const sel=document.getElementById('editRoleSelect');
-        sel.innerHTML=`<option value="">— Choose Role —</option><option value="dean" ${role==='dean'?'selected':''}>Dean</option><option value="professor" ${role==='professor'?'selected':''}>Professor</option><option value="secretary" ${role==='secretary'?'selected':''}>Secretary</option><option value="student" ${role==='student'?'selected':''}>Student</option>`;
-        document.getElementById('editRoleModal').style.display='flex';
+    window.showEditRoleModal = function(uid, docId, name, email, role) {
+    // Store all possible identifiers for the user
+    currentUserToEdit = {
+        id: uid,
+        docId: docId,
+        name: name,
+        email: email,
+        currentRole: role
     };
+    
+    document.getElementById('editRoleUserName').textContent = name;
+    document.getElementById('editRoleUserEmail').textContent = email;
+    document.getElementById('editRoleCurrentRole').textContent = role.charAt(0).toUpperCase() + role.slice(1);
+    
+    const sel = document.getElementById('editRoleSelect');
+    sel.innerHTML = `<option value="">— Choose Role —</option>
+        <option value="dean" ${role === 'dean' ? 'selected' : ''}>Dean</option>
+        <option value="professor" ${role === 'professor' ? 'selected' : ''}>Professor</option>
+        <option value="secretary" ${role === 'secretary' ? 'selected' : ''}>Secretary</option>
+        <option value="student" ${role === 'student' ? 'selected' : ''}>Student</option>`;
+    
+    document.getElementById('editRoleModal').style.display = 'flex';
+};
+// Add this function to force update ALL role references for a user
+async function forceUpdateAllRoleReferences(email, uid, name, newRole) {
+    const emailKey = email.replace(/\./g, '_');
+    
+    // Update users collection by email key
+    const emailDocRef = db.collection('users').doc(emailKey);
+    await emailDocRef.set({
+        uid: uid,
+        email: email,
+        name: name,
+        role: newRole,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+    
+    // Update users collection by UID
+    const uidDocRef = db.collection('users').doc(uid);
+    await uidDocRef.set({
+        uid: uid,
+        email: email,
+        name: name,
+        role: newRole,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+    
+    // If role is dean, update deans collection
+    if (newRole === 'dean') {
+        const deanRef = db.collection('deans').doc(uid);
+        await deanRef.set({
+            uid: uid,
+            email: email,
+            name: name,
+            role: 'dean',
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+    } else {
+        // If not dean, ensure deans collection doesn't have this user
+        const deanRef = db.collection('deans').doc(uid);
+        const deanDoc = await deanRef.get();
+        if (deanDoc.exists) {
+            await deanRef.delete();
+        }
+    }
+    
+    console.log(`Force updated all role references for ${email} to ${newRole}`);
+}
     window.closeEditRoleModal = function() { document.getElementById('editRoleModal').style.display='none'; currentUserToEdit=null; };
 
-    window.updateUserRole = async function() {
-        if(!currentUserToEdit) return;
-        const newRole=document.getElementById('editRoleSelect')?.value;
-        if(!newRole) { await showDeanAlert('Please select a role.',{title:'Missing Role',type:'warning'}); return; }
-        if(newRole===currentUserToEdit.currentRole) { await showDeanAlert('This is already the current role.',{title:'No Changes',type:'info'}); return; }
-        const confirmed=await showDeanConfirm(`Change ${currentUserToEdit.name}'s role to ${newRole.charAt(0).toUpperCase()+newRole.slice(1)}?`,{title:'Confirm Role Change',confirmText:'Yes, update role',cancelText:'Cancel'});
-        if(!confirmed) return;
-        try {
-            let ref=db.collection('users').doc(currentUserToEdit.docId);
-            let d=await ref.get(); if(!d.exists) ref=db.collection('users').doc(currentUserToEdit.id);
-            await ref.update({role:newRole,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
-            showAlert('accountAlert',`✅ ${currentUserToEdit.name}'s role updated to ${newRole.charAt(0).toUpperCase()+newRole.slice(1)}.`,'success');
-            closeEditRoleModal(); await loadAllAccounts(); await loadDashboardStats();
-        } catch(e) { showAlert('accountAlert','❌ Error: '+e.message,'error'); }
-    };
+    // Replace the existing updateUserRole function with this enhanced version
+window.updateUserRole = async function() {
+    if(!currentUserToEdit) return;
+    const newRole = document.getElementById('editRoleSelect')?.value;
+    if(!newRole) { 
+        await showDeanAlert('Please select a role.', {title:'Missing Role', type:'warning'}); 
+        return; 
+    }
+    if(newRole === currentUserToEdit.currentRole) { 
+        await showDeanAlert('This is already the current role.', {title:'No Changes', type:'info'}); 
+        return; 
+    }
+    
+    const confirmed = await showDeanConfirm(
+        `Change ${currentUserToEdit.name}'s role to ${newRole.charAt(0).toUpperCase() + newRole.slice(1)}?`, 
+        {title:'Confirm Role Change', confirmText:'Yes, update role', cancelText:'Cancel'}
+    );
+    if(!confirmed) return;
+    
+    try {
+        const userDocId = currentUserToEdit.docId;
+        const userEmail = currentUserToEdit.email;
+        const userUid = currentUserToEdit.id;
+        
+        // 1. Update the main users collection
+        let ref = db.collection('users').doc(userDocId);
+        let doc = await ref.get();
+        if (!doc.exists) {
+            ref = db.collection('users').doc(userUid);
+            doc = await ref.get();
+        }
+        if (!doc.exists) {
+            // Try by email
+            const emailQuery = await db.collection('users').where('email', '==', userEmail).limit(1).get();
+            if (!emailQuery.empty) {
+                ref = emailQuery.docs[0].ref;
+                doc = emailQuery.docs[0];
+            }
+        }
+        
+        if (!doc.exists) throw new Error('User document not found');
+        
+        // Store old role for cross-collection cleanup
+        const oldRole = doc.data().role;
+        
+        // Update the main user document
+        await ref.update({
+            role: newRole,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        // 2. CRITICAL: Handle cross-collection role data
+        // If changing TO dean, also create/update deans collection
+        if (newRole === 'dean') {
+            const deanRef = db.collection('deans').doc(userUid);
+            await deanRef.set({
+                uid: userUid,
+                email: userEmail,
+                name: currentUserToEdit.name,
+                role: 'dean',
+                status: 'active',
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+        } 
+        // If changing FROM dean, remove from deans collection
+        else if (oldRole === 'dean') {
+            const deanRef = db.collection('deans').doc(userUid);
+            await deanRef.delete().catch(() => {});
+        }
+        
+        // If changing TO professor, ensure professor-specific data
+        if (newRole === 'professor') {
+            // Update sections collection if this professor is assigned to sections
+            const sectionsQuery = await db.collection('sections')
+                .where('professorId', '==', userUid)
+                .get();
+            const batch = db.batch();
+            sectionsQuery.forEach(sectionDoc => {
+                batch.update(sectionDoc.ref, {
+                    professorId: userUid,
+                    professorEmail: userEmail,
+                    professorName: currentUserToEdit.name,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            });
+            await batch.commit();
+        }
+        
+        // If changing FROM professor, clear professor assignments from sections
+        if (oldRole === 'professor') {
+            const sectionsQuery = await db.collection('sections')
+                .where('professorId', '==', userUid)
+                .get();
+            const batch = db.batch();
+            sectionsQuery.forEach(sectionDoc => {
+                batch.update(sectionDoc.ref, {
+                    professorId: null,
+                    professorEmail: null,
+                    professorName: 'Unassigned',
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            });
+            await batch.commit();
+        }
+        
+        // 3. Update any other references based on email
+        const emailKey = userEmail.replace(/\./g, '_');
+        const emailDocRef = db.collection('users').doc(emailKey);
+        const emailDoc = await emailDocRef.get();
+        if (emailDoc.exists) {
+            await emailDocRef.update({
+                role: newRole,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        }
+        
+        // 4. Log the role change activity
+        await db.collection('activityLogs').add({
+            type: 'role_change',
+            userId: userUid,
+            userName: currentUserToEdit.name,
+            userEmail: userEmail,
+            oldRole: oldRole,
+            newRole: newRole,
+            changedBy: currentUser?.uid || 'dean_system',
+            changedByName: deanData?.name || currentUser?.displayName || 'Dean',
+            changedByRole: 'dean',
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        await showDeanAlert(
+            `✅ ${currentUserToEdit.name}'s role has been updated from <strong>${oldRole}</strong> to <strong>${newRole}</strong>.<br><br>
+             The user must sign out and sign back in for all changes to take full effect.`,
+            { title: 'Role Updated', type: 'success' }
+        );
+        
+        closeEditRoleModal();
+        
+        // 5. Force refresh all data to clear any caches
+        await loadAllAccounts();
+        await loadDashboardStats();
+        await loadSections();
+        await loadSectionRankings();
+        
+        // 6. If the current user's role was changed, force logout
+        if (userEmail === currentUser?.email) {
+            await showDeanAlert(
+                'Your role has been changed. You will be signed out to apply the changes.',
+                { title: 'Role Changed', type: 'info' }
+            );
+            setTimeout(() => {
+                auth.signOut().then(() => {
+                    window.location.href = '/login/index.html';
+                });
+            }, 2000);
+        }
+        
+    } catch(e) { 
+        console.error('updateUserRole error:', e);
+        await showDeanAlert('❌ Error: ' + e.message, { title: 'Update Failed', type: 'error' }); 
+    }
+};
 
     window.toggleAccountStatus = async function(docId,newStatus) {
         const a=allAccounts.find(ac=>ac.docId===docId); if(!a) return;
