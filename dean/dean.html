@@ -285,7 +285,7 @@
                 <div class="w-9 h-9 rounded-lg bg-accent/15 flex items-center justify-center text-accent text-base flex-shrink-0"><i class="fas fa-dumbbell"></i></div>
                 <div>
                     <div class="text-[13px] font-bold text-white/70">UMakFit</div>
-                    <div class="text-[10px] text-white/35 mt-0.5">v2.0 · Dean Portal</div>
+                    <div class="text-[10px] text-white/35 mt-0.5">Dean Portal</div>
                 </div>
             </div>
         </div>
@@ -880,7 +880,7 @@
                         <div class="p-4 rounded-xl bg-surface border border-border mb-3" id="deanPreviewMeta"></div>
                         <div class="overflow-x-auto border border-border rounded-xl bg-white">
                             <table class="custom-table">
-                                <thead><tr><th>Name</th><th>Student ID</th><th>Email</th><th>Section</th><th>Course Code</th><th>Professor</th></tr></thead>
+<thead><tr><th>Name</th><th>Student ID</th><th>Email</th><th>Section</th><th>Course Code</th><th>Professor</th><th>Account</th></tr></thead>
                                 <tbody id="deanPreviewTableBody"></tbody>
                             </table>
                         </div>
@@ -4724,21 +4724,61 @@ async function buildDeanImportPreview(studentData, fallbackMeta) {
     populateDeanSectionFilter(studentData);
     showDeanPreviewTable();
 }
-
-function showDeanPreviewTable() {
+async function showDeanPreviewTable() {
     if (!deanCurrentImportData || !Array.isArray(deanCurrentImportData.data)) return;
     const data = deanCurrentImportData.data;
     const meta = deanCurrentImportData.metadata || {};
+
+    // Build existing accounts set from already-loaded allAccounts
+    // Also check students collection for any not in allAccounts
+    const existingEmailSet = new Set(allAccounts.map(a => (a.email || '').toLowerCase()));
+    const existingUmakIdSet = new Set(
+        allAccounts
+            .map(a => (a.userData?.umakId || a.userData?.studentId || '').replace(/^student_/i, '').trim().toUpperCase())
+            .filter(Boolean)
+    );
+
+    // Also query students collection emails (in case they're in students but not users)
+    try {
+        const stuSnap = await db.collection('students').get();
+        stuSnap.forEach(d => {
+            const data = d.data();
+            if (data.email) existingEmailSet.add(data.email.toLowerCase());
+            const uid = (data.umakId || data.studentId || '').trim().toUpperCase();
+            if (uid) existingUmakIdSet.add(uid);
+        });
+    } catch(e) {}
+
     const metaEl = document.getElementById('deanPreviewMeta');
     if (metaEl) {
+        // Count existing vs new across ALL data (not just current page)
+        const selectedSection = document.getElementById('deanPreviewSectionFilter')?.value || 'all';
+        const allFiltered = selectedSection === 'all' ? data : data.filter(r => (r.section || '') === selectedSection);
+        const existingCount = allFiltered.filter(r => {
+            const email = (r.email || '').toLowerCase();
+            const umakId = (r.student_id || '').trim().toUpperCase();
+            return existingEmailSet.has(email) || (umakId && existingUmakIdSet.has(umakId));
+        }).length;
+        const newCount = allFiltered.length - existingCount;
+
         metaEl.innerHTML = `
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-[13px]">
-                <div><span class="text-text-muted font-semibold">Section:</span> <span class="font-semibold text-navy">${meta.section || '—'}</span></div>
-                <div><span class="text-text-muted font-semibold">Course:</span> <span class="font-semibold text-navy">${meta.courseCode || '—'}</span></div>
-                <div><span class="text-text-muted font-semibold">Title:</span> <span class="font-semibold text-navy">${meta.courseTitle || '—'}</span></div>
-                <div><span class="text-text-muted font-semibold">Professor:</span> <span class="font-semibold text-navy">${meta.professorName || '—'}</span></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px;margin-bottom:12px;">
+                <div><span style="color:#8a98ae;font-weight:600;">Section:</span> <span style="font-weight:600;color:#0a1628;">${meta.section || '—'}</span></div>
+                <div><span style="color:#8a98ae;font-weight:600;">Course:</span> <span style="font-weight:600;color:#0a1628;">${meta.courseCode || '—'}</span></div>
+                <div><span style="color:#8a98ae;font-weight:600;">Title:</span> <span style="font-weight:600;color:#0a1628;">${meta.courseTitle || '—'}</span></div>
+                <div><span style="color:#8a98ae;font-weight:600;">Professor:</span> <span style="font-weight:600;color:#0a1628;">${meta.professorName || '—'}</span></div>
             </div>
-            <div class="mt-2 text-[12px] text-text-muted"><span class="font-semibold">Schedule:</span> ${(meta.timeSchedule || '—')} / ${(meta.daySchedule || '—')} / ${(meta.roomSchedule || '—')}</div>
+            <div style="font-size:12px;color:#8a98ae;margin-bottom:10px;">
+                <span style="font-weight:600;">Schedule:</span> ${meta.timeSchedule || '—'} / ${meta.daySchedule || '—'} / ${meta.roomSchedule || '—'}
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                <span style="display:inline-flex;align-items:center;gap:6px;background:#d4f0e6;color:#0e8a5f;font-size:12px;font-weight:600;padding:4px 12px;border-radius:20px;">
+                    <i class="fas fa-user-check" style="font-size:11px;"></i> ${existingCount} existing account${existingCount !== 1 ? 's' : ''} (will update)
+                </span>
+                <span style="display:inline-flex;align-items:center;gap:6px;background:#fef3d4;color:#b07e16;font-size:12px;font-weight:600;padding:4px 12px;border-radius:20px;">
+                    <i class="fas fa-user-plus" style="font-size:11px;"></i> ${newCount} new student${newCount !== 1 ? 's' : ''} (will be created)
+                </span>
+            </div>
         `;
     }
 
@@ -4751,29 +4791,58 @@ function showDeanPreviewTable() {
 
     const tbody = document.getElementById('deanPreviewTableBody');
     if (tbody) {
-        tbody.innerHTML = pageRows.map(r => `
-            <tr>
-                <td data-label="Name" style="font-weight:600;color:#0a1628;">${r.name || '—'}</td>
-                <td data-label="Student ID" style="font-family:'DM Mono',monospace;font-size:12px;">${r.student_id || '—'}</td>
-                <td data-label="Email" style="font-size:12px;">${r.email || '—'}</td>
-                <td data-label="Section"><span style="background:rgba(45,111,196,0.1);color:#2d6fc4;font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;">${r.section || '—'}</span></td>
-                <td data-label="Course Code" style="font-size:13px;">${r.course_code || '—'}</td>
-                <td data-label="Professor" style="font-size:13px;">${r.professor || '—'}</td>
-            </tr>
-        `).join('');
+        tbody.innerHTML = pageRows.map(r => {
+            const email = (r.email || '').toLowerCase();
+            const umakId = (r.student_id || '').trim().toUpperCase();
+            const isExisting = existingEmailSet.has(email) || (umakId && existingUmakIdSet.has(umakId));
+
+            const statusBadge = isExisting
+                ? `<span style="display:inline-flex;align-items:center;gap:4px;background:#d4f0e6;color:#0e8a5f;font-size:11px;font-weight:600;padding:3px 9px;border-radius:6px;">
+                       <i class="fas fa-check-circle" style="font-size:10px;"></i> Existing
+                   </span>`
+                : `<span style="display:inline-flex;align-items:center;gap:4px;background:#fef3d4;color:#b07e16;font-size:11px;font-weight:600;padding:3px 9px;border-radius:6px;">
+                       <i class="fas fa-plus-circle" style="font-size:10px;"></i> New
+                   </span>`;
+
+            return `
+                <tr style="${isExisting ? 'background:rgba(14,138,95,0.04);' : ''}">
+                    <td data-label="Name" style="font-weight:600;color:#0a1628;">
+                        ${r.name || '—'}
+                        ${isExisting ? '<div style="font-size:10px;color:#0e8a5f;margin-top:2px;font-weight:500;"><i class="fas fa-circle" style="font-size:6px;margin-right:3px;"></i>Has account</div>' : ''}
+                    </td>
+                    <td data-label="Student ID" style="font-family:\'DM Mono\',monospace;font-size:12px;color:#4a5a72;">${r.student_id || '—'}</td>
+                    <td data-label="Email" style="font-size:12px;color:#4a5a72;">${r.email || '—'}</td>
+                    <td data-label="Section">
+                        <span style="background:rgba(45,111,196,0.1);color:#2d6fc4;font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;">${r.section || '—'}</span>
+                    </td>
+                    <td data-label="Course Code" style="font-size:13px;">${r.course_code || '—'}</td>
+                    <td data-label="Professor" style="font-size:13px;">${r.professor || '—'}</td>
+                    <td data-label="Account">${statusBadge}</td>
+                </tr>`;
+        }).join('');
     }
 
     const label = document.getElementById('deanPreviewCountLabel');
     if (label) {
-        if (!filteredRows.length) label.textContent = 'Showing 0 students';
-        else label.textContent = `Showing ${start + 1}-${Math.min(start + pageRows.length, filteredRows.length)} of ${filteredRows.length} students`;
+        if (!filteredRows.length) {
+            label.textContent = 'Showing 0 students';
+        } else {
+            const existingInPage = pageRows.filter(r => {
+                const em = (r.email || '').toLowerCase();
+                const uid = (r.student_id || '').trim().toUpperCase();
+                return existingEmailSet.has(em) || (uid && existingUmakIdSet.has(uid));
+            }).length;
+            label.innerHTML = `Showing ${start + 1}–${Math.min(start + pageRows.length, filteredRows.length)} of ${filteredRows.length} students &nbsp;·&nbsp; 
+                <span style="color:#0e8a5f;font-weight:600;">${existingInPage} existing</span> &nbsp;·&nbsp; 
+                <span style="color:#b07e16;font-weight:600;">${pageRows.length - existingInPage} new</span>`;
+        }
     }
+
     renderDeanPreviewPagination(totalPages);
     const sec = document.getElementById('deanPreviewSection');
     if (sec) sec.style.display = 'block';
     sec && sec.scrollIntoView({ behavior: 'smooth' });
 }
-
 function populateDeanSectionFilter(rows) {
     const sel = document.getElementById('deanPreviewSectionFilter');
     if (!sel) return;
