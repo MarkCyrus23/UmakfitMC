@@ -793,25 +793,52 @@ async function updateLastLogin(docId) {
                 </div>`;
         }
 
-        function loadLessons() {
-            if (!studentData?.section) return;
-            onSnapshot(
-                query(collection(db,'lessons'), where('section','==',studentData.section), where('status','==','published')),
-                snap => {
-                    if (snap.empty) {
-                        document.getElementById('noLessonsState').classList.remove('hidden');
-                        document.getElementById('lessonsContainer').classList.add('hidden');
-                    } else {
-                        document.getElementById('noLessonsState').classList.add('hidden');
-                        document.getElementById('lessonsContainer').classList.remove('hidden');
-                        let html = '';
-                        snap.forEach(d => { html += renderLessonCard(d.data()); });
-                        document.getElementById('lessonsContainer').innerHTML = html;
-                    }
-                },
-                e => console.error('Error loading lessons:', e)
-            );
+       function loadLessons() {
+    if (!studentData?.section) return;
+    const studentSection = studentData.section;
+
+    // Query 1: old single-section field (backward compat)
+    const q1 = query(collection(db,'lessons'),
+        where('section','==', studentSection),
+        where('status','==','published')
+    );
+    // Query 2: new multi-section array field
+    const q2 = query(collection(db,'lessons'),
+        where('sections','array-contains', studentSection),
+        where('status','==','published')
+    );
+
+    const mergedLessons = new Map();
+
+    function renderMerged() {
+        if (mergedLessons.size === 0) {
+            document.getElementById('noLessonsState').classList.remove('hidden');
+            document.getElementById('lessonsContainer').classList.add('hidden');
+        } else {
+            document.getElementById('noLessonsState').classList.add('hidden');
+            document.getElementById('lessonsContainer').classList.remove('hidden');
+            // Sort by createdAt descending
+            const sorted = [...mergedLessons.values()].sort((a, b) => {
+                const tA = a.createdAt?.toDate?.() || new Date(0);
+                const tB = b.createdAt?.toDate?.() || new Date(0);
+                return tB - tA;
+            });
+            document.getElementById('lessonsContainer').innerHTML =
+                sorted.map(d => renderLessonCard(d)).join('');
         }
+    }
+
+    onSnapshot(q1, snap => {
+        snap.forEach(d => mergedLessons.set(d.id, d.data()));
+       
+        renderMerged();
+    }, e => console.error('Error loading lessons (q1):', e));
+
+    onSnapshot(q2, snap => {
+        snap.forEach(d => mergedLessons.set(d.id, d.data()));
+        renderMerged();
+    }, e => console.error('Error loading lessons (q2):', e));
+}
 
         window.toggleLesson = function(id) {
             document.getElementById(id)?.classList.toggle('expanded');
