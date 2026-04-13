@@ -4927,8 +4927,7 @@ async function showDeanPreviewTable() {
                 <div><span style="color:#8a98ae;font-weight:600;">Section:</span> <span style="font-weight:600;color:#0a1628;">${meta.section || '—'}</span></div>
                 <div><span style="color:#8a98ae;font-weight:600;">Course:</span> <span style="font-weight:600;color:#0a1628;">${meta.courseCode || '—'}</span></div>
                 <div><span style="color:#8a98ae;font-weight:600;">Title:</span> <span style="font-weight:600;color:#0a1628;">${meta.courseTitle || '—'}</span></div>
-                <div><span style="color:#8a98ae;font-weight:600;">Professor:</span> <span style="font-weight:600;color:#0a1628;">${meta.professorName || '—'}</span></div>
-            </div>
+<div><span style="color:#8a98ae;font-weight:600;">Professor:</span> <span style="font-weight:600;color:#0a1628;">${meta.professorName || '—'}</span>${(() => { const profName = meta.professorName || ''; if (!profName) return ''; const parts = profName.split(','); const ln = (parts[0]||'').trim().toLowerCase().replace(/\s+/g,''); const afterComma = (parts[1]||'').trim().split(/\s+/).filter(Boolean); const isInitial = w => /^[a-zA-Z]\.?$/.test(w); const isMaPrefix = w => /^ma\.?$/i.test(w); const fnParts = afterComma.filter(w => !isInitial(w) && !isMaPrefix(w)); const fn = (fnParts[0]||afterComma[0]||'').toLowerCase(); const email = (fn && ln) ? `${fn}.${ln}@umak.edu.ph` : ''; return email ? `<div style="font-size:11px;color:#8a98ae;margin-top:2px;">${email}</div>` : ''; })()}</div>            </div>
             <div style="font-size:12px;color:#8a98ae;margin-bottom:10px;">
                 <span style="font-weight:600;">Schedule:</span> ${meta.timeSchedule || '—'} / ${meta.daySchedule || '—'} / ${meta.roomSchedule || '—'}
             </div>
