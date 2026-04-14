@@ -511,13 +511,26 @@ import { getFirestore, collection, query, where, getDocs, onSnapshot, doc, updat
         const deletedKey = `deletedNotifications_${studentData.email}`;
         const read = JSON.parse(localStorage.getItem(readKey) || '[]');
         const deleted = JSON.parse(localStorage.getItem(deletedKey) || '[]');
-        let unread = 0;
-        snap.forEach(d => {
-            if (!deleted.includes(d.id) && !read.includes(d.id)) unread++;
+
+        // Build active list
+        const allNotifs = [];
+        snap.forEach(d => allNotifs.push({ id: d.id, ...d.data() }));
+        const active = allNotifs.filter(n => !deleted.includes(n.id));
+
+        // Deduplicate by title|message|timestamp (same logic as dropdown)
+        const seen = new Set(), unique = [];
+        active.forEach(n => {
+            const k = `${n.title}|${n.message}`;
+            if (!seen.has(k)) { seen.add(k); unique.push(n); }
         });
+
+        // Count only unread among deduplicated
+        const unread = unique.filter(n => !read.includes(n.id)).length;
+
         ['navNotificationCount','navNotificationCountMobile'].forEach(id => {
             const el = document.getElementById(id); if (!el) return;
-            if (unread > 0) { el.textContent = unread; el.classList.remove('hidden'); } else el.classList.add('hidden');
+            if (unread > 0) { el.textContent = unread; el.classList.remove('hidden'); }
+            else el.classList.add('hidden');
         });
     } catch(e) { console.error(e); }
 }
@@ -547,7 +560,7 @@ import { getFirestore, collection, query, where, getDocs, onSnapshot, doc, updat
 
         const seen = new Set(), unique = [];
         active.forEach(n => {
-            const k = `${n.title}|${n.message}|${n.createdAt?.toDate?.().getTime() || ''}`;
+            const k = `${n.title}|${n.message}`;
             if (!seen.has(k)) { seen.add(k); unique.push(n); }
         });
         unique.sort((a,b) => (b.createdAt?.toDate?.() || new Date(0)) - (a.createdAt?.toDate?.() || new Date(0)));
@@ -587,8 +600,13 @@ import { getFirestore, collection, query, where, getDocs, onSnapshot, doc, updat
         const unreadIds = unique.filter(n => !read.includes(n.id)).map(n => n.id);
         if (unreadIds.length > 0) {
             localStorage.setItem(readKey, JSON.stringify([...new Set([...read, ...unreadIds])]));
-            updateNotificationBadgeAfterRead();
         }
+        // Always clear the badge after opening the dropdown
+        ['navNotificationCount','navNotificationCountMobile'].forEach(id => {
+            const el = document.getElementById(id); if (!el) return;
+            el.textContent = '0';
+            el.classList.add('hidden');
+        });
     } catch(e) { console.error(e); }
 }
         function markNotificationsAsRead(ids){
@@ -603,11 +621,24 @@ import { getFirestore, collection, query, where, getDocs, onSnapshot, doc, updat
         const snap = await getDocs(query(collection(db,'notifications'), where('section','==',studentData.section)));
         const read = JSON.parse(localStorage.getItem(`readNotifications_${studentData.email}`) || '[]');
         const deleted = JSON.parse(localStorage.getItem(`deletedNotifications_${studentData.email}`) || '[]');
-        let unread = 0;
-        snap.forEach(d => { if (!deleted.includes(d.id) && !read.includes(d.id)) unread++; });
+
+        const allNotifs = [];
+        snap.forEach(d => allNotifs.push({ id: d.id, ...d.data() }));
+        const active = allNotifs.filter(n => !deleted.includes(n.id));
+
+        // Deduplicate
+        const seen = new Set(), unique = [];
+        active.forEach(n => {
+            const k = `${n.title}|${n.message}|${n.createdAt?.toDate?.().getTime() || ''}`;
+            if (!seen.has(k)) { seen.add(k); unique.push(n); }
+        });
+
+        const unread = unique.filter(n => !read.includes(n.id)).length;
+
         ['navNotificationCount','navNotificationCountMobile'].forEach(id => {
             const el = document.getElementById(id); if (!el) return;
-            if (unread > 0) { el.textContent = unread; el.classList.remove('hidden'); } else el.classList.add('hidden');
+            if (unread > 0) { el.textContent = unread; el.classList.remove('hidden'); }
+            else el.classList.add('hidden');
         });
     } catch(e) { console.error(e); }
 }
