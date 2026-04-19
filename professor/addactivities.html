@@ -7,6 +7,10 @@
     <script type="module" src="../shared/roleGuard.js"></script>
     <title>UMakFit — Test Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3.2.0/dist/email.min.js"></script>
+<script>
+    emailjs.init("Bvq89wr_TcM1LUITl");
+</script>
     <script>
         tailwind.config = {
             theme: {
@@ -1086,12 +1090,18 @@ function clearNormInputError(input) {
     input.style.borderColor = '';
     input.style.boxShadow = '';
 }
-window.addEventListener('pagehide', () => { clearInterval(window._headerDateInterval); clearInterval(window._statusInterval); if(window._scheduledTestsUnsub) window._scheduledTestsUnsub(); });
+window.addEventListener('pagehide', () => { 
+    clearInterval(window._headerDateInterval); 
+    clearInterval(window._statusInterval); 
+    clearInterval(window._reminderInterval); // ← dagdag
+    if(window._scheduledTestsUnsub) window._scheduledTestsUnsub(); 
+});
 window.addEventListener('beforeunload', () => { clearInterval(window._statusInterval); if(window._scheduledTestsUnsub) window._scheduledTestsUnsub(); });
 </script>
 
 <!-- ── MAIN FIREBASE MODULE ── -->
 <script type="module">
+import { sendTestEmail, sendReminderEmail } from './shared/emailNotifier.js';
 import { initializeApp }   from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 import {
@@ -1513,6 +1523,7 @@ async function loadScheduledTests(userEmail, userId) {
 
                 populateSectionSortDropdown();
                 renderScheduleTable(window.allScheduledTests, enabledTestsMap);
+                checkAndSendDeadlineReminders();
             },
             (err) => console.error('scheduledTests listener error:', err)
         );
@@ -1715,7 +1726,109 @@ async function loadTestResults(userEmail) {
         renderStudentResultsTable();
     } catch(err) { console.error('loadTestResults error:', err); }
 }
+async function checkAndSendDeadlineReminders() {
+    try {
+        // Wait for tests to be fully loaded first
+        if (!window.allScheduledTests?.length) return;
 
+        const now = new Date();
+        const in24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+
+        const testsToRemind = window.allScheduledTests.filter(t => {
+            if (!t.deadlineDateTime) return false;
+            const ddt = new Date(t.deadlineDateTime);
+            // Deadline is between now and 24 hours from now
+            return ddt > now && ddt <= in24h;
+        });
+
+        if (!testsToRemind.length) return;
+
+        const today = now.toISOString().split('T')[0]; // e.g. "2025-04-19"
+
+        for (const test of testsToRemind) {
+            const selectedStudents = test.selectedStudents || [];
+            if (!selectedStudents.length) continue;
+
+            // Check who already submitted
+            const resultsSnap = await getDocs(query(
+                collection(db, 'testResults'),
+                where('testId', '==', test.id),
+                where('status', '==', 'completed')
+            ));
+            const submittedEmails = new Set();
+            resultsSnap.forEach(d => submittedEmails.add(d.data().studentEmail));
+
+            const pendingStudents = selectedStudents.filter(e => !submittedEmails.has(e));
+            if (!pendingStudents.length) continue;
+
+            const ddt = new Date(test.deadlineDateTime);
+            const hoursLeft = Math.round((ddt - now) / (1000 * 60 * 60));
+            const formattedDeadlineDate = ddt.toLocaleDateString('en-US', {
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+            });
+            const formattedDeadlineTime = ddt.toLocaleTimeString('en-US', {
+                hour: 'numeric', minute: '2-digit', hour12: true
+            });
+
+            for (const email of pendingStudents) {
+                // KEY FIX: Check Firestore instead of localStorage
+                const reminderDocId = `${test.id}_${email}_${today}`;
+                const reminderRef = doc(db, 'sentReminders', reminderDocId);
+
+                try {
+                    const existing = await getDoc(reminderRef);
+                    if (existing.exists()) continue; // Already sent today, skip
+                } catch(_) {}
+
+                // Get student name
+                let studentName = 'Student';
+                try {
+                    const stuSnap = await getDocs(query(
+                        collection(db, 'students'), 
+                        where('email', '==', email)
+                    ));
+                    if (!stuSnap.empty) {
+                        const sd = stuSnap.docs[0].data();
+                        studentName = (sd.firstName || sd.displayName || sd.name || 'Student').trim();
+                    }
+                } catch(_) {}
+
+                try {
+                    await sendReminderEmail({
+                        to_email: email,
+                        student_name: studentName,
+                        test_name: test.testName,
+                        section: test.section,
+                        professor_name: (window.currentUser.displayName || 
+                                        window.currentUser.email || 'Professor').trim(),
+                        deadline_date: formattedDeadlineDate,
+                        deadline_time: formattedDeadlineTime,
+                        hours_left: hoursLeft,
+                    });
+
+                    // Mark as sent in Firestore (persists across devices/sessions)
+                    await setDoc(reminderRef, {
+                        sentAt: serverTimestamp(),
+                        testId: test.id,
+                        studentEmail: email,
+                        testName: test.testName,
+                        date: today,
+                    });
+
+                    console.log(`Reminder sent to ${email} for ${test.testName}`);
+                } catch(emailErr) {
+                    console.warn('Reminder email failed for', email, emailErr);
+                }
+            }
+        }
+    } catch(err) {
+        console.warn('Deadline reminder check error:', err);
+    }
+}
+
+// KEY FIX: Wait for tests to load before first check
+// Instead of calling immediately, delay until tests are loaded
+window._reminderInterval = setInterval(checkAndSendDeadlineReminders, 60 * 60 * 1000);
 function renderStudentResultsTable() {
     const tb      = document.getElementById('resultsTableBody');
     const search  = (document.getElementById('searchResults')?.value||'').toUpperCase();
@@ -2058,10 +2171,62 @@ window.scheduleTest = async function() {
             const docRef = await addDoc(collection(db, 'scheduledTests'), testData);
             totalScheduled++;
             // Notifications (fire-and-forget)
-            Promise.all(allEmails.map(email => {
-                const stu = studSnap.docs.find(d => d.data().email === email); if (!stu) return;
-                return addDoc(collection(db, 'notifications'), { type: 'new_test', title: 'Fitness Test Available', message: `${testType} has been assigned. Deadline: ${testDeadline} at ${testDeadlineTime}`, section: testSection, testName: testType, testId: docRef.id, testDate, deadline: testDeadline, deadlineTime: testDeadlineTime, studentEmail: email, studentId: stu.id, isRead: false, createdAt: serverTimestamp(), timestamp: new Date().toISOString() });
-            })).catch(e => console.warn('Notification error:', e));
+// Notifications + Email (fire-and-forget)
+Promise.all(allEmails.map(async email => {
+    const stuDoc = studSnap.docs.find(d => d.data().email === email);
+    if (!stuDoc) return;
+    const stuData = stuDoc.data();
+
+    // 1. Firestore notification (existing)
+    await addDoc(collection(db, 'notifications'), {
+        type: 'new_test',
+        title: 'Fitness Test Available',
+        message: `${testType} has been assigned. Deadline: ${testDeadline} at ${testDeadlineTime}`,
+        section: testSection,
+        testName: testType,
+        testId: docRef.id,
+        testDate,
+        deadline: testDeadline,
+        deadlineTime: testDeadlineTime,
+        studentEmail: email,
+        studentId: stuDoc.id,
+        isRead: false,
+        createdAt: serverTimestamp(),
+        timestamp: new Date().toISOString()
+    });
+
+    // 2. EmailJS notification (new)
+    try {
+        const formattedDate = new Date(testDate + 'T00:00').toLocaleDateString('en-US', {
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        });
+        const formattedTime = new Date('1970-01-01T' + testTime).toLocaleTimeString('en-US', {
+            hour: 'numeric', minute: '2-digit', hour12: true
+        });
+        const formattedDeadlineDate = new Date(testDeadline + 'T00:00').toLocaleDateString('en-US', {
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        });
+        const formattedDeadlineTime = new Date('1970-01-01T' + testDeadlineTime).toLocaleTimeString('en-US', {
+            hour: 'numeric', minute: '2-digit', hour12: true
+        });
+
+await sendTestEmail({
+    to_email:       email,
+    student_name:   (stuData.firstName || stuData.displayName || stuData.name || 'Student').trim(),
+    test_name:      testType,
+    section:        testSection,
+    professor_name: (window.currentUser.displayName || window.currentUser.email || 'Professor').trim(),
+    test_date:      formattedDate,
+    test_time:      formattedTime,
+    deadline_date:  formattedDeadlineDate,
+    deadline_time:  formattedDeadlineTime,
+});
+    } catch (emailErr) {
+        console.warn('Email notification failed for', email, emailErr);
+        // Don't throw — email failure shouldn't break the schedule
+    }
+
+})).catch(e => console.warn('Notification error:', e));
         }
 
         if (sb) { sb.disabled = false; sb.textContent = origText; }

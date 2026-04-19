@@ -7,6 +7,10 @@
     <script type="module" src="../shared/roleGuard.js"></script>
     <title>UMakFit — Lesson Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3.2.0/dist/email.min.js"></script>
+<script>
+    emailjs.init("Bvq89wr_TcM1LUITl");
+</script>
     <script>
         tailwind.config = {
             theme: {
@@ -655,6 +659,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <!-- FIREBASE MODULE SCRIPT -->
 <script type="module">
+    import { sendLessonEmail } from './shared/emailNotifier.js';
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
     import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
     import { getFirestore, collection, getDocs, query, where, doc, getDoc, addDoc, updateDoc, deleteDoc, orderBy, serverTimestamp }
@@ -1100,26 +1105,98 @@ async function saveLessonAction(title, sections, type, desc, ytLink, pubDate, st
             }
             await loadLessons();
         }
-    async function createNotification(lessonData, lessonId){
+async function createNotification(lessonData, lessonId){
     try{
-        const sectionsList = lessonData.sections ? lessonData.sections.join(', ') : lessonData.section;
-       const sectionsArray = lessonData.sections || [lessonData.section];
-for (const sec of sectionsArray) {
-    await addDoc(collection(db,'notifications'),{
-        type:'new_lesson',
-        title:`New Lesson: ${lessonData.title}`,
-        message:`A new ${lessonData.type} lesson "${lessonData.title}" has been published for ${sectionsList}.`,
-        section: sec,
-        sections: sectionsArray,
-        lessonId,
-        lessonTitle:lessonData.title,
-        professorEmail:currentProfessor.email,
-        isRead:false,
-        createdAt:serverTimestamp()
-    });
-}
+        const sectionsArray = lessonData.sections || [lessonData.section];
+        const sectionsList = sectionsArray.join(', ');
+        
+        for (const sec of sectionsArray) {
+            // 1. Firestore notification (existing)
+            await addDoc(collection(db,'notifications'),{
+                type:'new_lesson',
+                title:`New Lesson: ${lessonData.title}`,
+                message:`A new ${lessonData.type} lesson "${lessonData.title}" has been published for ${sectionsList}.`,
+                section: sec,
+                sections: sectionsArray,
+                lessonId,
+                lessonTitle: lessonData.title,
+                professorEmail: currentProfessor.email,
+                isRead: false,
+                createdAt: serverTimestamp()
+            });
+
+            // 2. Email notification — FIXED
+            try {
+                // Get students directly from section doc (same as activities)
+                const secSnap = await getDocs(
+                    query(collection(db,'sections'), where('name','==',sec))
+                );
+                if (secSnap.empty) continue;
+                
+                const sectionData = secSnap.docs[0].data();
+                const students = sectionData.students || [];
+                
+                const profName = (currentProfessor.fullName || currentProfessor.name || 
+                    currentUser.displayName || 'Professor').trim();
+                const lessonTypeLabel = lessonData.type === 'video' ? 'Video Lesson' : 'Reading Material';
+                const publishDate = new Date().toLocaleDateString('en-US', {
+                    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+                });
+
+                // Send email to each student
+                for (const student of students) {
+                    const email = typeof student === 'string' ? student : student.email;
+                    if (!email) continue;
+                    
+                    // Try to get student name — from section data first, then Firestore
+                    let studentName = 'Student';
+                    if (typeof student === 'object' && student !== null) {
+                        studentName = (
+                            student.firstName || 
+                            student.displayName || 
+                            student.name || 
+                            'Student'
+                        ).trim();
+                    }
+                    
+                    // Fallback: query students collection
+                    if (studentName === 'Student') {
+                        try {
+                            const stuSnap = await getDocs(
+                                query(collection(db,'students'), where('email','==',email))
+                            );
+                            if (!stuSnap.empty) {
+                                const sd = stuSnap.docs[0].data();
+                                studentName = (
+                                    sd.firstName || sd.displayName || sd.name || 'Student'
+                                ).trim();
+                            }
+                        } catch(_) {}
+                    }
+
+                    try {
+                        await sendLessonEmail({
+                            to_email:       email,
+                            student_name:   studentName,
+                            lesson_title:   lessonData.title,
+                            lesson_type:    lessonTypeLabel,
+                            section:        sec,
+                            professor_name: profName,
+                            publish_date:   publishDate,
+                            description:    lessonData.description || '',
+                        });
+                        console.log('Lesson email sent to:', email);
+                    } catch(emailErr) {
+                        console.warn('Lesson email failed for', email, emailErr);
+                    }
+                }
+
+            } catch(emailErr) {
+                console.warn('Email section error for', sec, emailErr);
+            }
+        }
     } catch(e){
-        console.error('Notification error:',e);
+        console.error('Notification error:', e);
     }
 }
 
@@ -1171,10 +1248,21 @@ for (const sec of sectionsArray) {
         });
     };
 
-    window.publishLesson=async function(id){
-        try{const lesson=allLessons.find(l=>l.id===id);if(!lesson)return;await updateDoc(doc(db,'lessons',id),{status:'published',publishDate:new Date(),updatedAt:serverTimestamp()});await createNotification(lesson,id);showAlert('Lesson published successfully!','success');await loadLessons();}
-        catch(e){showAlert('Error: '+e.message,'error');}
-    };
+window.publishLesson = async function(id){
+    try{
+        const lesson = allLessons.find(l => l.id === id);
+        if(!lesson) return;
+        await updateDoc(doc(db,'lessons',id), {
+            status:'published',
+            publishDate: new Date(),
+            updatedAt: serverTimestamp()
+        });
+        await createNotification(lesson, id); // ← tinatawag ito
+        showAlert('Lesson published successfully!','success');
+        await loadLessons();
+    }
+    catch(e){ showAlert('Error: '+e.message,'error'); }
+};
 
     window.viewLessonDetails=function(id){
         const lesson=allLessons.find(l=>l.id===id);if(!lesson){showAlert('Lesson not found.','error');return;}
