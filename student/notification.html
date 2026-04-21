@@ -473,56 +473,50 @@ function renderNotifications() {
             saveReadList([...new Set([...getReadList(), ...allIds])]);
             renderNotifications();
         };
-       window.deleteSingleNotification = function(notificationId) {
-    if (!confirm('Delete this notification permanently?')) return;
-    
-    const notif = allNotifications.find(n => n.id === notificationId);
-    if (notif) {
-        // Save by dedup key so it persists across reloads
-        const deletedKeys = getDeletedKeys();
-        if (!deletedKeys.includes(notif.dedupKey)) {
-            saveDeletedKeys([...deletedKeys, notif.dedupKey]);
+window.deleteSingleNotification = function(notificationId) {
+    showConfirm('This notification will be permanently deleted and cannot be recovered.', () => {
+        const notif = allNotifications.find(n => n.id === notificationId);
+        if (notif) {
+            const deletedKeys = getDeletedKeys();
+            if (!deletedKeys.includes(notif.dedupKey)) {
+                saveDeletedKeys([...deletedKeys, notif.dedupKey]);
+            }
+            let deletedIds = JSON.parse(localStorage.getItem(`deletedNotifications_${studentData?.email}`) || '[]');
+            if (!deletedIds.includes(notificationId)) {
+                deletedIds.push(notificationId);
+                localStorage.setItem(`deletedNotifications_${studentData?.email}`, JSON.stringify(deletedIds));
+            }
         }
-        // Also save by ID for backward compat with other pages
-        let deletedIds = JSON.parse(localStorage.getItem(`deletedNotifications_${studentData?.email}`) || '[]');
-        if (!deletedIds.includes(notificationId)) {
-            deletedIds.push(notificationId);
-            localStorage.setItem(`deletedNotifications_${studentData?.email}`, JSON.stringify(deletedIds));
-        }
-    }
 
-    const readList = getReadList();
-    saveReadList(readList.filter(id => id !== notificationId));
-    allNotifications = allNotifications.filter(n => n.id !== notificationId);
-    renderNotifications();
-    showToast('Notification deleted', 'success');
+        const readList = getReadList();
+        saveReadList(readList.filter(id => id !== notificationId));
+        allNotifications = allNotifications.filter(n => n.id !== notificationId);
+        renderNotifications();
+        showToast('Notification deleted', 'success');
+    });
 };
-
-// Delete ALL notifications
 window.deleteAllNotifications = function() {
     if (!allNotifications.length) {
         showToast('No notifications to delete', 'info');
         return;
     }
-    
+
     const count = allNotifications.length;
-    if (!confirm(`Delete ALL ${count} notification${count !== 1 ? 's' : ''} permanently? This cannot be undone.`)) return;
-    
-    // Save dedup keys so they stay deleted across reloads
-    const existingKeys = getDeletedKeys();
-    const newKeys = allNotifications.map(n => n.dedupKey).filter(Boolean);
-    saveDeletedKeys([...new Set([...existingKeys, ...newKeys])]);
+    showConfirm(`All ${count} notification${count !== 1 ? 's' : ''} will be permanently deleted. This cannot be undone.`, () => {
+        const existingKeys = getDeletedKeys();
+        const newKeys = allNotifications.map(n => n.dedupKey).filter(Boolean);
+        saveDeletedKeys([...new Set([...existingKeys, ...newKeys])]);
 
-    // Also save by ID for backward compat with other pages
-    const existingIds = JSON.parse(localStorage.getItem(`deletedNotifications_${studentData?.email}`) || '[]');
-    const newIds = allNotifications.map(n => n.id);
-    localStorage.setItem(`deletedNotifications_${studentData?.email}`, JSON.stringify([...new Set([...existingIds, ...newIds])]));
+        const existingIds = JSON.parse(localStorage.getItem(`deletedNotifications_${studentData?.email}`) || '[]');
+        const newIds = allNotifications.map(n => n.id);
+        localStorage.setItem(`deletedNotifications_${studentData?.email}`, JSON.stringify([...new Set([...existingIds, ...newIds])]));
 
-    localStorage.setItem(`readNotifications_${studentData?.email}`, JSON.stringify([]));
-    
-    allNotifications = [];
-    renderNotifications();
-    showToast(`Deleted ${count} notification${count !== 1 ? 's' : ''}`, 'success');
+        localStorage.setItem(`readNotifications_${studentData?.email}`, JSON.stringify([]));
+
+        allNotifications = [];
+        renderNotifications();
+        showToast(`Deleted ${count} notification${count !== 1 ? 's' : ''}`, 'success');
+    });
 };
 
 // Restore ALL deleted notifications
@@ -830,6 +824,7 @@ async function fetchNotificationsOnce() {
                 document.getElementById('profilePictureBtn')?.addEventListener('click', window.toggleProfileDropdown);
                 document.getElementById('profilePictureBtnMobile')?.addEventListener('click', window.toggleProfileDropdown);
                 document.addEventListener('click', e => {
+                    if (document.getElementById('customConfirmOverlay')) return;
                     if (!e.target.closest('#notificationBellBtn') && !e.target.closest('#notificationBellBtnMobile') &&
                         !e.target.closest('#notificationDropdown') && !e.target.closest('#notificationDropdownMobile')) closeNotificationDropdown();
                     if (!e.target.closest('#profilePictureBtn') && !e.target.closest('#profilePictureBtnMobile') &&
@@ -870,6 +865,37 @@ window.addEventListener('scroll', () => {
     
     lastScrollY = currentScrollY;
 });
+
+function showConfirm(message, onConfirm) {
+    const existing = document.getElementById('customConfirmOverlay');
+    if (existing) existing.remove();
+    const overlay = document.createElement('div');
+    overlay.id = 'customConfirmOverlay';
+    overlay.className = 'fixed inset-0 flex items-center justify-center z-[99999] p-4';
+    overlay.style.background = 'rgba(0,0,0,0.5)';
+    overlay.innerHTML = `
+        <div class="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl text-center" style="animation:slideDown .3s cubic-bezier(.4,0,.2,1)">
+            <div class="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="bi bi-exclamation-triangle-fill text-red-500 text-2xl"></i>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900 mb-2">Are you sure?</h3>
+            <p class="text-sm text-gray-500 mb-6 leading-relaxed">${message}</p>
+            <div class="h-px bg-gray-100 -mx-8 mb-5"></div>
+            <div class="flex gap-3">
+                <button id="confirmCancelBtn" class="flex-1 py-3 rounded-2xl border border-gray-200 bg-white text-gray-700 text-sm font-semibold hover:bg-gray-50 transition-colors cursor-pointer">Cancel</button>
+                <button id="confirmOkBtn" class="flex-1 py-3 rounded-2xl border-0 bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-colors cursor-pointer">Delete</button>
+            </div>
+        </div>`;
+    document.body.appendChild(overlay);
+    const modal = overlay.firstElementChild;
+    modal?.addEventListener('click', e => e.stopPropagation());
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+    document.getElementById('confirmCancelBtn')?.addEventListener('click', e => { e.stopPropagation(); overlay.remove(); });
+    document.getElementById('confirmOkBtn')?.addEventListener('click', e => {
+        e.stopPropagation();
+        try { onConfirm?.(); } finally { overlay.remove(); }
+    });
+}
     </script>
 </body>
 </html>

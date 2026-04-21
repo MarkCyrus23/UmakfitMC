@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>UMakFit – Seed Fake Data</title>
+  <style>
+    * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+    body { background: #0d1b2a; color: #f1f5f9; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 2rem 1rem; }
+    h1 { font-size: 1.6rem; color: #EAD38A; margin-bottom: 0.25rem; }
+    p.sub { color: #94a3b8; font-size: 0.9rem; margin-bottom: 2rem; }
+    .card { background: #1a2b3c; border-radius: 12px; padding: 1.5rem; width: 100%; max-width: 680px; margin-bottom: 1.25rem; border: 1px solid #2c3e50; }
+    .card h2 { font-size: 1rem; color: #93c5fd; margin: 0 0 0.75rem; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    th { text-align: left; color: #94a3b8; border-bottom: 1px solid #334155; padding: 0.4rem 0.5rem; }
+    td { padding: 0.45rem 0.5rem; border-bottom: 1px solid #1e3347; }
+    .badge { display: inline-block; padding: 2px 10px; border-radius: 50px; font-size: 0.72rem; font-weight: 700; }
+    .excellent { background: #f0fdf4; color: #059669; }
+    .good      { background: #eff6ff; color: #2563eb; }
+    .average   { background: #fffbeb; color: #d97706; }
+    .normal    { background: #f0fdf4; color: #059669; }
+    .underweight { background: #eff6ff; color: #2563eb; }
+    .overweight  { background: #fffbeb; color: #d97706; }
+    btn { display: none; }
+    #seedBtn {
+      margin-top: 1.5rem;
+      background: linear-gradient(135deg, #EAD38A, #C5A046);
+      color: #1a2b3c;
+      border: none;
+      border-radius: 10px;
+      padding: 0.85rem 2.5rem;
+      font-size: 1rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      width: 100%;
+      max-width: 680px;
+    }
+    #seedBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+    #log { background: #0f172a; border-radius: 10px; padding: 1rem; width: 100%; max-width: 680px; margin-top: 1rem; font-family: monospace; font-size: 0.78rem; max-height: 320px; overflow-y: auto; display: none; }
+    .log-ok   { color: #4ade80; }
+    .log-err  { color: #f87171; }
+    .log-info { color: #60a5fa; }
+    .log-head { color: #fbbf24; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+<h1>🏋️ UMakFit – Fake Data Seeder</h1>
+<p class="sub">Adds BMI records + Curl-Up Test results for 3 students in <strong>II-BBSSSS</strong></p>
+
+<!-- Preview: Students -->
+<div class="card">
+  <h2>👥 Students (II-BBSSSS)</h2>
+  <table>
+    <tr><th>Name</th><th>Student ID</th><th>Email</th><th>Gender</th></tr>
+    <tr><td>Antonio, Jammelin C</td><td>A12239964</td><td>jantonio.a12239964@umak.edu.ph</td><td>Male</td></tr>
+    <tr><td>Ariola, Aisy Joyce A</td><td>A12448639</td><td>aariola.8639@umak.edu.ph</td><td>Female</td></tr>
+    <tr><td>Baldos, Rhenzo Ian B</td><td>K12258156</td><td>rbaldos.k12258156@umak.edu.ph</td><td>Male</td></tr>
+  </table>
+</div>
+
+<!-- Preview: BMI -->
+<div class="card">
+  <h2>⚖️ BMI Data (Pre-Assessment)</h2>
+  <table>
+    <tr><th>Student</th><th>Height</th><th>Weight</th><th>BMI</th><th>Category</th></tr>
+    <tr>
+      <td>Antonio, Jammelin C</td><td>170 cm</td><td>65 kg</td><td>22.49</td>
+      <td><span class="badge normal">Normal</span></td>
+    </tr>
+    <tr>
+      <td>Ariola, Aisy Joyce A</td><td>158 cm</td><td>43 kg</td><td>17.24</td>
+      <td><span class="badge underweight">Underweight</span></td>
+    </tr>
+    <tr>
+      <td>Baldos, Rhenzo Ian B</td><td>172 cm</td><td>82 kg</td><td>27.74</td>
+      <td><span class="badge overweight">Overweight</span></td>
+    </tr>
+  </table>
+</div>
+
+<!-- Preview: Curl-Up -->
+<div class="card">
+  <h2>💪 Curl-Up Test Results</h2>
+  <table>
+    <tr><th>Student</th><th>Reps</th><th>Category</th><th>Based on Norm</th></tr>
+    <tr>
+      <td>Antonio, Jammelin C</td><td>49 reps</td>
+      <td><span class="badge excellent">Excellent</span></td>
+      <td>Male 19-22: ≥47 = Excellent</td>
+    </tr>
+    <tr>
+      <td>Ariola, Aisy Joyce A</td><td>30 reps</td>
+      <td><span class="badge average">Average</span></td>
+      <td>Female 19-22: 24–33 = Average</td>
+    </tr>
+    <tr>
+      <td>Baldos, Rhenzo Ian B</td><td>39 reps</td>
+      <td><span class="badge good">Good</span></td>
+      <td>Male 19-22: 38–46 = Good</td>
+    </tr>
+  </table>
+</div>
+
+<button id="seedBtn" onclick="runSeed()">🚀 Add to Firebase Now</button>
+<div id="log"></div>
+
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+  import {
+    getFirestore, collection, addDoc, doc, updateDoc, getDocs, query, where, serverTimestamp
+  } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAgaLunqEf2gs6dSpF_sz1hV5XQ5Wm52jo",
+    authDomain: "umakfit-e3b1d.firebaseapp.com",
+    projectId: "umakfit-e3b1d",
+    storageBucket: "umakfit-e3b1d.appspot.com",
+    messagingSenderId: "276569891504",
+    appId: "1:276569891504:web:39b1732b519f4d8b785175"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // ── Seed Data ──────────────────────────────────────────────────────────────
+
+  const STUDENTS = [
+    {
+      firstName: 'Jammelin',
+      lastName:  'Antonio',
+      fullName:  'Antonio, Jammelin C',
+      umakId:    'A12239964',
+      email:     'jantonio.a12239964@umak.edu.ph',
+      gender:    'Male',
+      age:       20,
+      birthday:  '2004-08-15',
+      section:   'II-BBSSSS',
+      height:    170,
+      weight:    65,
+      bmi:       22.49,
+      bmiCat:    'Normal',
+      curlUpReps: 49,
+      curlUpCat:  'Excellent',
+    },
+    {
+      firstName: 'Aisy Joyce',
+      lastName:  'Ariola',
+      fullName:  'Ariola, Aisy Joyce A',
+      umakId:    'A12448639',
+      email:     'aariola.8639@umak.edu.ph',
+      gender:    'Female',
+      age:       19,
+      birthday:  '2005-03-22',
+      section:   'II-BBSSSS',
+      height:    158,
+      weight:    43,
+      bmi:       17.24,
+      bmiCat:    'Underweight',
+      curlUpReps: 30,
+      curlUpCat:  'Average',
+    },
+    {
+      firstName: 'Rhenzo Ian',
+      lastName:  'Baldos',
+      fullName:  'Baldos, Rhenzo Ian B',
+      umakId:    'K12258156',
+      email:     'rbaldos.k12258156@umak.edu.ph',
+      gender:    'Male',
+      age:       21,
+      birthday:  '2003-11-05',
+      section:   'II-BBSSSS',
+      height:    172,
+      weight:    82,
+      bmi:       27.74,
+      bmiCat:    'Overweight',
+      curlUpReps: 39,
+      curlUpCat:  'Good',
+    },
+  ];
+
+  // The scheduled test ID for Curl-Up Test – II-BBSSSS
+  // We'll look it up dynamically, but you can hardcode it here if you know it:
+  let CURL_UP_TEST_ID = null;
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  const logEl = document.getElementById('log');
+  function log(msg, cls = 'log-info') {
+    const line = document.createElement('div');
+    line.className = cls;
+    line.textContent = msg;
+    logEl.appendChild(line);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  // ── Main Seed Function ─────────────────────────────────────────────────────
+  window.runSeed = async function () {
+    const btn = document.getElementById('seedBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Running...';
+    logEl.style.display = 'block';
+    logEl.innerHTML = '';
+
+    try {
+      // ── STEP 1: Find scheduled Curl-Up Test for II-BBSSSS ──────────────────
+      log('── STEP 1: Looking up Curl-Up Test for II-BBSSSS ──', 'log-head');
+      const schedSnap = await getDocs(
+        query(
+          collection(db, 'scheduledTests'),
+          where('section', '==', 'II-BBSSSS')
+        )
+      );
+
+      schedSnap.forEach(d => {
+        const data = d.data();
+        if ((data.testName || '').toLowerCase().includes('curl')) {
+          CURL_UP_TEST_ID = d.id;
+          log(`  Found: ${data.testName} (id: ${d.id})`, 'log-ok');
+        }
+      });
+
+      if (!CURL_UP_TEST_ID) {
+        log('  ⚠️  No Curl-Up Test found in scheduledTests for II-BBSSSS.', 'log-err');
+        log('  → testResults will be saved WITHOUT a testId link (still works for history/performance).', 'log-info');
+      }
+
+      const now = new Date();
+      const isoNow = now.toISOString();
+
+      for (const s of STUDENTS) {
+        log(`\n── ${s.fullName} ──`, 'log-head');
+
+        // ── STEP 2: Update student doc with height/weight/BMI/profile ──────
+        log(`  [students] Looking up doc by email...`, 'log-info');
+        const stuSnap = await getDocs(
+          query(collection(db, 'students'), where('email', '==', s.email))
+        );
+
+        let studentDocId = null;
+        if (!stuSnap.empty) {
+          studentDocId = stuSnap.docs[0].id;
+          await updateDoc(doc(db, 'students', studentDocId), {
+            height:          s.height,
+            weight:          s.weight,
+            birthday:        s.birthday,
+            age:             s.age,
+            gender:          s.gender,
+            medicalCondition: 'None',
+            updatedAt:       isoNow,
+          });
+          log(`  [students] Updated height/weight/birthday (docId: ${studentDocId})`, 'log-ok');
+        } else {
+          log(`  [students] ⚠️  No student doc found for ${s.email} – skipping update`, 'log-err');
+        }
+
+        // ── STEP 3: Add BMI record ──────────────────────────────────────────
+        const bmiPayload = {
+          studentId:    studentDocId || s.umakId,
+          studentName:  `${s.firstName} ${s.lastName}`,
+          umakId:       s.umakId,
+          section:      s.section,
+          email:        s.email,
+          height:       s.height,
+          weight:       s.weight,
+          bmi:          s.bmi,
+          category:     s.bmiCat,
+          testType:     'pre',
+          recordedAt:   isoNow,
+          recordedBy:   'student',
+          updatedAt:    isoNow,
+        };
+        const bmiRef = await addDoc(collection(db, 'BMI'), bmiPayload);
+        log(`  [BMI] Added pre-assessment: ${s.bmi} (${s.bmiCat}) → id: ${bmiRef.id}`, 'log-ok');
+
+        // ── STEP 4: Add Curl-Up testResult ──────────────────────────────────
+        const resultPayload = {
+          studentId:    studentDocId || s.umakId,
+          studentEmail: s.email,
+          studentName:  `${s.firstName} ${s.lastName}`,
+          umakId:       s.umakId,
+          section:      s.section,
+          testName:     'Curl-Up Test',
+          result:       `${s.curlUpReps} reps`,
+          rawResult:    s.curlUpReps,
+          normCategory: s.curlUpCat,
+          status:       'completed',
+          submittedAt:  isoNow,
+          // link to scheduled test if found
+          ...(CURL_UP_TEST_ID ? { testId: CURL_UP_TEST_ID } : {}),
+        };
+        const resRef = await addDoc(collection(db, 'testResults'), resultPayload);
+        log(`  [testResults] Curl-Up: ${s.curlUpReps} reps (${s.curlUpCat}) → id: ${resRef.id}`, 'log-ok');
+      }
+
+      log('\n✅ All done! Refresh your UMakFit app to see the data.', 'log-ok');
+      btn.textContent = '✅ Done!';
+      btn.style.background = 'linear-gradient(135deg,#4ade80,#16a34a)';
+      btn.style.color = '#fff';
+
+    } catch (err) {
+      log(`\n❌ ERROR: ${err.message}`, 'log-err');
+      console.error(err);
+      btn.disabled = false;
+      btn.textContent = '🚀 Retry';
+    }
+  };
+</script>
+</body>
+</html>

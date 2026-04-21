@@ -1007,70 +1007,64 @@ window.markNotificationAsRead = function(notificationId) {
         localStorage.setItem(readKey, JSON.stringify([...readNotifications, notificationId]));
     }
 };
-
-// Delete single notification
 window.deleteSingleNotification = function(notificationId, isFromDropdown = false) {
-    if (!confirm('Delete this notification permanently?')) return;
-    
-    const deletedKey = `deletedNotifications_${studentData?.email}`;
-    let deletedNotifications = JSON.parse(localStorage.getItem(deletedKey) || '[]');
-    
-    if (!deletedNotifications.includes(notificationId)) {
-        deletedNotifications.push(notificationId);
-        localStorage.setItem(deletedKey, JSON.stringify(deletedNotifications));
-    }
-    
-    // Also remove from read list
-    const readKey = `readNotifications_${studentData?.email}`;
-    let readNotifications = JSON.parse(localStorage.getItem(readKey) || '[]');
-    if (readNotifications.includes(notificationId)) {
-        const newReadList = readNotifications.filter(id => id !== notificationId);
-        localStorage.setItem(readKey, JSON.stringify(newReadList));
-    }
-    
-    // Update cached notifications
-    cachedNotifications = cachedNotifications.filter(n => n.id !== notificationId);
-    
-    // Refresh the dropdown
-    if (isFromDropdown) {
-        loadNotificationDropdown();
-    }
-    
-    // Update badge count
-    updateNotificationBadgeAfterDelete();
-    
-    showToast('Notification deleted', 'success');
+    showConfirm('This notification will be permanently deleted and cannot be recovered.', () => {
+        const deletedKey = `deletedNotifications_${studentData?.email}`;
+        const deletedDedupKey = `deletedNotifKeys_${studentData?.email}`;
+        let deletedNotifications = JSON.parse(localStorage.getItem(deletedKey) || '[]');
+        let deletedDedupKeys = JSON.parse(localStorage.getItem(deletedDedupKey) || '[]');
+        if (!deletedNotifications.includes(notificationId)) {
+            deletedNotifications.push(notificationId);
+            localStorage.setItem(deletedKey, JSON.stringify(deletedNotifications));
+        }
+        const selectedNotif = document.querySelector(`[data-notification-id="${notificationId}"]`);
+        if (selectedNotif) {
+            const title = selectedNotif.querySelector('strong')?.textContent || '';
+            const message = selectedNotif.querySelector('p')?.textContent || '';
+            const key = buildDedupKey({ title, message });
+            if (key && !deletedDedupKeys.includes(key)) {
+                deletedDedupKeys.push(key);
+                localStorage.setItem(deletedDedupKey, JSON.stringify(deletedDedupKeys));
+            }
+        }
+        const readKey = `readNotifications_${studentData?.email}`;
+        let readNotifications = JSON.parse(localStorage.getItem(readKey) || '[]');
+        if (readNotifications.includes(notificationId)) {
+            localStorage.setItem(readKey, JSON.stringify(readNotifications.filter(id => id !== notificationId)));
+        }
+        if (isFromDropdown) loadNotificationDropdown();
+        updateNotificationBadgeAfterDelete();
+        showToast('Notification deleted', 'success');
+    });
 };
-
 // Delete all notifications
 window.deleteAllNotificationsFromDropdown = function() {
-    if (!confirm('Delete ALL notifications permanently? This cannot be undone.')) return;
-    
-    const deletedKey = `deletedNotifications_${studentData?.email}`;
-    let deletedNotifications = JSON.parse(localStorage.getItem(deletedKey) || '[]');
-    
-    // Add all notification IDs to deleted list
-    cachedNotifications.forEach(n => {
-        if (!deletedNotifications.includes(n.id)) {
-            deletedNotifications.push(n.id);
-        }
+    showConfirm('Delete ALL notifications permanently? This cannot be undone.', async () => {
+        const deletedKey = `deletedNotifications_${studentData?.email}`;
+        const deletedDedupKey = `deletedNotifKeys_${studentData?.email}`;
+        let deletedNotifications = JSON.parse(localStorage.getItem(deletedKey) || '[]');
+        let deletedDedupKeys = JSON.parse(localStorage.getItem(deletedDedupKey) || '[]');
+        
+        const currentNotifications = await fetchNotifications(studentData?.section, studentData?.email);
+        currentNotifications.forEach(n => {
+            if (!deletedNotifications.includes(n.id)) {
+                deletedNotifications.push(n.id);
+            }
+            const dedupKey = buildDedupKey(n);
+            if (dedupKey && !deletedDedupKeys.includes(dedupKey)) {
+                deletedDedupKeys.push(dedupKey);
+            }
+        });
+        localStorage.setItem(deletedKey, JSON.stringify(deletedNotifications));
+        localStorage.setItem(deletedDedupKey, JSON.stringify(deletedDedupKeys));
+        
+        const readKey = `readNotifications_${studentData?.email}`;
+        localStorage.setItem(readKey, JSON.stringify([]));
+        
+        loadNotificationDropdown();
+        updateNotificationBadgeAfterDelete();
+        showToast('All notifications deleted', 'success');
     });
-    localStorage.setItem(deletedKey, JSON.stringify(deletedNotifications));
-    
-    // Clear read list
-    const readKey = `readNotifications_${studentData?.email}`;
-    localStorage.setItem(readKey, JSON.stringify([]));
-    
-    // Clear cached notifications
-    cachedNotifications = [];
-    
-    // Refresh dropdown
-    loadNotificationDropdown();
-    
-    // Update badge
-    updateNotificationBadgeAfterDelete();
-    
-    showToast('All notifications deleted', 'success');
 };
 async function updateNotificationBadgeAfterDelete() {
     if (!studentData?.email) return;
@@ -1098,7 +1092,39 @@ const active = notifications.filter(n => {
         updateNotificationBadge(unread);
     } catch (_) {}
 }
+function showConfirm(message, onConfirm) {
+    const existing = document.getElementById('confirmOverlay');
+    if (existing) existing.remove();
 
+    const overlay = document.createElement('div');
+    overlay.id = 'confirmOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:99999;padding:1rem;';
+
+    overlay.innerHTML = `
+        <div style="background:#fff;border-radius:24px;padding:2rem 1.5rem 1.5rem;max-width:360px;width:100%;box-shadow:0 8px 40px rgba(60,64,67,0.18);text-align:center;font-family:'Inter',sans-serif;">
+            <div style="width:68px;height:68px;background:#fce8e6;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;">
+                <i class="bi bi-trash3" style="font-size:28px;color:#ea4335;"></i>
+            </div>
+            <div style="font-size:1.15rem;font-weight:600;color:#202124;margin-bottom:0.5rem;">Confirm Delete</div>
+            <div style="font-size:0.875rem;color:#5f6368;margin-bottom:1.5rem;line-height:1.5;">${message}</div>
+            <div style="height:1px;background:#e8eaed;margin:0 -1.5rem 1.25rem;"></div>
+            <div style="display:flex;gap:0.75rem;">
+                <button id="confirmCancelBtn" style="flex:1;padding:0.75rem 0.5rem;border-radius:100px;border:1.5px solid #dadce0;background:#fff;color:#3c4043;font-size:0.9375rem;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;min-height:48px;">Cancel</button>
+                <button id="confirmOkBtn" style="flex:1;padding:0.75rem 0.5rem;border-radius:100px;border:none;background:#ea4335;color:#fff;font-size:0.9375rem;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;min-height:48px;">Delete</button>
+            </div>
+        </div>`;
+
+    document.body.appendChild(overlay);
+    const modal = overlay.firstElementChild;
+    modal?.addEventListener('click', e => e.stopPropagation());
+
+    document.getElementById('confirmCancelBtn')?.addEventListener('click', e => { e.stopPropagation(); overlay.remove(); });
+    document.getElementById('confirmOkBtn')?.addEventListener('click', e => {
+        e.stopPropagation();
+        try { if (typeof onConfirm === 'function') onConfirm(); } finally { overlay.remove(); }
+    });
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+}
 // Toast notification helper
 function showToast(message, type = 'info') {
     const existingToast = document.querySelector('.custom-toast');
@@ -1189,11 +1215,13 @@ function setupEventListeners() {
     document.getElementById('notificationBellBtnMobile')?.addEventListener('click', toggleNotificationDropdown);
     document.getElementById('closeNotificationBtn')?.addEventListener('click', e => { e.stopPropagation(); closeNotificationDropdown(); });
     document.getElementById('closeNotificationBtnMobile')?.addEventListener('click', e => { e.stopPropagation(); closeNotificationDropdown(); });
-    document.addEventListener('click', e => {
-        if (!e.target.closest('#notificationBellBtn') && !e.target.closest('#notificationBellBtnMobile') && !e.target.closest('#notificationDropdown') && !e.target.closest('#notificationDropdownMobile')) closeNotificationDropdown();
-        if (!e.target.closest('#profilePictureBtn') && !e.target.closest('#profilePictureBtnMobile') && !e.target.closest('#profileDropdown') && !e.target.closest('#profileDropdownMobile')) closeProfileDropdown();
-    });
-
+document.addEventListener('click', e => {
+    // Don't close dropdowns if a confirm/logout overlay is open
+    if (document.getElementById('confirmOverlay') || document.getElementById('logoutOverlay')) return;
+    
+    if (!e.target.closest('#notificationBellBtn') && !e.target.closest('#notificationBellBtnMobile') && !e.target.closest('#notificationDropdown') && !e.target.closest('#notificationDropdownMobile')) closeNotificationDropdown();
+    if (!e.target.closest('#profilePictureBtn') && !e.target.closest('#profilePictureBtnMobile') && !e.target.closest('#profileDropdown') && !e.target.closest('#profileDropdownMobile')) closeProfileDropdown();
+});
     const hamburger = document.getElementById('hamburger');
     const drawer = document.getElementById('mobileDrawer');
     const overlay = document.getElementById('drawerOverlay');

@@ -696,35 +696,69 @@ const active = allNotifs.filter(n => {
     const read = JSON.parse(localStorage.getItem(readKey) || '[]');
     if (!read.includes(id)) localStorage.setItem(readKey, JSON.stringify([...read, id]));
     };
-
-    window.deleteSingleNotification = function(id) {
-        if (!confirm('Delete this notification permanently?')) return;
+window.deleteSingleNotification = function(notificationId, isFromDropdown = false) {
+    showConfirm('This notification will be permanently deleted and cannot be recovered.', () => {
         const deletedKey = `deletedNotifications_${studentData?.email}`;
-        const readKey = `readNotifications_${studentData?.email}`;
-        let deleted = JSON.parse(localStorage.getItem(deletedKey) || '[]');
-        if (!deleted.includes(id)) { deleted.push(id); localStorage.setItem(deletedKey, JSON.stringify(deleted)); }
-        let read = JSON.parse(localStorage.getItem(readKey) || '[]');
-        localStorage.setItem(readKey, JSON.stringify(read.filter(r => r !== id)));
-        const isMobile = window.innerWidth < 1024;
-        loadNotificationDropdown(isMobile);
-        checkUnreadNotifications();
-    };
+        const deletedDedupKey = `deletedNotifKeys_${studentData?.email}`;
+        let deletedNotifications = JSON.parse(localStorage.getItem(deletedKey) || '[]');
+        let deletedDedupKeys = JSON.parse(localStorage.getItem(deletedDedupKey) || '[]');
+        
+        if (!deletedNotifications.includes(notificationId)) {
+            deletedNotifications.push(notificationId);
+            localStorage.setItem(deletedKey, JSON.stringify(deletedNotifications));
+        }
 
-    window.deleteAllNotifications = function() {
-        if (!confirm('Delete ALL notifications permanently? This cannot be undone.')) return;
-        getDocs(query(collection(db,'notifications'), where('section','==',studentData.section)))
-            .then(snap => {
-                const deletedKey = `deletedNotifications_${studentData?.email}`;
-                const readKey = `readNotifications_${studentData?.email}`;
-                const deleted = JSON.parse(localStorage.getItem(deletedKey) || '[]');
-                snap.forEach(d => { if (!deleted.includes(d.id)) deleted.push(d.id); });
-                localStorage.setItem(deletedKey, JSON.stringify(deleted));
-                localStorage.setItem(readKey, JSON.stringify([]));
-                const isMobile = window.innerWidth < 1024;
-                loadNotificationDropdown(isMobile);
-                checkUnreadNotifications();
-            });
-    };
+        const selectedNotif = document.querySelector(`[data-notification-id="${notificationId}"]`);
+        if (selectedNotif) {
+            const title = selectedNotif.querySelector('strong')?.textContent || '';
+            const message = selectedNotif.querySelector('p')?.textContent || '';
+            const key = buildDedupKey({ title, message });
+            if (key && !deletedDedupKeys.includes(key)) {
+                deletedDedupKeys.push(key);
+                localStorage.setItem(deletedDedupKey, JSON.stringify(deletedDedupKeys));
+            }
+        }
+        
+        const readKey = `readNotifications_${studentData?.email}`;
+        let readNotifications = JSON.parse(localStorage.getItem(readKey) || '[]');
+        if (readNotifications.includes(notificationId)) {
+            localStorage.setItem(readKey, JSON.stringify(readNotifications.filter(id => id !== notificationId)));
+        }
+        
+        if (isFromDropdown) loadNotificationDropdown();
+        
+        updateNotificationBadgeAfterDelete();
+        showToast('Notification deleted', 'success');
+    });
+};
+window.deleteAllNotificationsFromDropdown = function() {
+    showConfirm('Delete ALL notifications permanently? This cannot be undone.', async () => {
+        const deletedKey = `deletedNotifications_${studentData?.email}`;
+        const deletedDedupKey = `deletedNotifKeys_${studentData?.email}`;
+        let deletedNotifications = JSON.parse(localStorage.getItem(deletedKey) || '[]');
+        let deletedDedupKeys = JSON.parse(localStorage.getItem(deletedDedupKey) || '[]');
+        
+        const currentNotifications = await fetchNotifications(studentData?.section, studentData?.email);
+        currentNotifications.forEach(n => {
+            if (!deletedNotifications.includes(n.id)) {
+                deletedNotifications.push(n.id);
+            }
+            const dedupKey = buildDedupKey(n);
+            if (dedupKey && !deletedDedupKeys.includes(dedupKey)) {
+                deletedDedupKeys.push(dedupKey);
+            }
+        });
+        localStorage.setItem(deletedKey, JSON.stringify(deletedNotifications));
+        localStorage.setItem(deletedDedupKey, JSON.stringify(deletedDedupKeys));
+        
+        const readKey = `readNotifications_${studentData?.email}`;
+        localStorage.setItem(readKey, JSON.stringify([]));
+        
+        loadNotificationDropdown();
+        updateNotificationBadgeAfterDelete();
+        showToast('All notifications deleted', 'success');
+    });
+};
 
     async function updateNotificationBadgeAfterRead() {
         try {
@@ -1086,6 +1120,7 @@ const active = allNotifs.filter(n => {
             document.getElementById('profilePictureBtnMobile')?.addEventListener('click', window.toggleProfileDropdown);
 
             document.addEventListener('click', event => {
+                if (document.getElementById('customConfirmOverlay')) return;
                 if (!event.target.closest('#notificationBellBtn') && !event.target.closest('#notificationBellBtnMobile') &&
                     !event.target.closest('#notificationDropdown') && !event.target.closest('#notificationDropdownMobile')) closeNotificationDropdown();
                 if (!event.target.closest('#profilePictureBtn') && !event.target.closest('#profilePictureBtnMobile') &&
@@ -1151,6 +1186,36 @@ const active = allNotifs.filter(n => {
         // Hide on scroll down, show on scroll up
 const navbar = document.querySelector('nav');
 let lastScrollY = window.scrollY;
+function showConfirm(message, onConfirm) {
+    const existing = document.getElementById('customConfirmOverlay');
+    if (existing) existing.remove();
+    const overlay = document.createElement('div');
+    overlay.id = 'customConfirmOverlay';
+    overlay.className = 'fixed inset-0 flex items-center justify-center z-[99999] p-4';
+    overlay.style.background = 'rgba(0,0,0,0.5)';
+    overlay.innerHTML = `
+        <div class="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl text-center" style="animation:slideDown .3s cubic-bezier(.4,0,.2,1)">
+            <div class="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="bi bi-exclamation-triangle-fill text-red-500 text-2xl"></i>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900 mb-2">Are you sure?</h3>
+            <p class="text-sm text-gray-500 mb-6 leading-relaxed">${message}</p>
+            <div class="h-px bg-gray-100 -mx-8 mb-5"></div>
+            <div class="flex gap-3">
+                <button id="confirmCancelBtn" class="flex-1 py-3 rounded-2xl border border-gray-200 bg-white text-gray-700 text-sm font-semibold hover:bg-gray-50 transition-colors cursor-pointer">Cancel</button>
+                <button id="confirmOkBtn" class="flex-1 py-3 rounded-2xl border-0 bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-colors cursor-pointer">Delete</button>
+            </div>
+        </div>`;
+    document.body.appendChild(overlay);
+    const modal = overlay.firstElementChild;
+    modal?.addEventListener('click', e => e.stopPropagation());
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+    document.getElementById('confirmCancelBtn')?.addEventListener('click', e => { e.stopPropagation(); overlay.remove(); });
+    document.getElementById('confirmOkBtn')?.addEventListener('click', e => {
+        e.stopPropagation();
+        try { onConfirm?.(); } finally { overlay.remove(); }
+    });
+}
 
 window.addEventListener('scroll', () => {
     const currentScrollY = window.scrollY;
