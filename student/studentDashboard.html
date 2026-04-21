@@ -1187,7 +1187,8 @@ if (rawStudent?._ref) {
             ]);
 
             // Calendar after data loaded (needs scheduledTests)
-            generateMiniCalendar(scheduledTests);
+            const completedIds = new Set(testResults.map(r => r.testId).filter(Boolean));
+            generateMiniCalendar(scheduledTests, completedIds);
             setupDashboardDeadlineWatcher();
 
            
@@ -2204,93 +2205,96 @@ async function createOverallProgressChart(testResults) {
 
         // ========== CALENDAR ==========
 
-        function generateMiniCalendar(scheduledTests = []) {
-            const calendar = document.getElementById('miniCalendar');
-            if (!calendar) return;
-            const now = new Date();
-            let viewYear = now.getFullYear(), viewMonth = now.getMonth();
+        function generateMiniCalendar(scheduledTests = [], completedTestIds = new Set()) {
+    const calendar = document.getElementById('miniCalendar');
+    if (!calendar) return;
+    const now = new Date();
+    let viewYear = now.getFullYear(), viewMonth = now.getMonth();
 
-            function getDeadlinesForMonth(year, month) {
-                const deadlineMap = new Map();
-                scheduledTests.forEach(test => {
-                    let deadlineDate;
-                    if (test.deadlineDateTime) deadlineDate = new Date(test.deadlineDateTime);
-                    else if (test.deadline) { deadlineDate = new Date(test.deadline); deadlineDate.setHours(23,59,59,999); }
-                    if (!deadlineDate || isNaN(deadlineDate) || deadlineDate.getFullYear() !== year || deadlineDate.getMonth() !== month) return;
-                    const day = deadlineDate.getDate();
-                    if (!deadlineMap.has(day)) deadlineMap.set(day, []);
-                    deadlineMap.get(day).push({
-                        name: test.testName || 'Test',
-                        time: (() => {
-                            if (test.deadlineTime) {
-                                const [h, m] = test.deadlineTime.split(':');
-                                const d = new Date(); d.setHours(+h, +m);
-                                return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-                            }
-                            return deadlineDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-                        })()
-                    });
-                });
-                return deadlineMap;
-            }
+    function getDeadlinesForMonth(year, month) {
+        const deadlineMap = new Map();
+        scheduledTests.forEach(test => {
+            // Skip tests already completed by the student
+            if (completedTestIds.has(test.id)) return;
+
+            let deadlineDate;
+            if (test.deadlineDateTime) deadlineDate = new Date(test.deadlineDateTime);
+            else if (test.deadline) { deadlineDate = new Date(test.deadline); deadlineDate.setHours(23,59,59,999); }
+            if (!deadlineDate || isNaN(deadlineDate) || deadlineDate.getFullYear() !== year || deadlineDate.getMonth() !== month) return;
+            const day = deadlineDate.getDate();
+            if (!deadlineMap.has(day)) deadlineMap.set(day, []);
+            deadlineMap.get(day).push({
+                name: test.testName || 'Test',
+                time: (() => {
+                    if (test.deadlineTime) {
+                        const [h, m] = test.deadlineTime.split(':');
+                        const d = new Date(); d.setHours(+h, +m);
+                        return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+                    }
+                    return deadlineDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+                })()
+            });
+        });
+        return deadlineMap;
+    }
 
             function renderCalendar(year, month) {
-                const firstDay = new Date(year, month, 1).getDay();
-                const daysInMonth = new Date(year, month + 1, 0).getDate();
-                const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-                const deadlineMap = getDeadlinesForMonth(year, month);
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+            const deadlineMap = getDeadlinesForMonth(year, month);
 
-                let html = `
-                    <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-4 sm:p-6 border border-blue-100">
-                        <div class="flex items-center justify-between mb-4">
-                            <button id="calPrevBtn" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-blue-200 hover:bg-blue-100 transition-all text-blue-600 font-bold shadow-sm"><i class="bi bi-chevron-left"></i></button>
-                            <h3 class="text-base sm:text-lg font-bold text-blue-800">${monthNames[month]} ${year}</h3>
-                            <button id="calNextBtn" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-blue-200 hover:bg-blue-100 transition-all text-blue-600 font-bold shadow-sm"><i class="bi bi-chevron-right"></i></button>
-                        </div>
-                        <div class="grid grid-cols-7 gap-1 text-center mb-1">
-                            ${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => `<div class="font-bold text-blue-700 py-1 text-xs uppercase tracking-wide">${d}</div>`).join('')}
-                        </div>
-                        <div class="grid grid-cols-7 gap-1 text-center items-start">`;
+            let html = `
+                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-4 sm:p-6 border border-blue-100">
+                    <div class="flex items-center justify-between mb-4">
+                        <button id="calPrevBtn" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-blue-200 hover:bg-blue-100 transition-all text-blue-600 font-bold shadow-sm"><i class="bi bi-chevron-left"></i></button>
+                        <h3 class="text-base sm:text-lg font-bold text-blue-800">${monthNames[month]} ${year}</h3>
+                        <button id="calNextBtn" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-blue-200 hover:bg-blue-100 transition-all text-blue-600 font-bold shadow-sm"><i class="bi bi-chevron-right"></i></button>
+                    </div>
+                    <div class="grid grid-cols-7 gap-1 text-center mb-1">
+                        ${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => `<div class="font-bold text-blue-700 py-1 text-xs uppercase tracking-wide">${d}</div>`).join('')}
+                    </div>
+                    <div class="grid grid-cols-7 gap-1 items-start">`;
 
-                for (let i = 0; i < firstDay; i++) html += `<div class="py-2"></div>`;
+            for (let i = 0; i < firstDay; i++) html += `<div class="py-2"></div>`;
 
-                for (let day = 1; day <= daysInMonth; day++) {
-                    const isToday = day === now.getDate() && month === now.getMonth() && year === now.getFullYear();
-                    const deadlines = deadlineMap.get(day) || [];
-                    const hasDeadline = deadlines.length > 0;
+            for (let day = 1; day <= daysInMonth; day++) {
+                const isToday = day === now.getDate() && month === now.getMonth() && year === now.getFullYear();
+                const deadlines = deadlineMap.get(day) || [];
+                const hasDeadline = deadlines.length > 0;
 
-                    if (hasDeadline) {
-                        html += `
-                            <div class="relative rounded-xl overflow-hidden border border-red-300 bg-red-50 min-h-[56px]">
-                                <div class="absolute top-1 left-0 right-0 text-center text-sm font-bold ${isToday ? 'text-white' : 'text-red-700'} z-10">
-                                    ${day}${isToday ? `<span class="absolute inset-0 -z-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-t-xl"></span>` : ''}
-                                </div>
-                                <div class="pt-6 px-1 pb-1 space-y-0.5">
-                                    ${deadlines.map(d => `
-                                        <div class="bg-red-400 text-white rounded px-1 py-0.5 text-center">
-                                            <div class="text-xs font-semibold leading-tight truncate">${d.name}</div>
-                                            <div class="text-xs opacity-80 leading-tight">${d.time}</div>
-                                        </div>`).join('')}
-                                </div>
-                            </div>`;
-                    } else {
-                        let cellClass = 'relative text-sm font-medium py-2 rounded-xl transition-all ';
-                        if (isToday) cellClass += 'bg-gradient-to-br from-blue-600 to-blue-700 text-white font-bold shadow-lg scale-110';
-                        else cellClass += 'text-gray-700 hover:bg-blue-100';
-                        html += `<div class="${cellClass}">${day}</div>`;
-                    }
+                if (hasDeadline) {
+                    html += `
+                        <div class="rounded-xl border border-red-300 bg-red-50 overflow-hidden" style="grid-column: span 1;">
+                            <div class="text-center py-1 px-1 ${isToday ? 'bg-blue-600' : 'bg-red-100'} border-b border-red-200">
+                                <span class="text-sm font-bold ${isToday ? 'text-white' : 'text-red-700'}">${day}</span>
+                            </div>
+                            <div class="p-1 space-y-1">
+                                ${deadlines.map(d => `
+                                    <div class="bg-red-400 hover:bg-red-500 transition-colors rounded-lg p-1.5 cursor-default" title="${d.name} — ${d.time}">
+                                        <div class="text-white text-xs font-semibold leading-tight break-words" style="word-break: break-word; hyphens: auto;">${d.name}</div>
+                                        <div class="text-red-100 text-xs mt-0.5 leading-tight">${d.time}</div>
+                                    </div>`).join('')}
+                            </div>
+                        </div>`;
+                } else {
+                    let cellClass = 'text-sm font-medium py-2 rounded-xl transition-all text-center ';
+                    if (isToday) cellClass += 'bg-gradient-to-br from-blue-600 to-blue-700 text-white font-bold shadow-lg scale-110';
+                    else cellClass += 'text-gray-700 hover:bg-blue-100';
+                    html += `<div class="${cellClass}">${day}</div>`;
                 }
-
-                html += `</div></div>`;
-                calendar.innerHTML = html;
-
-                document.getElementById('calPrevBtn').addEventListener('click', () => {
-                    viewMonth--; if (viewMonth < 0) { viewMonth = 11; viewYear--; } renderCalendar(viewYear, viewMonth);
-                });
-                document.getElementById('calNextBtn').addEventListener('click', () => {
-                    viewMonth++; if (viewMonth > 11) { viewMonth = 0; viewYear++; } renderCalendar(viewYear, viewMonth);
-                });
             }
+
+            html += `</div></div>`;
+            calendar.innerHTML = html;
+
+            document.getElementById('calPrevBtn').addEventListener('click', () => {
+                viewMonth--; if (viewMonth < 0) { viewMonth = 11; viewYear--; } renderCalendar(viewYear, viewMonth);
+            });
+            document.getElementById('calNextBtn').addEventListener('click', () => {
+                viewMonth++; if (viewMonth > 11) { viewMonth = 0; viewYear++; } renderCalendar(viewYear, viewMonth);
+            });
+        }
 
             renderCalendar(viewYear, viewMonth);
         }
@@ -2624,8 +2628,8 @@ function setupDashboardDeadlineWatcher() {
 
             if (fingerprint !== lastFingerprint) {
                 lastFingerprint = fingerprint;
-                await processAndUpdateUpcomingTests(tests, results);
-                generateMiniCalendar(tests); // update calendar din kapag may bagong test
+                const completedIds = new Set(results.map(r => r.testId).filter(Boolean));
+                generateMiniCalendar(tests, completedIds);
             }
         } catch (_) {}
     }

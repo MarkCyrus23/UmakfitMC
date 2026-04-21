@@ -872,8 +872,8 @@ function renderImprovementModal() {
         return bLatest - aLatest; // most recent first
     });
 
-    const { total, improved, gainLabel, gainTest } = computeSummaryStats(
-        Object.fromEntries(sorted.map(g => [g.testName, g]))
+      const { total, improved, gainLabel, gainTest } = computeSummaryStats(
+        Object.fromEntries(sorted.map((g, i) => [`${g.testName}_${i}`, g]))
     );
 
     document.getElementById('summaryTotalTests').textContent = sorted.length;
@@ -937,7 +937,6 @@ function renderImprovementModal() {
                         <div style="width:26px;height:26px;background:${isBest?'#dcfce7':'#f1f5f9'};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:${isBest?'#15803d':'#64748b'};flex-shrink:0;">${idx+1}</div>
                         <div style="flex:1;min-width:0;"><div style="font-size:12px;color:#64748b;">${attempt.dateStr}</div>${isLate?'<div style="font-size:11px;color:#f59e0b;">⚠️ Submitted Late</div>':''}</div>
                         ${normBadgeHTML(attempt.normCat, true)}
-                        ${idx===0?`<span class="dir-badge dir-same" style="font-size:10px;">Baseline</span>`:diffBadge}
                         ${isBest?'<i class="bi bi-star-fill" style="color:#f59e0b;font-size:12px;"></i>':''}
                     </div>`;
                 }).join('')}
@@ -948,31 +947,29 @@ function renderImprovementModal() {
 
     body.innerHTML = html;
 }
-        // ========== SHARED SUMMARY HELPER ==========
 function computeSummaryStats(groups) {
     const arr = Object.values(groups);
     let improved = 0;
     let bestGainLabel = '—', bestGainTest = '';
-    let mostRecentImprovedMs = -1; // track most recent improved test
+    let bestRankGain = -1;
+    let bestFinalRank = -1;
 
     arr.forEach(g => {
         if (g.attempts.length >= 2) {
             const firstRank = g.attempts[0].rank;
             const bestRank  = Math.max(...g.attempts.map(a => a.rank));
+            const rankGain  = bestRank - firstRank;
+
             if (bestRank > firstRank) {
                 improved++;
 
-                // Get the date of the best (most improved) attempt
-                const bestAttempt = g.attempts.find(a => a.rank === bestRank);
-                const attemptMs = bestAttempt.date instanceof Date 
-                    ? bestAttempt.date.getTime() 
-                    : new Date(bestAttempt.date).getTime();
-
-                // Pick the most recently improved test
-                if (attemptMs > mostRecentImprovedMs) {
-                    mostRecentImprovedMs = attemptMs;
+                if (rankGain > bestRankGain || 
+                    (rankGain === bestRankGain && bestRank > bestFinalRank)) {
+                    bestRankGain  = rankGain;
+                    bestFinalRank = bestRank;
+                    const bestAttempt = g.attempts.find(a => a.rank === bestRank);
                     bestGainLabel = `${g.attempts[0].normCat} → ${bestAttempt.normCat}`;
-                    bestGainTest = g.testName;
+                    bestGainTest  = g.testName;
                 }
             }
         }
@@ -981,8 +978,8 @@ function computeSummaryStats(groups) {
     return {
         total: arr.length,
         improved,
-        gainLabel: mostRecentImprovedMs > -1 ? bestGainLabel : '—',
-        gainTest:  mostRecentImprovedMs > -1 ? bestGainTest  : ''
+        gainLabel: bestRankGain > -1 ? bestGainLabel : '—',
+        gainTest:  bestRankGain > -1 ? bestGainTest  : ''
     };
 }
 // ========== UPDATE PREVIEW CARD (synchronous after prefetch) ==========
