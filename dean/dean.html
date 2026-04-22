@@ -149,6 +149,7 @@
         width: 100% !important;
     }
 }
+
     </style>
 </head>
 <body class="font-sans bg-surface text-text-primary min-h-screen m-0 p-0">
@@ -2416,14 +2417,20 @@ const top = sectionRankings
     downloadCSV(csv, `section_rankings_${new Date().toISOString().split('T')[0]}.csv`);
 };
 
- window.viewSectionDetails = async function(sectionName) {
+ // ═══════════════════════════════════════════════════════════════
+// REPLACEMENT: window.viewSectionDetails
+// Changes:
+//   1. Removed Fitness Test Breakdown section
+//   2. Enrolled students now show rank, tests taken, avg performance
+//      matching the student ranking table logic
+// ═══════════════════════════════════════════════════════════════
+
+window.viewSectionDetails = async function(sectionName) {
     const s = sectionRankings.find(r => r.name === sectionName);
     if (!s) return;
-
+ 
     const rank = sectionRankings.findIndex(r => r.name === sectionName) + 1;
-    const rc = rank <= 3 ? `rank-${rank}` : 'rank-other';
-    
-    // Show loading state
+ 
     document.getElementById('sectionDetailsTitle').textContent = `Section: ${sectionName}`;
     document.getElementById('sectionDetailsContent').innerHTML = `
         <div style="text-align:center;padding:48px 24px;">
@@ -2431,389 +2438,289 @@ const top = sectionRankings
             <div style="font-size:14px;color:#8a98ae;">Loading section details...</div>
         </div>`;
     document.getElementById('sectionDetailsModal').style.display = 'flex';
-
-    // Fetch additional data for this section
+ 
+    // ── 1. Pull enrolled students from sections document first ──
     let studentsList = [];
-    let activeStudents = [];
-    let testBreakdown = {
-        pushup: { count: 0, avg: 0, total: 0, excellent: 0, good: 0, average: 0, poor: 0 },
-        curlup: { count: 0, avg: 0, total: 0, excellent: 0, good: 0, average: 0, poor: 0 },
-        sitreach: { count: 0, avg: 0, total: 0, excellent: 0, good: 0, average: 0, poor: 0 },
-        steptest: { count: 0, avg: 0, total: 0, excellent: 0, good: 0, average: 0, poor: 0 },
-        skinfold: { count: 0, avg: 0, total: 0, excellent: 0, good: 0, average: 0, poor: 0 }
-    };
-    
+ 
     try {
-        // Get students in this section
-        const usersSnap = await db.collection('users')
-            .where('role', '==', 'student')
-            .where('section', '==', sectionName)
-            .get();
-        studentsList = usersSnap.docs.map(d => ({
-            name: d.data().name || 'Unknown',
-            email: d.data().email || '',
-            umakId: d.data().umakId || ''
-        }));
-        
-        // Calculate test breakdown from testResults
-        const sectionTests = testResults.filter(t => t.section === sectionName && t.score > 0);
-        
-        sectionTests.forEach(t => {
-            const tl = (t.testName || '').toLowerCase();
-            let testKey = null;
-            if (tl.includes('push')) testKey = 'pushup';
-            else if (tl.includes('curl')) testKey = 'curlup';
-            else if (tl.includes('sit') && tl.includes('reach')) testKey = 'sitreach';
-            else if (tl.includes('step') || tl.includes('3-minute')) testKey = 'steptest';
-            else if (tl.includes('skinfold') || tl.includes('skin fold')) testKey = 'skinfold';
-            
-            if (testKey && testBreakdown[testKey]) {
-                testBreakdown[testKey].count++;
-                testBreakdown[testKey].total += t.score;
-                const cat = (t.category || '').toLowerCase();
-                if (cat === 'excellent') testBreakdown[testKey].excellent++;
-                else if (cat === 'good') testBreakdown[testKey].good++;
-                else if (cat === 'average') testBreakdown[testKey].average++;
-                else if (cat === 'poor' || cat === 'below average') testBreakdown[testKey].poor++;
+        // Primary: read from sections/{sectionName}.students array
+        const sectionDoc = await db.collection('sections').doc(sectionName).get();
+        if (sectionDoc.exists) {
+            const sData = sectionDoc.data();
+            const arr = sData.students || [];
+            if (arr.length > 0) {
+                studentsList = arr.map(s => ({
+                    id:     s.student_id || s.umakId || s.studentId || s.email || '',
+                    name:   s.name       || s.fullName || 'Unknown',
+                    email:  (s.email     || '').toLowerCase(),
+                    umakId: s.student_id || s.umakId || s.studentId || ''
+                })).filter(s => s.name && s.name !== 'Unknown' || s.email);
             }
-        });
-        
-        // Calculate averages
-        Object.keys(testBreakdown).forEach(key => {
-            if (testBreakdown[key].count > 0) {
-                testBreakdown[key].avg = (testBreakdown[key].total / testBreakdown[key].count).toFixed(2);
-            }
-        });
-        
-        // Fetch most active students (those who took the most tests)
-        const studentTestCount = new Map();
-        const studentScores = new Map();
-        const studentNames = new Map();
-        
-        sectionTests.forEach(t => {
-            const studentKey = t.studentId || t.studentEmail || t.umakId || t.email;
-            if (!studentKey) return;
-            
-            let studentName = t.studentName || '';
-            if (!studentName) {
-                const found = studentsList.find(s => 
-                    s.email === t.studentEmail || 
-                    s.umakId === t.umakId ||
-                    s.name?.toLowerCase().includes((t.studentName || '').toLowerCase())
-                );
-                if (found) studentName = found.name;
-                else studentName = t.studentEmail?.split('@')[0] || 'Unknown';
-            }
-            
-            const count = studentTestCount.get(studentKey) || 0;
-            studentTestCount.set(studentKey, count + 1);
-            
-            const scores = studentScores.get(studentKey) || [];
-            scores.push(t.score);
-            studentScores.set(studentKey, scores);
-            studentNames.set(studentKey, studentName);
-        });
-        
-        // Build active students array (sorted by most tests taken)
-        activeStudents = Array.from(studentTestCount.entries())
-            .map(([key, testCount]) => {
-                const scores = studentScores.get(key) || [];
-                const avgScore = scores.length ? scores.reduce((a,b) => a+b, 0) / scores.length : 0;
-                const avgRating = getScoreRating(avgScore);
-                return {
-                    name: studentNames.get(key) || 'Unknown',
-                    testCount: testCount,
-                    avgScore: avgScore,
-                    rating: avgRating ? avgRating.text : '—',
-                    ratingClass: avgRating ? avgRating.cls : 'score-fair'
-                };
-            })
-            .sort((a, b) => b.testCount - a.testCount)
-           // .slice(0, 10);
-            
-    } catch(e) { console.error('Error fetching section details:', e); }
-
-
-
-    // Build test breakdown HTML
-    const testKeys = [
-    { key: 'pushup', label: 'Push-Up', color: '#3b82f6', bg: '#eff6ff' },
-    { key: 'curlup', label: 'Curl-Up', color: '#10b981', bg: '#ecfdf5' },
-    { key: 'sitreach', label: 'Sit-and-Reach', color: '#f59e0b', bg: '#fffbeb' },
-    { key: 'steptest', label: 'Step Test (3-Minute)', color: '#ef4444', bg: '#fef2f2' },
-    { key: 'skinfold', label: 'Skinfold', color: '#8b5cf6', bg: '#f5f3ff' }
-];
-    
-    let testBreakdownHtml = '';
-    for (const tk of testKeys) {
-        const data = testBreakdown[tk.key];
-        const totalTests = data.count;
-        const avgScore = data.avg;
-        const excellentPct = totalTests > 0 ? ((data.excellent / totalTests) * 100).toFixed(0) : 0;
-        const goodPct = totalTests > 0 ? ((data.good / totalTests) * 100).toFixed(0) : 0;
-        const avgPct = totalTests > 0 ? ((data.average / totalTests) * 100).toFixed(0) : 0;
-        const poorPct = totalTests > 0 ? ((data.poor / totalTests) * 100).toFixed(0) : 0;
-        
-        testBreakdownHtml += `
-            <div style="background:${tk.bg};border-radius:14px;padding:16px;margin-bottom:12px;border-left:4px solid ${tk.color};">
-                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:10px;">
-                    <div>
-                        <span style="font-weight:700;color:#1e293b;">${tk.label}</span>
-                        ${totalTests > 0 ? `<span style="font-size:11px;color:#64748b;margin-left:8px;">${totalTests} test(s)</span>` : ''}
-                    </div>
-                    ${totalTests > 0 ? `<span style="font-family:'DM Mono',monospace;font-weight:700;color:${tk.color};">Avg: ${avgScore}</span>` : '<span style="color:#94a3b8;">No data yet</span>'}
-                </div>
-                ${totalTests > 0 ? `
-<div style="display:flex;gap:12px;margin-top:12px;flex-wrap:wrap;">
-    <div style="display:flex;align-items:center;gap:6px;background:#d4f0e6;padding:4px 12px;border-radius:20px;">
-        <span style="width:10px;height:10px;border-radius:50%;background:#0e8a5f;"></span>
-        <span style="font-size:11px;font-weight:600;color:#0e8a5f;">Excellent:</span>
-        <span style="font-size:13px;font-weight:700;color:#0e8a5f;">${data.excellent}</span>
-    </div>
-    <div style="display:flex;align-items:center;gap:6px;background:#d6eaf8;padding:4px 12px;border-radius:20px;">
-        <span style="width:10px;height:10px;border-radius:50%;background:#1a6fa8;"></span>
-        <span style="font-size:11px;font-weight:600;color:#1a6fa8;">Good:</span>
-        <span style="font-size:13px;font-weight:700;color:#1a6fa8;">${data.good}</span>
-    </div>
-    <div style="display:flex;align-items:center;gap:6px;background:#fef3d4;padding:4px 12px;border-radius:20px;">
-        <span style="width:10px;height:10px;border-radius:50%;background:#b07e16;"></span>
-        <span style="font-size:11px;font-weight:600;color:#b07e16;">Average:</span>
-        <span style="font-size:13px;font-weight:700;color:#b07e16;">${data.average}</span>
-    </div>
-    <div style="display:flex;align-items:center;gap:6px;background:#fce8e6;padding:4px 12px;border-radius:20px;">
-        <span style="width:10px;height:10px;border-radius:50%;background:#c0392b;"></span>
-        <span style="font-size:11px;font-weight:600;color:#c0392b;">Poor:</span>
-        <span style="font-size:13px;font-weight:700;color:#c0392b;">${data.poor}</span>
-    </div>
-</div>
-` : '<div style="font-size:12px;color:#94a3b8;margin-top:8px;">No test submissions yet</div>'}
-            </div>
-        `;
+        }
+    } catch(e) { console.warn('Could not read sections doc students array:', e); }
+ 
+    // Fallback: query users collection if sections array was empty
+    if (!studentsList.length) {
+        try {
+            const usersSnap = await db.collection('users')
+                .where('role', '==', 'student')
+                .where('section', '==', sectionName)
+                .get();
+            studentsList = usersSnap.docs.map(d => ({
+                id:     d.id,
+                name:   d.data().name || 'Unknown',
+                email:  d.data().email || '',
+                umakId: d.data().umakId || (d.data().studentId || '').replace(/^student_/i, '') || ''
+            }));
+        } catch(e) { console.error('Error fetching enrolled students (fallback):', e); }
     }
-
-    // ─── ENROLLED STUDENTS PAGINATION ───
-    const studentsPerPage = 8;
+ 
+    // ── 2. Match each enrolled student to their studentRankings entry ──
+    function findStudentRanking(stu) {
+        return studentRankings.find(r => {
+            if (r.id === stu.id || r.id === stu.umakId) return true;
+            if (stu.email && r.id.toLowerCase() === stu.email.toLowerCase()) return true;
+            if (stu.email && r.id.toLowerCase().includes(stu.email.split('@')[0].toLowerCase())) return true;
+            if (stu.umakId && r.id.toUpperCase() === stu.umakId.toUpperCase()) return true;
+            if (r.section === sectionName && r.name.toLowerCase() === stu.name.toLowerCase()) return true;
+            return false;
+        });
+    }
+ 
+    const enrolledWithRanking = studentsList.map(stu => {
+        const ranking = findStudentRanking(stu);
+        return {
+            ...stu,
+            ranking:         ranking || null,
+            testsTaken:      ranking ? (ranking.testsTaken      || 0) : 0,
+            avgScore:        ranking ? (ranking.avgScore        || 0) : 0,
+            overallCategory: ranking ? ranking.overallCategory       : null,
+            hasData:         ranking ? ranking.hasData               : false
+        };
+    });
+ 
+    // Add students from studentRankings for this section not already in list
+    const enrolledEmails = new Set(studentsList.map(s => s.email.toLowerCase()));
+    const enrolledIds    = new Set(studentsList.map(s => s.id));
+    const enrolledUmaks  = new Set(studentsList.map(s => s.umakId.toUpperCase()).filter(Boolean));
+ 
+    studentRankings.filter(r => r.section === sectionName).forEach(r => {
+        const already = enrolledIds.has(r.id)
+            || enrolledEmails.has(r.id.toLowerCase())
+            || (r.id.includes('@') ? enrolledEmails.has(r.id.toLowerCase()) : enrolledUmaks.has(r.id.toUpperCase()));
+        if (!already) {
+            enrolledWithRanking.push({
+                id: r.id, name: r.name,
+                email:  r.id.includes('@') ? r.id : '',
+                umakId: !r.id.includes('@') ? r.id : '',
+                ranking: r, testsTaken: r.testsTaken || 0,
+                avgScore: r.avgScore || 0,
+                overallCategory: r.overallCategory,
+                hasData: r.hasData
+            });
+        }
+    });
+ 
+    // Sort: data first (tests desc → score desc), then alpha
+    enrolledWithRanking.sort((a, b) => {
+        if (a.hasData && !b.hasData) return -1;
+        if (!a.hasData && b.hasData) return 1;
+        if (a.hasData && b.hasData) {
+            if (b.testsTaken !== a.testsTaken) return b.testsTaken - a.testsTaken;
+            return b.avgScore - a.avgScore;
+        }
+        return a.name.localeCompare(b.name);
+    });
+ 
+    let rankCounter = 0;
+    enrolledWithRanking.forEach(stu => {
+        stu.sectionRank = stu.hasData ? ++rankCounter : null;
+    });
+ 
+    const totalStudents = enrolledWithRanking.length;
+ 
+    // ── 3. Pagination ──
+    const studentsPerPage  = 10;
     let enrolledCurrentPage = 1;
-    const totalEnrolledPages = Math.ceil(studentsList.length / studentsPerPage);
-    
-    function renderEnrolledStudentsTable(page) {
-        const start = (page - 1) * studentsPerPage;
-        const pageStudents = studentsList.slice(start, start + studentsPerPage);
-        
-        let tableHtml = `
-            <div style="background:linear-gradient(135deg,#ffffff 0%,#f8fafc 100%);border-radius:16px;padding:16px;border:1px solid #e2e8f0;box-shadow:0 2px 8px rgba(0,0,0,0.04);">
-                <div style="display:flex;flex-direction:column;gap:8px;">
-                    ${pageStudents.map((s, idx) => `
-                        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #e2e8f0;">
-                            <div style="display:flex;align-items:center;gap:12px;">
-                                <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;color:white;font-size:12px;font-weight:600;">${start + idx + 1}</div>
-                                <span style="font-weight:500;color:#1e293b;">${escapeHtml(s.name) || 'Unknown'}</span>
-                            </div>
-                            <span style="font-size:12px;color:#64748b;font-family:'DM Mono',monospace;background:#f1f5f9;padding:4px 12px;border-radius:20px;">${s.umakId || s.email?.split('@')[0] || 'N/A'}</span>
-                        </div>
-                    `).join('')}
-                </div>
-                ${studentsList.length > studentsPerPage ? `
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding-top:12px;border-top:1px solid #e2e8f0;">
-                    <button onclick="changeEnrolledPage(-1)" style="padding:8px 16px;border-radius:10px;border:none;background:linear-gradient(135deg,#667eea,#764ba2);color:white;cursor:pointer;font-size:12px;font-weight:500;display:flex;align-items:center;gap:6px;${page === 1 ? 'opacity:0.5;cursor:not-allowed;' : ''}" ${page === 1 ? 'disabled' : ''}>
-                        <i class="fas fa-chevron-left"></i> Previous
-                    </button>
-                    <div style="display:flex;gap:6px;">
-                        ${(() => {
-                            let pages = [];
-                            for (let i = 1; i <= totalEnrolledPages; i++) {
-                                if (i === 1 || i === totalEnrolledPages || (i >= page - 1 && i <= page + 1)) {
-                                    pages.push(`<button onclick="goToEnrolledPage(${i})" style="width:34px;height:34px;border-radius:8px;border:none;background:${i === page ? '#667eea' : '#e2e8f0'};color:${i === page ? 'white' : '#64748b'};cursor:pointer;font-weight:${i === page ? '700' : '500'};">${i}</button>`);
-                                } else if (pages[pages.length - 1] !== '...') {
-                                    pages.push('<span style="color:#94a3b8;">...</span>');
-                                }
-                            }
-                            return pages.join('');
-                        })()}
-                    </div>
-                    <button onclick="changeEnrolledPage(1)" style="padding:8px 16px;border-radius:10px;border:none;background:linear-gradient(135deg,#667eea,#764ba2);color:white;cursor:pointer;font-size:12px;font-weight:500;display:flex;align-items:center;gap:6px;${page === totalEnrolledPages ? 'opacity:0.5;cursor:not-allowed;' : ''}" ${page === totalEnrolledPages ? 'disabled' : ''}>
-                        Next <i class="fas fa-chevron-right"></i>
-                    </button>
-                </div>
-                ` : ''}
-            </div>
-        `;
-        
-        // Store pagination functions globally
-        window.changeEnrolledPage = function(delta) {
-            let newPage = enrolledCurrentPage + delta;
-            if (delta === 1) newPage = enrolledCurrentPage + 1;
-            if (newPage < 1 || newPage > totalEnrolledPages) return;
-            enrolledCurrentPage = newPage;
-            
-            const enrolledContainer = document.getElementById('enrolledStudentsContainer');
-            if (enrolledContainer) {
-                enrolledContainer.innerHTML = renderEnrolledStudentsTable(enrolledCurrentPage);
+    const totalEnrolledPages = Math.ceil(totalStudents / studentsPerPage);
+ 
+    function renderEnrolledTable(page) {
+        const start       = (page - 1) * studentsPerPage;
+        const pageStudents = enrolledWithRanking.slice(start, start + studentsPerPage);
+ 
+        const rows = pageStudents.map(stu => {
+            const rankDisplay = stu.sectionRank !== null ? stu.sectionRank : '—';
+            const rankCls = stu.sectionRank !== null
+                ? (stu.sectionRank <= 3 ? `rank-${stu.sectionRank}` : 'rank-other')
+                : 'rank-other';
+ 
+            let perfCell = '<span style="color:#8a98ae;font-size:12px;">No result yet</span>';
+            if (stu.hasData && stu.overallCategory) {
+                const cls = getCategoryClass(stu.overallCategory);
+                perfCell = `<span class="score-pill ${cls}">${stu.overallCategory}</span>`;
             }
-        };
-        
-        window.goToEnrolledPage = function(page) {
-            if (page < 1 || page > totalEnrolledPages) return;
-            enrolledCurrentPage = page;
-            const enrolledContainer = document.getElementById('enrolledStudentsContainer');
-            if (enrolledContainer) {
-                enrolledContainer.innerHTML = renderEnrolledStudentsTable(enrolledCurrentPage);
+ 
+            const testCell = stu.hasData
+                ? `<span style="font-weight:600;font-family:\'DM Mono\',monospace;">${stu.testsTaken}</span>`
+                : '<span style="color:#8a98ae;">—</span>';
+ 
+            const idDisplay = stu.umakId || (stu.email ? stu.email.split('@')[0] : '—');
+ 
+            return `<tr style="${!stu.hasData ? 'opacity:0.65;' : ''}">
+                <td data-label="Rank"><div class="rank-num ${rankCls}" style="width:30px;height:30px;font-size:13px;">${rankDisplay}</div></td>
+                <td data-label="Student Name"><span style="font-weight:600;color:#0a1628;">${escapeHtml(stu.name)}</span>${!stu.hasData ? '<div style="font-size:10px;color:#94a3b8;margin-top:2px;">No test results yet</div>' : ''}</td>
+                <td data-label="Student ID"><span style="font-family:\'DM Mono\',monospace;font-size:12px;color:#8a98ae;">${escapeHtml(idDisplay)}</span></td>
+                <td data-label="Tests Taken" style="text-align:center;">${testCell}</td>
+                <td data-label="Performance">${perfCell}</td>
+            </tr>`;
+        }).join('');
+ 
+        let paginationHtml = '';
+        if (totalEnrolledPages > 1) {
+            const canPrev = page > 1;
+            const canNext = page < totalEnrolledPages;
+            let pageButtons = '';
+            for (let i = 1; i <= totalEnrolledPages; i++) {
+                if (i === 1 || i === totalEnrolledPages || Math.abs(i - page) <= 1) {
+                    pageButtons += `<button onclick="goToEnrolledPage(${i})" style="width:32px;height:32px;border-radius:8px;border:1px solid ${i === page ? '#2d6fc4' : '#e1e6ef'};background:${i === page ? '#2d6fc4' : '#fff'};color:${i === page ? '#fff' : '#4a5a72'};cursor:pointer;font-size:12px;font-weight:${i === page ? '700' : '500'};display:inline-flex;align-items:center;justify-content:center;">${i}</button>`;
+                } else if (!pageButtons.endsWith('…')) {
+                    pageButtons += `<span style="color:#8a98ae;padding:0 4px;">…</span>`;
+                }
             }
-        };
-        
-        return tableHtml;
-    }
-
-    // Build most active students HTML (professional colorful design)
-    const activeStudentsHtml = activeStudents.length > 0 ? `
-        <div style="background:linear-gradient(135deg,#1e1b4b 0%,#0f172a 100%);border-radius:20px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.15);">
-            <div style="padding:16px 20px;background:linear-gradient(90deg,#4f46e5,#7c3aed,#ec4899);">
-                <div style="display:flex;align-items:center;gap:12px;">
-                    <div style="width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;">
-                        <i class="fas fa-trophy" style="color:#fbbf24;font-size:20px;"></i>
+            paginationHtml = `
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0 0;border-top:1px solid #e1e6ef;margin-top:8px;flex-wrap:wrap;gap:8px;">
+                    <div style="font-size:12px;color:#8a98ae;">
+                        Showing <strong style="color:#0a1628;">${start + 1}–${Math.min(start + studentsPerPage, totalStudents)}</strong> of <strong style="color:#0a1628;">${totalStudents}</strong> students
                     </div>
-                    <div>
-<span style="font-weight:800;color:white;font-size:16px;">Most Active Students</span>                        <span style="font-size:11px;color:rgba(255,255,255,0.7);margin-left:8px;">top performers by test attempts</span>
+                    <div style="display:flex;align-items:center;gap:4px;">
+                        <button onclick="changeEnrolledPage(-1)" ${!canPrev ? 'disabled' : ''} style="width:32px;height:32px;border-radius:8px;border:1px solid #e1e6ef;background:${!canPrev ? '#f4f6fa' : '#fff'};color:${!canPrev ? '#c5cfe0' : '#4a5a72'};cursor:${!canPrev ? 'not-allowed' : 'pointer'};font-size:13px;display:inline-flex;align-items:center;justify-content:center;"><i class="fas fa-chevron-left"></i></button>
+                        ${pageButtons}
+                        <button onclick="changeEnrolledPage(1)" ${!canNext ? 'disabled' : ''} style="width:32px;height:32px;border-radius:8px;border:1px solid #e1e6ef;background:${!canNext ? '#f4f6fa' : '#fff'};color:${!canNext ? '#c5cfe0' : '#4a5a72'};cursor:${!canNext ? 'not-allowed' : 'pointer'};font-size:13px;display:inline-flex;align-items:center;justify-content:center;"><i class="fas fa-chevron-right"></i></button>
                     </div>
-                </div>
-            </div>
-            <div style="overflow-x:auto;padding:4px;">
-                <table style="width:100%;border-collapse:collapse;">
-                    <thead>
-                        <tr style="background:#1e293b;">
-                            <th style="text-align:left;padding:14px 16px;color:#94a3b8;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Rank</th>
-                            <th style="text-align:left;padding:14px 16px;color:#94a3b8;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Student</th>
-                            <th style="text-align:center;padding:14px 16px;color:#94a3b8;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Tests</th>
-                            <th style="text-align:center;padding:14px 16px;color:#94a3b8;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Performance</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${activeStudents.map((stu, idx) => {
-                            const rank = idx + 1;
-                            let rankHtml = '';
-                            if (rank === 1) {
-                                rankHtml = '<div style="background:linear-gradient(135deg,#fbbf24,#f59e0b);width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 20px rgba(251,191,36,0.4);"><span style="font-size:24px;">👑</span></div>';
-                            } else if (rank === 2) {
-                                rankHtml = '<div style="background:linear-gradient(135deg,#94a3b8,#64748b);width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;"><span style="font-size:20px;">🥈</span></div>';
-                            } else if (rank === 3) {
-                                rankHtml = '<div style="background:linear-gradient(135deg,#fcd34d,#b45309);width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;"><span style="font-size:20px;">🥉</span></div>';
-                            } else {
-                                rankHtml = `<div style="background:#334155;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-weight:700;font-size:14px;">${rank}</div>`;
-                            }
-                            return `
-                                <tr style="border-bottom:1px solid #334155;${rank <= 3 ? 'background:rgba(79,70,229,0.08);' : ''}">
-                                    <td style="padding:10px 16px;">${rankHtml}</td>
-                                    <td style="padding:10px 16px;"><span style="font-weight:600;color:#f1f5f9;">${escapeHtml(stu.name)}</span></td>
-                                    <td style="padding:10px 16px;text-align:center;">
-                                        <div style="display:inline-flex;align-items:center;gap:8px;background:#334155;padding:5px 14px;border-radius:30px;">
-                                            <i class="fas fa-clipboard-list" style="font-size:11px;color:#60a5fa;"></i>
-                                            <span style="font-weight:700;color:#f1f5f9;">${stu.testCount}</span>
-                                            <span style="font-size:10px;color:#94a3b8;">test${stu.testCount !== 1 ? 's' : ''}</span>
-                                        </div>
-                                    </td>
-                                    <td style="padding:10px 16px;text-align:center;">
-                                        <span class="score-pill ${stu.ratingClass}" style="font-size:11px;padding:5px 14px;">${stu.rating}</span>
-                                    </td>
-                                </tr>
-                            `;
-                        }).join('')}
-                    </tbody>
+                </div>`;
+        }
+ 
+        return `
+            <div style="overflow-x:auto;">
+                <table class="custom-table">
+                    <thead><tr>
+                        <th style="text-align:left;">Rank</th>
+                        <th style="text-align:left;">Student Name</th>
+                        <th style="text-align:left;">Student ID</th>
+                        <th style="text-align:center;">Tests Taken</th>
+                        <th style="text-align:left;">Avg Performance</th>
+                    </tr></thead>
+                    <tbody>${rows || '<tr><td colspan="5" style="text-align:center;color:#8a98ae;padding:24px;">No students enrolled yet.</td></tr>'}</tbody>
                 </table>
             </div>
-        </div>
-    ` : '<div style="background:linear-gradient(135deg,#f8fafc,#f1f5f9);border-radius:16px;padding:40px;text-align:center;color:#94a3b8;border:1px dashed #cbd5e1;"><i class="fas fa-chart-line" style="font-size:32px;margin-bottom:12px;display:block;"></i>No test submissions yet from students</div>';
-
-    // Build the complete modal content
+            ${paginationHtml}`;
+    }
+ 
+    window.changeEnrolledPage = function(delta) {
+        const newPage = enrolledCurrentPage + delta;
+        if (newPage < 1 || newPage > totalEnrolledPages) return;
+        enrolledCurrentPage = newPage;
+        const c = document.getElementById('enrolledStudentsContainer');
+        if (c) c.innerHTML = renderEnrolledTable(enrolledCurrentPage);
+    };
+    window.goToEnrolledPage = function(page) {
+        if (page < 1 || page > totalEnrolledPages) return;
+        enrolledCurrentPage = page;
+        const c = document.getElementById('enrolledStudentsContainer');
+        if (c) c.innerHTML = renderEnrolledTable(enrolledCurrentPage);
+    };
+ 
+    // ── 4. Build the modal HTML ──
     const overallRating = s.avgScore > 0 ? getScoreRating(s.avgScore) : null;
-    const bmiStatus = s.bmiPreAvg ? getBMICategory(s.bmiPreAvg) : null;
-    const bmiChange = s.bmiImprovement ? (s.bmiImprovement > 0 ? `+${s.bmiImprovement.toFixed(1)}` : s.bmiImprovement.toFixed(1)) : null;
-    
+ 
+    document.getElementById('sectionDetailsTitle').textContent = `Section: ${sectionName}`;
     document.getElementById('sectionDetailsContent').innerHTML = `
-        <div style="margin-bottom:24px;max-height:80vh;overflow-y:auto;padding-right:8px;">
-            <!-- Header Stats - Colorful Professional -->
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px;">
-                <div style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border-radius:20px;padding:20px;color:white;box-shadow:0 8px 20px rgba(102,126,234,0.25);">
-                    <div style="font-size:12px;opacity:0.9;letter-spacing:1px;">OVERALL RANK</div>
-                    <div style="font-size:42px;font-weight:800;font-family:'DM Mono',monospace;margin:8px 0 4px;">#${rank}</div>
-                    <div style="font-size:12px;opacity:0.8;">out of ${sectionRankings.length} sections</div>
+        <div style="max-height:80vh;overflow-y:auto;padding-right:4px;">
+ 
+            <!-- Top Stats: 2 dark cards (no BMI) -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;">
+ 
+                <!-- Overall Rank -->
+                <div style="
+                    background:linear-gradient(135deg,#0a1628 0%,#112240 100%);
+                    border-radius:20px;padding:22px 24px;color:white;
+                    box-shadow:0 8px 24px rgba(10,22,40,0.35);
+                    border:1px solid rgba(255,255,255,0.07);
+                    position:relative;overflow:hidden;">
+                    <div style="position:absolute;top:-20px;right:-20px;width:80px;height:80px;border-radius:50%;background:rgba(200,168,75,0.08);pointer-events:none;"></div>
+                    <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#ffffff;margin-bottom:10px;">Overall Rank</div>
+                    <div style="font-size:48px;font-weight:900;font-family:'DM Mono',monospace;line-height:1;color:#c8a84b;margin-bottom:6px;">#${rank}</div>
+                    <div style="font-size:12px;color:#ffffff;">out of ${sectionRankings.length} sections</div>
                 </div>
-                <div style="background:linear-gradient(135deg,#11998e 0%,#38ef7d 100%);border-radius:20px;padding:20px;color:white;box-shadow:0 8px 20px rgba(17,153,142,0.25);">
-                    <div style="font-size:12px;opacity:0.9;letter-spacing:1px;">OVERALL PERFORMANCE</div>
-                    <div style="font-size:32px;font-weight:800;margin:8px 0 4px;">${overallRating ? overallRating.text : '—'}</div>
-                    <div style="font-size:12px;opacity:0.8;">${s.totalTests || 0} total tests taken</div>
-                </div>
-                <div style="background:linear-gradient(135deg,#f093fb 0%,#f5576c 100%);border-radius:20px;padding:20px;color:white;box-shadow:0 8px 20px rgba(240,147,251,0.25);">
-                    <div style="font-size:12px;opacity:0.9;letter-spacing:1px;">BMI HEALTH</div>
-                    <div style="font-size:32px;font-weight:800;margin:8px 0 4px;">${s.bmiPreAvg ? s.bmiPreAvg.toFixed(1) : '—'}</div>
-                    <div style="font-size:12px;opacity:0.8;">${bmiStatus ? getBMICategoryDisplay(bmiStatus) : 'No data'} ${bmiChange ? `(${bmiChange})` : ''}</div>
+ 
+                <!-- Overall Performance -->
+                <div style="
+                    background:linear-gradient(135deg,#0a1628 0%,#1a3a5c 100%);
+                    border-radius:20px;padding:22px 24px;color:white;
+                    box-shadow:0 8px 24px rgba(10,22,40,0.35);
+                    border:1px solid rgba(255,255,255,0.07);
+                    position:relative;overflow:hidden;">
+                    <div style="position:absolute;bottom:-20px;left:-20px;width:80px;height:80px;border-radius:50%;background:rgba(45,111,196,0.1);pointer-events:none;"></div>
+                    <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#ffffff;margin-bottom:10px;">Overall Performance</div>
+                    <div style="font-size:32px;font-weight:900;line-height:1.1;margin-bottom:6px;
+                        color:${overallRating
+                            ? (overallRating.text === 'Excellent' ? '#4ade80'
+                              : overallRating.text === 'Good' ? '#60a5fa'
+                              : overallRating.text === 'Average' ? '#fbbf24'
+                              : '#f87171')
+                            : 'rgba(255,255,255,0.3)'};">
+                        ${overallRating ? overallRating.text : '—'}
+                    </div>
+                    <div style="font-size:12px;color:#fffff;">${s.totalTests || 0} total tests taken</div>
                 </div>
             </div>
-            
+ 
             <!-- Section Info Grid -->
             <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:24px;">
-                <div style="background:linear-gradient(135deg,#f8fafc,#ffffff);border-radius:14px;padding:16px;border:1px solid #e2e8f0;">
+                <div style="background:#f8fafc;border-radius:14px;padding:16px;border:1px solid #e2e8f0;">
                     <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px;">🏫 Section Name</div>
                     <div style="font-size:18px;font-weight:700;color:#0f172a;margin-top:4px;">${escapeHtml(s.name)}</div>
                 </div>
-                <div style="background:linear-gradient(135deg,#f8fafc,#ffffff);border-radius:14px;padding:16px;border:1px solid #e2e8f0;">
+                <div style="background:#f8fafc;border-radius:14px;padding:16px;border:1px solid #e2e8f0;">
                     <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px;">🎓 College</div>
                     <div style="font-size:15px;font-weight:500;color:#1e293b;margin-top:4px;">${escapeHtml(s.college)}</div>
                 </div>
-                <div style="background:linear-gradient(135deg,#f8fafc,#ffffff);border-radius:14px;padding:16px;border:1px solid #e2e8f0;">
+                <div style="background:#f8fafc;border-radius:14px;padding:16px;border:1px solid #e2e8f0;">
                     <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px;">👨‍🏫 Professor</div>
                     <div style="font-size:15px;font-weight:500;color:#1e293b;margin-top:4px;">${escapeHtml(s.professor || 'Unassigned')}</div>
                 </div>
-                <div style="background:linear-gradient(135deg,#f8fafc,#ffffff);border-radius:14px;padding:16px;border:1px solid #e2e8f0;">
+                <div style="background:#f8fafc;border-radius:14px;padding:16px;border:1px solid #e2e8f0;">
                     <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px;">📧 Professor Email</div>
                     <div style="font-size:12px;word-break:break-all;color:#1e293b;margin-top:4px;">${s.professorEmail || (s.professor && s.professor !== 'Unassigned' ? generateProfessorEmail(s.professor) : 'Not assigned')}</div>
                 </div>
-                <div style="background:linear-gradient(135deg,#f8fafc,#ffffff);border-radius:14px;padding:16px;border:1px solid #e2e8f0;">
+                <div style="background:#f8fafc;border-radius:14px;padding:16px;border:1px solid #e2e8f0;">
                     <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px;">👥 Total Students</div>
-                    <div style="font-size:28px;font-weight:800;color:#0f172a;margin-top:4px;">${s.studentCount}</div>
+                    <div style="font-size:28px;font-weight:800;color:#0f172a;margin-top:4px;">${totalStudents}</div>
                 </div>
-                <div style="background:linear-gradient(135deg,#f8fafc,#ffffff);border-radius:14px;padding:16px;border:1px solid #e2e8f0;">
+                <div style="background:#f8fafc;border-radius:14px;padding:16px;border:1px solid #e2e8f0;">
                     <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:1px;">📝 Total Test Results</div>
                     <div style="font-size:28px;font-weight:800;color:#0f172a;margin-top:4px;">${s.totalTests || 0}</div>
                 </div>
             </div>
-            
-           
-            
-            <!-- Test Breakdown -->
-            <div style="margin-bottom:24px;">
-                <div style="font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:10px;">
-                    <div style="width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);display:flex;align-items:center;justify-content:center;">
-                        <i class="fas fa-flask" style="color:white;font-size:16px;"></i>
-                    </div>
-                    <span style="font-size:15px;color:#1e293b;">Fitness Test Breakdown</span>
-                </div>
-                ${testBreakdownHtml}
-            </div>
-            
-            <!-- Most Active Students -->
-            <div style="margin-bottom:24px;">
-                ${activeStudentsHtml}
-            </div>
-            
-            <!-- Enrolled Students with Pagination -->
+ 
+            <!-- Enrolled Students -->
             <div>
                 <div style="font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:10px;">
-                    <div style="width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,#3b82f6,#2563eb);display:flex;align-items:center;justify-content:center;">
+                    <div style="width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,#0a1628,#1e4d8c);display:flex;align-items:center;justify-content:center;">
                         <i class="fas fa-users" style="color:white;font-size:16px;"></i>
                     </div>
                     <span style="font-size:15px;color:#1e293b;">Enrolled Students</span>
-                    <span style="background:#e2e8f0;padding:2px 10px;border-radius:30px;font-size:12px;color:#475569;">${studentsList.length} total</span>
+                    <span style="background:#e2e8f0;padding:2px 10px;border-radius:30px;font-size:12px;color:#475569;">${totalStudents} total</span>
                 </div>
                 <div id="enrolledStudentsContainer">
-                    ${renderEnrolledStudentsTable(1)}
+                    ${renderEnrolledTable(1)}
                 </div>
             </div>
-        </div>
-    `;
-};
-
+ 
+        </div>`;
+ 
     document.getElementById('sectionDetailsModal').style.display = 'flex';
-
+};
     
     window.closeSectionDetailsModal = function() { document.getElementById('sectionDetailsModal').style.display='none'; };
 async function loadStudentRankings() {
@@ -5045,17 +4952,28 @@ if (sideEffects.length) {
 // ══════════════════════════════════════════════════════════════════
 
 window.deleteSection = async function (sectionName) {
+    // ── Get accurate counts from the section data we already have ──
+    const sectionData = sectionRankings.find(r => r.name === sectionName);
+    const enrolledCount = sectionData?.studentCount || 0;
+    const testsCount    = sectionData?.totalTests   || 0;
+
+    const confirmLines = [
+        `• The section record`,
+        enrolledCount > 0 ? `• <strong>${enrolledCount}</strong> enrolled student account(s)` : `• All enrolled students`,
+        testsCount > 0    ? `• <strong>${testsCount}</strong> test result(s)` : `• All test results`,
+        `• All BMI assessments for those students`,
+        `• All scheduled tests for this section`,
+        `• All lesson progress records`,
+        `• All student norm overrides`,
+    ];
+
     const confirmed = await showDeanConfirm(
         `Delete section <strong>${sectionName}</strong>?<br><br>
          This will permanently delete:<br>
-         • The section record<br>
-         • All enrolled students in this section<br>
-         • All BMI assessments for those students<br>
-         • All test results for those students<br>
-         • All student norm overrides for those students<br><br>
-         <strong>Professors will NOT be deleted.</strong> This cannot be undone.`,
+         ${confirmLines.join('<br>')}
+         <br><br><strong>Professors will NOT be deleted.</strong> This cannot be undone.`,
         {
-            title: 'Delete Section',
+            title: `Delete Section: ${sectionName}`,
             confirmText: 'Yes, Delete Everything',
             cancelText: 'Cancel',
             type: 'error'
@@ -5063,26 +4981,37 @@ window.deleteSection = async function (sectionName) {
     );
     if (!confirmed) return;
 
-    // ── Loading overlay ──────────────────────────────────────────
+   // ── Loading overlay with progress bar ──────────────────────────────────────────
     const loadingOverlay = document.createElement('div');
     loadingOverlay.id = 'deleteSectionLoading';
     loadingOverlay.style.cssText =
-        'position:fixed;inset:0;background:rgba(10,22,40,0.7);backdrop-filter:blur(4px);' +
+        'position:fixed;inset:0;background:rgba(10,22,40,0.75);backdrop-filter:blur(4px);' +
         'display:flex;align-items:center;justify-content:center;z-index:99999;';
     loadingOverlay.innerHTML = `
         <div style="background:#fff;border-radius:20px;padding:2rem 2.5rem;text-align:center;
-                    font-family:'DM Sans',sans-serif;box-shadow:0 20px 60px rgba(0,0,0,0.3);min-width:280px;">
-            <div class="spinner" style="margin:0 auto 1rem;"></div>
-            <div style="font-weight:600;color:#0a1628;font-size:15px;" id="deleteSectionStatus">Deleting section…</div>
-            <div style="font-size:12px;color:#8a98ae;margin-top:4px;" id="deleteSectionSub">Please wait</div>
+                    font-family:'DM Sans',sans-serif;box-shadow:0 20px 60px rgba(0,0,0,0.3);min-width:300px;">
+            <div class="spinner" style="margin:0 auto 1.25rem;"></div>
+            <div style="font-weight:700;color:#0a1628;font-size:16px;" id="deleteSectionStatus">Deleting section…</div>
+            <div style="font-size:12px;color:#8a98ae;margin-top:6px;" id="deleteSectionSub">Please wait, do not close this page</div>
+            <div style="margin-top:16px;background:#f4f6fa;border-radius:10px;padding:10px 14px;">
+                <div style="font-size:11px;color:#8a98ae;margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Progress</div>
+                <div style="background:#e1e6ef;border-radius:4px;height:6px;overflow:hidden;">
+                    <div id="deleteSectionProgressBar" style="height:100%;width:0%;background:linear-gradient(90deg,#c0392b,#e74c3c);border-radius:4px;transition:width 0.4s ease;"></div>
+                </div>
+                <div style="font-size:12px;color:#4a5a72;margin-top:6px;" id="deleteSectionProgressText">Starting…</div>
+            </div>
         </div>`;
     document.body.appendChild(loadingOverlay);
 
-    const setStatus = (msg, sub = '') => {
+    const setStatus = (msg, sub = '', pct = null, progressText = '') => {
         const s = document.getElementById('deleteSectionStatus');
         const b = document.getElementById('deleteSectionSub');
+        const bar = document.getElementById('deleteSectionProgressBar');
+        const txt = document.getElementById('deleteSectionProgressText');
         if (s) s.textContent = msg;
-        if (b) b.textContent = sub;
+        if (b && sub) b.textContent = sub;
+        if (bar && pct !== null) bar.style.width = pct + '%';
+        if (txt && progressText) txt.textContent = progressText;
     };
 
     // ── Batch-delete helper (respects Firestore 500-op limit) ────
@@ -5107,7 +5036,7 @@ window.deleteSection = async function (sectionName) {
 
     try {
         // ── Step 1: Identify all students in this section ────────
-        setStatus('Finding students…', `Section: ${sectionName}`);
+        setStatus('Finding students…', `Section: ${sectionName}`, 5, 'Scanning student records…');
 
         const studentUids    = new Set();
         const studentEmails  = new Set();
@@ -5116,6 +5045,7 @@ window.deleteSection = async function (sectionName) {
         const studentUserDocs  = [];
         const studentCollDocs  = [];
 
+        // users collection (role === student)
         // users collection (role === student)
         const usersSnap = await db.collection('users')
             .where('role', '==', 'student').get();
@@ -5131,23 +5061,30 @@ window.deleteSection = async function (sectionName) {
             if (rawId) studentUmakIds.add(rawId.toUpperCase());
         });
 
-        // students collection
+        // students collection — only add emails/umakIds for deletion,
+        // but DON'T add to studentUids (avoid double-counting same person)
         const studentsCollSnap = await db.collection('students').get();
         studentsCollSnap.forEach(d => {
             const data = d.data();
             const sec  = data.section || data.assignedSection || data.class || data.sectionName || '';
             if (sec !== sectionName) return;
             studentCollDocs.push(d);
-            studentUids.add(d.id);
+            // Only add to studentUids if this email wasn't already counted via users collection
+            const docEmail = (data.email || '').toLowerCase();
+            if (!docEmail || !studentEmails.has(docEmail)) {
+                // This is a student doc with no matching user doc — count it
+                studentUids.add(d.id);
+            }
             if (data.email)  studentEmails.add(data.email.toLowerCase());
             if (data.umakId) studentUmakIds.add(data.umakId.trim().toUpperCase());
         });
 
-        const totalStudents = studentUids.size;
-        setStatus(`Found ${totalStudents} student(s)`, 'Collecting records to delete…');
+       
+        const totalStudents = studentEmails.size || studentUids.size;
+        setStatus(`Found ${totalStudents} student(s)`, 'Collecting records to delete…', 12, `${totalStudents} student(s) identified`);
 
         // ── Step 2: Delete BMI records ───────────────────────────
-        setStatus('Deleting BMI records…');
+        setStatus('Deleting BMI records…', 'Removing health assessments', 22, 'Scanning BMI collection…');
         const bmiSnap = await db.collection('BMI').get();
         const bmiToDelete = [];
         bmiSnap.forEach(d => {
@@ -5167,7 +5104,7 @@ window.deleteSection = async function (sectionName) {
 
         // ── Step 3: Delete testResults ───────────────────────────
         // ── Step 3: Delete testResults ───────────────────────────
-setStatus('Deleting test results…');
+setStatus('Deleting test results…', 'Removing fitness test data', 36, 'Scanning test results…');
 const testSnap = await db.collection('testResults').get();
 const testsToDelete = [];
 testSnap.forEach(d => {
@@ -5186,7 +5123,7 @@ testSnap.forEach(d => {
 await batchDelete(testsToDelete);
 
 // ── Step 3b: Delete scheduledTests for this section ──────
-setStatus('Deleting scheduled tests…');
+setStatus('Deleting scheduled tests…', 'Removing test schedules & permissions', 50, 'Scanning scheduled tests…');
 const scheduledSnap = await db.collection('scheduledTests')
     .where('section', '==', sectionName)
     .get();
@@ -5316,7 +5253,7 @@ if (scheduledIds.length > 0) {
 // Only delete norm docs for emails that belong to THIS section.
 // Do NOT delete the parent studentNorms/{email} doc — the student
 // may exist in another section and have norms there too.
-setStatus('Deleting student norm overrides…');
+setStatus('Deleting student norm overrides…', 'Removing custom fitness norms', 65, 'Scanning norm records…');
 let normsDeleted = 0;
 
 // Only use verified student emails from this section
@@ -5359,15 +5296,15 @@ for (let i = 0; i < normKeys.length; i += CHUNK) {
     }));
 }
 
-        setStatus(`Deleted ${normsDeleted} norm record(s)`, 'Removing student accounts…');
+       setStatus(`Deleted ${normsDeleted} norm record(s)`, 'Removing student accounts…', 75, 'Norm records cleaned up');
 
         // ── Step 5: Delete student user documents ────────────────
-        setStatus(`Deleting ${totalStudents} student account(s)…`);
+        setStatus(`Deleting ${totalStudents} student account(s)…`, 'Removing user records', 85, `Processing ${totalStudents} account(s)…`);
         await batchDelete(studentUserDocs);
         await batchDelete(studentCollDocs);
 
         // ── Step 6: Delete the section document itself ───────────
-        setStatus('Deleting section record…');
+       setStatus('Deleting section record…', 'Almost done', 95, 'Removing section document…');
         const sectionSnap = await db.collection('sections')
             .where('name', '==', sectionName).get();
         await batchDelete(sectionSnap.docs);
@@ -5379,21 +5316,28 @@ for (let i = 0; i < normKeys.length; i += CHUNK) {
         } catch (_) { /* ignore */ }
 
         // ── Done ─────────────────────────────────────────────────
+        setStatus('Finished!', 'All data removed successfully', 100, 'Done ✓');
+        await new Promise(r => setTimeout(r, 400));
         loadingOverlay.remove();
 
-        await showDeanAlert(
-    `Section <strong>${sectionName}</strong> has been deleted.<br><br>
-     Removed:<br>
-     • ${totalStudents} student account(s)<br>
-     • ${bmiToDelete.length} BMI record(s)<br>
-     • ${testsToDelete.length} test result(s)<br>
-     • ${scheduledToDelete.length} scheduled test(s)<br>
-     • ${lessonsDeleted} lesson(s) deleted<br>
-    • ${lessonProgressDeleted} lesson progress record(s) deleted<br>
-     • ${normsDeleted} student norm record(s)`,
-    { title: 'Section Deleted', type: 'success', confirmText: 'Done' }
-);
+        // Build accurate summary lines — only show items that actually had records
+        const summaryLines = [];
+        if (totalStudents > 0)            summaryLines.push(`• <strong>${totalStudents}</strong> student account(s)`);
+        if (bmiToDelete.length > 0)       summaryLines.push(`• <strong>${bmiToDelete.length}</strong> BMI record(s)`);
+        if (testsToDelete.length > 0)     summaryLines.push(`• <strong>${testsToDelete.length}</strong> test result(s)`);
+        if (scheduledToDelete.length > 0) summaryLines.push(`• <strong>${scheduledToDelete.length}</strong> scheduled test(s)`);
+        if (lessonsDeleted > 0)           summaryLines.push(`• <strong>${lessonsDeleted}</strong> lesson(s)`);
+        if (lessonProgressDeleted > 0)    summaryLines.push(`• <strong>${lessonProgressDeleted}</strong> lesson progress record(s)`);
+        if (normsDeleted > 0)             summaryLines.push(`• <strong>${normsDeleted}</strong> student norm record(s)`);
 
+        const summaryBody = summaryLines.length
+            ? `<br><br>Removed:<br>${summaryLines.join('<br>')}`
+            : '<br><br>No associated records were found.';
+
+        await showDeanAlert(
+            `Section <strong>${sectionName}</strong> has been permanently deleted.${summaryBody}`,
+            { title: 'Section Deleted', type: 'success', confirmText: 'Done' }
+        );
         // Refresh all relevant data
         await loadTestResults();
         await loadSections();
@@ -5675,13 +5619,22 @@ async function buildDeanImportPreview(studentData, fallbackMeta) {
     );
     if (!confirmed) {
         cancelDeanImport();
-        return;
+    return;
     }
 
     deanCurrentImportData = { data: studentData, metadata: meta };
     deanPreviewCurrentPage = 1;
     populateDeanSectionFilter(studentData);
     showDeanPreviewTable();
+
+   
+    const uniqueSecs = [...new Set(studentData.map(r => (r.section || '').trim()).filter(Boolean))];
+    const btn = document.getElementById('deanProcessImportBtn');
+    if (btn) {
+        btn.innerHTML = uniqueSecs.length > 1
+            ? `<i class="fas fa-check"></i> Process Import (All ${uniqueSecs.length} Sections)`
+            : `<i class="fas fa-check"></i> Process Import`;
+    }
 }
 async function showDeanPreviewTable() {
     if (!deanCurrentImportData || !Array.isArray(deanCurrentImportData.data)) return;
@@ -5837,6 +5790,17 @@ window.goToDeanPreviewPage = function(page) {
 window.onDeanPreviewSectionChange = function() {
     deanPreviewCurrentPage = 1;
     showDeanPreviewTable();
+   
+    const sel = document.getElementById('deanPreviewSectionFilter');
+    const val = sel?.value || 'all';
+    const btn = document.getElementById('deanProcessImportBtn');
+    if (btn) {
+        if (val === 'all') {
+            btn.innerHTML = '<i class="fas fa-check"></i> Process Import (All Sections)';
+        } else {
+            btn.innerHTML = `<i class="fas fa-check"></i> Process Import (${val} only)`;
+        }
+    }
 };
 
 window.cancelDeanImport = function() {
@@ -5856,11 +5820,63 @@ window.processDeanImport = async function() {
     }
     const meta = deanCurrentImportData.metadata || {};
 
+    // Only import the section currently selected in the filter
+    const selectedSection = document.getElementById('deanPreviewSectionFilter')?.value || 'all';
+    const dataToImport = selectedSection === 'all'
+        ? deanCurrentImportData.data
+        : deanCurrentImportData.data.filter(r => (r.section || '').trim() === selectedSection);
+
+    if (!dataToImport.length) {
+        await showDeanAlert('No students found for the selected section.', { title: 'No Data', type: 'warning' });
+        return;
+    }
+
     const btn = document.getElementById('deanProcessImportBtn');
     if (btn) btn.disabled = true;
+
+    // ✅ Show loading screen like secretary portal
+    const loadingOverlay = document.createElement('div');
+    loadingOverlay.id = 'deanImportLoading';
+    loadingOverlay.style.cssText = 'position:fixed;inset:0;background:rgba(10,22,40,0.75);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:99999;';
+    loadingOverlay.innerHTML = `
+        <div style="background:#fff;border-radius:20px;padding:2rem 2.5rem;text-align:center;
+                    font-family:'DM Sans',sans-serif;box-shadow:0 20px 60px rgba(0,0,0,0.3);min-width:300px;">
+            <div class="spinner" style="margin:0 auto 1.25rem;"></div>
+            <div style="font-weight:700;color:#0a1628;font-size:16px;" id="deanImportStatus">Processing import…</div>
+            <div style="font-size:12px;color:#8a98ae;margin-top:6px;" id="deanImportSub">Please wait, do not close this page</div>
+            <div style="margin-top:16px;background:#f4f6fa;border-radius:10px;padding:10px 14px;">
+                <div style="font-size:11px;color:#8a98ae;margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Progress</div>
+                <div style="background:#e1e6ef;border-radius:4px;height:6px;overflow:hidden;">
+                    <div id="deanImportProgressBar" style="height:100%;width:0%;background:linear-gradient(90deg,#2d6fc4,#1e4d8c);border-radius:4px;transition:width 0.3s ease;"></div>
+                </div>
+                <div style="font-size:12px;color:#4a5a72;margin-top:6px;" id="deanImportProgressText">0 / 0 students</div>
+            </div>
+        </div>`;
+    document.body.appendChild(loadingOverlay);
+
+    const setStatus = (msg, sub = '') => {
+        const s = document.getElementById('deanImportStatus');
+        const b = document.getElementById('deanImportSub');
+        if (s) s.textContent = msg;
+        if (b && sub) b.textContent = sub;
+    };
+
+    const setProgress = (current, total) => {
+        const pct = total > 0 ? Math.round((current / total) * 100) : 0;
+        const bar = document.getElementById('deanImportProgressBar');
+        const txt = document.getElementById('deanImportProgressText');
+        if (bar) bar.style.width = pct + '%';
+        if (txt) txt.textContent = `${current} / ${total} students`;
+    };
+
     try {
         let successCount = 0, errorCount = 0;
-        for (const row of deanCurrentImportData.data) {
+        const total = dataToImport.length;
+
+        setStatus('Importing students…', `Processing ${total} student record(s)`);
+        setProgress(0, total);
+
+        for (const row of dataToImport) {
             try {
                 await deanUpsertStudentRow(row);
                 successCount++;
@@ -5868,25 +5884,48 @@ window.processDeanImport = async function() {
                 errorCount++;
                 console.error('Dean import row error:', e);
             }
+            setProgress(successCount + errorCount, total);
+            setStatus(
+                `Importing students… (${successCount + errorCount}/${total})`,
+                errorCount > 0 ? `${successCount} succeeded, ${errorCount} failed` : `${successCount} processed successfully`
+            );
         }
+
+        setStatus('Updating section records…', 'Almost done');
+
         const rowsBySection = {};
-        for (const row of deanCurrentImportData.data) {
+        for (const row of dataToImport) {
             const sec = (row.section || '').trim();
             if (!sec) continue;
             if (!rowsBySection[sec]) rowsBySection[sec] = [];
             rowsBySection[sec].push(row);
         }
+
         const sections = Object.keys(rowsBySection);
         if (!sections.length) throw new Error('Missing section name in imported data.');
+
         for (const sectionName of sections) {
+            setStatus(`Updating section: ${sectionName}…`, 'Saving roster');
             await deanUpdateSectionRoster(sectionName, rowsBySection[sectionName], meta);
         }
 
+        // Remove loading overlay
+        loadingOverlay.remove();
+
+        const importedSectionNames = sections.join(', ');
         await showDeanAlert(
-            `Import complete.<br><br><strong>${successCount}</strong> student record(s) processed in <strong>${sections.length}</strong> section(s)${errorCount ? `, <strong>${errorCount}</strong> failed.` : '.'}`,
-            { title: 'Import Complete', type: errorCount ? 'warning' : 'success' }
+            `Import complete.<br><br>
+             <strong>${successCount}</strong> student record(s) processed in <strong>${sections.length}</strong> section(s): <strong>${importedSectionNames}</strong>
+             ${errorCount ? `<br><span style="color:#c0392b;"><strong>${errorCount}</strong> failed.</span>` : ''}`,
+            { title: 'Import Complete', type: errorCount ? 'warning' : 'success', confirmText: 'Done' }
         );
+
         cancelDeanImport();
+
+    } catch (err) {
+        loadingOverlay.remove();
+        console.error('Dean import error:', err);
+        await showDeanAlert('Import failed: ' + (err.message || 'Unknown error'), { title: 'Import Failed', type: 'error' });
     } finally {
         if (btn) btn.disabled = false;
     }
